@@ -2,12 +2,12 @@ FROM python:3.12-slim
 EXPOSE 8501
 
 # Install dependencies
-COPY requirements.txt /transcription/requirements.txt
-RUN pip install --no-cache-dir -r /transcription/requirements.txt
+COPY requirements.txt /kiwi/requirements.txt
+RUN pip install --no-cache-dir -r /kiwi/requirements.txt
 
 # Copy the current directory contents into the container at /app
-COPY . /transcription
-WORKDIR /transcription
+COPY . /kiwi
+WORKDIR /kiwi
 
 # Set the user to 'nobody' for security
 USER nobody
