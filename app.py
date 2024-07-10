@@ -4,6 +4,8 @@ import time
 from io import BytesIO
 import os
 from dotenv import load_dotenv
+import yt_dlp
+import tempfile
 
 # Load environment variables from .env file
 load_dotenv()
@@ -28,10 +30,34 @@ def check_status(task_id):
     return response.json()
 
 
-st.title("Transcription Service")
-st.write("Upload a video or audio file to get a transcription.")
+def download_youtube_video(youtube_url):
+    temp_dir = tempfile.mkdtemp()
+    temp_file_path = os.path.join(temp_dir, "video.mp4")
+    ydl_opts = {
+        'format': 'bestvideo+bestaudio/best',
+        'outtmpl': os.path.join(temp_dir, "video.%(ext)s"),
+    }
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        info_dict = ydl.extract_info(youtube_url, download=True)
+        final_file_path = os.path.join(temp_dir, "video.mkv")
+        if os.path.exists(final_file_path):
+            os.rename(final_file_path, temp_file_path)
+    return temp_file_path
 
-uploaded_file = st.file_uploader("Choose a file", type=["mp4", "wav", "mp3"])
+
+st.title("Transcription Service")
+st.write("Upload a video or audio file or provide a YouTube link to get a transcription.")
+
+input_type = st.radio("Choose input type", ["Upload File", "YouTube Link"])
+
+uploaded_file = None
+youtube_link = None
+
+if input_type == "Upload File":
+    uploaded_file = st.file_uploader("Choose a file", type=["mp4", "wav", "mp3"])
+elif input_type == "YouTube Link":
+    youtube_link = st.text_input("Enter YouTube video link")
+
 lang = st.selectbox("Select Language", ["de", "en", "es", "fr", "pt"])
 model = st.selectbox("Select Model", ["base", "large-v2", "large-v3"])
 min_speakers = st.number_input("Minimum Number of Speakers", min_value=1, max_value=10, value=1)
@@ -47,13 +73,22 @@ if "status" not in st.session_state:
 if "original_file_name" not in st.session_state:
     st.session_state.original_file_name = None
 
-if uploaded_file and st.button("Transcribe"):
+if (uploaded_file or youtube_link) and st.button("Transcribe"):
+    if uploaded_file:
+        file_to_transcribe = uploaded_file
+        original_file_name = uploaded_file.name
+    elif youtube_link:
+        st.info("Downloading YouTube video...")
+        downloaded_file_path = download_youtube_video(youtube_link)
+        file_to_transcribe = open(downloaded_file_path, "rb")
+        original_file_name = youtube_link.split("=")[-1] + ".mp4"
+
     st.info("Uploading file...")
-    upload_response = upload_file(uploaded_file, lang, model, min_speakers, max_speakers)
+    upload_response = upload_file(file_to_transcribe, lang, model, min_speakers, max_speakers)
     task_id = upload_response.get("task_id")
     if task_id:
         st.session_state.task_id = task_id
-        st.session_state.original_file_name = uploaded_file.name
+        st.session_state.original_file_name = original_file_name
         st.info(f"File uploaded. Tracking task with ID: {task_id}")
 
 # Process existing task_id from session state
