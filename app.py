@@ -6,6 +6,7 @@ import os
 from dotenv import load_dotenv
 import yt_dlp
 import tempfile
+from urllib.parse import urlparse, parse_qs
 
 # Load environment variables from .env file
 load_dotenv()
@@ -30,18 +31,31 @@ def check_status(task_id):
     return response.json()
 
 
+def get_youtube_video_id(url):
+    """Extract the video ID from a YouTube URL."""
+    query = urlparse(url).query
+    params = parse_qs(query)
+    return params.get("v", [None])[0]
+
+
 def download_youtube_video(youtube_url):
+    video_id = get_youtube_video_id(youtube_url)
+    if not video_id:
+        raise ValueError("Invalid YouTube URL")
+
     temp_dir = tempfile.mkdtemp()
-    temp_file_path = os.path.join(temp_dir, "video.mp4")
+    temp_file_path = os.path.join(temp_dir, f"{video_id}.mp4")
     ydl_opts = {
         'format': 'bestvideo+bestaudio/best',
-        'outtmpl': os.path.join(temp_dir, "video.%(ext)s"),
+        'outtmpl': os.path.join(temp_dir, f"{video_id}.%(ext)s"),
     }
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info_dict = ydl.extract_info(youtube_url, download=True)
-        final_file_path = os.path.join(temp_dir, "video.mkv")
-        if os.path.exists(final_file_path):
-            os.rename(final_file_path, temp_file_path)
+        base_finalpath, extension = os.path.splitext(temp_file_path)
+        # Handle cases where yt_dlp saves the final file as .mkv
+        mkv_path = f"{base_finalpath}.mkv"
+        if os.path.exists(mkv_path):
+            os.rename(mkv_path, temp_file_path)
     return temp_file_path
 
 
@@ -81,7 +95,7 @@ if (uploaded_file or youtube_link) and st.button("Transcribe"):
         st.info("Downloading YouTube video...")
         downloaded_file_path = download_youtube_video(youtube_link)
         file_to_transcribe = open(downloaded_file_path, "rb")
-        original_file_name = youtube_link.split("=")[-1] + ".mp4"
+        original_file_name = f"{get_youtube_video_id(youtube_link)}.mp4"
 
     st.info("Uploading file...")
     upload_response = upload_file(file_to_transcribe, lang, model, min_speakers, max_speakers)
