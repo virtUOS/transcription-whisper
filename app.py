@@ -1,14 +1,16 @@
 import streamlit as st
 import requests
 import time
-from io import BytesIO
 import os
-from dotenv import load_dotenv
+from io import BytesIO
+from urllib.parse import urlparse, parse_qs
 import yt_dlp
 import tempfile
-from urllib.parse import urlparse, parse_qs
+import subprocess
 
 # Load environment variables from .env file
+from dotenv import load_dotenv
+
 load_dotenv()
 
 API_URL = os.getenv("API_URL")
@@ -32,7 +34,6 @@ def check_status(task_id):
 
 
 def get_youtube_video_id(url):
-    """Extract the video ID from a YouTube URL."""
     query = urlparse(url).query
     params = parse_qs(query)
     return params.get("v", [None])[0]
@@ -44,19 +45,24 @@ def download_youtube_video(youtube_url):
         raise ValueError("Invalid YouTube URL")
 
     temp_dir = tempfile.mkdtemp()
-    temp_file_path = os.path.join(temp_dir, f"{video_id}.mp4")
+    temp_file_path = os.path.join(temp_dir, f"{video_id}.%(ext)s")
     ydl_opts = {
-        'format': 'bestvideo+bestaudio/best',
-        'outtmpl': os.path.join(temp_dir, f"{video_id}.%(ext)s"),
+        'format': 'bestaudio/best',
+        'outtmpl': temp_file_path,
     }
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info_dict = ydl.extract_info(youtube_url, download=True)
-        base_finalpath, extension = os.path.splitext(temp_file_path)
-        # Handle cases where yt_dlp saves the final file as .mkv
-        mkv_path = f"{base_finalpath}.mkv"
-        if os.path.exists(mkv_path):
-            os.rename(mkv_path, temp_file_path)
-    return temp_file_path
+        downloaded_file_path = ydl.prepare_filename(info_dict)
+
+    return downloaded_file_path
+
+
+def convert_audio(input_path, output_path):
+    try:
+        subprocess.run(['ffmpeg', '-y', '-i', input_path, output_path], check=True)
+    except subprocess.CalledProcessError as e:
+        st.error(f"ffmpeg error: {e}")
+        raise e
 
 
 st.title("Transcription Service")
@@ -74,8 +80,8 @@ elif input_type == "YouTube Link":
 
 lang = st.selectbox("Select Language", ["de", "en", "es", "fr", "pt"])
 model = st.selectbox("Select Model", ["base", "large-v2", "large-v3"])
-min_speakers = st.number_input("Minimum Number of Speakers", min_value=1, max_value=10, value=1)
-max_speakers = st.number_input("Maximum Number of Speakers", min_value=1, max_value=10, value=2)
+min_speakers = st.number_input("Minimum Number of Speakers", min_value=1, max_value=20, value=1)
+max_speakers = st.number_input("Maximum Number of Speakers", min_value=1, max_value=20, value=2)
 
 # Initialize session state
 if "task_id" not in st.session_state:
@@ -87,18 +93,47 @@ if "status" not in st.session_state:
 if "original_file_name" not in st.session_state:
     st.session_state.original_file_name = None
 
+
+def process_uploaded_file(uploaded_file):
+    file_name, file_extension = os.path.splitext(uploaded_file.name)
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=file_extension) as temp_file:
+        temp_file.write(uploaded_file.getvalue())
+        temp_input_path = temp_file.name
+
+    # Check if file is not mp3
+    if file_extension.lower() != '.mp3':
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_output_file:
+            temp_output_path = temp_output_file.name
+        st.info("Converting file to mp3...")
+        convert_audio(temp_input_path, temp_output_path)
+        return temp_output_path, uploaded_file.name
+    else:
+        st.info("MP3 file detected. Skipping conversion.")
+        return temp_input_path, uploaded_file.name
+
+
+def process_youtube_link(youtube_link):
+    st.info("Downloading YouTube video...")
+    downloaded_file_path = download_youtube_video(youtube_link)
+
+    temp_output_path = f"{os.path.splitext(downloaded_file_path)[0]}.mp3"
+    st.info("Converting video to mp3...")
+    convert_audio(downloaded_file_path, temp_output_path)
+
+    original_file_name = f"{get_youtube_video_id(youtube_link)}{os.path.splitext(downloaded_file_path)[1]}"
+    return temp_output_path, original_file_name
+
+
 if (uploaded_file or youtube_link) and st.button("Transcribe"):
     if uploaded_file:
-        file_to_transcribe = uploaded_file
-        original_file_name = uploaded_file.name
+        unique_file_path, original_file_name = process_uploaded_file(uploaded_file)
     elif youtube_link:
-        st.info("Downloading YouTube video...")
-        downloaded_file_path = download_youtube_video(youtube_link)
-        file_to_transcribe = open(downloaded_file_path, "rb")
-        original_file_name = f"{get_youtube_video_id(youtube_link)}.mp4"
+        unique_file_path, original_file_name = process_youtube_link(youtube_link)
 
     st.info("Uploading file...")
-    upload_response = upload_file(file_to_transcribe, lang, model, min_speakers, max_speakers)
+    with open(unique_file_path, "rb") as file_to_transcribe:
+        upload_response = upload_file(file_to_transcribe, lang, model, min_speakers, max_speakers)
     task_id = upload_response.get("task_id")
     if task_id:
         st.session_state.task_id = task_id
@@ -109,8 +144,14 @@ if (uploaded_file or youtube_link) and st.button("Transcribe"):
 if st.session_state.task_id and st.session_state.status != "SUCCESS":
     st.info("Transcription is in progress. Please wait...")
 
+    status_placeholder = st.empty()
+    start_time = time.time()
+
     while True:
         status = check_status(st.session_state.task_id)
+        elapsed_time = time.time() - start_time
+        minutes, seconds = divmod(elapsed_time, 60)
+
         if status['status'] == "SUCCESS":
             st.session_state.status = "SUCCESS"
             st.session_state.result = status['result']
@@ -121,24 +162,23 @@ if st.session_state.task_id and st.session_state.status != "SUCCESS":
             break
         else:
             st.session_state.status = status['status']
-            st.info(f"Task Status: {status['status']}. Checking again in 30 seconds...")
+            status_placeholder.info(
+                f"Task Status: {status['status']}. Elapsed time: {int(minutes)} min {int(seconds)} sec. Checking again in 30 seconds..."
+            )
             time.sleep(30)
 
 # Display result if transcription is successful
 if st.session_state.status == "SUCCESS" and st.session_state.result:
     st.success("Transcription successful!")
 
-    # Prepare original file name from session state
     base_name = os.path.splitext(st.session_state.original_file_name)[0]
 
-    # Prepare files for download from session state
     result = st.session_state.result
     vtt_content = result['vtt_content']
     txt_content = result['txt_content']
     json_content = result['json_content']
     srt_content = result['srt_content']
 
-    # Create BytesIO objects for download
     vtt_file = BytesIO(vtt_content.encode('utf-8'))
     vtt_file.name = f"{base_name}.vtt"
 
@@ -151,7 +191,6 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
     srt_file = BytesIO(srt_content.encode('utf-8'))
     srt_file.name = f"{base_name}.srt"
 
-    # Display download buttons for each format
     st.download_button(label="Download VTT File",
                        data=vtt_file,
                        file_name=f"{base_name}.vtt",
@@ -174,3 +213,4 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
 
     st.write("Transcription Result:")
     st.text_area("Transcription", value=txt_content, height=200, max_chars=None)
+
