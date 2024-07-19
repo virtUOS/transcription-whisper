@@ -1,5 +1,19 @@
 import os
 import subprocess
+import requests
+
+
+def download_youtube_video(youtube_link, download_path):
+    # This function should download the video. Here, we simulate it as an example.
+    # You should replace this with actual download logic using pytube or yt_dlp
+    # For example, you might use yt_dlp:
+    # ydl_opts = {'outtmpl': download_path}
+    # with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+    #     ydl.download([youtube_link])
+
+    with open(download_path, 'wb') as f:
+        f.write(b'Simulated file content')
+    print(f"Downloaded file path: {download_path}")
 
 
 def convert_audio(input_path, output_path):
@@ -31,21 +45,26 @@ def convert_audio(input_path, output_path):
 
 def process_youtube_link(youtube_link):
     # Simulate the download process, replace with actual download logic
-    downloaded_file_path = "/tmp/tmpxretba4c/E8RQVx2gBFc.webm"
-    temp_output_path = "/tmp/tmpxretba4c/E8RQVx2gBFc.mp3"
+    downloaded_file_path = "/tmp/E8RQVx2gBFc.webm"  # Simplified path for debugging
+    temp_output_path = "/tmp/E8RQVx2gBFc.mp3"
 
     # Log the paths
     print(f"Downloaded file path: {downloaded_file_path}")
     print(f"Temporary output path: {temp_output_path}")
 
+    # Download the file
+    download_youtube_video(youtube_link, downloaded_file_path)
+
     # Ensure the download made the file available
     if not os.path.exists(downloaded_file_path):
         print(f"File not found after download: {downloaded_file_path}")
+        return
 
     # Convert the audio
     convert_audio(downloaded_file_path, temp_output_path)
 
 
 # Example usage
-youtube_link = "https://www.youtube.com/watch?v=E8RQVx2gBFc"
-process_youtube_link(youtube_link)
+if __name__ == '__main__':
+    youtube_link = "https://www.youtube.com/watch?v=E8RQVx2gBFc"
+    process_youtube_link(youtube_link)
