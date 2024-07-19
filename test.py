@@ -2,19 +2,14 @@ import os
 import subprocess
 import requests
 
-
 def download_youtube_video(youtube_link, download_path):
-    # This function should download the video. Here, we simulate it as an example.
-    # You should replace this with actual download logic using pytube or yt_dlp
-    # For example, you might use yt_dlp:
-    # ydl_opts = {'outtmpl': download_path}
-    # with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-    #     ydl.download([youtube_link])
+    # Ensure the directory exists
+    os.makedirs(os.path.dirname(download_path), exist_ok=True)
 
+    # Simulate the download process
     with open(download_path, 'wb') as f:
         f.write(b'Simulated file content')
     print(f"Downloaded file path: {download_path}")
-
 
 def convert_audio(input_path, output_path):
     try:
@@ -31,8 +26,7 @@ def convert_audio(input_path, output_path):
             raise FileNotFoundError(f"Input file does not exist: {input_path}")
 
         # Call ffmpeg
-        result = subprocess.run(['ffmpeg', '-y', '-i', input_path, output_path], capture_output=True, text=True,
-                                check=True)
+        result = subprocess.run(['ffmpeg', '-y', '-i', input_path, output_path], capture_output=True, text=True, check=True)
         print(f"ffmpeg output: {result.stdout}")
         print(f"ffmpeg error (if any): {result.stderr}")
     except subprocess.CalledProcessError as e:
@@ -41,7 +35,6 @@ def convert_audio(input_path, output_path):
     except Exception as e:
         print(f"An error occurred: {e}")
         raise
-
 
 def process_youtube_link(youtube_link):
     # Simulate the download process, replace with actual download logic
@@ -62,7 +55,6 @@ def process_youtube_link(youtube_link):
 
     # Convert the audio
     convert_audio(downloaded_file_path, temp_output_path)
-
 
 # Example usage
 if __name__ == '__main__':
