@@ -3,13 +3,19 @@ import subprocess
 import requests
 
 def download_youtube_video(youtube_link, download_path):
-    # Ensure the directory exists
-    os.makedirs(os.path.dirname(download_path), exist_ok=True)
+    # Clean up any previous files
+    if os.path.exists(download_path):
+        os.remove(download_path)
 
-    # Simulate the download process
-    with open(download_path, 'wb') as f:
-        f.write(b'Simulated file content')
-    print(f"Downloaded file path: {download_path}")
+    # Use an actual downloadable file for testing
+    video_url = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+    response = requests.get(video_url)
+    if response.status_code == 200:
+        with open(download_path, 'wb') as f:
+            f.write(response.content)
+        print(f"Downloaded file path: {download_path}")
+    else:
+        print("Download failed")
 
 def convert_audio(input_path, output_path):
     try:
@@ -26,7 +32,7 @@ def convert_audio(input_path, output_path):
             raise FileNotFoundError(f"Input file does not exist: {input_path}")
 
         # Call ffmpeg
-        result = subprocess.run(['ffmpeg', '-y', '-i', input_path, output_path], capture_output=True, text=True, check=True)
+        result = subprocess.run(['ffmpeg', '-y', '-i', input_path, '-vn', '-acodec', 'libmp3lame', output_path], capture_output=True, text=True, check=True)
         print(f"ffmpeg output: {result.stdout}")
         print(f"ffmpeg error (if any): {result.stderr}")
     except subprocess.CalledProcessError as e:
@@ -37,9 +43,9 @@ def convert_audio(input_path, output_path):
         raise
 
 def process_youtube_link(youtube_link):
-    # Simulate the download process, replace with actual download logic
-    downloaded_file_path = "/tmp/E8RQVx2gBFc.webm"  # Simplified path for debugging
-    temp_output_path = "/tmp/E8RQVx2gBFc.mp3"
+    # Simplified paths for debugging
+    downloaded_file_path = "/tmp/BigBuckBunny.mp4"
+    temp_output_path = "/tmp/BigBuckBunny.mp3"
 
     # Log the paths
     print(f"Downloaded file path: {downloaded_file_path}")
