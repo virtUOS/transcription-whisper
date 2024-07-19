@@ -59,12 +59,28 @@ def download_youtube_video(youtube_url):
 
 def convert_audio(input_path, output_path):
     try:
+        # Ensure absolute paths
         input_path = os.path.abspath(input_path)
         output_path = os.path.abspath(output_path)
-        subprocess.run(['ffmpeg', '-y', '-i', input_path, output_path], check=True)
+
+        # Log the paths
+        print(f"ffmpeg input path: {input_path}")
+        print(f"ffmpeg output path: {output_path}")
+
+        # Check if input file exists
+        if not os.path.exists(input_path):
+            raise FileNotFoundError(f"Input file does not exist: {input_path}")
+
+        # Call ffmpeg
+        result = subprocess.run(['ffmpeg', '-y', '-i', input_path, output_path], capture_output=True, text=True, check=True)
+        print(f"ffmpeg output: {result.stdout}")
+        print(f"ffmpeg error (if any): {result.stderr}")
+    except subprocess.CalledProcessError as e:
+        print(f"ffmpeg failed: {e.stderr}")
+        raise
     except Exception as e:
-        # Handle the exception and log it for debugging
-        raise e
+        print(f"An error occurred: {e}")
+        raise
 
 
 st.title("Transcription Service")
