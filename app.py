@@ -59,9 +59,11 @@ def download_youtube_video(youtube_url):
 
 def convert_audio(input_path, output_path):
     try:
+        input_path = os.path.abspath(input_path)
+        output_path = os.path.abspath(output_path)
         subprocess.run(['ffmpeg', '-y', '-i', input_path, output_path], check=True)
-    except subprocess.CalledProcessError as e:
-        st.error(f"ffmpeg error: {e}")
+    except Exception as e:
+        # Handle the exception and log it for debugging
         raise e
 
 
