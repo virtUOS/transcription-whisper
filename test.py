@@ -66,8 +66,8 @@ def convert_audio(input_path, output_path):
 
 def process_youtube_link(youtube_link):
     # Simplified paths for debugging
-    downloaded_file_path = "/tmp/BigBuckBunny.mp4"
-    temp_output_path = "/tmp/BigBuckBunny.mp3"
+    downloaded_file_path = os.path.expanduser("~/transcription-whisper-test/BigBuckBunny.mp4")
+    temp_output_path = os.path.expanduser("~/transcription-whisper-test/BigBuckBunny.mp3")
 
     # Log the paths
     print(f"Downloaded file path: {downloaded_file_path}")
@@ -84,6 +84,9 @@ def process_youtube_link(youtube_link):
     if not os.path.exists(downloaded_file_path):
         print(f"File not found after download: {downloaded_file_path}")
         return
+
+    # Run permission check
+    print(f"File permissions for {downloaded_file_path}: {oct(os.stat(downloaded_file_path).st_mode)[-3:]}")
 
     # Convert the audio
     convert_audio(downloaded_file_path, temp_output_path)
