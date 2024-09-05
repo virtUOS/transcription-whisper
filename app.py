@@ -110,58 +110,83 @@ def process_youtube_link(youtube_link):
         downloaded_file_path)  # Also return the downloaded file path
 
 
+# Initialize session state
+if "initialized" not in st.session_state:
+    st.session_state.initialized = True
+    st.session_state.task_id = None
+    st.session_state.result = None
+    st.session_state.status = None
+    st.session_state.original_file_name = None
+    st.session_state.media_file_data = None
+    st.session_state.input_type = None
+    st.session_state.txt_edit = ''
+    st.session_state.json_edit = ''
+    st.session_state.srt_edit = ''
+    st.session_state.vtt_edit = ''
+    st.session_state.selected_tab = 'txt'
+
 st.title("Transcription Service")
+
+
+def reset_transcription_state():
+    st.session_state.task_id = None
+    st.session_state.result = None
+    st.session_state.status = None
+    st.session_state.original_file_name = None
+    st.session_state.media_file_data = None
+    st.session_state.input_type = None
+    # Clear the content of the editors
+    st.session_state.txt_edit = ''
+    st.session_state.json_edit = ''
+    st.session_state.srt_edit = ''
+    st.session_state.vtt_edit = ''
+    st.session_state.selected_tab = 'txt'
+
 
 with st.sidebar:
     st.write("Upload a video or audio file or provide a YouTube link to get a transcription.")
 
-    input_type = st.radio("Choose input type", ["Upload File", "YouTube Link"])
+    form_key = "transcription_form"
+    with st.form(key=form_key):
+        input_type = st.radio("Choose input type", ["Upload File", "YouTube Link"])
 
-    uploaded_file = None
-    youtube_link = None
+        uploaded_file = None
+        youtube_link = None
 
-    if input_type == "Upload File":
-        uploaded_file = st.file_uploader("Choose a file", type=["mp4", "wav", "mp3"])
-    elif input_type == "YouTube Link":
-        youtube_link = st.text_input("Enter YouTube video link")
+        if input_type == "Upload File":
+            uploaded_file = st.file_uploader("Choose a file", type=["mp4", "wav", "mp3"])
+        elif input_type == "YouTube Link":
+            youtube_link = st.text_input("Enter YouTube video link")
 
-    lang = st.selectbox("Select Language", ["de", "en", "es", "fr", "pt"])
-    model = st.selectbox("Select Model", ["base", "large-v2", "large-v3"])
-    min_speakers = st.number_input("Minimum Number of Speakers", min_value=1, max_value=20, value=1)
-    max_speakers = st.number_input("Maximum Number of Speakers", min_value=1, max_value=20, value=2)
+        lang = st.selectbox("Select Language", ["de", "en", "es", "fr", "pt"])
+        model = st.selectbox("Select Model", ["base", "large-v2", "large-v3"])
+        min_speakers = st.number_input("Minimum Number of Speakers", min_value=1, max_value=20, value=1)
+        max_speakers = st.number_input("Maximum Number of Speakers", min_value=1, max_value=20, value=2)
 
-    # Initialize session state
-    if "task_id" not in st.session_state:
-        st.session_state.task_id = None
-    if "result" not in st.session_state:
-        st.session_state.result = None
-    if "status" not in st.session_state:
-        st.session_state.status = None
-    if "original_file_name" not in st.session_state:
-        st.session_state.original_file_name = None
-    if "media_file_data" not in st.session_state:
-        st.session_state.media_file_data = None
-    if "input_type" not in st.session_state:
-        st.session_state.input_type = None
+        transcribe_button_label = "Redo Transcription" if st.session_state.result else "Transcribe"
+        transcribe_button_clicked = st.form_submit_button(transcribe_button_label)
 
-    transcribe_button_clicked = st.button("Transcribe")
+    if st.session_state.result:
+        delete_button_clicked = st.button("Delete Transcription")
+    else:
+        delete_button_clicked = False
 
 conversion_placeholder = st.empty()  # Placeholder for conversion message
 upload_placeholder = st.empty()  # Placeholder for upload message
 
 if (uploaded_file or youtube_link) and transcribe_button_clicked:
+    reset_transcription_state()
+
     if uploaded_file:
         input_path, unique_file_path, original_file_name = process_uploaded_file(uploaded_file)
         st.session_state.media_file_data = uploaded_file  # Store media file data
 
     elif youtube_link:
         unique_file_path, original_file_name, downloaded_file_path = process_youtube_link(youtube_link)
-        with open(downloaded_file_path, "rb") as f:
-            st.session_state.media_file_data = f.read()  # Store media file data
+        st.session_state.media_file_data = open(downloaded_file_path, "rb").read()  # Store media file data
 
     st.session_state.input_type = input_type  # Store the type of input
-
-    st.session_state.result = None  # Reset previous results
+    st.session_state.original_file_name = original_file_name  # Store the original file name
 
     if uploaded_file and os.path.splitext(uploaded_file.name)[1].lower() != '.mp3':
         conversion_placeholder.info("Converting file to mp3...")
@@ -176,11 +201,10 @@ if (uploaded_file or youtube_link) and transcribe_button_clicked:
     task_id = upload_response.get("task_id")
     if task_id:
         st.session_state.task_id = task_id
-        st.session_state.original_file_name = original_file_name
+        st.session_state.status = "PENDING"
         upload_placeholder.info(f"File uploaded. Tracking task with ID: {task_id}")
 
-# Process existing task_id from session state
-if st.session_state.task_id and st.session_state.status != "SUCCESS":
+if st.session_state.status and st.session_state.status != "SUCCESS":
     st.info("Transcription is in progress. Please wait...")
 
     status_placeholder = st.empty()
@@ -202,9 +226,15 @@ if st.session_state.task_id and st.session_state.status != "SUCCESS":
         else:
             st.session_state.status = status['status']
             status_placeholder.info(
-                f"Task Status: {status['status']}. Elapsed time: {int(minutes)} min {int(seconds)} sec. Checking again in 30 seconds..."
+                f"Task Status: {status['status']}. Elapsed time: {int(minutes)} min {int(seconds)} sec. "
+                f"Checking again in 30 seconds..."
             )
             time.sleep(30)
+
+# Delete transcription if delete button is clicked
+if delete_button_clicked:
+    reset_transcription_state()
+    st.rerun()
 
 # Display result if transcription is successful
 if st.session_state.status == "SUCCESS" and st.session_state.result:
@@ -248,25 +278,49 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
     media_col, editor_col = st.columns([1, 2])  # Adjust the ratio as needed
 
     with editor_col:
-        selected_tab = st.selectbox("Select format to view/edit", ["txt", "json", "srt", "vtt"])
-        if selected_tab == "txt":
-            edited_content = st_quill(value=txt_content, key="txt_edit")
-        elif selected_tab == "json":
-            edited_content = st_quill(value=json_content, key="json_edit")
-        elif selected_tab == "srt":
-            edited_content = st_quill(value=srt_content, key="srt_edit")
-        elif selected_tab == "vtt":
-            edited_content = st_quill(value=vtt_content, key="vtt_edit")
+        selected_tab = st.selectbox("Select format to view/edit", ["txt", "json", "srt", "vtt"], key="selected_tab")
 
-        # Update session state with edited content
-        if 'txt_edit' in st.session_state:
-            st.session_state.result['txt_content'] = st.session_state['txt_edit']
-        elif 'json_edit' in st.session_state:
-            st.session_state.result['json_content'] = st.session_state['json_edit']
-        elif 'srt_edit' in st.session_state:
-            st.session_state.result['srt_content'] = st.session_state['srt_edit']
-        elif 'vtt_edit' in st.session_state:
-            st.session_state.result['vtt_content'] = st.session_state['vtt_edit']
+        # Add CSS to limit editor height and enable scrolling
+        st.markdown("""
+        <style>
+        .stElementContainer:has(> iframe) {
+          height: 300px;
+          overflow-y: auto;
+          overflow-x: hidden;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+        if selected_tab == "txt":
+            # Only set the editor value if it hasn't been edited already
+            if st.session_state.txt_edit == '':
+                st.session_state.txt_edit = txt_content
+            edited_content = st_quill(value=st.session_state.txt_edit, key="txt_edit")
+        elif selected_tab == "json":
+            if st.session_state.json_edit == '':
+                st.session_state.json_edit = json_content
+            edited_content = st_quill(value=st.session_state.json_edit, key="json_edit")
+        elif selected_tab == "srt":
+            if st.session_state.srt_edit == '':
+                st.session_state.srt_edit = srt_content
+            edited_content = st_quill(value=st.session_state.srt_edit, key="srt_edit")
+        elif selected_tab == "vtt":
+            if st.session_state.vtt_edit == '':
+                st.session_state.vtt_edit = vtt_content
+            edited_content = st_quill(value=st.session_state.vtt_edit, key="vtt_edit")
+
+        # Update session state with edited content with try-except to prevent initialization errors
+        try:
+            if selected_tab == "txt":
+                st.session_state.result['txt_content'] = st.session_state['txt_edit']
+            elif selected_tab == "json":
+                st.session_state.result['json_content'] = st.session_state['json_edit']
+            elif selected_tab == "srt":
+                st.session_state.result['srt_content'] = st.session_state['srt_edit']
+            elif selected_tab == "vtt":
+                st.session_state.result['vtt_content'] = st.session_state['vtt_edit']
+        except Exception as e:
+            st.write(f"An error occurred while updating the session state: {e}")
 
     with media_col:
         if st.session_state.media_file_data:
