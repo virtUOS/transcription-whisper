@@ -102,15 +102,11 @@ def process_uploaded_file(uploaded_file):
 
 def process_youtube_link(youtube_link):
     downloaded_file_path = download_youtube_video(youtube_link)
-
     temp_output_path = f"{os.path.splitext(downloaded_file_path)[0]}.mp3"
-
     original_file_name = f"{get_youtube_video_id(youtube_link)}{os.path.splitext(downloaded_file_path)[1]}"
-    return temp_output_path, original_file_name, os.path.abspath(
-        downloaded_file_path)  # Also return the downloaded file path
+    return temp_output_path, original_file_name, os.path.abspath(downloaded_file_path)
 
 
-# Initialize session state
 if "initialized" not in st.session_state:
     st.session_state.initialized = True
     st.session_state.task_id = None
@@ -119,11 +115,20 @@ if "initialized" not in st.session_state:
     st.session_state.original_file_name = None
     st.session_state.media_file_data = None
     st.session_state.input_type = None
-    st.session_state.txt_edit = ''
-    st.session_state.json_edit = ''
-    st.session_state.srt_edit = ''
-    st.session_state.vtt_edit = ''
-    st.session_state.selected_tab = 'txt'
+    st.session_state.txt_edit = ""
+    st.session_state.json_edit = ""
+    st.session_state.srt_edit = ""
+    st.session_state.vtt_edit = ""
+    st.session_state.selected_tab = "txt"
+    st.session_state.is_modified = False  # Initialize the modified flag
+    st.session_state.original_txt = ""
+    st.session_state.original_json = ""
+    st.session_state.original_srt = ""
+    st.session_state.original_vtt = ""
+    st.session_state.first_txt = True
+    st.session_state.first_json = True
+    st.session_state.first_srt = True
+    st.session_state.first_vtt = True
 
 st.title("Transcription Service")
 
@@ -135,12 +140,33 @@ def reset_transcription_state():
     st.session_state.original_file_name = None
     st.session_state.media_file_data = None
     st.session_state.input_type = None
-    # Clear the content of the editors
-    st.session_state.txt_edit = ''
-    st.session_state.json_edit = ''
-    st.session_state.srt_edit = ''
-    st.session_state.vtt_edit = ''
-    st.session_state.selected_tab = 'txt'
+    st.session_state.txt_edit = ""
+    st.session_state.json_edit = ""
+    st.session_state.srt_edit = ""
+    st.session_state.vtt_edit = ""
+    st.session_state.selected_tab = "txt"
+    st.session_state.is_modified = False
+    st.session_state.original_txt = ""
+    st.session_state.original_json = ""
+    st.session_state.original_srt = ""
+    st.session_state.original_vtt = ""
+    st.session_state.first_txt = True
+    st.session_state.first_json = True
+    st.session_state.first_srt = True
+    st.session_state.first_vtt = True
+
+
+def save_changes():
+    if st.session_state.selected_tab == "txt":
+        st.session_state.result['txt_content'] = st.session_state.txt_edit
+    elif st.session_state.selected_tab == "json":
+        st.session_state.result['json_content'] = st.session_state.json_edit
+    elif st.session_state.selected_tab == "srt":
+        st.session_state.result['srt_content'] = st.session_state.srt_edit
+    elif st.session_state.selected_tab == "vtt":
+        st.session_state.result['vtt_content'] = st.session_state.vtt_edit
+
+    st.session_state.is_modified = False
 
 
 with st.sidebar:
@@ -244,33 +270,40 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
 
     result = st.session_state.result
 
-    # Default to empty string if any field is None
-    vtt_content = result.get('vtt_content') or ""
-    txt_content = result.get('txt_content') or ""
-    json_content = result.get('json_content') or ""
-    srt_content = result.get('srt_content') or ""
-
     button1_col, button2_col, button3_col, button4_col = st.columns(4)
 
-    button1_col.download_button(label="Download VTT File",
-                                data=BytesIO(vtt_content.encode('utf-8')),
-                                file_name=f"{base_name}.vtt",
-                                mime="text/vtt")
+    # Handle conditional checks for content before creating buttons
+    if 'vtt_content' in result and result['vtt_content']:
+        button1_col.download_button(
+            label="Download VTT File",
+            data=BytesIO(result['vtt_content'].encode('utf-8')),
+            file_name=f"{base_name}.vtt",
+            mime="text/vtt"
+        )
 
-    button2_col.download_button(label="Download TXT File",
-                                data=BytesIO(txt_content.encode('utf-8')),
-                                file_name=f"{base_name}.txt",
-                                mime="text/plain")
+    if 'txt_content' in result and result['txt_content']:
+        button2_col.download_button(
+            label="Download TXT File",
+            data=BytesIO(result['txt_content'].encode('utf-8')),
+            file_name=f"{base_name}.txt",
+            mime="text/plain"
+        )
 
-    button3_col.download_button(label="Download JSON File",
-                                data=BytesIO(json_content.encode('utf-8')),
-                                file_name=f"{base_name}.json",
-                                mime="application/json")
+    if 'json_content' in result and result['json_content']:
+        button3_col.download_button(
+            label="Download JSON File",
+            data=BytesIO(result['json_content'].encode('utf-8')),
+            file_name=f"{base_name}.json",
+            mime="application/json"
+        )
 
-    button4_col.download_button(label="Download SRT File",
-                                data=BytesIO(srt_content.encode('utf-8')),
-                                file_name=f"{base_name}.srt",
-                                mime="text/srt")
+    if 'srt_content' in result and result['srt_content']:
+        button4_col.download_button(
+            label="Download SRT File",
+            data=BytesIO(result['srt_content'].encode('utf-8')),
+            file_name=f"{base_name}.srt",
+            mime="text/srt"
+        )
 
     st.write("Transcription Result:")
 
@@ -278,49 +311,65 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
     media_col, editor_col = st.columns([1, 2])  # Adjust the ratio as needed
 
     with editor_col:
-        selected_tab = st.selectbox("Select format to view/edit", ["txt", "json", "srt", "vtt"], key="selected_tab")
+        st.selectbox("Select format to view/edit", ["txt", "json", "srt", "vtt"], key="selected_tab")
 
         # Add CSS to limit editor height and enable scrolling
         st.markdown("""
         <style>
-        .stElementContainer:has(> iframe) {
-          height: 300px;
-          overflow-y: auto;
+        .element-container:has(> iframe) {
+          height: 400px;
+          overflow-y: scroll;
           overflow-x: hidden;
         }
         </style>
         """, unsafe_allow_html=True)
 
-        if selected_tab == "txt":
-            # Only set the editor value if it hasn't been edited already
-            if st.session_state.txt_edit == '':
-                st.session_state.txt_edit = txt_content
-            edited_content = st_quill(value=st.session_state.txt_edit, key="txt_edit")
-        elif selected_tab == "json":
-            if st.session_state.json_edit == '':
-                st.session_state.json_edit = json_content
-            edited_content = st_quill(value=st.session_state.json_edit, key="json_edit")
-        elif selected_tab == "srt":
-            if st.session_state.srt_edit == '':
-                st.session_state.srt_edit = srt_content
-            edited_content = st_quill(value=st.session_state.srt_edit, key="srt_edit")
-        elif selected_tab == "vtt":
-            if st.session_state.vtt_edit == '':
-                st.session_state.vtt_edit = vtt_content
-            edited_content = st_quill(value=st.session_state.vtt_edit, key="vtt_edit")
+        if st.session_state.selected_tab == "txt":
+            if st.session_state.txt_edit == "":
+                st.session_state.txt_edit = result.get('txt_content')
+            st_quill(value=st.session_state.txt_edit, key="txt_edit")
+            if st.session_state.first_txt:
+                st.session_state.original_txt = result.get('txt_content')
+                st.session_state.first_txt = False
+        elif st.session_state.selected_tab == "json":
+            if st.session_state.json_edit == "":
+                st.session_state.json_edit = result.get('json_content')
+            st_quill(value=st.session_state.json_edit, key="json_edit")
+            if st.session_state.first_json:
+                st.session_state.original_json = result.get('json_content')
+                st.session_state.first_json = False
+        elif st.session_state.selected_tab == "srt":
+            if st.session_state.srt_edit == "":
+                st.session_state.srt_edit = result.get('srt_content')
+            st_quill(value=st.session_state.srt_edit, key="srt_edit")
+            if st.session_state.first_srt:
+                st.session_state.original_srt = result.get('srt_content')
+                st.session_state.first_srt = False
+        elif st.session_state.selected_tab == "vtt":
+            if st.session_state.vtt_edit == "":
+                st.session_state.vtt_edit = result.get('vtt_content')
+            st_quill(value=st.session_state.vtt_edit, key="vtt_edit")
+            if st.session_state.first_vtt:
+                st.session_state.original_vtt = result.get('vtt_content')
+                st.session_state.first_vtt = False
 
-        # Update session state with edited content with try-except to prevent initialization errors
-        try:
-            if selected_tab == "txt":
-                st.session_state.result['txt_content'] = st.session_state['txt_edit']
-            elif selected_tab == "json":
-                st.session_state.result['json_content'] = st.session_state['json_edit']
-            elif selected_tab == "srt":
-                st.session_state.result['srt_content'] = st.session_state['srt_edit']
-            elif selected_tab == "vtt":
-                st.session_state.result['vtt_content'] = st.session_state['vtt_edit']
-        except Exception as e:
-            st.write(f"An error occurred while updating the session state: {e}")
+        # Compare the current content with the original content
+        if (st.session_state.selected_tab == "txt" and st.session_state.txt_edit != st.session_state.original_txt) or \
+                (st.session_state.selected_tab == "json" and st.session_state.json_edit != st.session_state.original_json) or \
+                (st.session_state.selected_tab == "srt" and st.session_state.srt_edit != st.session_state.original_srt) or \
+                (st.session_state.selected_tab == "vtt" and st.session_state.vtt_edit != st.session_state.original_vtt):
+
+            st.session_state.is_modified = True
+            st.session_state.original_txt = st.session_state.txt_edit
+            st.session_state.original_json = st.session_state.json_edit
+            st.session_state.original_srt = st.session_state.srt_edit
+            st.session_state.original_vtt = st.session_state.vtt_edit
+
+        if st.button("Save Changes", disabled=not st.session_state.is_modified):
+            save_changes()
+            st.success("Changes saved successfully!")
+            time.sleep(2)
+            st.rerun()
 
     with media_col:
         if st.session_state.media_file_data:
