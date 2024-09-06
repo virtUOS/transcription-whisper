@@ -169,6 +169,10 @@ def save_changes():
     st.session_state.is_modified = False
 
 
+def normalize_text(text):
+    return text.strip() if text else ''
+
+
 with st.sidebar:
     st.write("Upload a video or audio file or provide a YouTube link to get a transcription.")
 
@@ -324,51 +328,49 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
         </style>
         """, unsafe_allow_html=True)
 
+        # Load content into the editor
         if st.session_state.selected_tab == "txt":
             if st.session_state.txt_edit == "":
-                st.session_state.txt_edit = result.get('txt_content')
+                st.session_state.txt_edit = normalize_text(result.get('txt_content', ''))
+                st.session_state.original_txt = st.session_state.txt_edit
             st_quill(value=st.session_state.txt_edit, key="txt_edit")
-            if st.session_state.first_txt:
-                st.session_state.original_txt = result.get('txt_content')
-                st.session_state.first_txt = False
+
         elif st.session_state.selected_tab == "json":
             if st.session_state.json_edit == "":
-                st.session_state.json_edit = result.get('json_content')
+                st.session_state.json_edit = normalize_text(result.get('json_content', ''))
+                st.session_state.original_json = st.session_state.json_edit
             st_quill(value=st.session_state.json_edit, key="json_edit")
-            if st.session_state.first_json:
-                st.session_state.original_json = result.get('json_content')
-                st.session_state.first_json = False
+
         elif st.session_state.selected_tab == "srt":
             if st.session_state.srt_edit == "":
-                st.session_state.srt_edit = result.get('srt_content')
+                st.session_state.srt_edit = normalize_text(result.get('srt_content', ''))
+                st.session_state.original_srt = st.session_state.srt_edit
             st_quill(value=st.session_state.srt_edit, key="srt_edit")
-            if st.session_state.first_srt:
-                st.session_state.original_srt = result.get('srt_content')
-                st.session_state.first_srt = False
+
         elif st.session_state.selected_tab == "vtt":
             if st.session_state.vtt_edit == "":
-                st.session_state.vtt_edit = result.get('vtt_content')
+                st.session_state.vtt_edit = normalize_text(result.get('vtt_content', ''))
+                st.session_state.original_vtt = st.session_state.vtt_edit
             st_quill(value=st.session_state.vtt_edit, key="vtt_edit")
-            if st.session_state.first_vtt:
-                st.session_state.original_vtt = result.get('vtt_content')
-                st.session_state.first_vtt = False
 
         # Compare the current content with the original content
-        if (st.session_state.selected_tab == "txt" and st.session_state.txt_edit != st.session_state.original_txt) or \
-                (st.session_state.selected_tab == "json" and st.session_state.json_edit != st.session_state.original_json) or \
-                (st.session_state.selected_tab == "srt" and st.session_state.srt_edit != st.session_state.original_srt) or \
-                (st.session_state.selected_tab == "vtt" and st.session_state.vtt_edit != st.session_state.original_vtt):
+        is_modified = False
 
-            st.session_state.is_modified = True
-            st.session_state.original_txt = st.session_state.txt_edit
-            st.session_state.original_json = st.session_state.json_edit
-            st.session_state.original_srt = st.session_state.srt_edit
-            st.session_state.original_vtt = st.session_state.vtt_edit
+        if st.session_state.selected_tab == "txt":
+            is_modified = normalize_text(st.session_state.txt_edit) != normalize_text(st.session_state.original_txt)
+        elif st.session_state.selected_tab == "json":
+            is_modified = normalize_text(st.session_state.json_edit) != normalize_text(st.session_state.original_json)
+        elif st.session_state.selected_tab == "srt":
+            is_modified = normalize_text(st.session_state.srt_edit) != normalize_text(st.session_state.original_srt)
+        elif st.session_state.selected_tab == "vtt":
+            is_modified = normalize_text(st.session_state.vtt_edit) != normalize_text(st.session_state.original_vtt)
+
+        st.session_state.is_modified = is_modified
 
         if st.button("Save Changes", disabled=not st.session_state.is_modified):
             save_changes()
             st.success("Changes saved successfully!")
-            time.sleep(2)
+            time.sleep(1)
             st.rerun()
 
     with media_col:
