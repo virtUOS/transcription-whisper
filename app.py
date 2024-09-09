@@ -103,7 +103,11 @@ def process_uploaded_file(uploaded_file):
 def process_youtube_link(youtube_link):
     downloaded_file_path = download_youtube_video(youtube_link)
     temp_output_path = f"{os.path.splitext(downloaded_file_path)[0]}.mp3"
-    original_file_name = f"{get_youtube_video_id(youtube_link)}{os.path.splitext(downloaded_file_path)[1]}"
+    original_file_name = f"{get_youtube_video_id(youtube_link)}.mp3"
+
+    # Convert downloaded file to mp3
+    convert_audio(downloaded_file_path, temp_output_path)
+
     return temp_output_path, original_file_name, os.path.abspath(downloaded_file_path)
 
 
@@ -177,16 +181,17 @@ with st.sidebar:
     st.write("Upload a video or audio file or provide a YouTube link to get a transcription.")
 
     form_key = "transcription_form"
-    with st.form(key=form_key):
-        input_type = st.radio("Choose input type", ["Upload File", "YouTube Link"])
+    input_type = st.radio("Choose input type", ["Upload File", "YouTube Link"])
 
-        uploaded_file = None
-        youtube_link = None
+    uploaded_file = None
+    st.session_state.youtube_link = None
+
+    with st.form(key=form_key):
 
         if input_type == "Upload File":
             uploaded_file = st.file_uploader("Choose a file", type=["mp4", "wav", "mp3"])
         elif input_type == "YouTube Link":
-            youtube_link = st.text_input("Enter YouTube video link")
+            st.session_state.youtube_link = st.text_input("Enter YouTube video link")
 
         lang = st.selectbox("Select Language", ["de", "en", "es", "fr", "pt"])
         model = st.selectbox("Select Model", ["base", "large-v2", "large-v3"])
@@ -204,15 +209,17 @@ with st.sidebar:
 conversion_placeholder = st.empty()  # Placeholder for conversion message
 upload_placeholder = st.empty()  # Placeholder for upload message
 
-if (uploaded_file or youtube_link) and transcribe_button_clicked:
+if (uploaded_file or st.session_state.youtube_link) and transcribe_button_clicked:
     reset_transcription_state()
 
     if uploaded_file:
+        upload_placeholder.info("Processing uploaded file...")
         input_path, unique_file_path, original_file_name = process_uploaded_file(uploaded_file)
         st.session_state.media_file_data = uploaded_file  # Store media file data
 
-    elif youtube_link:
-        unique_file_path, original_file_name, downloaded_file_path = process_youtube_link(youtube_link)
+    elif st.session_state.youtube_link:
+        conversion_placeholder.info("Downloading YouTube video...")
+        unique_file_path, original_file_name, downloaded_file_path = process_youtube_link(st.session_state.youtube_link)
         st.session_state.media_file_data = open(downloaded_file_path, "rb").read()  # Store media file data
 
     st.session_state.input_type = input_type  # Store the type of input
@@ -223,8 +230,6 @@ if (uploaded_file or youtube_link) and transcribe_button_clicked:
         input_path, unique_file_path, _ = process_uploaded_file(uploaded_file)
         convert_audio(input_path, unique_file_path)
 
-    upload_placeholder.info("Uploading file...")
-
     with open(unique_file_path, "rb") as file_to_transcribe:
         upload_response = upload_file(file_to_transcribe, lang, model, min_speakers, max_speakers)
 
@@ -232,7 +237,7 @@ if (uploaded_file or youtube_link) and transcribe_button_clicked:
     if task_id:
         st.session_state.task_id = task_id
         st.session_state.status = "PENDING"
-        upload_placeholder.info(f"File uploaded. Tracking task with ID: {task_id}")
+        upload_placeholder.info(f"Tracking transcription task with ID: {task_id}")
 
 if st.session_state.status and st.session_state.status != "SUCCESS":
     st.info("Transcription is in progress. Please wait...")
@@ -312,7 +317,20 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
     st.write("Transcription Result:")
 
     # Create columns for the media and editor
-    media_col, editor_col = st.columns([1, 2])  # Adjust the ratio as needed
+    media_col, editor_col = st.columns([3, 7])
+
+    with media_col:
+
+        if st.session_state.media_file_data:
+            ext = os.path.splitext(st.session_state.original_file_name)[1].lower()
+
+            if st.session_state.input_type == "Upload File":
+                if ext in ['.mp3', '.wav']:
+                    st.audio(st.session_state.media_file_data)
+                elif ext in ['.mp4']:
+                    st.video(st.session_state.media_file_data)
+            else:
+                st.video(st.session_state.youtube_link)
 
     with editor_col:
         st.selectbox("Select format to view/edit", ["txt", "json", "srt", "vtt"], key="selected_tab")
@@ -373,18 +391,3 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
             time.sleep(1)
             st.rerun()
 
-    with media_col:
-        if st.session_state.media_file_data:
-            ext = os.path.splitext(st.session_state.original_file_name)[1].lower()
-
-            if st.session_state.input_type == "Upload File":
-                if ext in ['.mp3', '.wav']:
-                    st.audio(st.session_state.media_file_data)
-                elif ext in ['.mp4']:
-                    st.video(st.session_state.media_file_data)
-            else:
-                # For downloaded files
-                if ext in ['.mp3', '.wav']:
-                    st.audio(BytesIO(st.session_state.media_file_data))
-                elif ext in ['.mp4']:
-                    st.video(BytesIO(st.session_state.media_file_data))
