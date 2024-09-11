@@ -319,7 +319,7 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
     # Create columns for the media and editor
     media_col, editor_col = st.columns([3, 7])
 
-    with media_col.container(height=1000, border=False):
+    with media_col:
 
         if st.session_state.media_file_data:
             ext = os.path.splitext(st.session_state.original_file_name)[1].lower()
@@ -339,7 +339,7 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
         st.markdown("""
         <style>
         .element-container:has(> iframe) {
-          height: 400px;
+          height: 1000px;
           overflow-y: scroll;
           overflow-x: hidden;
         }
