@@ -178,7 +178,8 @@ def save_changes():
 def normalize_text(text):
     return text.strip() if text else ''
 
-def disable_controls():
+
+def callback_disable_controls():
     st.session_state.processing = True
 
 
@@ -200,13 +201,27 @@ with st.sidebar:
 
         lang = st.selectbox("Select Language", ["de", "en", "es", "fr", "pt"])
         model = st.selectbox("Select Model", ["base", "large-v2", "large-v3"])
-        min_speakers = st.number_input("Minimum Number of Speakers", min_value=1, max_value=20, value=1)
-        max_speakers = st.number_input("Maximum Number of Speakers", min_value=1, max_value=20, value=2)
+        detect_speakers = st.toggle("Detect different speakers",
+                                    value=True,
+                                    help="This activates diarization for the transcription. Diarization "
+                                         "is the process of splitting a transcription into segments "
+                                         "based on who is speaking, so you can tell which parts of the "
+                                         "text were spoken by different people.")
+
+        with st.expander("Set number of speakers"):
+            min_speakers = st.number_input("Minimum Number of Speakers",
+                                           min_value=1, max_value=20, value=1)
+            max_speakers = st.number_input("Maximum Number of Speakers",
+                                           min_value=1, max_value=20, value=2)
+
+        if not detect_speakers:
+            min_speakers = 0
+            max_speakers = 0
 
         transcribe_button_label = "Redo Transcription" if st.session_state.result else "Transcribe"
         transcribe_button_clicked = st.form_submit_button(transcribe_button_label,
                                                           disabled=st.session_state.processing,
-                                                          on_click=disable_controls)
+                                                          on_click=callback_disable_controls)
 
     if st.session_state.result:
         delete_button_clicked = st.button("Delete Transcription", disabled=st.session_state.processing)
