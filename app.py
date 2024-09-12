@@ -199,8 +199,8 @@ with st.sidebar:
         elif input_type == "YouTube Link":
             st.session_state.youtube_link = st.text_input("Enter YouTube video link")
 
-        lang = st.selectbox("Select Language", ["de", "en", "es", "fr", "pt"])
-        model = st.selectbox("Select Model", ["base", "large-v2", "large-v3"])
+        lang = st.selectbox("Select Language", ["de", "en", "es", "fr", "it", "ja", "nl", "pt", "uk", "zh"])
+        model = st.selectbox("Select Model", ["tiny", "small", "base", "medium", "large-v2", "large-v3"], index=2)
         detect_speakers = st.toggle("Detect different speakers",
                                     value=True,
                                     help="This activates diarization for the transcription. Diarization "
