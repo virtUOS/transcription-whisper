@@ -286,7 +286,7 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
         button1_col.download_button(
             label="Download VTT File",
             data=BytesIO(result['vtt_content'].encode('utf-8')),
-            file_name=f"{base_name}.vtt",
+            file_name=f"{base_name}_{lang}.vtt",
             mime="text/vtt"
         )
 
@@ -294,7 +294,7 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
         button2_col.download_button(
             label="Download TXT File",
             data=BytesIO(result['txt_content'].encode('utf-8')),
-            file_name=f"{base_name}.txt",
+            file_name=f"{base_name}_{lang}.txt",
             mime="text/plain"
         )
 
@@ -302,7 +302,7 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
         button3_col.download_button(
             label="Download JSON File",
             data=BytesIO(result['json_content'].encode('utf-8')),
-            file_name=f"{base_name}.json",
+            file_name=f"{base_name}_{lang}.json",
             mime="application/json"
         )
 
@@ -310,7 +310,7 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
         button4_col.download_button(
             label="Download SRT File",
             data=BytesIO(result['srt_content'].encode('utf-8')),
-            file_name=f"{base_name}.srt",
+            file_name=f"{base_name}_{lang}.srt",
             mime="text/srt"
         )
 
@@ -328,7 +328,12 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
                 if ext in ['.mp3', '.wav']:
                     st.audio(st.session_state.media_file_data)
                 elif ext in ['.mp4']:
-                    st.video(st.session_state.media_file_data)
+                    subtitle_content = result.get('vtt_content', '') or result.get('srt_content', '') or None
+                    if subtitle_content:
+                        st.video(st.session_state.media_file_data, subtitles={lang: subtitle_content})
+                    else:
+                        st.video(st.session_state.media_file_data)
+
             else:
                 st.video(st.session_state.youtube_link)
 
@@ -390,4 +395,3 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
             st.success("Changes saved successfully!")
             time.sleep(1)
             st.rerun()
-
