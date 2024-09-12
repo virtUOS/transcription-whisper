@@ -133,6 +133,7 @@ if "initialized" not in st.session_state:
     st.session_state.first_json = True
     st.session_state.first_srt = True
     st.session_state.first_vtt = True
+    st.session_state.processing = False
 
 st.title("Transcription Service")
 
@@ -158,6 +159,7 @@ def reset_transcription_state():
     st.session_state.first_json = True
     st.session_state.first_srt = True
     st.session_state.first_vtt = True
+    st.session_state.processing = False
 
 
 def save_changes():
@@ -175,6 +177,9 @@ def save_changes():
 
 def normalize_text(text):
     return text.strip() if text else ''
+
+def disable_controls():
+    st.session_state.processing = True
 
 
 with st.sidebar:
@@ -199,10 +204,12 @@ with st.sidebar:
         max_speakers = st.number_input("Maximum Number of Speakers", min_value=1, max_value=20, value=2)
 
         transcribe_button_label = "Redo Transcription" if st.session_state.result else "Transcribe"
-        transcribe_button_clicked = st.form_submit_button(transcribe_button_label)
+        transcribe_button_clicked = st.form_submit_button(transcribe_button_label,
+                                                          disabled=st.session_state.processing,
+                                                          on_click=disable_controls)
 
     if st.session_state.result:
-        delete_button_clicked = st.button("Delete Transcription")
+        delete_button_clicked = st.button("Delete Transcription", disabled=st.session_state.processing)
     else:
         delete_button_clicked = False
 
@@ -265,6 +272,8 @@ if st.session_state.status and st.session_state.status != "SUCCESS":
                 f"Checking again in 30 seconds..."
             )
             time.sleep(30)
+
+st.session_state.processing = False
 
 # Delete transcription if delete button is clicked
 if delete_button_clicked:
