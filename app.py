@@ -18,7 +18,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-API_URL = os.getenv("API_URL")
 FFMPEG_PATH = os.getenv("FFMPEG_PATH")
 TEMP_PATH = os.getenv("TEMP_PATH")
 
@@ -34,13 +33,13 @@ def upload_file(file, lang, model, min_speakers, max_speakers):
         'min_speakers': min_speakers,
         'max_speakers': max_speakers,
     }
-    response = requests.post(f"{API_URL}/jobs", files=files, data=data)
+    response = requests.post("/jobs", files=files, data=data)
     response.raise_for_status()
     return response.json()
 
 
 def check_status(task_id):
-    response = requests.get(f"{API_URL}/jobs/{task_id}")
+    response = requests.get("/jobs/{task_id}")
     response.raise_for_status()
     return response.json()
 
