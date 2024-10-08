@@ -19,8 +19,8 @@ st.set_page_config(
 )
 
 API_URL = os.getenv("API_URL")
-FFMPEG_PATH = os.getenv("FFMPEG_PATH")
-TEMP_PATH = os.getenv("TEMP_PATH")
+FFMPEG_PATH = os.getenv("FFMPEG_PATH") or "ffmpeg"
+TEMP_PATH = os.getenv("TEMP_PATH") or "/tmp/transcription-whisper"
 
 base_temp_dir = os.path.expanduser(TEMP_PATH)
 os.makedirs(base_temp_dir, exist_ok=True)
