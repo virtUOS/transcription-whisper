@@ -22,6 +22,7 @@ st.set_page_config(
 API_URL = os.getenv("API_URL")
 FFMPEG_PATH = os.getenv("FFMPEG_PATH") or "ffmpeg"
 TEMP_PATH = os.getenv("TEMP_PATH") or "/tmp/transcription-whisper"
+LOGOUT_URL = os.getenv("LOGOUT_URL")
 
 base_temp_dir = os.path.expanduser(TEMP_PATH)
 os.makedirs(base_temp_dir, exist_ok=True)
@@ -232,6 +233,26 @@ with st.sidebar:
         delete_button_clicked = st.button("Delete Transcription", disabled=st.session_state.processing)
     else:
         delete_button_clicked = False
+
+    # Add Logout button if LOGOUT_URL is set
+    if LOGOUT_URL:
+        st.sidebar.markdown(f"""
+            <a href="{LOGOUT_URL}" target="_self">
+                <button style="
+                    background-color:#f44336;
+                    border:none;
+                    color:white;
+                    padding:10px 20px;
+                    text-align:center;
+                    text-decoration:none;
+                    display:inline-block;
+                    font-size:16px;
+                    margin:4px 2px;
+                    cursor:pointer;
+                    border-radius:4px;
+                ">Logout</button>
+            </a>
+        """, unsafe_allow_html=True)
 
 conversion_placeholder = st.empty()  # Placeholder for conversion message
 upload_placeholder = st.empty()  # Placeholder for upload message
