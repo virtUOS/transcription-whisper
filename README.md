@@ -28,7 +28,7 @@ TEMP_PATH=transcription-whisper-temp
 # Uncomment this up if you're using an authentication process to allow users to log out
 #LOGOUT_URL=/oauth2/sign_out
 # Url and port to the API server
-API_URL=http://131.173.130.67:11300
+API_URL=http://111.111.111.11:11300
 ```
 
 ## Development
