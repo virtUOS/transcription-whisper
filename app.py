@@ -8,6 +8,7 @@ import yt_dlp
 import subprocess
 from dotenv import load_dotenv
 from streamlit_quill import st_quill
+import uuid
 
 
 load_dotenv()
@@ -53,12 +54,8 @@ def get_youtube_video_id(url):
     return params.get("v", [None])[0]
 
 
-def download_youtube_video(youtube_url):
-    video_id = get_youtube_video_id(youtube_url)
-    if not video_id:
-        raise ValueError("Invalid YouTube URL")
-
-    temp_file_path = os.path.join(base_temp_dir, f"{video_id}.%(ext)s")
+def download_youtube_video(youtube_url, unique_id):
+    temp_file_path = os.path.join(base_temp_dir, f"{unique_id}.%(ext)s")
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': temp_file_path,
@@ -66,7 +63,6 @@ def download_youtube_video(youtube_url):
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info_dict = ydl.extract_info(youtube_url, download=True)
         downloaded_file_path = ydl.prepare_filename(info_dict)
-
     return downloaded_file_path
 
 
@@ -89,27 +85,26 @@ def convert_audio(input_path, output_path):
 
 
 def process_uploaded_file(uploaded_file):
-    file_name, file_extension = os.path.splitext(uploaded_file.name)
-
-    temp_input_path = os.path.join(base_temp_dir, f"{file_name}{file_extension}")
+    unique_id = str(uuid.uuid4())  # Generate a unique ID for the file
+    file_extension = os.path.splitext(uploaded_file.name)[1]
+    temp_input_path = os.path.join(base_temp_dir, f"{unique_id}{file_extension}")
     with open(temp_input_path, "wb") as temp_file:
         temp_file.write(uploaded_file.getvalue())
 
     if file_extension.lower() != '.mp3':
-        temp_output_path = os.path.join(base_temp_dir, f"{file_name}.mp3")
+        temp_output_path = os.path.join(base_temp_dir, f"{unique_id}.mp3")
         return temp_input_path, temp_output_path, uploaded_file.name
     else:
         return temp_input_path, temp_input_path, uploaded_file.name
 
 
 def process_youtube_link(youtube_link):
-    downloaded_file_path = download_youtube_video(youtube_link)
+    unique_id = str(uuid.uuid4())  # Generate a unique ID
+    downloaded_file_path = download_youtube_video(youtube_link, unique_id)
     temp_output_path = f"{os.path.splitext(downloaded_file_path)[0]}.mp3"
-    original_file_name = f"{get_youtube_video_id(youtube_link)}.mp3"
-
+    original_file_name = f"{unique_id}.mp3"
     # Convert downloaded file to mp3
     convert_audio(downloaded_file_path, temp_output_path)
-
     return temp_output_path, original_file_name, os.path.abspath(downloaded_file_path)
 
 
