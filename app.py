@@ -200,14 +200,14 @@ with st.sidebar:
 
         lang = st.selectbox("Select Language", ["de", "en", "es", "fr", "it", "ja", "nl", "pt", "uk", "zh"])
         model = st.selectbox("Select Model", ["base", "large-v3"], index=0,
-                             help="base: balance between quality and speed of transcription; "
-                                  "large-v3: slower transcription speed but highest quality.")
+                             help="Base Model: for quick and low effort versions of your audio file "
+                                  "(balance between accuracy and speed of transcription). "
+                                  "Large-v3 Model: for a first detailed glance on research data "
+                                  "(slower transcription but with higher accuracy).")
         detect_speakers = st.toggle("Detect different speakers",
                                     value=True,
-                                    help="This activates diarization for the transcription. Diarization "
-                                         "is the process of splitting a transcription into segments "
-                                         "based on who is speaking, so you can tell which parts of the "
-                                         "text were spoken by different people.")
+                                    help="The transcript will be split into segments based on who is speaking"
+                                         " to indicate different speakers.")
 
         with st.expander("Set number of speakers"):
             min_speakers = st.number_input("Minimum Number of Speakers",
