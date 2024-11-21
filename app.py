@@ -15,7 +15,7 @@ load_dotenv()
 
 st.set_page_config(
     page_title="Transkriptiondienst",
-    page_icon="💬",
+    page_icon="assets/whisper-logo.ico",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -183,6 +183,7 @@ def callback_disable_controls():
 
 
 with st.sidebar:
+
     st.write("Upload a video or audio file or provide a YouTube link to get a transcription.")
 
     form_key = "transcription_form"
