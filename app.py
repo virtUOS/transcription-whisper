@@ -112,7 +112,7 @@ def _(text_key):
 
 st.set_page_config(
     page_title=_("title"),
-    page_icon="📄",
+    page_icon="assets/whisper-logo.ico",
     layout="wide",
     initial_sidebar_state="expanded"
 )
