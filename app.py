@@ -9,7 +9,7 @@ import subprocess
 from dotenv import load_dotenv
 from streamlit_quill import st_quill
 import uuid
-
+from enum import Enum
 
 load_dotenv()
 
@@ -27,6 +27,24 @@ LOGOUT_URL = os.getenv("LOGOUT_URL")
 
 base_temp_dir = os.path.expanduser(TEMP_PATH)
 os.makedirs(base_temp_dir, exist_ok=True)
+
+
+# Define the Language Enum
+class Language(Enum):
+    GERMAN = ("German", "de")
+    ENGLISH = ("English", "en")
+    SPANISH = ("Spanish", "es")
+    FRENCH = ("French", "fr")
+    ITALIAN = ("Italian", "it")
+    JAPANESE = ("Japanese", "ja")
+    DUTCH = ("Dutch", "nl")
+    PORTUGUESE = ("Portuguese", "pt")
+    UKRAINIAN = ("Ukrainian", "uk")
+    CHINESE = ("Chinese", "zh")
+
+    def __init__(self, display_name, code):
+        self.display_name = display_name
+        self.code = code
 
 
 def upload_file(file, lang, model, min_speakers, max_speakers):
@@ -183,7 +201,6 @@ def callback_disable_controls():
 
 
 with st.sidebar:
-
     st.write("Upload a video or audio file or provide a YouTube link to get a transcription.")
 
     form_key = "transcription_form"
@@ -199,7 +216,14 @@ with st.sidebar:
         elif input_type == "YouTube Link":
             st.session_state.youtube_link = st.text_input("Enter YouTube video link")
 
-        lang = st.selectbox("Select Language", ["de", "en", "es", "fr", "it", "ja", "nl", "pt", "uk", "zh"])
+        # Extract display names and display them in the selectbox
+        language_display_names = [language.display_name for language in Language]
+        selected_language_name = st.selectbox("Select Language", language_display_names)
+        # Retrieve the selected Language Enum member
+        selected_language = next(language for language in Language if language.display_name == selected_language_name)
+        # Get the abbreviation code for API calls
+        lang = selected_language.code
+
         model = st.selectbox("Select Model", ["base", "large-v3"], index=0,
                              help="Base Model: for quick and low effort versions of your audio file "
                                   "(balance between accuracy and speed of transcription). "
