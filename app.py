@@ -13,9 +13,106 @@ from enum import Enum
 
 load_dotenv()
 
+# Initialize language in session state
+if 'lang' not in st.session_state:
+    st.session_state.lang = 'de'  # Default UI language is German
+
+# Translation dictionary
+translations = {
+    'de': {
+        'title': "Transkriptionsdienst",
+        'upload_instructions': "Laden Sie eine Video- oder Audiodatei hoch oder geben Sie einen YouTube-Link ein, um eine Transkription zu erhalten.",
+        'choose_input_type': "Wählen Sie den Eingabetyp",
+        'upload_file': "Datei hochladen",
+        'youtube_link': "YouTube-Link",
+        'choose_file': "Wählen Sie eine Datei",
+        'enter_youtube_link': "Geben Sie den YouTube-Video-Link ein",
+        'select_language': "Sprache auswählen",
+        'select_model': "Modell auswählen",
+        'model_help': "Base Modell: Für schnelle und ressourcenschonende Transkriptionen (Balance zwischen Genauigkeit und Geschwindigkeit). Large-v3 Modell: Für detailliertere Analysen (langsamere Transkription mit höherer Genauigkeit).",
+        'detect_speakers': "Verschiedene Sprecher erkennen",
+        'detect_speakers_help': "Das Transkript wird in Segmente basierend auf den Sprechern unterteilt, um verschiedene Sprecher anzuzeigen.",
+        'set_num_speakers': "Anzahl der Sprecher festlegen",
+        'min_speakers': "Minimale Anzahl der Sprecher",
+        'max_speakers': "Maximale Anzahl der Sprecher",
+        'transcribe': "Transkribieren",
+        'redo_transcription': "Transkription erneut durchführen",
+        'delete_transcription': "Transkription löschen",
+        'transcription_in_progress': "Die Transkription läuft. Bitte warten...",
+        'tracking_task': "Transkriptionsaufgabe mit ID verfolgen:",
+        'transcription_success': "Transkription erfolgreich!",
+        'transcription_failed': "Transkription fehlgeschlagen. Fehler:",
+        'transcription_result': "Transkriptionsergebnis:",
+        'media_player': "Mediaplayer",
+        'select_format': "Format zum Anzeigen/Bearbeiten auswählen",
+        'txt_format_help': "**txt**: Reines Textformat. Enthält den transkribierten Text ohne Formatierung oder Zeitstempel.",
+        'json_format_help': "**json**: JSON-Format. Enthält strukturierte Daten, einschließlich Transkription mit Metadaten wie Zeitstempeln und Sprecherinformationen.",
+        'srt_format_help': "**srt**: SubRip-Untertitel-Format. Wird für Videountertitel verwendet. Enthält transkribierten Text mit Timing zur Synchronisierung mit Videos.",
+        'vtt_format_help': "**vtt**: WebVTT-Format. Wird für Webvideountertitel verwendet. Ähnlich wie SRT, aber unterstützt zusätzliche Formatierungen und Metadaten.",
+        'save_changes': "Änderungen speichern",
+        'download_file': "Datei herunterladen",
+        'changes_saved': "Änderungen erfolgreich gespeichert!",
+        'processing_uploaded_file': "Hochgeladene Datei wird verarbeitet...",
+        'downloading_youtube_video': "YouTube-Video wird heruntergeladen...",
+        'converting_file_to_mp3': "Datei wird in mp3 konvertiert...",
+        'task_status': "Aufgabenstatus:",
+        'elapsed_time': "Verstrichene Zeit:",
+        'checking_again_in': "Erneutes Überprüfen in 30 Sekunden...",
+        'logout': "Abmelden",
+        # Add more translations as needed...
+    },
+    'en': {
+        'title': "Transcription Service",
+        'upload_instructions': "Upload a video or audio file or provide a YouTube link to get a transcription.",
+        'choose_input_type': "Choose input type",
+        'upload_file': "Upload File",
+        'youtube_link': "YouTube Link",
+        'choose_file': "Choose a file",
+        'enter_youtube_link': "Enter YouTube video link",
+        'select_language': "Select Language",
+        'select_model': "Select Model",
+        'model_help': "Base Model: For quick and low effort transcriptions (balance between accuracy and speed). Large-v3 Model: For detailed analysis (slower transcription with higher accuracy).",
+        'detect_speakers': "Detect different speakers",
+        'detect_speakers_help': "The transcript will be split into segments based on who is speaking to indicate different speakers.",
+        'set_num_speakers': "Set number of speakers",
+        'min_speakers': "Minimum Number of Speakers",
+        'max_speakers': "Maximum Number of Speakers",
+        'transcribe': "Transcribe",
+        'redo_transcription': "Redo Transcription",
+        'delete_transcription': "Delete Transcription",
+        'transcription_in_progress': "Transcription is in progress. Please wait...",
+        'tracking_task': "Tracking transcription task with ID:",
+        'transcription_success': "Transcription successful!",
+        'transcription_failed': "Transcription failed. Error:",
+        'transcription_result': "Transcription Result:",
+        'media_player': "Media Player",
+        'select_format': "Select format to view/edit",
+        'txt_format_help': "**txt**: Plain text format. Contains the raw transcribed text without any formatting or timing information.",
+        'json_format_help': "**json**: JSON format. Provides structured data, including the transcription along with metadata such as timestamps and speaker info.",
+        'srt_format_help': "**srt**: SubRip Subtitle format. Used for video subtitles. Includes transcribed text with timing for synchronization with videos.",
+        'vtt_format_help': "**vtt**: WebVTT format. Used for web video subtitles. Similar to SRT but supports additional styling and metadata.",
+        'save_changes': "Save Changes",
+        'download_file': "Download File",
+        'changes_saved': "Changes saved successfully!",
+        'processing_uploaded_file': "Processing uploaded file...",
+        'downloading_youtube_video': "Downloading YouTube video...",
+        'converting_file_to_mp3': "Converting file to mp3...",
+        'task_status': "Task Status:",
+        'elapsed_time': "Elapsed time:",
+        'checking_again_in': "Checking again in 30 seconds...",
+        'logout': "Logout",
+        # Add more translations as needed...
+    }
+}
+
+
+def _(text_key):
+    return translations.get(st.session_state.lang, translations['de']).get(text_key, text_key)
+
+
 st.set_page_config(
-    page_title="Transkriptiondienst",
-    page_icon="assets/whisper-logo.ico",
+    page_title=_("title"),
+    page_icon="📄",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -29,69 +126,72 @@ base_temp_dir = os.path.expanduser(TEMP_PATH)
 os.makedirs(base_temp_dir, exist_ok=True)
 
 
-# Define the Language Enum
+# Define the Language Enum with language codes and display names
 class Language(Enum):
-    AFRIKAANS = ("Afrikaans", "af")
-    ARABIC = ("Arabic", "ar")
-    ARMENIAN = ("Armenian", "hy")
-    AZERBAIJANI = ("Azerbaijani", "az")
-    BELARUSIAN = ("Belarusian", "be")
-    BOSNIAN = ("Bosnian", "bs")
-    BULGARIAN = ("Bulgarian", "bg")
-    CATALAN = ("Catalan", "ca")
-    CHINESE = ("Chinese", "zh")
-    CROATIAN = ("Croatian", "hr")
-    CZECH = ("Czech", "cs")
-    DANISH = ("Danish", "da")
-    DUTCH = ("Dutch", "nl")
-    ENGLISH = ("English", "en")
-    ESTONIAN = ("Estonian", "et")
-    FINNISH = ("Finnish", "fi")
-    FRENCH = ("French", "fr")
-    GALICIAN = ("Galician", "gl")
-    GERMAN = ("German", "de")
-    GREEK = ("Greek", "el")
-    HEBREW = ("Hebrew", "he")
-    HINDI = ("Hindi", "hi")
-    HUNGARIAN = ("Hungarian", "hu")
-    ICELANDIC = ("Icelandic", "is")
-    INDONESIAN = ("Indonesian", "id")
-    ITALIAN = ("Italian", "it")
-    JAPANESE = ("Japanese", "ja")
-    KANNADA = ("Kannada", "kn")
-    KAZAKH = ("Kazakh", "kk")
-    KOREAN = ("Korean", "ko")
-    LATVIAN = ("Latvian", "lv")
-    LITHUANIAN = ("Lithuanian", "lt")
-    MACEDONIAN = ("Macedonian", "mk")
-    MALAY = ("Malay", "ms")
-    MARATHI = ("Marathi", "mr")
-    MAORI = ("Maori", "mi")
-    NEPALI = ("Nepali", "ne")
-    NORWEGIAN = ("Norwegian", "no")
-    PERSIAN = ("Persian", "fa")
-    POLISH = ("Polish", "pl")
-    PORTUGUESE = ("Portuguese", "pt")
-    ROMANIAN = ("Romanian", "ro")
-    RUSSIAN = ("Russian", "ru")
-    SERBIAN = ("Serbian", "sr")
-    SLOVAK = ("Slovak", "sk")
-    SLOVENIAN = ("Slovenian", "sl")
-    SPANISH = ("Spanish", "es")
-    SWAHILI = ("Swahili", "sw")
-    SWEDISH = ("Swedish", "sv")
-    TAGALOG = ("Tagalog", "tl")
-    TAMIL = ("Tamil", "ta")
-    THAI = ("Thai", "th")
-    TURKISH = ("Turkish", "tr")
-    UKRAINIAN = ("Ukrainian", "uk")
-    URDU = ("Urdu", "ur")
-    VIETNAMESE = ("Vietnamese", "vi")
-    WELSH = ("Welsh", "cy")
+    AFRIKAANS = ("af", {"de": "Afrikaans", "en": "Afrikaans"})
+    ARABIC = ("ar", {"de": "Arabisch", "en": "Arabic"})
+    ARMENIAN = ("hy", {"de": "Armenisch", "en": "Armenian"})
+    AZERBAIJANI = ("az", {"de": "Aserbaidschanisch", "en": "Azerbaijani"})
+    BELARUSIAN = ("be", {"de": "Weißrussisch", "en": "Belarusian"})
+    BOSNIAN = ("bs", {"de": "Bosnisch", "en": "Bosnian"})
+    BULGARIAN = ("bg", {"de": "Bulgarisch", "en": "Bulgarian"})
+    CATALAN = ("ca", {"de": "Katalanisch", "en": "Catalan"})
+    CHINESE = ("zh", {"de": "Chinesisch", "en": "Chinese"})
+    CROATIAN = ("hr", {"de": "Kroatisch", "en": "Croatian"})
+    CZECH = ("cs", {"de": "Tschechisch", "en": "Czech"})
+    DANISH = ("da", {"de": "Dänisch", "en": "Danish"})
+    DUTCH = ("nl", {"de": "Niederländisch", "en": "Dutch"})
+    ENGLISH = ("en", {"de": "Englisch", "en": "English"})
+    ESTONIAN = ("et", {"de": "Estnisch", "en": "Estonian"})
+    FINNISH = ("fi", {"de": "Finnisch", "en": "Finnish"})
+    FRENCH = ("fr", {"de": "Französisch", "en": "French"})
+    GALICIAN = ("gl", {"de": "Galicisch", "en": "Galician"})
+    GERMAN = ("de", {"de": "Deutsch", "en": "German"})
+    GREEK = ("el", {"de": "Griechisch", "en": "Greek"})
+    HEBREW = ("he", {"de": "Hebräisch", "en": "Hebrew"})
+    HINDI = ("hi", {"de": "Hindi", "en": "Hindi"})
+    HUNGARIAN = ("hu", {"de": "Ungarisch", "en": "Hungarian"})
+    ICELANDIC = ("is", {"de": "Isländisch", "en": "Icelandic"})
+    INDONESIAN = ("id", {"de": "Indonesisch", "en": "Indonesian"})
+    ITALIAN = ("it", {"de": "Italienisch", "en": "Italian"})
+    JAPANESE = ("ja", {"de": "Japanisch", "en": "Japanese"})
+    KANNADA = ("kn", {"de": "Kannada", "en": "Kannada"})
+    KAZAKH = ("kk", {"de": "Kasachisch", "en": "Kazakh"})
+    KOREAN = ("ko", {"de": "Koreanisch", "en": "Korean"})
+    LATVIAN = ("lv", {"de": "Lettisch", "en": "Latvian"})
+    LITHUANIAN = ("lt", {"de": "Litauisch", "en": "Lithuanian"})
+    MACEDONIAN = ("mk", {"de": "Mazedonisch", "en": "Macedonian"})
+    MALAY = ("ms", {"de": "Malaiisch", "en": "Malay"})
+    MARATHI = ("mr", {"de": "Marathi", "en": "Marathi"})
+    MAORI = ("mi", {"de": "Maori", "en": "Maori"})
+    NEPALI = ("ne", {"de": "Nepalesisch", "en": "Nepali"})
+    NORWEGIAN = ("no", {"de": "Norwegisch", "en": "Norwegian"})
+    PERSIAN = ("fa", {"de": "Persisch", "en": "Persian"})
+    POLISH = ("pl", {"de": "Polnisch", "en": "Polish"})
+    PORTUGUESE = ("pt", {"de": "Portugiesisch", "en": "Portuguese"})
+    ROMANIAN = ("ro", {"de": "Rumänisch", "en": "Romanian"})
+    RUSSIAN = ("ru", {"de": "Russisch", "en": "Russian"})
+    SERBIAN = ("sr", {"de": "Serbisch", "en": "Serbian"})
+    SLOVAK = ("sk", {"de": "Slowakisch", "en": "Slovak"})
+    SLOVENIAN = ("sl", {"de": "Slowenisch", "en": "Slovenian"})
+    SPANISH = ("es", {"de": "Spanisch", "en": "Spanish"})
+    SWAHILI = ("sw", {"de": "Swahili", "en": "Swahili"})
+    SWEDISH = ("sv", {"de": "Schwedisch", "en": "Swedish"})
+    TAGALOG = ("tl", {"de": "Tagalog", "en": "Tagalog"})
+    TAMIL = ("ta", {"de": "Tamil", "en": "Tamil"})
+    THAI = ("th", {"de": "Thailändisch", "en": "Thai"})
+    TURKISH = ("tr", {"de": "Türkisch", "en": "Turkish"})
+    UKRAINIAN = ("uk", {"de": "Ukrainisch", "en": "Ukrainian"})
+    URDU = ("ur", {"de": "Urdu", "en": "Urdu"})
+    VIETNAMESE = ("vi", {"de": "Vietnamesisch", "en": "Vietnamese"})
+    WELSH = ("cy", {"de": "Walisisch", "en": "Welsh"})
 
-    def __init__(self, display_name, code):
-        self.display_name = display_name
+    def __init__(self, code, names):
         self.code = code
+        self.names = names
+
+    def get_display_name(self, lang_code):
+        return self.names.get(lang_code, self.names.get('en'))
 
 
 def upload_file(file, lang, model, min_speakers, max_speakers):
@@ -181,24 +281,20 @@ if "initialized" not in st.session_state:
     st.session_state.error = None
     st.session_state.original_file_name = None
     st.session_state.media_file_data = None
-    st.session_state.input_type = None
-    st.session_state.txt_edit = ""
-    st.session_state.json_edit = ""
-    st.session_state.srt_edit = ""
-    st.session_state.vtt_edit = ""
-    st.session_state.selected_tab = "srt"
-    st.session_state.is_modified = False  # Initialize the modified flag
-    st.session_state.original_txt = ""
-    st.session_state.original_json = ""
-    st.session_state.original_srt = ""
-    st.session_state.original_vtt = ""
-    st.session_state.first_txt = True
-    st.session_state.first_json = True
-    st.session_state.first_srt = True
-    st.session_state.first_vtt = True
+    st.session_state.input_type = 'upload_file'
+    st.session_state.selected_tab = 'srt'
+    st.session_state.is_modified = False
     st.session_state.processing = False
+    st.session_state.selected_transcription_language_code = 'de'  # Default transcription language code
+    st.session_state.transcription_language_code = ''  # Will be set when transcription starts
 
-st.title("Transcription Service")
+# Language selector in the sidebar
+language_options = {'Deutsch': 'de', 'English': 'en'}
+selected_language = st.sidebar.selectbox('Sprache / Language', options=list(language_options.keys()))
+st.session_state.lang = language_options[selected_language]
+
+# Application title
+st.title(_("title"))
 
 
 def reset_transcription_state():
@@ -208,22 +304,15 @@ def reset_transcription_state():
     st.session_state.error = None
     st.session_state.original_file_name = None
     st.session_state.media_file_data = None
-    st.session_state.input_type = None
+    st.session_state.is_modified = False
+    st.session_state.processing = False
     st.session_state.txt_edit = ""
     st.session_state.json_edit = ""
     st.session_state.srt_edit = ""
     st.session_state.vtt_edit = ""
-    st.session_state.selected_tab = "srt"
-    st.session_state.is_modified = False
-    st.session_state.original_txt = ""
-    st.session_state.original_json = ""
-    st.session_state.original_srt = ""
-    st.session_state.original_vtt = ""
-    st.session_state.first_txt = True
-    st.session_state.first_json = True
-    st.session_state.first_srt = True
-    st.session_state.first_vtt = True
-    st.session_state.processing = False
+    st.session_state.selected_tab = 'srt'
+    # Keep selected_transcription_language_code
+    st.session_state.transcription_language_code = ''
 
 
 def save_changes():
@@ -248,56 +337,64 @@ def callback_disable_controls():
 
 
 with st.sidebar:
-    st.write("Upload a video or audio file or provide a YouTube link to get a transcription.")
+    st.write(_("upload_instructions"))
 
     form_key = "transcription_form"
-    input_type = st.radio("Choose input type", ["Upload File", "YouTube Link"])
+
+    # Define fixed identifiers for input types
+    input_type_options = ['upload_file', 'youtube_link']
+    input_type_label_map = {
+        'upload_file': _("upload_file"),
+        'youtube_link': _("youtube_link")
+    }
+
+    # Use a format_func to display translated labels
+    input_type = st.radio(
+        _("choose_input_type"),
+        options=input_type_options,
+        format_func=lambda x: input_type_label_map.get(x, x),
+        key='input_type'
+    )
 
     uploaded_file = None
-    st.session_state.youtube_link = None
+    st.session_state.youtube_link = ""
 
     with st.form(key=form_key):
+        if st.session_state.input_type == 'upload_file':
+            uploaded_file = st.file_uploader(_("choose_file"), type=["mp4", "wav", "mp3"])
+        elif st.session_state.input_type == 'youtube_link':
+            st.session_state.youtube_link = st.text_input(_("enter_youtube_link"))
 
-        if input_type == "Upload File":
-            uploaded_file = st.file_uploader("Choose a file", type=["mp4", "wav", "mp3"])
-        elif input_type == "YouTube Link":
-            st.session_state.youtube_link = st.text_input("Enter YouTube video link")
+        # Map language codes to display names
+        language_code_list = [language.code for language in Language]
+        language_code_to_display_name = {language.code: language.get_display_name(st.session_state.lang) for language in
+                                         Language}
 
-        # Extract display names and display them in the selectbox
-        language_display_names = [language.display_name for language in Language]
-        selected_language_name = st.selectbox("Select Language", language_display_names)
-        # Retrieve the selected Language Enum member
-        selected_language = next(language for language in Language if language.display_name == selected_language_name)
-        # Get the abbreviation code for API calls
-        lang = selected_language.code
+        # Use language codes as options and display names using format_func
+        selected_transcription_language_code = st.selectbox(
+            _("select_language"),
+            options=language_code_list,
+            format_func=lambda code: language_code_to_display_name[code],
+            key='selected_transcription_language_code'
+        )
 
-        model = st.selectbox("Select Model", ["base", "large-v3"], index=0,
-                             help="Base Model: for quick and low effort versions of your audio file "
-                                  "(balance between accuracy and speed of transcription). "
-                                  "Large-v3 Model: for a first detailed glance on research data "
-                                  "(slower transcription but with higher accuracy).")
-        detect_speakers = st.toggle("Detect different speakers",
-                                    value=True,
-                                    help="The transcript will be split into segments based on who is speaking"
-                                         " to indicate different speakers.")
+        model = st.selectbox(_("select_model"), ["base", "large-v3"], index=0, help=_("model_help"))
+        detect_speakers = st.checkbox(_("detect_speakers"), value=True, help=_("detect_speakers_help"))
 
-        with st.expander("Set number of speakers"):
-            min_speakers = st.number_input("Minimum Number of Speakers",
-                                           min_value=1, max_value=20, value=1)
-            max_speakers = st.number_input("Maximum Number of Speakers",
-                                           min_value=1, max_value=20, value=2)
-
-        if not detect_speakers:
+        if detect_speakers:
+            with st.expander(_("set_num_speakers")):
+                min_speakers = st.number_input(_("min_speakers"), min_value=1, max_value=20, value=1)
+                max_speakers = st.number_input(_("max_speakers"), min_value=1, max_value=20, value=2)
+        else:
             min_speakers = 0
             max_speakers = 0
 
-        transcribe_button_label = "Redo Transcription" if st.session_state.result else "Transcribe"
-        transcribe_button_clicked = st.form_submit_button(transcribe_button_label,
-                                                          disabled=st.session_state.processing,
+        transcribe_button_label = _("redo_transcription") if st.session_state.result else _("transcribe")
+        transcribe_button_clicked = st.form_submit_button(transcribe_button_label, disabled=st.session_state.processing,
                                                           on_click=callback_disable_controls)
 
     if st.session_state.result:
-        delete_button_clicked = st.button("Delete Transcription", disabled=st.session_state.processing)
+        delete_button_clicked = st.button(_("delete_transcription"), disabled=st.session_state.processing)
     else:
         delete_button_clicked = False
 
@@ -317,7 +414,7 @@ with st.sidebar:
                     margin:4px 2px;
                     cursor:pointer;
                     border-radius:4px;
-                ">Logout</button>
+                ">{_("logout")}</button>
             </a>
         """, unsafe_allow_html=True)
 
@@ -328,20 +425,24 @@ if (uploaded_file or st.session_state.youtube_link) and transcribe_button_clicke
     reset_transcription_state()
 
     if uploaded_file:
-        upload_placeholder.info("Processing uploaded file...")
+        upload_placeholder.info(_("processing_uploaded_file"))
         input_path, unique_file_path, original_file_name = process_uploaded_file(uploaded_file)
         st.session_state.media_file_data = uploaded_file  # Store media file data
 
     elif st.session_state.youtube_link:
-        conversion_placeholder.info("Downloading YouTube video...")
+        conversion_placeholder.info(_("downloading_youtube_video"))
         unique_file_path, original_file_name, downloaded_file_path = process_youtube_link(st.session_state.youtube_link)
         st.session_state.media_file_data = open(downloaded_file_path, "rb").read()  # Store media file data
 
-    st.session_state.input_type = input_type  # Store the type of input
     st.session_state.original_file_name = original_file_name  # Store the original file name
 
+    # Store the transcription language code used for this transcription
+    st.session_state.transcription_language_code = st.session_state.selected_transcription_language_code
+
+    lang = st.session_state.transcription_language_code
+
     if uploaded_file and os.path.splitext(uploaded_file.name)[1].lower() != '.mp3':
-        conversion_placeholder.info("Converting file to mp3...")
+        conversion_placeholder.info(_("converting_file_to_mp3"))
         input_path, unique_file_path, _ = process_uploaded_file(uploaded_file)
         convert_audio(input_path, unique_file_path)
 
@@ -352,10 +453,10 @@ if (uploaded_file or st.session_state.youtube_link) and transcribe_button_clicke
     if task_id:
         st.session_state.task_id = task_id
         st.session_state.status = "PENDING"
-        upload_placeholder.info(f"Tracking transcription task with ID: {task_id}")
+        upload_placeholder.info(f"{_('tracking_task')} {task_id}")
 
 if st.session_state.status and st.session_state.status != "SUCCESS":
-    st.info("Transcription is in progress. Please wait...")
+    st.info(_("transcription_in_progress"))
 
     status_placeholder = st.empty()
     start_time = time.time()
@@ -368,25 +469,25 @@ if st.session_state.status and st.session_state.status != "SUCCESS":
         if status['status'] == "SUCCESS":
             st.session_state.status = "SUCCESS"
             st.session_state.result = status.get('result', {})
-            st.success("Transcription successful!")
+            st.success(_("transcription_success"))
             break
         elif status['status'] == "FAILURE":
             st.session_state.status = "FAILURE"
             st.session_state.error = status  # We want all the information about the failure to display in next refresh
-            st.error(f"Transcription failed. Error: {status.get('error', 'Unknown error')}")
+            st.error(f"{_('transcription_failed')} {status.get('error', 'Unknown error')}")
             break
         else:
             st.session_state.status = status['status']
             status_placeholder.info(
-                f"Task Status: {status['status']}. Elapsed time: {int(minutes)} min {int(seconds)} sec. "
-                f"Checking again in 30 seconds..."
+                f"{_('task_status')} {status['status']}. {_('elapsed_time')} {int(minutes)} min {int(seconds)} sec. "
+                f"{_('checking_again_in')}"
             )
             time.sleep(30)
 
 st.session_state.processing = False
 
 # Delete transcription if delete button is clicked
-if delete_button_clicked:
+if 'delete_button_clicked' in locals() and delete_button_clicked:
     reset_transcription_state()
     st.rerun()
 
@@ -397,38 +498,48 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
 
     result = st.session_state.result
 
-    st.write("Transcription Result:")
+    st.write(_("transcription_result"))
 
     # Expander around the media player
-    with st.expander("Media Player", expanded=True):
+    with st.expander(_("media_player"), expanded=True):
         # Display the media player at the top
         if st.session_state.media_file_data:
-            if st.session_state.input_type == "Upload File":
+            if st.session_state.input_type == 'upload_file':
                 ext = os.path.splitext(st.session_state.original_file_name)[1].lower()
                 if ext in ['.mp3', '.wav']:
                     st.audio(st.session_state.media_file_data)
                 elif ext in ['.mp4']:
                     subtitle_content = result.get('vtt_content', '') or result.get('srt_content', '') or None
                     if subtitle_content:
-                        st.video(st.session_state.media_file_data, subtitles={lang: subtitle_content})
+                        st.video(st.session_state.media_file_data,
+                                 subtitles={st.session_state.transcription_language_code: subtitle_content})
                     else:
                         st.video(st.session_state.media_file_data)
-            else:
+            elif st.session_state.input_type == 'youtube_link':
                 st.video(st.session_state.youtube_link)
 
-    st.selectbox("Select format to view/edit", ["srt", "json", "txt", "vtt"], key="selected_tab")
+    # Define format options with fixed identifiers
+    format_options = ['srt', 'json', 'txt', 'vtt']
+    format_label_map = {
+        'srt': _("srt"),
+        'json': _("json"),
+        'txt': _("txt"),
+        'vtt': _("vtt")
+    }
+
+    st.selectbox(
+        _("select_format"),
+        options=format_options,
+        format_func=lambda x: format_label_map.get(x, x),
+        key='selected_tab'
+    )
 
     # Add help text for each format
     format_help_texts = {
-        'txt': "**txt**: Plain text format. "
-               "Contains the raw transcribed text without any formatting or timing information.",
-        'json': "**json**: JSON format. "
-                "Provides structured data, including the transcription along with metadata such as timestamps "
-                "and speaker info.",
-        'srt': "**srt**: SubRip Subtitle format. Used for video subtitles. "
-               "Includes transcribed text with timing for synchronization with videos.",
-        'vtt': "**vtt**: WebVTT format. Used for web video subtitles. "
-               "Similar to SRT but supports additional styling and metadata."
+        'txt': _("txt_format_help"),
+        'json': _("json_format_help"),
+        'srt': _("srt_format_help"),
+        'vtt': _("vtt_format_help")
     }
 
     # Display the help text for the selected format
@@ -447,25 +558,25 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
 
     # Load content into the editor
     if st.session_state.selected_tab == "txt":
-        if st.session_state.txt_edit == "":
+        if st.session_state.get('txt_edit', '') == "":
             st.session_state.txt_edit = normalize_text(result.get('txt_content', ''))
             st.session_state.original_txt = st.session_state.txt_edit
         st_quill(value=st.session_state.txt_edit, key="txt_edit")
 
     elif st.session_state.selected_tab == "json":
-        if st.session_state.json_edit == "":
+        if st.session_state.get('json_edit', '') == "":
             st.session_state.json_edit = normalize_text(result.get('json_content', ''))
             st.session_state.original_json = st.session_state.json_edit
         st_quill(value=st.session_state.json_edit, key="json_edit")
 
     elif st.session_state.selected_tab == "srt":
-        if st.session_state.srt_edit == "":
+        if st.session_state.get('srt_edit', '') == "":
             st.session_state.srt_edit = normalize_text(result.get('srt_content', ''))
             st.session_state.original_srt = st.session_state.srt_edit
         st_quill(value=st.session_state.srt_edit, key="srt_edit")
 
     elif st.session_state.selected_tab == "vtt":
-        if st.session_state.vtt_edit == "":
+        if st.session_state.get('vtt_edit', '') == "":
             st.session_state.vtt_edit = normalize_text(result.get('vtt_content', ''))
             st.session_state.original_vtt = st.session_state.vtt_edit
         st_quill(value=st.session_state.vtt_edit, key="vtt_edit")
@@ -488,9 +599,9 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
     save_col, download_col = st.columns(2)
 
     with save_col:
-        if st.button("Save Changes", disabled=not st.session_state.is_modified):
+        if st.button(_("save_changes"), disabled=not st.session_state.is_modified):
             save_changes()
-            st.success("Changes saved successfully!")
+            st.success(_("changes_saved"))
             time.sleep(1)
             st.rerun()
 
@@ -518,13 +629,15 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
             file_extension = 'vtt'
             mime_type = 'text/vtt'
 
-        download_button_label = f"Download {current_format.upper()} File"
+        download_button_label = f"{_('download_file')} {current_format.upper()}"
+
+        transcription_lang = st.session_state.transcription_language_code
 
         st.download_button(
             label=download_button_label,
             data=BytesIO(current_content.encode('utf-8')),
-            file_name=f"{base_name}_{lang}.{file_extension}",
+            file_name=f"{base_name}_{transcription_lang}.{file_extension}",
             mime=mime_type
         )
 elif st.session_state.status == "FAILURE" and 'status' in st.session_state.error:
-    st.error(f"Transcription failed. Error: {st.session_state.error.get('error', 'Unknown error')}")
+    st.error(f"{_('transcription_failed')} {st.session_state.error.get('error', 'Unknown error')}")
