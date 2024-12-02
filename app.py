@@ -32,9 +32,12 @@ translations = {
         'model_help': "Base Modell: Für schnelle und ressourcenschonende Transkriptionen (Balance zwischen Genauigkeit und Geschwindigkeit). Large-v3 Modell: Für detailliertere Analysen (langsamere Transkription mit höherer Genauigkeit).",
         'detect_speakers': "Verschiedene Sprecher erkennen",
         'detect_speakers_help': "Das Transkript wird in Segmente basierend auf den Sprechern unterteilt, um verschiedene Sprecher anzuzeigen.",
+        'advanced_options': "Erweiterte Optionen",
         'set_num_speakers': "Anzahl der Sprecher festlegen",
         'min_speakers': "Minimale Anzahl der Sprecher",
         'max_speakers': "Maximale Anzahl der Sprecher",
+        'enter_prompt': "Prompt eingeben (optional)",
+        'prompt_help': "Geben Sie einen Prompt ein, um die Transkription zu leiten (optional).",
         'transcribe': "Transkribieren",
         'redo_transcription': "Transkription erneut durchführen",
         'delete_transcription': "Transkription löschen",
@@ -59,7 +62,6 @@ translations = {
         'elapsed_time': "Verstrichene Zeit:",
         'checking_again_in': "Erneutes Überprüfen in 30 Sekunden...",
         'logout': "Abmelden",
-        # Add more translations as needed...
     },
     'en': {
         'title': "Transcription Service",
@@ -74,9 +76,12 @@ translations = {
         'model_help': "Base Model: For quick and low effort transcriptions (balance between accuracy and speed). Large-v3 Model: For detailed analysis (slower transcription with higher accuracy).",
         'detect_speakers': "Detect different speakers",
         'detect_speakers_help': "The transcript will be split into segments based on who is speaking to indicate different speakers.",
+        'advanced_options': "Advanced Options",
         'set_num_speakers': "Set number of speakers",
         'min_speakers': "Minimum Number of Speakers",
         'max_speakers': "Maximum Number of Speakers",
+        'enter_prompt': "Enter Prompt (optional)",
+        'prompt_help': "Provide a prompt to guide the transcription (optional).",
         'transcribe': "Transcribe",
         'redo_transcription': "Redo Transcription",
         'delete_transcription': "Delete Transcription",
@@ -101,7 +106,6 @@ translations = {
         'elapsed_time': "Elapsed time:",
         'checking_again_in': "Checking again in 30 seconds...",
         'logout': "Logout",
-        # Add more translations as needed...
     }
 }
 
@@ -194,13 +198,14 @@ class Language(Enum):
         return self.names.get(lang_code, self.names.get('en'))
 
 
-def upload_file(file, lang, model, min_speakers, max_speakers):
+def upload_file(file, lang, model, min_speakers, max_speakers, prompt):
     files = {'file': file}
     data = {
         'lang': lang,
         'model': model,
         'min_speakers': min_speakers,
         'max_speakers': max_speakers,
+        'prompt': prompt,
     }
     response = requests.post(f"{API_URL}/jobs", files=files, data=data)
     response.raise_for_status()
@@ -287,6 +292,7 @@ if "initialized" not in st.session_state:
     st.session_state.processing = False
     st.session_state.selected_transcription_language_code = 'de'  # Default transcription language code
     st.session_state.transcription_language_code = ''  # Will be set when transcription starts
+    st.session_state.previous_uploaded_file_info = None
 
 # Language selector in the sidebar
 language_options = {'Deutsch': 'de', 'English': 'en'}
@@ -361,7 +367,24 @@ with st.sidebar:
 
     with st.form(key=form_key):
         if st.session_state.input_type == 'upload_file':
-            uploaded_file = st.file_uploader(_("choose_file"), type=["mp4", "wav", "mp3"])
+            uploaded_file = st.file_uploader(_("choose_file"), type=["mp4", "wav", "mp3"], key='uploaded_file')
+
+            if uploaded_file is not None:
+                # Get the file name and size
+                file_name = uploaded_file.name
+                file_size = len(uploaded_file.getbuffer())
+                current_uploaded_file_info = (file_name, file_size)
+            else:
+                current_uploaded_file_info = None
+
+            # Check if the uploaded file has changed
+            if current_uploaded_file_info != st.session_state.previous_uploaded_file_info:
+                # The uploaded file has changed (either new upload or deletion)
+                reset_transcription_state()
+
+            # Update the previous file info in session state
+            st.session_state.previous_uploaded_file_info = current_uploaded_file_info
+
         elif st.session_state.input_type == 'youtube_link':
             st.session_state.youtube_link = st.text_input(_("enter_youtube_link"))
 
@@ -379,15 +402,20 @@ with st.sidebar:
         )
 
         model = st.selectbox(_("select_model"), ["base", "large-v3"], index=0, help=_("model_help"))
-        detect_speakers = st.checkbox(_("detect_speakers"), value=True, help=_("detect_speakers_help"))
 
-        if detect_speakers:
-            with st.expander(_("set_num_speakers")):
+        with st.expander(_("advanced_options")):
+            detect_speakers = st.checkbox(_("detect_speakers"), value=True, help=_("detect_speakers_help"))
+            if detect_speakers:
+                st.write(_("set_num_speakers"))
                 min_speakers = st.number_input(_("min_speakers"), min_value=1, max_value=20, value=1)
                 max_speakers = st.number_input(_("max_speakers"), min_value=1, max_value=20, value=2)
-        else:
-            min_speakers = 0
-            max_speakers = 0
+            else:
+                min_speakers = 0
+                max_speakers = 0
+
+            st.divider()
+
+            prompt = st.text_area(_("enter_prompt"), help=_("prompt_help"), value='')
 
         transcribe_button_label = _("redo_transcription") if st.session_state.result else _("transcribe")
         transcribe_button_clicked = st.form_submit_button(transcribe_button_label, disabled=st.session_state.processing,
@@ -447,7 +475,7 @@ if (uploaded_file or st.session_state.youtube_link) and transcribe_button_clicke
         convert_audio(input_path, unique_file_path)
 
     with open(unique_file_path, "rb") as file_to_transcribe:
-        upload_response = upload_file(file_to_transcribe, lang, model, min_speakers, max_speakers)
+        upload_response = upload_file(file_to_transcribe, lang, model, min_speakers, max_speakers, prompt)
 
     task_id = upload_response.get("task_id")
     if task_id:
