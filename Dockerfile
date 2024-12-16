@@ -13,11 +13,11 @@ RUN pip install --no-cache-dir -r /kiwi/requirements.txt
 COPY . /kiwi
 WORKDIR /kiwi
 
-# Set the user to 'nobody' for security
-USER nobody
+# Create non-root user for security
+RUN useradd -s /bin/bash streamlituser
 
 # Healthcheck to ensure the app is running
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
 
 # Run the Streamlit app
-ENTRYPOINT ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+ENTRYPOINT ["./entrypoint.sh"]
