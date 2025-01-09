@@ -8,7 +8,7 @@ Some of its features are:
 - Supports transcriptions with or without simultaneous translations to multiple languages.
 - Simple interface.
 - Access to two of Open AI's Whisper models (base and large-v3).
-- Supports upload from videos and audio files (up to 1gb) as well as YouTube links.
+- Supports upload from videos and audio files (up to 1gb).
 - Users can edit and download transcription results in 4 different formats (txt, vtt, srt and json).
 - Diarization support to detect multiple speakers (up to 20).
 - Srt, vtt and json formats provide timestamp and speaker information (when available).
