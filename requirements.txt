@@ -2,5 +2,4 @@ streamlit
 streamlit-quill
 requests
 python-dotenv
-yt-dlp
 ffmpeg
