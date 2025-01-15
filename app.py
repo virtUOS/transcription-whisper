@@ -3,8 +3,6 @@ import requests
 import time
 import os
 from io import BytesIO
-from urllib.parse import urlparse, parse_qs
-import yt_dlp
 import subprocess
 from dotenv import load_dotenv
 from streamlit_quill import st_quill
@@ -48,24 +46,6 @@ def check_status(task_id):
     return response.json()
 
 
-def get_youtube_video_id(url):
-    query = urlparse(url).query
-    params = parse_qs(query)
-    return params.get("v", [None])[0]
-
-
-def download_youtube_video(youtube_url, unique_id):
-    temp_file_path = os.path.join(base_temp_dir, f"{unique_id}.%(ext)s")
-    ydl_opts = {
-        'format': 'bestaudio/best',
-        'outtmpl': temp_file_path,
-    }
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        info_dict = ydl.extract_info(youtube_url, download=True)
-        downloaded_file_path = ydl.prepare_filename(info_dict)
-    return downloaded_file_path
-
-
 def convert_audio(input_path, output_path):
     try:
         input_path = os.path.abspath(input_path)
@@ -98,16 +78,6 @@ def process_uploaded_file(uploaded_file):
         return temp_input_path, temp_input_path, uploaded_file.name
 
 
-def process_youtube_link(youtube_link):
-    unique_id = str(uuid.uuid4())  # Generate a unique ID
-    downloaded_file_path = download_youtube_video(youtube_link, unique_id)
-    temp_output_path = f"{os.path.splitext(downloaded_file_path)[0]}.mp3"
-    original_file_name = f"{unique_id}.mp3"
-    # Convert downloaded file to mp3
-    convert_audio(downloaded_file_path, temp_output_path)
-    return temp_output_path, original_file_name, os.path.abspath(downloaded_file_path)
-
-
 if "initialized" not in st.session_state:
     st.session_state.initialized = True
     st.session_state.task_id = None
@@ -116,7 +86,6 @@ if "initialized" not in st.session_state:
     st.session_state.error = None
     st.session_state.original_file_name = None
     st.session_state.media_file_data = None
-    st.session_state.input_type = None
     st.session_state.txt_edit = ""
     st.session_state.json_edit = ""
     st.session_state.srt_edit = ""
@@ -143,7 +112,6 @@ def reset_transcription_state():
     st.session_state.error = None
     st.session_state.original_file_name = None
     st.session_state.media_file_data = None
-    st.session_state.input_type = None
     st.session_state.txt_edit = ""
     st.session_state.json_edit = ""
     st.session_state.srt_edit = ""
@@ -184,20 +152,13 @@ def callback_disable_controls():
 
 with st.sidebar:
 
-    st.write("Upload a video or audio file or provide a YouTube link to get a transcription.")
+    st.write("Upload a video or audio file to get a transcription.")
 
     form_key = "transcription_form"
-    input_type = st.radio("Choose input type", ["Upload File", "YouTube Link"])
-
-    uploaded_file = None
-    st.session_state.youtube_link = None
 
     with st.form(key=form_key):
 
-        if input_type == "Upload File":
-            uploaded_file = st.file_uploader("Choose a file", type=["mp4", "wav", "mp3"])
-        elif input_type == "YouTube Link":
-            st.session_state.youtube_link = st.text_input("Enter YouTube video link")
+        uploaded_file = st.file_uploader("Choose a file", type=["mp4", "wav", "mp3"])
 
         lang = st.selectbox("Select Language", ["de", "en", "es", "fr", "it", "ja", "nl", "pt", "uk", "zh"])
         model = st.selectbox("Select Model", ["base", "large-v3"], index=0,
@@ -253,20 +214,13 @@ with st.sidebar:
 conversion_placeholder = st.empty()  # Placeholder for conversion message
 upload_placeholder = st.empty()  # Placeholder for upload message
 
-if (uploaded_file or st.session_state.youtube_link) and transcribe_button_clicked:
+if uploaded_file and transcribe_button_clicked:
     reset_transcription_state()
 
-    if uploaded_file:
-        upload_placeholder.info("Processing uploaded file...")
-        input_path, unique_file_path, original_file_name = process_uploaded_file(uploaded_file)
-        st.session_state.media_file_data = uploaded_file  # Store media file data
+    upload_placeholder.info("Processing uploaded file...")
+    input_path, unique_file_path, original_file_name = process_uploaded_file(uploaded_file)
+    st.session_state.media_file_data = uploaded_file  # Store media file data
 
-    elif st.session_state.youtube_link:
-        conversion_placeholder.info("Downloading YouTube video...")
-        unique_file_path, original_file_name, downloaded_file_path = process_youtube_link(st.session_state.youtube_link)
-        st.session_state.media_file_data = open(downloaded_file_path, "rb").read()  # Store media file data
-
-    st.session_state.input_type = input_type  # Store the type of input
     st.session_state.original_file_name = original_file_name  # Store the original file name
 
     if uploaded_file and os.path.splitext(uploaded_file.name)[1].lower() != '.mp3':
@@ -332,18 +286,15 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
     with st.expander("Media Player", expanded=True):
         # Display the media player at the top
         if st.session_state.media_file_data:
-            if st.session_state.input_type == "Upload File":
-                ext = os.path.splitext(st.session_state.original_file_name)[1].lower()
-                if ext in ['.mp3', '.wav']:
-                    st.audio(st.session_state.media_file_data)
-                elif ext in ['.mp4']:
-                    subtitle_content = result.get('vtt_content', '') or result.get('srt_content', '') or None
-                    if subtitle_content:
-                        st.video(st.session_state.media_file_data, subtitles={lang: subtitle_content})
-                    else:
-                        st.video(st.session_state.media_file_data)
-            else:
-                st.video(st.session_state.youtube_link)
+            ext = os.path.splitext(st.session_state.original_file_name)[1].lower()
+            if ext in ['.mp3', '.wav']:
+                st.audio(st.session_state.media_file_data)
+            elif ext in ['.mp4']:
+                subtitle_content = result.get('vtt_content', '') or result.get('srt_content', '') or None
+                if subtitle_content:
+                    st.video(st.session_state.media_file_data, subtitles={lang: subtitle_content})
+                else:
+                    st.video(st.session_state.media_file_data)
 
     st.selectbox("Select format to view/edit", ["srt", "json", "txt", "vtt"], key="selected_tab")
 
