@@ -32,8 +32,7 @@ translations = {
         'set_num_speakers': "Anzahl der Sprecher festlegen",
         'min_speakers': "Minimale Anzahl der Sprecher",
         'max_speakers': "Maximale Anzahl der Sprecher",
-        'enter_prompt': "Prompt eingeben (optional)",
-        'prompt_help': "Geben Sie einen Prompt ein, um die Transkription zu leiten (optional).",
+        'validate_number_speakers': "Die Mindestanzahl an Sprechern darf die maximale Anzahl an Sprechern nicht überschreiten!",
         'transcribe': "Transkribieren",
         'redo_transcription': "Transkription erneut durchführen",
         'delete_transcription': "Transkription löschen",
@@ -73,8 +72,7 @@ translations = {
         'set_num_speakers': "Set number of speakers",
         'min_speakers': "Minimum Number of Speakers",
         'max_speakers': "Maximum Number of Speakers",
-        'enter_prompt': "Enter Prompt (optional)",
-        'prompt_help': "Provide a prompt to guide the transcription (optional).",
+        'validate_number_speakers': "Minimum speakers cannot exceed maximum speakers!",
         'transcribe': "Transcribe",
         'redo_transcription': "Redo Transcription",
         'delete_transcription': "Delete Transcription",
@@ -245,6 +243,7 @@ if "initialized" not in st.session_state:
     st.session_state.first_srt = True
     st.session_state.first_vtt = True
     st.session_state.processing = False
+    st.session_state.speaker_error = False
     st.session_state.selected_transcription_language_code = "de"  # Default transcription language code
     st.session_state.transcription_language_code = ""  # Will be set when transcription starts
 
@@ -279,6 +278,7 @@ def reset_transcription_state():
     st.session_state.first_srt = True
     st.session_state.first_vtt = True
     st.session_state.processing = False
+    st.session_state.speaker_error = False
     # Keep selected_transcription_language_code
     st.session_state.transcription_language_code = ""
 
@@ -300,8 +300,16 @@ def normalize_text(text):
     return text.strip() if text else ''
 
 
-def callback_disable_controls():
-    st.session_state.processing = True
+def callback_validate_speakers_and_disable_controls():
+    min_val = st.session_state.get("min_speakers", 1)
+    max_val = st.session_state.get("max_speakers", 2)
+
+    # Validate speaker range, set an error if needed
+    if min_val > max_val:
+        st.session_state.speaker_error = True
+    else:
+        st.session_state.speaker_error = False
+        st.session_state.processing = True
 
 
 with st.sidebar:
@@ -333,8 +341,16 @@ with st.sidebar:
                                         value=True,
                                         help=__("detect_speakers_help"))
             if detect_speakers:
-                min_speakers = st.number_input(__("min_speakers"), min_value=1, max_value=20, value=1)
-                max_speakers = st.number_input(__("max_speakers"), min_value=1, max_value=20, value=2)
+                min_speakers = st.number_input(__("min_speakers"),
+                                               min_value=1,
+                                               max_value=20,
+                                               value=1,
+                                               key="min_speakers")
+                max_speakers = st.number_input(__("max_speakers"),
+                                               min_value=1,
+                                               max_value=20,
+                                               value=2,
+                                               key="max_speakers")
             else:
                 min_speakers = 0
                 max_speakers = 0
@@ -342,7 +358,7 @@ with st.sidebar:
         transcribe_button_label = __("redo_transcription") if st.session_state.result else __("transcribe")
         transcribe_button_clicked = st.form_submit_button(transcribe_button_label,
                                                           disabled=st.session_state.processing,
-                                                          on_click=callback_disable_controls)
+                                                          on_click=callback_validate_speakers_and_disable_controls)
 
     if st.session_state.result:
         delete_button_clicked = st.button(__("delete_transcription"), disabled=st.session_state.processing)
@@ -372,7 +388,9 @@ with st.sidebar:
 conversion_placeholder = st.empty()  # Placeholder for conversion message
 upload_placeholder = st.empty()  # Placeholder for upload message
 
-if uploaded_file and transcribe_button_clicked:
+if st.session_state.speaker_error:
+    st.error(__("validate_number_speakers"))
+elif uploaded_file and transcribe_button_clicked:
     reset_transcription_state()
 
     upload_placeholder.info(__("processing_uploaded_file"))
