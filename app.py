@@ -7,7 +7,7 @@ import subprocess
 from dotenv import load_dotenv
 from streamlit_quill import st_quill
 import uuid
-
+from enum import Enum
 
 load_dotenv()
 
@@ -102,8 +102,12 @@ translations = {
 }
 
 
+def _(text_key):
+    return translations.get(st.session_state.lang, translations['de']).get(text_key, text_key)
+
+
 st.set_page_config(
-    page_title="Transkriptiondienst",
+    page_title=_("title"),
     page_icon="assets/whisper-logo.ico",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -116,6 +120,55 @@ LOGOUT_URL = os.getenv("LOGOUT_URL")
 
 base_temp_dir = os.path.expanduser(TEMP_PATH)
 os.makedirs(base_temp_dir, exist_ok=True)
+
+
+# Define the Language Enum with language codes and display names
+class Language(Enum):
+    ARABIC = ("ar", {"de": "Arabisch", "en": "Arabic"})
+    BASQUE = ("eu", {"de": "Baskisch", "en": "Basque"})
+    CATALAN = ("ca", {"de": "Katalanisch", "en": "Catalan"})
+    CHINESE = ("zh", {"de": "Chinesisch", "en": "Chinese"})
+    CROATIAN = ("hr", {"de": "Kroatisch", "en": "Croatian"})
+    CZECH = ("cs", {"de": "Tschechisch", "en": "Czech"})
+    DANISH = ("da", {"de": "Dänisch", "en": "Danish"})
+    DUTCH = ("nl", {"de": "Niederländisch", "en": "Dutch"})
+    ENGLISH = ("en", {"de": "Englisch", "en": "English"})
+    FINNISH = ("fi", {"de": "Finnisch", "en": "Finnish"})
+    FRENCH = ("fr", {"de": "Französisch", "en": "French"})
+    GALICIAN = ("gl", {"de": "Galicisch", "en": "Galician"})
+    GEORGIAN = ("ka", {"de": "Georgisch", "en": "Georgian"})
+    GERMAN = ("de", {"de": "Deutsch", "en": "German"})
+    GREEK = ("el", {"de": "Griechisch", "en": "Greek"})
+    HEBREW = ("he", {"de": "Hebräisch", "en": "Hebrew"})
+    HINDI = ("hi", {"de": "Hindi", "en": "Hindi"})
+    HUNGARIAN = ("hu", {"de": "Ungarisch", "en": "Hungarian"})
+    ITALIAN = ("it", {"de": "Italienisch", "en": "Italian"})
+    JAPANESE = ("ja", {"de": "Japanisch", "en": "Japanese"})
+    KOREAN = ("ko", {"de": "Koreanisch", "en": "Korean"})
+    LATVIAN = ("lv", {"de": "Lettisch", "en": "Latvian"})
+    MALAYALAM = ("lv", {"de": "Malayalam", "en": "Malayalam"})
+    NORWEGIAN_NO = ("no", {"de": "Norwegisch (Bokmål)", "en": "Norwegian (Bokmål)"})
+    NORWEGIAN_NN = ("nn", {"de": "Norwegisch (Nynorsk)", "en": "Norwegian (Nynorsk)"})
+    PERSIAN = ("fa", {"de": "Persisch", "en": "Persian"})
+    POLISH = ("pl", {"de": "Polnisch", "en": "Polish"})
+    PORTUGUESE = ("pt", {"de": "Portugiesisch", "en": "Portuguese"})
+    ROMANIAN = ("ro", {"de": "Rumänisch", "en": "Romanian"})
+    RUSSIAN = ("ru", {"de": "Russisch", "en": "Russian"})
+    SLOVAK = ("sk", {"de": "Slowakisch", "en": "Slovak"})
+    SLOVENIAN = ("sl", {"de": "Slowenisch", "en": "Slovenian"})
+    SPANISH = ("es", {"de": "Spanisch", "en": "Spanish"})
+    TELUGU = ("te", {"de": "Telugu", "en": "Telugu"})
+    TURKISH = ("tr", {"de": "Türkisch", "en": "Turkish"})
+    UKRAINIAN = ("uk", {"de": "Ukrainisch", "en": "Ukrainian"})
+    URDU = ("ur", {"de": "Urdu", "en": "Urdu"})
+    VIETNAMESE = ("vi", {"de": "Vietnamesisch", "en": "Vietnamese"})
+
+    def __init__(self, code, names):
+        self.code = code
+        self.names = names
+
+    def get_display_name(self, lang_code):
+        return self.names.get(lang_code, self.names.get('en'))
 
 
 def upload_file(file, lang, model, min_speakers, max_speakers):
@@ -242,7 +295,6 @@ def callback_disable_controls():
 
 
 with st.sidebar:
-
     st.write("Upload a video or audio file to get a transcription.")
 
     form_key = "transcription_form"
