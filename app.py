@@ -102,12 +102,12 @@ translations = {
 }
 
 
-def _(text_key):
+def __(text_key):
     return translations.get(st.session_state.lang, translations['de']).get(text_key, text_key)
 
 
 st.set_page_config(
-    page_title=_("title"),
+    page_title=__("title"),
     page_icon="assets/whisper-logo.ico",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -254,7 +254,7 @@ selected_language = st.sidebar.selectbox('Sprache / Language', options=list(lang
 st.session_state.lang = language_options[selected_language]
 
 # Application title
-st.title(_("title"))
+st.title(__("title"))
 
 
 def reset_transcription_state():
@@ -305,13 +305,13 @@ def callback_disable_controls():
 
 
 with st.sidebar:
-    st.write(_("upload_instructions"))
+    st.write(__("upload_instructions"))
 
     form_key = "transcription_form"
 
     with st.form(key=form_key):
 
-        uploaded_file = st.file_uploader(_("choose_file"), type=["mp4", "wav", "mp3"])
+        uploaded_file = st.file_uploader(__("choose_file"), type=["mp4", "wav", "mp3"])
 
         # Map language codes to display names
         language_code_list = [language.code for language in Language]
@@ -320,32 +320,32 @@ with st.sidebar:
 
         # Use language codes as options and display names using format_func
         selected_transcription_language_code = st.selectbox(
-            _("select_language"),
+            __("select_language"),
             options=language_code_list,
             format_func=lambda code: language_code_to_display_name[code],
             key='selected_transcription_language_code'
         )
 
-        model = st.selectbox(_("select_model"), ["base", "large-v3"], index=0, help=_("model_help"))
+        model = st.selectbox(__("select_model"), ["base", "large-v3"], index=0, help=__("model_help"))
 
-        with st.expander(_("set_num_speakers")):
-            detect_speakers = st.toggle(_("detect_speakers"),
+        with st.expander(__("set_num_speakers")):
+            detect_speakers = st.toggle(__("detect_speakers"),
                                         value=True,
-                                        help=_("detect_speakers_help"))
+                                        help=__("detect_speakers_help"))
             if detect_speakers:
-                min_speakers = st.number_input(_("min_speakers"), min_value=1, max_value=20, value=1)
-                max_speakers = st.number_input(_("max_speakers"), min_value=1, max_value=20, value=2)
+                min_speakers = st.number_input(__("min_speakers"), min_value=1, max_value=20, value=1)
+                max_speakers = st.number_input(__("max_speakers"), min_value=1, max_value=20, value=2)
             else:
                 min_speakers = 0
                 max_speakers = 0
 
-        transcribe_button_label = _("redo_transcription") if st.session_state.result else _("transcribe")
+        transcribe_button_label = __("redo_transcription") if st.session_state.result else __("transcribe")
         transcribe_button_clicked = st.form_submit_button(transcribe_button_label,
                                                           disabled=st.session_state.processing,
                                                           on_click=callback_disable_controls)
 
     if st.session_state.result:
-        delete_button_clicked = st.button(_("delete_transcription"), disabled=st.session_state.processing)
+        delete_button_clicked = st.button(__("delete_transcription"), disabled=st.session_state.processing)
     else:
         delete_button_clicked = False
 
@@ -365,7 +365,7 @@ with st.sidebar:
                     margin:4px 2px;
                     cursor:pointer;
                     border-radius:4px;
-                ">{_("logout")}</button>
+                ">{__("logout")}</button>
             </a>
         """, unsafe_allow_html=True)
 
@@ -375,7 +375,7 @@ upload_placeholder = st.empty()  # Placeholder for upload message
 if uploaded_file and transcribe_button_clicked:
     reset_transcription_state()
 
-    upload_placeholder.info(_("processing_uploaded_file"))
+    upload_placeholder.info(__("processing_uploaded_file"))
     input_path, unique_file_path, original_file_name = process_uploaded_file(uploaded_file)
     st.session_state.media_file_data = uploaded_file  # Store media file data
 
@@ -387,7 +387,7 @@ if uploaded_file and transcribe_button_clicked:
     lang = st.session_state.transcription_language_code
 
     if uploaded_file and os.path.splitext(uploaded_file.name)[1].lower() != '.mp3':
-        conversion_placeholder.info(_("converting_file_to_mp3"))
+        conversion_placeholder.info(__("converting_file_to_mp3"))
         input_path, unique_file_path, _ = process_uploaded_file(uploaded_file)
         convert_audio(input_path, unique_file_path)
 
@@ -398,10 +398,10 @@ if uploaded_file and transcribe_button_clicked:
     if task_id:
         st.session_state.task_id = task_id
         st.session_state.status = "PENDING"
-        upload_placeholder.info(f"{_('tracking_task')} {task_id}")
+        upload_placeholder.info(f"{__('tracking_task')} {task_id}")
 
 if st.session_state.status and st.session_state.status != "SUCCESS":
-    st.info(_("transcription_in_progress"))
+    st.info(__("transcription_in_progress"))
 
     status_placeholder = st.empty()
     start_time = time.time()
@@ -414,18 +414,18 @@ if st.session_state.status and st.session_state.status != "SUCCESS":
         if status['status'] == "SUCCESS":
             st.session_state.status = "SUCCESS"
             st.session_state.result = status.get('result', {})
-            st.success(_("transcription_success"))
+            st.success(__("transcription_success"))
             break
         elif status['status'] == "FAILURE":
             st.session_state.status = "FAILURE"
             st.session_state.error = status  # We want all the information about the failure to display in next refresh
-            st.error(f"{_('transcription_failed')} {status.get('error', 'Unknown error')}")
+            st.error(f"{__('transcription_failed')} {status.get('error', 'Unknown error')}")
             break
         else:
             st.session_state.status = status['status']
             status_placeholder.info(
-                f"{_('task_status')} {status['status']}. {_('elapsed_time')} {int(minutes)} min {int(seconds)} sec. "
-                f"{_('checking_again_in')}"
+                f"{__('task_status')} {status['status']}. {__('elapsed_time')} {int(minutes)} min {int(seconds)} sec. "
+                f"{__('checking_again_in')}"
             )
             time.sleep(30)
 
@@ -443,10 +443,10 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
 
     result = st.session_state.result
 
-    st.write(_("transcription_result"))
+    st.write(__("transcription_result"))
 
     # Expander around the media player
-    with st.expander(_("media_player"), expanded=True):
+    with st.expander(__("media_player"), expanded=True):
         # Display the media player at the top
         if st.session_state.media_file_data:
             ext = os.path.splitext(st.session_state.original_file_name)[1].lower()
@@ -463,14 +463,14 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
     # Define format options with fixed identifiers
     format_options = ['srt', 'json', 'txt', 'vtt']
     format_label_map = {
-        'srt': _("srt"),
-        'json': _("json"),
-        'txt': _("txt"),
-        'vtt': _("vtt")
+        'srt': __("srt"),
+        'json': __("json"),
+        'txt': __("txt"),
+        'vtt': __("vtt")
     }
 
     st.selectbox(
-        _("select_format"),
+        __("select_format"),
         options=format_options,
         format_func=lambda x: format_label_map.get(x, x),
         key='selected_tab'
@@ -478,10 +478,10 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
 
     # Add help text for each format
     format_help_texts = {
-        'txt': _("txt_format_help"),
-        'json': _("json_format_help"),
-        'srt': _("srt_format_help"),
-        'vtt': _("vtt_format_help")
+        'txt': __("txt_format_help"),
+        'json': __("json_format_help"),
+        'srt': __("srt_format_help"),
+        'vtt': __("vtt_format_help")
     }
 
     # Display the help text for the selected format
@@ -541,9 +541,9 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
     save_col, download_col = st.columns(2)
 
     with save_col:
-        if st.button(_("save_changes"), disabled=not st.session_state.is_modified):
+        if st.button(__("save_changes"), disabled=not st.session_state.is_modified):
             save_changes()
-            st.success(_("changes_saved"))
+            st.success(__("changes_saved"))
             time.sleep(1)
             st.rerun()
 
@@ -571,7 +571,7 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
             file_extension = 'vtt'
             mime_type = 'text/vtt'
 
-        download_button_label = f"{_('download_file')} {current_format.upper()}"
+        download_button_label = f"{__('download_file')} {current_format.upper()}"
 
         transcription_lang = st.session_state.transcription_language_code
 
@@ -583,4 +583,4 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
         )
 
 elif st.session_state.status == "FAILURE" and 'status' in st.session_state.error:
-    st.error(f"{_('transcription_failed')} {st.session_state.error.get('error', 'Unknown error')}")
+    st.error(f"{__('transcription_failed')} {st.session_state.error.get('error', 'Unknown error')}")
