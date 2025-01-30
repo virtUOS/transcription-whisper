@@ -19,7 +19,6 @@ if 'lang' not in st.session_state:
 translations = {
     'de': {
         'title': "Transkriptionsdienst",
-        'upload_instructions': "Laden Sie eine Video- oder Audiodatei hoch, um eine Transkription zu erhalten.",
         'choose_input_type': "Wählen Sie den Eingabetyp",
         'upload_file': "Datei hochladen",
         'choose_file': "Wählen Sie eine Datei",
@@ -59,7 +58,6 @@ translations = {
     },
     'en': {
         'title': "Transcription Service",
-        'upload_instructions': "Upload a video or audio file.",
         'choose_input_type': "Choose input type",
         'upload_file': "Upload File",
         'choose_file': "Choose a file",
@@ -312,14 +310,19 @@ def callback_validate_speakers_and_disable_controls():
         st.session_state.processing = True
 
 
-with st.sidebar:
-    st.write(__("upload_instructions"))
+def callback_just_reload_streamlit():
+    pass
 
+
+with st.sidebar:
     form_key = "transcription_form"
 
-    with st.form(key=form_key):
+    uploaded_file = st.file_uploader(__("choose_file"),
+                                     type=["mp4", "wav", "mp3"],
+                                     key='uploaded_file',
+                                     on_change=callback_just_reload_streamlit)
 
-        uploaded_file = st.file_uploader(__("choose_file"), type=["mp4", "wav", "mp3"])
+    with st.form(key=form_key):
 
         # Map language codes to display names
         language_code_list = [language.code for language in Language]
@@ -357,7 +360,8 @@ with st.sidebar:
 
         transcribe_button_label = __("redo_transcription") if st.session_state.result else __("transcribe")
         transcribe_button_clicked = st.form_submit_button(transcribe_button_label,
-                                                          disabled=st.session_state.processing,
+                                                          disabled=(
+                                                                  st.session_state.processing or not st.session_state.uploaded_file),
                                                           on_click=callback_validate_speakers_and_disable_controls)
 
     if st.session_state.result:
