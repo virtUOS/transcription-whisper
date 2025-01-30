@@ -166,7 +166,7 @@ class Language(Enum):
         self.names = names
 
     def get_display_name(self, lang_code):
-        return self.names.get(lang_code, self.names.get('en'))
+        return self.names.get(lang_code, self.names.get('de'))
 
 
 def upload_file(file, lang, model, min_speakers, max_speakers):
