@@ -115,7 +115,7 @@ st.set_page_config(
 
 API_URL = os.getenv("API_URL")
 FFMPEG_PATH = os.getenv("FFMPEG_PATH") or "ffmpeg"
-TEMP_PATH = os.getenv("TEMP_PATH") or "tmp/transcription-whisper"
+TEMP_PATH = os.getenv("TEMP_PATH") or "tmp/transcription-files"
 LOGOUT_URL = os.getenv("LOGOUT_URL")
 
 base_temp_dir = os.path.expanduser(TEMP_PATH)
