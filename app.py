@@ -9,6 +9,7 @@ from streamlit_quill import st_quill
 import uuid
 from enum import Enum
 
+
 load_dotenv()
 
 # Initialize language in session state
