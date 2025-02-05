@@ -117,6 +117,8 @@ LOGOUT_URL = os.getenv("LOGOUT_URL")
 base_temp_dir = os.path.expanduser(TEMP_PATH)
 os.makedirs(base_temp_dir, exist_ok=True)
 
+# Application title
+st.title(__("title"))
 
 # Define the Language Enum with language codes and display names
 class Language(Enum):
@@ -205,6 +207,7 @@ def convert_audio(input_path, output_path):
 
 
 def process_uploaded_file(uploaded_file):
+    message_placeholder = st.empty()
     unique_id = str(uuid.uuid4())  # Generate a unique ID for the file
     file_extension = os.path.splitext(uploaded_file.name)[1]
     temp_input_path = os.path.join(base_temp_dir, f"{unique_id}{file_extension}")
@@ -213,6 +216,9 @@ def process_uploaded_file(uploaded_file):
 
     if file_extension.lower() != '.mp3':
         temp_output_path = os.path.join(base_temp_dir, f"{unique_id}.mp3")
+        message_placeholder.info(__("converting_file_to_mp3"))
+        convert_audio(temp_input_path, temp_output_path)
+        message_placeholder.empty()
         return temp_input_path, temp_output_path, uploaded_file.name
     else:
         return temp_input_path, temp_input_path, uploaded_file.name
@@ -224,6 +230,8 @@ if "initialized" not in st.session_state:
     st.session_state.result = None
     st.session_state.status = None
     st.session_state.error = None
+    st.session_state.input_path = None
+    st.session_state.unique_file_path = None
     st.session_state.original_file_name = None
     st.session_state.media_file_data = None
     st.session_state.txt_edit = ""
@@ -244,21 +252,20 @@ if "initialized" not in st.session_state:
     st.session_state.speaker_error = False
     st.session_state.selected_transcription_language_code = "de"  # Default transcription language code
     st.session_state.transcription_language_code = ""  # Will be set when transcription starts
+    st.session_state.uploaded_file_value = None
 
 # Language selector in the sidebar
 language_options = {'Deutsch': 'de', 'English': 'en'}
 selected_language = st.sidebar.selectbox('Sprache / Language', options=list(language_options.keys()))
 st.session_state.lang = language_options[selected_language]
 
-# Application title
-st.title(__("title"))
-
-
 def reset_transcription_state():
     st.session_state.task_id = None
     st.session_state.result = None
     st.session_state.status = None
     st.session_state.error = None
+    st.session_state.input_path = None
+    st.session_state.unique_file_path = None
     st.session_state.original_file_name = None
     st.session_state.media_file_data = None
     st.session_state.txt_edit = ""
@@ -279,6 +286,7 @@ def reset_transcription_state():
     st.session_state.speaker_error = False
     # Keep selected_transcription_language_code
     st.session_state.transcription_language_code = ""
+    st.session_state.uploaded_file_value = None
 
 
 def save_changes():
@@ -310,17 +318,29 @@ def callback_validate_speakers_and_disable_controls():
         st.session_state.processing = True
 
 
-def callback_just_reload_streamlit():
-    pass
+def callback_extract_file():
+    message_placeholder = st.empty()
+    message_placeholder.info(__("processing_uploaded_file"))
+    input_path, unique_file_path, original_file_name = process_uploaded_file(st.session_state.uploaded_file)
+    st.session_state.media_file_data = uploaded_file  # Store media file data
+
+    st.session_state.original_file_name = original_file_name  # Store the original file name
+    st.session_state.input_path = input_path
+    st.session_state.unique_file_path = unique_file_path
+    message_placeholder.empty()
 
 
 with st.sidebar:
     form_key = "transcription_form"
 
-    uploaded_file = st.file_uploader(__("choose_file"),
-                                     type=["mp4", "wav", "mp3"],
-                                     key='uploaded_file',
-                                     on_change=callback_just_reload_streamlit)
+    if st.session_state.original_file_name:
+        st.write(f"The file {st.session_state.original_file_name} is currently uploaded.")
+        st.button("Delete file", on_click=reset_transcription_state)
+    else:
+        uploaded_file = st.file_uploader(__("choose_file"),
+                                         type=["mp4", "wav", "mp3"],
+                                         key='uploaded_file',
+                                         on_change=callback_extract_file)
 
     with st.form(key=form_key):
 
@@ -359,9 +379,10 @@ with st.sidebar:
                 max_speakers = 0
 
         transcribe_button_label = __("redo_transcription") if st.session_state.result else __("transcribe")
+        print(st.session_state.uploaded_file_value)
         transcribe_button_clicked = st.form_submit_button(transcribe_button_label,
                                                           disabled=(
-                                                                  st.session_state.processing or not st.session_state.uploaded_file),
+                                                                  st.session_state.processing or not st.session_state.uploaded_file_value),
                                                           on_click=callback_validate_speakers_and_disable_controls)
 
     if st.session_state.result:
@@ -389,32 +410,19 @@ with st.sidebar:
             </a>
         """, unsafe_allow_html=True)
 
-conversion_placeholder = st.empty()  # Placeholder for conversion message
-upload_placeholder = st.empty()  # Placeholder for upload message
-
 if st.session_state.speaker_error:
     st.error(__("validate_number_speakers"))
-elif uploaded_file and transcribe_button_clicked:
+elif st.session_state.uploaded_file_value and transcribe_button_clicked:
     reset_transcription_state()
-
-    upload_placeholder.info(__("processing_uploaded_file"))
-    input_path, unique_file_path, original_file_name = process_uploaded_file(uploaded_file)
-    st.session_state.media_file_data = uploaded_file  # Store media file data
-
-    st.session_state.original_file_name = original_file_name  # Store the original file name
 
     # Store the transcription language code used for this transcription
     st.session_state.transcription_language_code = st.session_state.selected_transcription_language_code
 
     lang = st.session_state.transcription_language_code
 
-    if uploaded_file and os.path.splitext(uploaded_file.name)[1].lower() != '.mp3':
-        conversion_placeholder.info(__("converting_file_to_mp3"))
-        input_path, unique_file_path, _ = process_uploaded_file(uploaded_file)
-        convert_audio(input_path, unique_file_path)
-
-    with open(unique_file_path, "rb") as file_to_transcribe:
+    with open(st.session_state.unique_file_path, "rb") as file_to_transcribe:
         upload_response = upload_file(file_to_transcribe, lang, model, min_speakers, max_speakers)
+    upload_placeholder = st.empty()  # Placeholder for upload message
 
     task_id = upload_response.get("task_id")
     if task_id:
@@ -425,7 +433,6 @@ elif uploaded_file and transcribe_button_clicked:
 if st.session_state.status and st.session_state.status != "SUCCESS":
     st.info(__("transcription_in_progress"))
 
-    status_placeholder = st.empty()
     start_time = time.time()
 
     while True:
@@ -445,7 +452,7 @@ if st.session_state.status and st.session_state.status != "SUCCESS":
             break
         else:
             st.session_state.status = status['status']
-            status_placeholder.info(
+            st.info(
                 f"{__('task_status')} {status['status']}. {__('elapsed_time')} {int(minutes)} min {int(seconds)} sec. "
                 f"{__('checking_again_in')}"
             )
