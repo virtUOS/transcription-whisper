@@ -21,6 +21,8 @@ translations = {
         'title': "Transkriptionsdienst",
         'choose_input_type': "Wählen Sie den Eingabetyp",
         'upload_file': "Datei hochladen",
+        'uploaded_file': "Hochgeladene Datei",
+        'delete_file': "Datei löschen",
         'choose_file': "Wählen Sie eine Datei",
         'select_language': "Sprache auswählen",
         'select_model': "Modell auswählen",
@@ -60,6 +62,8 @@ translations = {
         'title': "Transcription Service",
         'choose_input_type': "Choose input type",
         'upload_file': "Upload File",
+        'uploaded_file': "Uploaded File",
+        'delete_file': "Delete File",
         'choose_file': "Choose a file",
         'select_language': "Select Language",
         'select_model': "Select Model",
@@ -111,7 +115,7 @@ st.set_page_config(
 
 API_URL = os.getenv("API_URL")
 FFMPEG_PATH = os.getenv("FFMPEG_PATH") or "ffmpeg"
-TEMP_PATH = os.getenv("TEMP_PATH") or "/tmp/transcription-whisper"
+TEMP_PATH = os.getenv("TEMP_PATH") or "tmp/transcription-whisper"
 LOGOUT_URL = os.getenv("LOGOUT_URL")
 
 base_temp_dir = os.path.expanduser(TEMP_PATH)
@@ -252,7 +256,6 @@ if "initialized" not in st.session_state:
     st.session_state.speaker_error = False
     st.session_state.selected_transcription_language_code = "de"  # Default transcription language code
     st.session_state.transcription_language_code = ""  # Will be set when transcription starts
-    st.session_state.uploaded_file_value = None
 
 # Language selector in the sidebar
 language_options = {'Deutsch': 'de', 'English': 'en'}
@@ -286,7 +289,6 @@ def reset_transcription_state():
     st.session_state.speaker_error = False
     # Keep selected_transcription_language_code
     st.session_state.transcription_language_code = ""
-    st.session_state.uploaded_file_value = None
 
 
 def save_changes():
@@ -322,9 +324,8 @@ def callback_extract_file():
     message_placeholder = st.empty()
     message_placeholder.info(__("processing_uploaded_file"))
     input_path, unique_file_path, original_file_name = process_uploaded_file(st.session_state.uploaded_file)
-    st.session_state.media_file_data = uploaded_file  # Store media file data
-
-    st.session_state.original_file_name = original_file_name  # Store the original file name
+    st.session_state.media_file_data = st.session_state.uploaded_file
+    st.session_state.original_file_name = original_file_name
     st.session_state.input_path = input_path
     st.session_state.unique_file_path = unique_file_path
     message_placeholder.empty()
@@ -333,9 +334,9 @@ def callback_extract_file():
 with st.sidebar:
     form_key = "transcription_form"
 
-    if st.session_state.original_file_name:
-        st.write(f"The file {st.session_state.original_file_name} is currently uploaded.")
-        st.button("Delete file", on_click=reset_transcription_state)
+    if st.session_state.media_file_data:
+        st.write(f"{__("uploaded_file")}: {st.session_state.original_file_name}.")
+        st.button(__("delete_file"), on_click=reset_transcription_state)
     else:
         uploaded_file = st.file_uploader(__("choose_file"),
                                          type=["mp4", "wav", "mp3"],
@@ -379,10 +380,9 @@ with st.sidebar:
                 max_speakers = 0
 
         transcribe_button_label = __("redo_transcription") if st.session_state.result else __("transcribe")
-        print(st.session_state.uploaded_file_value)
         transcribe_button_clicked = st.form_submit_button(transcribe_button_label,
                                                           disabled=(
-                                                                  st.session_state.processing or not st.session_state.uploaded_file_value),
+                                                                  st.session_state.processing or not st.session_state.media_file_data),
                                                           on_click=callback_validate_speakers_and_disable_controls)
 
     if st.session_state.result:
@@ -412,8 +412,7 @@ with st.sidebar:
 
 if st.session_state.speaker_error:
     st.error(__("validate_number_speakers"))
-elif st.session_state.uploaded_file_value and transcribe_button_clicked:
-    reset_transcription_state()
+elif st.session_state.media_file_data and transcribe_button_clicked:
 
     # Store the transcription language code used for this transcription
     st.session_state.transcription_language_code = st.session_state.selected_transcription_language_code
@@ -434,6 +433,7 @@ if st.session_state.status and st.session_state.status != "SUCCESS":
     st.info(__("transcription_in_progress"))
 
     start_time = time.time()
+    placeholder_task = st.empty()
 
     while True:
         status = check_status(st.session_state.task_id)
@@ -452,7 +452,7 @@ if st.session_state.status and st.session_state.status != "SUCCESS":
             break
         else:
             st.session_state.status = status['status']
-            st.info(
+            placeholder_task.info(
                 f"{__('task_status')} {status['status']}. {__('elapsed_time')} {int(minutes)} min {int(seconds)} sec. "
                 f"{__('checking_again_in')}"
             )
