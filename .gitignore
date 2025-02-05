@@ -1,3 +1,5 @@
 /.venv/
 /.env
-transcription-files
+tmp/
+*.mp3
+*.mp4
