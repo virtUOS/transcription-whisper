@@ -351,12 +351,13 @@ with st.sidebar:
         language_code_to_display_name = {language.code: language.get_display_name(st.session_state.lang) for language in
                                          Language}
 
-        # Use language codes as options and display names using format_func
-        selected_transcription_language_code = st.selectbox(
+        # Render the selectbox using the index parameter on first render.
+        # Note: If the key already exists, the index parameter is ignored.
+        st.selectbox(
             __("select_language"),
             options=language_code_list,
             format_func=lambda code: language_code_to_display_name[code],
-            key='selected_transcription_language_code'
+            key='selected_transcription_language_code',
         )
 
         model = st.selectbox(__("select_model"), ["base", "large-v3"], index=0, help=__("model_help"))
@@ -387,9 +388,7 @@ with st.sidebar:
                                                           on_click=callback_validate_speakers_and_disable_controls)
 
     if st.session_state.result:
-        delete_button_clicked = st.button(__("delete_transcription"), disabled=st.session_state.processing)
-    else:
-        delete_button_clicked = False
+        st.button(__("delete_transcription"), disabled=st.session_state.processing, on_click=reset_transcription_state)
 
     # Add Logout button if LOGOUT_URL is set
     if LOGOUT_URL:
@@ -461,10 +460,6 @@ if st.session_state.status and st.session_state.status != "SUCCESS":
 
 st.session_state.processing = False
 
-# Delete transcription if delete button is clicked
-if delete_button_clicked:
-    reset_transcription_state()
-    st.rerun()
 
 # Display result if transcription is successful
 if st.session_state.status == "SUCCESS" and st.session_state.result:
