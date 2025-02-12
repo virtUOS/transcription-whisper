@@ -333,7 +333,6 @@ def callback_extract_file():
 
 
 with st.sidebar:
-    form_key = "transcription_form"
 
     if st.session_state.media_file_data:
         st.write(f"{__("uploaded_file")}: {st.session_state.original_file_name}.")
@@ -344,48 +343,53 @@ with st.sidebar:
                                          key='uploaded_file',
                                          on_change=callback_extract_file)
 
-    with st.form(key=form_key):
+    # Map language codes to display names
+    language_code_list = [language.code for language in Language]
+    language_code_to_display_name = {language.code: language.get_display_name(st.session_state.lang) for language in
+                                        Language}
 
-        # Map language codes to display names
-        language_code_list = [language.code for language in Language]
-        language_code_to_display_name = {language.code: language.get_display_name(st.session_state.lang) for language in
-                                         Language}
+    # Compute the index from the current selection
+    current_selection = st.session_state.selected_transcription_language_code
+    current_index = language_code_list.index(current_selection)
 
-        # Render the selectbox using the index parameter on first render.
-        # Note: If the key already exists, the index parameter is ignored.
-        st.selectbox(
-            __("select_language"),
-            options=language_code_list,
-            format_func=lambda code: language_code_to_display_name[code],
-            key='selected_transcription_language_code',
-        )
+    # Render the selectbox using the index parameter on first render.
+    # Note: If the key already exists, the index parameter is ignored.
+    new_selected_transcription_language_code = st.selectbox(
+        __("select_language"),
+        options=language_code_list,
+        format_func=lambda code: language_code_to_display_name[code],
+        index=current_index,
+    )
 
-        model = st.selectbox(__("select_model"), ["base", "large-v3"], index=0, help=__("model_help"))
+    if new_selected_transcription_language_code != current_selection:
+        st.session_state.selected_transcription_language_code = new_selected_transcription_language_code 
 
-        with st.expander(__("set_num_speakers")):
-            detect_speakers = st.toggle(__("detect_speakers"),
-                                        value=True,
-                                        help=__("detect_speakers_help"))
-            if detect_speakers:
-                min_speakers = st.number_input(__("min_speakers"),
-                                               min_value=1,
-                                               max_value=20,
-                                               value=1,
-                                               key="min_speakers")
-                max_speakers = st.number_input(__("max_speakers"),
-                                               min_value=1,
-                                               max_value=20,
-                                               value=2,
-                                               key="max_speakers")
-            else:
-                min_speakers = 0
-                max_speakers = 0
+    model = st.selectbox(__("select_model"), ["base", "large-v3"], index=0, help=__("model_help"))
 
-        transcribe_button_label = __("redo_transcription") if st.session_state.result else __("transcribe")
-        transcribe_button_clicked = st.form_submit_button(transcribe_button_label,
-                                                          disabled=(
-                                                                  st.session_state.processing or not st.session_state.media_file_data),
-                                                          on_click=callback_validate_speakers_and_disable_controls)
+    with st.expander(__("set_num_speakers")):
+        detect_speakers = st.toggle(__("detect_speakers"),
+                                    value=True,
+                                    help=__("detect_speakers_help"))
+        if detect_speakers:
+            min_speakers = st.number_input(__("min_speakers"),
+                                            min_value=1,
+                                            max_value=20,
+                                            value=1,
+                                            key="min_speakers")
+            max_speakers = st.number_input(__("max_speakers"),
+                                            min_value=1,
+                                            max_value=20,
+                                            value=2,
+                                            key="max_speakers")
+        else:
+            min_speakers = 0
+            max_speakers = 0
+
+    transcribe_button_label = __("redo_transcription") if st.session_state.result else __("transcribe")
+    transcribe_button_clicked = st.button(transcribe_button_label,
+                                                        disabled=(
+                                                                st.session_state.processing or not st.session_state.media_file_data),
+                                                        on_click=callback_validate_speakers_and_disable_controls)
 
     if st.session_state.result:
         st.button(__("delete_transcription"), disabled=st.session_state.processing, on_click=reset_transcription_state)
