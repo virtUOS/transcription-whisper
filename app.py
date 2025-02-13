@@ -249,10 +249,6 @@ if "initialized" not in st.session_state:
     st.session_state.original_json = ""
     st.session_state.original_srt = ""
     st.session_state.original_vtt = ""
-    st.session_state.first_txt = True
-    st.session_state.first_json = True
-    st.session_state.first_srt = True
-    st.session_state.first_vtt = True
     st.session_state.processing = False
     st.session_state.speaker_error = False
     st.session_state.selected_transcription_language_code = "de"  # Default transcription language code
@@ -282,14 +278,21 @@ def reset_transcription_state():
     st.session_state.original_json = ""
     st.session_state.original_srt = ""
     st.session_state.original_vtt = ""
-    st.session_state.first_txt = True
-    st.session_state.first_json = True
-    st.session_state.first_srt = True
-    st.session_state.first_vtt = True
     st.session_state.processing = False
     st.session_state.speaker_error = False
     # Keep selected_transcription_language_code
     st.session_state.transcription_language_code = ""
+
+def reset_variables_for_transcription_start():
+    st.session_state.original_txt = ""
+    st.session_state.original_json = ""
+    st.session_state.original_srt = ""
+    st.session_state.original_vtt = ""
+    st.session_state.txt_edit = ""
+    st.session_state.json_edit = ""
+    st.session_state.srt_edit = ""
+    st.session_state.vtt_edit = ""
+    st.session_state.is_modified = False
 
 
 def save_changes():
@@ -319,6 +322,8 @@ def callback_validate_speakers_and_disable_controls():
     else:
         st.session_state.speaker_error = False
         st.session_state.processing = True
+
+    reset_variables_for_transcription_start()
 
 
 def callback_extract_file():
