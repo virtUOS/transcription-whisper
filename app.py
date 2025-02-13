@@ -123,7 +123,7 @@ base_temp_dir = os.path.expanduser(TEMP_PATH)
 os.makedirs(base_temp_dir, exist_ok=True)
 
 # Application title
-st.title(__("title"))
+st.title(__("title"), "TEST")
 
 # Define the Language Enum with language codes and display names
 class Language(Enum):
