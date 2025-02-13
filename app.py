@@ -123,7 +123,7 @@ base_temp_dir = os.path.expanduser(TEMP_PATH)
 os.makedirs(base_temp_dir, exist_ok=True)
 
 # Application title
-st.title(__("title"), "TEST")
+st.title(__("title"))
 
 # Define the Language Enum with language codes and display names
 class Language(Enum):
@@ -255,6 +255,7 @@ if "initialized" not in st.session_state:
     st.session_state.transcription_language_code = ""  # Will be set when transcription starts
 
 # Language selector in the sidebar
+st.text("TEST")
 language_options = {'Deutsch': 'de', 'English': 'en'}
 selected_language = st.sidebar.selectbox('Sprache / Language', options=list(language_options.keys()))
 st.session_state.lang = language_options[selected_language]
