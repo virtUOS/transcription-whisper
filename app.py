@@ -255,7 +255,6 @@ if "initialized" not in st.session_state:
     st.session_state.transcription_language_code = ""  # Will be set when transcription starts
 
 # Language selector in the sidebar
-st.text("TEST")
 language_options = {'Deutsch': 'de', 'English': 'en'}
 selected_language = st.sidebar.selectbox('Sprache / Language', options=list(language_options.keys()))
 st.session_state.lang = language_options[selected_language]
@@ -454,7 +453,7 @@ if st.session_state.status and st.session_state.status != "SUCCESS":
             st.session_state.status = "SUCCESS"
             st.session_state.result = status.get('result', {})
             st.success(__("transcription_success"))
-            break
+            st.rerun()
         elif status['status'] == "FAILURE":
             st.session_state.status = "FAILURE"
             st.session_state.error = status  # We want all the information about the failure to display in next refresh
