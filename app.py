@@ -562,7 +562,7 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
             st.session_state.srt_edit = normalize_text(result.get('srt_content', ''))
             print(st.session_state.srt_edit)
             st.session_state.original_srt = st.session_state.srt_edit
-        st_quill(value=st.session_state.srt_edit, key="srt_edit")
+        st_quill(value=st.session_state.srt_edit, key="srt_edit_key")
 
     elif st.session_state.selected_tab == "vtt":
         if st.session_state.vtt_edit == "":
@@ -578,7 +578,7 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
     elif st.session_state.selected_tab == "json":
         is_modified = normalize_text(st.session_state.json_edit) != normalize_text(st.session_state.original_json)
     elif st.session_state.selected_tab == "srt":
-        is_modified = normalize_text(st.session_state.srt_edit) != normalize_text(st.session_state.original_srt)
+        is_modified = normalize_text(st.session_state.srt_edit_key) != normalize_text(st.session_state.original_srt)
     elif st.session_state.selected_tab == "vtt":
         is_modified = normalize_text(st.session_state.vtt_edit) != normalize_text(st.session_state.original_vtt)
 
@@ -610,7 +610,7 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
             file_extension = 'json'
             mime_type = 'application/json'
         elif current_format == 'srt':
-            current_content = st.session_state.srt_edit
+            current_content = st.session_state.srt_edit_key
             file_extension = 'srt'
             mime_type = 'text/srt'
         elif current_format == 'vtt':
@@ -622,11 +622,17 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
 
         transcription_lang = st.session_state.transcription_language_code
 
+        if current_content:
+            data = BytesIO(current_content.encode('utf-8'))
+        else:
+            data = BytesIO(b'')  # pass empty bytes to avoid NoneType error
+        
         st.download_button(
             label=download_button_label,
-            data=BytesIO(current_content.encode('utf-8')),
+            data=data,
             file_name=f"{base_name}_{transcription_lang}.{file_extension}",
-            mime=mime_type
+            mime=mime_type,
+            disabled=(not current_content)
         )
 
 elif st.session_state.status == "FAILURE" and 'status' in st.session_state.error:
