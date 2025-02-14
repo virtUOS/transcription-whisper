@@ -295,6 +295,7 @@ def reset_variables_for_transcription_start():
     st.session_state.is_modified = False
 
 
+
 def save_changes():
     if st.session_state.selected_tab == "txt":
         st.session_state.result['txt_content'] = st.session_state.txt_edit
@@ -539,6 +540,7 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
     st.text(st.session_state.srt_edit)
     st.text(st.session_state.json_edit)
     st.text(st.session_state.vtt_edit)
+    st.text(st.session_state.result['srt_content'])
 
     if st.session_state.selected_tab == "txt":
         if st.session_state.txt_edit == "":
