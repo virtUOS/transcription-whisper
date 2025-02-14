@@ -538,7 +538,7 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
     st.text(st.session_state.selected_tab)
     st.text(st.session_state.txt_edit)
     st.write("srt_edit (debug):", repr(st.session_state.srt_edit))
-    if st.text(st.session_state.srt_edit) == "":
+    if st.session_state.srt_edit == "":
         st.text("srt_edit is empty string")
 
     st.text(st.session_state.json_edit)
@@ -560,7 +560,8 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
     elif st.session_state.selected_tab == "srt":
         if st.session_state.srt_edit == "":
             st.session_state.srt_edit = normalize_text(result.get('srt_content', ''))
-            print(st.session_state.srt_edit)
+            st.text("CONTENT")
+            st.text(st.session_state.srt_edit)
             st.session_state.original_srt = st.session_state.srt_edit
         st_quill(value=st.session_state.srt_edit, key="srt_edit_key")
 
