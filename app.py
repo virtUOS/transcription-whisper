@@ -453,6 +453,7 @@ if st.session_state.status and st.session_state.status != "SUCCESS":
             st.session_state.status = "SUCCESS"
             st.session_state.result = status.get('result', {})
             st.success(__("transcription_success"))
+            time.sleep(1)
             st.rerun()
         elif status['status'] == "FAILURE":
             st.session_state.status = "FAILURE"
@@ -533,6 +534,12 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
         """, unsafe_allow_html=True)
 
     # Load content into the editor
+    st.text(st.session_state.selected_tab)
+    st.text(st.session_state.txt_edit)
+    st.text(st.session_state.srt_edit)
+    st.text(st.session_state.json_edit)
+    st.text(st.session_state.vtt_edit)
+
     if st.session_state.selected_tab == "txt":
         if st.session_state.txt_edit == "":
             st.session_state.txt_edit = normalize_text(result.get('txt_content', ''))
