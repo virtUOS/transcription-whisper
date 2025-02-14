@@ -535,42 +535,33 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
         """, unsafe_allow_html=True)
 
     # Load content into the editor
-    st.text(st.session_state.selected_tab)
-    st.text(st.session_state.txt_edit)
-    st.write("srt_edit (debug):", repr(st.session_state.srt_edit))
-    if st.session_state.srt_edit == "":
-        st.text("srt_edit is empty string")
-
-    st.text(st.session_state.json_edit)
-    st.text(st.session_state.vtt_edit)
-    st.text(st.session_state.result['srt_content'])
-
     if st.session_state.selected_tab == "txt":
         if st.session_state.txt_edit == "":
             st.session_state.txt_edit = normalize_text(result.get('txt_content', ''))
             st.session_state.original_txt = st.session_state.txt_edit
+        time.sleep(1)
         st_quill(value=st.session_state.txt_edit, key="txt_edit_key")
 
     elif st.session_state.selected_tab == "json":
         if st.session_state.json_edit == "":
             st.session_state.json_edit = normalize_text(result.get('json_content', ''))
             st.session_state.original_json = st.session_state.json_edit
+        time.sleep(1)
         st_quill(value=st.session_state.json_edit, key="json_edit_key")
 
     elif st.session_state.selected_tab == "srt":
         if st.session_state.srt_edit == "":
             st.session_state.srt_edit = normalize_text(result.get('srt_content', ''))
-            st.text("CONTENT")
             st.text(st.session_state.srt_edit)
             st.session_state.original_srt = st.session_state.srt_edit
         time.sleep(1)
-
         st_quill(value=st.session_state.srt_edit, key="srt_edit_key")
 
     elif st.session_state.selected_tab == "vtt":
         if st.session_state.vtt_edit == "":
             st.session_state.vtt_edit = normalize_text(result.get('vtt_content', ''))
             st.session_state.original_vtt = st.session_state.vtt_edit
+        time.sleep(1)
         st_quill(value=st.session_state.vtt_edit, key="vtt_edit_key")
 
     # Compare the current content with the original content
