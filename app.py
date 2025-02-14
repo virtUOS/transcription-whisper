@@ -563,6 +563,8 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
             st.text("CONTENT")
             st.text(st.session_state.srt_edit)
             st.session_state.original_srt = st.session_state.srt_edit
+        time.sleep(1)
+
         st_quill(value=st.session_state.srt_edit, key="srt_edit_key")
 
     elif st.session_state.selected_tab == "vtt":
