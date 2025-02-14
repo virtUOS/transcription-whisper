@@ -537,7 +537,7 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
     # Load content into the editor
     st.text(st.session_state.selected_tab)
     st.text(st.session_state.txt_edit)
-    st.text(st.session_state.srt_edit)
+    st.write("srt_edit (debug):", repr(st.session_state.srt_edit))
     if st.text(st.session_state.srt_edit) == "":
         st.text("srt_edit is empty string")
 
@@ -549,13 +549,13 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
         if st.session_state.txt_edit == "":
             st.session_state.txt_edit = normalize_text(result.get('txt_content', ''))
             st.session_state.original_txt = st.session_state.txt_edit
-        st_quill(value=st.session_state.txt_edit, key="txt_edit")
+        st_quill(value=st.session_state.txt_edit, key="txt_edit_key")
 
     elif st.session_state.selected_tab == "json":
         if st.session_state.json_edit == "":
             st.session_state.json_edit = normalize_text(result.get('json_content', ''))
             st.session_state.original_json = st.session_state.json_edit
-        st_quill(value=st.session_state.json_edit, key="json_edit")
+        st_quill(value=st.session_state.json_edit, key="json_edit_key")
 
     elif st.session_state.selected_tab == "srt":
         if st.session_state.srt_edit == "":
@@ -568,19 +568,19 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
         if st.session_state.vtt_edit == "":
             st.session_state.vtt_edit = normalize_text(result.get('vtt_content', ''))
             st.session_state.original_vtt = st.session_state.vtt_edit
-        st_quill(value=st.session_state.vtt_edit, key="vtt_edit")
+        st_quill(value=st.session_state.vtt_edit, key="vtt_edit_key")
 
     # Compare the current content with the original content
     is_modified = False
 
     if st.session_state.selected_tab == "txt":
-        is_modified = normalize_text(st.session_state.txt_edit) != normalize_text(st.session_state.original_txt)
+        is_modified = normalize_text(st.session_state.txt_edit_key) != normalize_text(st.session_state.original_txt)
     elif st.session_state.selected_tab == "json":
-        is_modified = normalize_text(st.session_state.json_edit) != normalize_text(st.session_state.original_json)
+        is_modified = normalize_text(st.session_state.json_edit_key) != normalize_text(st.session_state.original_json)
     elif st.session_state.selected_tab == "srt":
         is_modified = normalize_text(st.session_state.srt_edit_key) != normalize_text(st.session_state.original_srt)
     elif st.session_state.selected_tab == "vtt":
-        is_modified = normalize_text(st.session_state.vtt_edit) != normalize_text(st.session_state.original_vtt)
+        is_modified = normalize_text(st.session_state.vtt_edit_key) != normalize_text(st.session_state.original_vtt)
 
     st.session_state.is_modified = is_modified
 
@@ -602,11 +602,11 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
         mime_type = ''
 
         if current_format == 'txt':
-            current_content = st.session_state.txt_edit
+            current_content = st.session_state.txt_edit_key
             file_extension = 'txt'
             mime_type = 'text/plain'
         elif current_format == 'json':
-            current_content = st.session_state.json_edit
+            current_content = st.session_state.json_edit_key
             file_extension = 'json'
             mime_type = 'application/json'
         elif current_format == 'srt':
@@ -614,7 +614,7 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
             file_extension = 'srt'
             mime_type = 'text/srt'
         elif current_format == 'vtt':
-            current_content = st.session_state.vtt_edit
+            current_content = st.session_state.vtt_edit_key
             file_extension = 'vtt'
             mime_type = 'text/vtt'
 
