@@ -259,7 +259,7 @@ language_options = {'Deutsch': 'de', 'English': 'en'}
 selected_language = st.sidebar.selectbox('Sprache / Language', options=list(language_options.keys()))
 st.session_state.lang = language_options[selected_language]
 
-def reset_transcription_state():
+def reset_transcription_complete():
     st.session_state.task_id = None
     st.session_state.result = None
     st.session_state.status = None
@@ -283,18 +283,25 @@ def reset_transcription_state():
     # Keep selected_transcription_language_code
     st.session_state.transcription_language_code = ""
 
-def reset_variables_for_transcription_start():
-    st.session_state.original_txt = ""
-    st.session_state.original_json = ""
-    st.session_state.original_srt = ""
-    st.session_state.original_vtt = ""
+def reset_transcription_except_uploaded_file():
+    st.session_state.task_id = None
+    st.session_state.result = None
+    st.session_state.status = None
+    st.session_state.error = None
     st.session_state.txt_edit = ""
     st.session_state.json_edit = ""
     st.session_state.srt_edit = ""
     st.session_state.vtt_edit = ""
+    st.session_state.selected_tab = "srt"
     st.session_state.is_modified = False
-
-
+    st.session_state.original_txt = ""
+    st.session_state.original_json = ""
+    st.session_state.original_srt = ""
+    st.session_state.original_vtt = ""
+    st.session_state.processing = False
+    st.session_state.speaker_error = False
+    # Keep selected_transcription_language_code
+    st.session_state.transcription_language_code = ""
 
 def save_changes():
     if st.session_state.selected_tab == "txt":
@@ -324,9 +331,6 @@ def callback_validate_speakers_and_disable_controls():
         st.session_state.speaker_error = False
         st.session_state.processing = True
 
-    reset_variables_for_transcription_start()
-
-
 def callback_extract_file():
     message_placeholder = st.empty()
     message_placeholder.info(__("processing_uploaded_file"))
@@ -342,7 +346,7 @@ with st.sidebar:
 
     if st.session_state.media_file_data:
         st.write(f"{__("uploaded_file")}: {st.session_state.original_file_name}.")
-        st.button(__("delete_file"), on_click=reset_transcription_state)
+        st.button(__("delete_file"), on_click=reset_transcription_complete)
     else:
         uploaded_file = st.file_uploader(__("choose_file"),
                                          type=["mp4", "wav", "mp3"],
@@ -391,14 +395,15 @@ with st.sidebar:
             min_speakers = 0
             max_speakers = 0
 
-    transcribe_button_label = __("redo_transcription") if st.session_state.result else __("transcribe")
-    transcribe_button_clicked = st.button(transcribe_button_label,
-                                                        disabled=(
-                                                                st.session_state.processing or not st.session_state.media_file_data),
-                                                        on_click=callback_validate_speakers_and_disable_controls)
-
     if st.session_state.result:
-        st.button(__("delete_transcription"), disabled=st.session_state.processing, on_click=reset_transcription_state)
+        transcribe_button_clicked = False
+        st.button(__("delete_transcription"), 
+                  disabled=(st.session_state.processing or not st.session_state.media_file_data),
+                  on_click=reset_transcription_except_uploaded_file)
+    else:
+        transcribe_button_clicked = st.button(__("transcribe"),
+                                            disabled=(st.session_state.processing or not st.session_state.media_file_data),
+                                            on_click=callback_validate_speakers_and_disable_controls)
 
     # Add Logout button if LOGOUT_URL is set
     if LOGOUT_URL:
@@ -539,14 +544,12 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
         if st.session_state.txt_edit == "":
             st.session_state.txt_edit = normalize_text(result.get('txt_content', ''))
             st.session_state.original_txt = st.session_state.txt_edit
-        time.sleep(1)
         st_quill(value=st.session_state.txt_edit, key="txt_edit_key")
 
     elif st.session_state.selected_tab == "json":
         if st.session_state.json_edit == "":
             st.session_state.json_edit = normalize_text(result.get('json_content', ''))
             st.session_state.original_json = st.session_state.json_edit
-        time.sleep(1)
         st_quill(value=st.session_state.json_edit, key="json_edit_key")
 
     elif st.session_state.selected_tab == "srt":
@@ -554,14 +557,12 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
             st.session_state.srt_edit = normalize_text(result.get('srt_content', ''))
             st.text(st.session_state.srt_edit)
             st.session_state.original_srt = st.session_state.srt_edit
-        time.sleep(1)
         st_quill(value=st.session_state.srt_edit, key="srt_edit_key")
 
     elif st.session_state.selected_tab == "vtt":
         if st.session_state.vtt_edit == "":
             st.session_state.vtt_edit = normalize_text(result.get('vtt_content', ''))
             st.session_state.original_vtt = st.session_state.vtt_edit
-        time.sleep(1)
         st_quill(value=st.session_state.vtt_edit, key="vtt_edit_key")
 
     # Compare the current content with the original content
