@@ -249,7 +249,6 @@ if "initialized" not in st.session_state:
     st.session_state.original_vtt = ""
     st.session_state.processing = False
     st.session_state.speaker_error = False
-    st.session_state.selected_transcription_language_code = "de"  # Default transcription language code
     st.session_state.transcription_language_code = ""  # Will be set when transcription starts
 
 # Language selector in the sidebar
@@ -357,20 +356,22 @@ with st.sidebar:
                                         Language}
 
     # Compute the index from the current selection
-    current_selection = st.session_state.selected_transcription_language_code
+    if 'selected_transcription_language_code' in st.session_state:
+        current_selection = st.session_state.selected_transcription_language_code
+    else:
+        current_selection = "de"
+
     current_index = language_code_list.index(current_selection)
 
     # Render the selectbox using the index parameter on first render.
     # Note: If the key already exists, the index parameter is ignored.
-    new_selected_transcription_language_code = st.selectbox(
+    st.selectbox(
         __("select_language"),
         options=language_code_list,
         format_func=lambda code: language_code_to_display_name[code],
         index=current_index,
+        key="selected_transcription_language_code"
     )
-
-    if new_selected_transcription_language_code != current_selection:
-        st.session_state.selected_transcription_language_code = new_selected_transcription_language_code 
 
     model = st.selectbox(__("select_model"), ["base", "large-v3"], index=0, help=__("model_help"))
 
