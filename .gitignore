@@ -1,2 +1,5 @@
 /.venv/
 /.env
+tmp/
+*.mp3
+*.mp4
