@@ -25,7 +25,7 @@ translations = {
         'uploaded_file': "Hochgeladene Datei",
         'delete_file': "Datei löschen",
         'choose_file': "Wählen Sie eine Datei",
-        'select_language': "Sprache auswählen",
+        'select_language': "Sprache für die Transkription auswählen",
         'select_model': "Modell auswählen",
         'model_help': "Base Modell: Für schnelle und ressourcenschonende Transkriptionen (Balance zwischen Genauigkeit und Geschwindigkeit). Large-v3 Modell: Für detailliertere Analysen (langsamere Transkription mit höherer Genauigkeit).",
         'detect_speakers': "Verschiedene Sprecher erkennen",
@@ -65,7 +65,7 @@ translations = {
         'uploaded_file': "Uploaded File",
         'delete_file': "Delete File",
         'choose_file': "Choose a file",
-        'select_language': "Select Language",
+        'select_language': "Select Language for the Transcription",
         'select_model': "Select Model",
         'model_help': "Base Model: For quick and low effort transcriptions (balance between accuracy and speed). Large-v3 Model: For detailed analysis (slower transcription with higher accuracy).",
         'detect_speakers': "Detect different speakers",
@@ -253,7 +253,7 @@ if "initialized" not in st.session_state:
 
 # Language selector in the sidebar
 language_options = {'Deutsch': 'de', 'English': 'en'}
-selected_language = st.sidebar.selectbox('Sprache / Language', options=list(language_options.keys()))
+selected_language = st.sidebar.selectbox('UI Sprache / Language', options=list(language_options.keys()))
 st.session_state.lang = language_options[selected_language]
 
 def reset_transcription_complete():
