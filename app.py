@@ -253,7 +253,7 @@ if "initialized" not in st.session_state:
 
 # Language selector in the sidebar
 language_options = {'Deutsch': 'de', 'English': 'en'}
-selected_language = st.sidebar.selectbox('UI Sprache / Language', options=list(language_options.keys()))
+selected_language = st.sidebar.selectbox('Sprache der Oberfläche / UI Language', options=list(language_options.keys()))
 st.session_state.lang = language_options[selected_language]
 
 def reset_transcription_complete():
