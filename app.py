@@ -120,6 +120,11 @@ LOGOUT_URL = os.getenv("LOGOUT_URL")
 base_temp_dir = os.path.expanduser(TEMP_PATH)
 os.makedirs(base_temp_dir, exist_ok=True)
 
+# Language selector in the sidebar
+language_options = {'Deutsch': 'de', 'English': 'en'}
+selected_language = st.sidebar.selectbox('Sprache der Oberfläche / UI Language', options=list(language_options.keys()))
+st.session_state.lang = language_options[selected_language]
+
 # Application title
 st.title(__("title"))
 
@@ -250,11 +255,6 @@ if "initialized" not in st.session_state:
     st.session_state.processing = False
     st.session_state.speaker_error = False
     st.session_state.transcription_language_code = ""  # Will be set when transcription starts
-
-# Language selector in the sidebar
-language_options = {'Deutsch': 'de', 'English': 'en'}
-selected_language = st.sidebar.selectbox('Sprache der Oberfläche / UI Language', options=list(language_options.keys()))
-st.session_state.lang = language_options[selected_language]
 
 def reset_transcription_complete():
     st.session_state.task_id = None
