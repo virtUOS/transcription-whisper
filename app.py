@@ -106,7 +106,7 @@ def __(text_key):
 
 
 st.set_page_config(
-    page_title=__("title"),
+    page_title="Transcription Service",
     page_icon="assets/whisper-logo.ico",
     layout="wide",
     initial_sidebar_state="expanded"
