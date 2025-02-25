@@ -139,6 +139,7 @@ class Language(Enum):
     DANISH = ("da", {"de": "Dänisch", "en": "Danish"})
     DUTCH = ("nl", {"de": "Niederländisch", "en": "Dutch"})
     ENGLISH = ("en", {"de": "Englisch", "en": "English"})
+    FILIPINO = ("tl", {"de": "Filipino", "en": "Filipino"})
     FINNISH = ("fi", {"de": "Finnisch", "en": "Finnish"})
     FRENCH = ("fr", {"de": "Französisch", "en": "French"})
     GALICIAN = ("gl", {"de": "Galicisch", "en": "Galician"})
