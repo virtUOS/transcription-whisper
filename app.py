@@ -152,7 +152,7 @@ class Language(Enum):
     JAPANESE = ("ja", {"de": "Japanisch", "en": "Japanese"})
     KOREAN = ("ko", {"de": "Koreanisch", "en": "Korean"})
     LATVIAN = ("lv", {"de": "Lettisch", "en": "Latvian"})
-    MALAYALAM = ("lv", {"de": "Malayalam", "en": "Malayalam"})
+    MALAYALAM = ("ml", {"de": "Malayalam", "en": "Malayalam"})
     NORWEGIAN_NO = ("no", {"de": "Norwegisch (Bokmål)", "en": "Norwegian (Bokmål)"})
     NORWEGIAN_NN = ("nn", {"de": "Norwegisch (Nynorsk)", "en": "Norwegian (Nynorsk)"})
     PERSIAN = ("fa", {"de": "Persisch", "en": "Persian"})
