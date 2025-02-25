@@ -27,7 +27,7 @@ translations = {
         'choose_file': "Wählen Sie eine Datei",
         'select_language': "Sprache für die Transkription auswählen",
         'select_model': "Modell auswählen",
-        'model_help': "Base Modell: Für schnelle und ressourcenschonende Transkriptionen (Balance zwischen Genauigkeit und Geschwindigkeit). Large-v3 Modell: Für detailliertere Analysen (langsamere Transkription mit höherer Genauigkeit).",
+        'model_help': "Base Modell: Für schnelle und ressourcenschonende Transkriptionen (Balance zwischen Genauigkeit und Geschwindigkeit). Large-v3 Modell: Für detailliertere Analysen (langsamere Transkription mit höherer Genauigkeit). Large-v3 Turbo Modell: Schnelle Transkription mit fast gleicher Genauigkeit wie das Large-v3 Modell (optimale Balance zwischen Geschwindigkeit und Qualität).",
         'detect_speakers': "Verschiedene Sprecher erkennen",
         'detect_speakers_help': "Das Transkript wird in Segmente basierend auf den Sprechern unterteilt, um verschiedene Sprecher anzuzeigen.",
         'advanced_options': "Erweiterte Optionen",
@@ -67,7 +67,7 @@ translations = {
         'choose_file': "Choose a file",
         'select_language': "Select Language for the Transcription",
         'select_model': "Select Model",
-        'model_help': "Base Model: For quick and low effort transcriptions (balance between accuracy and speed). Large-v3 Model: For detailed analysis (slower transcription with higher accuracy).",
+        'model_help': "Base Model: For quick and low effort transcriptions (balance between accuracy and speed). Large-v3 Model: For detailed analysis (slower transcription with higher accuracy). Large-v3 Turbo model: Fast transcription with almost the same accuracy as the Large-v3 model (optimal balance between speed and quality).",
         'detect_speakers': "Detect different speakers",
         'detect_speakers_help': "The transcript will be split into segments based on who is speaking to indicate different speakers.",
         'advanced_options': "Advanced Options",
@@ -139,6 +139,7 @@ class Language(Enum):
     DANISH = ("da", {"de": "Dänisch", "en": "Danish"})
     DUTCH = ("nl", {"de": "Niederländisch", "en": "Dutch"})
     ENGLISH = ("en", {"de": "Englisch", "en": "English"})
+    FILIPINO = ("tl", {"de": "Filipino", "en": "Filipino"})
     FINNISH = ("fi", {"de": "Finnisch", "en": "Finnish"})
     FRENCH = ("fr", {"de": "Französisch", "en": "French"})
     GALICIAN = ("gl", {"de": "Galicisch", "en": "Galician"})
@@ -152,7 +153,7 @@ class Language(Enum):
     JAPANESE = ("ja", {"de": "Japanisch", "en": "Japanese"})
     KOREAN = ("ko", {"de": "Koreanisch", "en": "Korean"})
     LATVIAN = ("lv", {"de": "Lettisch", "en": "Latvian"})
-    MALAYALAM = ("lv", {"de": "Malayalam", "en": "Malayalam"})
+    MALAYALAM = ("ml", {"de": "Malayalam", "en": "Malayalam"})
     NORWEGIAN_NO = ("no", {"de": "Norwegisch (Bokmål)", "en": "Norwegian (Bokmål)"})
     NORWEGIAN_NN = ("nn", {"de": "Norwegisch (Nynorsk)", "en": "Norwegian (Nynorsk)"})
     PERSIAN = ("fa", {"de": "Persisch", "en": "Persian"})
@@ -373,7 +374,7 @@ with st.sidebar:
         key="selected_transcription_language_code"
     )
 
-    model = st.selectbox(__("select_model"), ["base", "large-v3"], index=0, help=__("model_help"))
+    model = st.selectbox(__("select_model"), ["base", "large-v3", "large-v3-turbo"], index=0, help=__("model_help"))
 
     with st.expander(__("set_num_speakers")):
         detect_speakers = st.toggle(__("detect_speakers"),
