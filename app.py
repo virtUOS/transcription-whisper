@@ -27,7 +27,6 @@ translations = {
         'choose_file': "Wählen Sie eine Datei",
         'select_language': "Sprache für die Transkription auswählen",
         'select_model': "Modell auswählen",
-        'model_help': "Base Modell: Für schnelle und ressourcenschonende Transkriptionen (Balance zwischen Genauigkeit und Geschwindigkeit). Large-v3 Modell: Für detailliertere Analysen (langsamere Transkription mit höherer Genauigkeit). Large-v3 Turbo Modell: Schnelle Transkription mit fast gleicher Genauigkeit wie das Large-v3 Modell (optimale Balance zwischen Geschwindigkeit und Qualität).",
         'detect_speakers': "Verschiedene Sprecher erkennen",
         'detect_speakers_help': "Das Transkript wird in Segmente basierend auf den Sprechern unterteilt, um verschiedene Sprecher anzuzeigen.",
         'advanced_options': "Erweiterte Optionen",
@@ -67,7 +66,6 @@ translations = {
         'choose_file': "Choose a file",
         'select_language': "Select Language for the Transcription",
         'select_model': "Select Model",
-        'model_help': "Base Model: For quick and low effort transcriptions (balance between accuracy and speed). Large-v3 Model: For detailed analysis (slower transcription with higher accuracy). Large-v3 Turbo model: Fast transcription with almost the same accuracy as the Large-v3 model (optimal balance between speed and quality).",
         'detect_speakers': "Detect different speakers",
         'detect_speakers_help': "The transcript will be split into segments based on who is speaking to indicate different speakers.",
         'advanced_options': "Advanced Options",
@@ -124,6 +122,50 @@ DEFAULT_WHISPER_MODEL = os.getenv("DEFAULT_WHISPER_MODEL", "base")
 # Ensure default model is in the available models list
 if DEFAULT_WHISPER_MODEL not in WHISPER_MODELS:
     DEFAULT_WHISPER_MODEL = WHISPER_MODELS[0]
+
+# Model descriptions for help text
+MODEL_DESCRIPTIONS = {
+    'tiny': {
+        'de': "Tiny Modell: Schnellstes Modell mit geringster Genauigkeit",
+        'en': "Tiny Model: Fastest model with lowest accuracy"
+    },
+    'base': {
+        'de': "Base Modell: Gute Balance zwischen Geschwindigkeit und Genauigkeit",
+        'en': "Base Model: Good balance between speed and accuracy"
+    },
+    'small': {
+        'de': "Small Modell: Bessere Genauigkeit, langsamer",
+        'en': "Small Model: Better accuracy, slower"
+    },
+    'medium': {
+        'de': "Medium Modell: Hohe Genauigkeit",
+        'en': "Medium Model: High accuracy"
+    },
+    'large-v1': {
+        'de': "Large-v1 Modell: Sehr hohe Genauigkeit",
+        'en': "Large-v1 Model: Very high accuracy"
+    },
+    'large-v2': {
+        'de': "Large-v2 Modell: Verbesserte Version von Large-v1",
+        'en': "Large-v2 Model: Improved version of Large-v1"
+    },
+    'large-v3': {
+        'de': "Large-v3 Modell: Neuestes Large-Modell mit bester Genauigkeit",
+        'en': "Large-v3 Model: Latest large model with best accuracy"
+    },
+    'large-v3-turbo': {
+        'de': "Large-v3 Turbo Modell: Schnelle Version von Large-v3 mit ähnlicher Genauigkeit",
+        'en': "Large-v3 Turbo Model: Fast version of Large-v3 with similar accuracy"
+    }
+}
+
+def generate_model_help_text(lang_code):
+    """Generate dynamic help text based on configured models"""
+    help_texts = []
+    for model in WHISPER_MODELS:
+        if model in MODEL_DESCRIPTIONS:
+            help_texts.append(MODEL_DESCRIPTIONS[model].get(lang_code, MODEL_DESCRIPTIONS[model]['en']))
+    return ". ".join(help_texts) + "."
 
 base_temp_dir = os.path.expanduser(TEMP_PATH)
 os.makedirs(base_temp_dir, exist_ok=True)
@@ -388,7 +430,7 @@ with st.sidebar:
     except ValueError:
         default_index = 0
     
-    model = st.selectbox(__("select_model"), WHISPER_MODELS, index=default_index, help=__("model_help"))
+    model = st.selectbox(__("select_model"), WHISPER_MODELS, index=default_index, help=generate_model_help_text(st.session_state.lang))
 
     with st.expander(__("set_num_speakers")):
         detect_speakers = st.toggle(__("detect_speakers"),
