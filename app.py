@@ -117,6 +117,14 @@ FFMPEG_PATH = os.getenv("FFMPEG_PATH") or "ffmpeg"
 TEMP_PATH = os.getenv("TEMP_PATH") or "tmp/transcription-files"
 LOGOUT_URL = os.getenv("LOGOUT_URL")
 
+# Configurable Whisper models
+WHISPER_MODELS = os.getenv("WHISPER_MODELS", "base,large-v3,large-v3-turbo").split(",")
+DEFAULT_WHISPER_MODEL = os.getenv("DEFAULT_WHISPER_MODEL", "base")
+
+# Ensure default model is in the available models list
+if DEFAULT_WHISPER_MODEL not in WHISPER_MODELS:
+    DEFAULT_WHISPER_MODEL = WHISPER_MODELS[0]
+
 base_temp_dir = os.path.expanduser(TEMP_PATH)
 os.makedirs(base_temp_dir, exist_ok=True)
 
@@ -374,7 +382,13 @@ with st.sidebar:
         key="selected_transcription_language_code"
     )
 
-    model = st.selectbox(__("select_model"), ["base", "large-v3", "large-v3-turbo"], index=0, help=__("model_help"))
+    # Get the index of the default model for the selectbox
+    try:
+        default_index = WHISPER_MODELS.index(DEFAULT_WHISPER_MODEL)
+    except ValueError:
+        default_index = 0
+    
+    model = st.selectbox(__("select_model"), WHISPER_MODELS, index=default_index, help=__("model_help"))
 
     with st.expander(__("set_num_speakers")):
         detect_speakers = st.toggle(__("detect_speakers"),
