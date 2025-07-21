@@ -9,8 +9,18 @@ from streamlit_quill import st_quill
 import uuid
 from enum import Enum
 
+# Import metrics
+from metrics import metrics, get_metrics_enabled, get_metrics_port, start_metrics_server
 
 load_dotenv()
+
+# Initialize metrics server if enabled
+if get_metrics_enabled():
+    metrics_port = get_metrics_port()
+    if start_metrics_server(metrics_port):
+        print(f"Metrics server started on port {metrics_port}")
+    else:
+        print(f"Failed to start metrics server on port {metrics_port}")
 
 # Initialize language in session state
 if 'lang' not in st.session_state:
@@ -175,6 +185,17 @@ language_options = {'Deutsch': 'de', 'English': 'en'}
 selected_language = st.sidebar.selectbox('Sprache der Oberfläche / UI Language', options=list(language_options.keys()))
 st.session_state.lang = language_options[selected_language]
 
+# Track page views and session management
+if get_metrics_enabled():
+    # Track page view
+    metrics.track_page_view(st.session_state.lang)
+    
+    # Update active sessions count (approximate based on session state)
+    if 'session_tracked' not in st.session_state:
+        st.session_state.session_tracked = True
+        # This is a simple approximation - in production you might want a more sophisticated session tracking
+        metrics.active_sessions.inc()
+
 # Application title
 st.title(__("title"))
 
@@ -236,15 +257,48 @@ def upload_file(file, lang, model, min_speakers, max_speakers):
         'min_speakers': min_speakers,
         'max_speakers': max_speakers,
     }
-    response = requests.post(f"{API_URL}/jobs", files=files, data=data)
-    response.raise_for_status()
-    return response.json()
+    
+    # Track transcription start
+    if get_metrics_enabled():
+        metrics.track_transcription_start(lang, model, min_speakers, max_speakers)
+    
+    start_time = time.time()
+    try:
+        response = requests.post(f"{API_URL}/jobs", files=files, data=data)
+        response.raise_for_status()
+        
+        # Track API request metrics
+        if get_metrics_enabled():
+            duration = time.time() - start_time
+            metrics.track_api_request("/jobs", "POST", response.status_code, duration)
+        
+        return response.json()
+    except Exception as e:
+        if get_metrics_enabled():
+            duration = time.time() - start_time
+            metrics.track_api_request("/jobs", "POST", getattr(e.response, 'status_code', 500) if hasattr(e, 'response') else 500, duration)
+            metrics.track_error(type(e).__name__, 'upload_file')
+        raise
 
 
 def check_status(task_id):
-    response = requests.get(f"{API_URL}/jobs/{task_id}")
-    response.raise_for_status()
-    return response.json()
+    start_time = time.time()
+    try:
+        response = requests.get(f"{API_URL}/jobs/{task_id}")
+        response.raise_for_status()
+        
+        # Track API request metrics
+        if get_metrics_enabled():
+            duration = time.time() - start_time
+            metrics.track_api_request(f"/jobs/{task_id}", "GET", response.status_code, duration)
+        
+        return response.json()
+    except Exception as e:
+        if get_metrics_enabled():
+            duration = time.time() - start_time
+            metrics.track_api_request(f"/jobs/{task_id}", "GET", getattr(e.response, 'status_code', 500) if hasattr(e, 'response') else 500, duration)
+            metrics.track_error(type(e).__name__, 'check_status')
+        raise
 
 
 def convert_audio(input_path, output_path):
@@ -270,15 +324,26 @@ def process_uploaded_file(uploaded_file):
     unique_id = str(uuid.uuid4())  # Generate a unique ID for the file
     file_extension = os.path.splitext(uploaded_file.name)[1]
     temp_input_path = os.path.join(base_temp_dir, f"{unique_id}{file_extension}")
+    
+    # Track file upload metrics
+    file_size = len(uploaded_file.getvalue())
+    if get_metrics_enabled():
+        metrics.track_file_upload(file_size, file_extension.lower(), 'success')
+    
     with open(temp_input_path, "wb") as temp_file:
         temp_file.write(uploaded_file.getvalue())
 
     if file_extension.lower() != '.mp3':
         temp_output_path = os.path.join(base_temp_dir, f"{unique_id}.mp3")
         message_placeholder.info(__("converting_file_to_mp3"))
-        convert_audio(temp_input_path, temp_output_path)
-        message_placeholder.empty()
-        return temp_input_path, temp_output_path, uploaded_file.name
+        try:
+            convert_audio(temp_input_path, temp_output_path)
+            message_placeholder.empty()
+            return temp_input_path, temp_output_path, uploaded_file.name
+        except Exception as e:
+            if get_metrics_enabled():
+                metrics.track_error(type(e).__name__, 'audio_conversion')
+            raise
     else:
         return temp_input_path, temp_input_path, uploaded_file.name
 
@@ -485,8 +550,9 @@ if st.session_state.speaker_error:
     st.error(__("validate_number_speakers"))
 elif st.session_state.media_file_data and transcribe_button_clicked:
 
-    # Store the transcription language code used for this transcription
+    # Store the transcription language code and model used for this transcription
     st.session_state.transcription_language_code = st.session_state.selected_transcription_language_code
+    st.session_state.selected_model = model
 
     lang = st.session_state.transcription_language_code
 
@@ -514,12 +580,28 @@ if st.session_state.status and st.session_state.status != "SUCCESS":
         if status['status'] == "SUCCESS":
             st.session_state.status = "SUCCESS"
             st.session_state.result = status.get('result', {})
+            
+            # Track successful transcription completion
+            if get_metrics_enabled():
+                transcription_duration = elapsed_time
+                lang = st.session_state.get('transcription_language_code', 'unknown')
+                model = st.session_state.get('selected_model', 'unknown')
+                metrics.track_transcription_complete(lang, model, transcription_duration, 'success')
+            
             st.success(__("transcription_success"))
             time.sleep(1)
             st.rerun()
         elif status['status'] == "FAILURE":
             st.session_state.status = "FAILURE"
             st.session_state.error = status  # We want all the information about the failure to display in next refresh
+            
+            # Track failed transcription
+            if get_metrics_enabled():
+                lang = st.session_state.get('transcription_language_code', 'unknown')
+                model = st.session_state.get('selected_model', 'unknown')
+                metrics.track_transcription_complete(lang, model, elapsed_time, 'failure')
+                metrics.track_error('TranscriptionFailure', 'transcription_job')
+            
             st.error(f"{__('transcription_failed')} {status.get('error', 'Unknown error')}")
             break
         else:
@@ -641,6 +723,11 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
     with save_col:
         if st.button(__("save_changes"), disabled=not st.session_state.is_modified):
             save_changes()
+            
+            # Track save action
+            if get_metrics_enabled():
+                metrics.track_user_action('save_changes', st.session_state.selected_tab)
+            
             st.success(__("changes_saved"))
             time.sleep(1)
             st.rerun()
@@ -678,13 +765,17 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
         else:
             data = BytesIO(b'')  # pass empty bytes to avoid NoneType error
         
-        st.download_button(
+        download_clicked = st.download_button(
             label=download_button_label,
             data=data,
             file_name=f"{base_name}_{transcription_lang}.{file_extension}",
             mime=mime_type,
             disabled=(not current_content)
         )
+        
+        # Track download action
+        if download_clicked and get_metrics_enabled():
+            metrics.track_download(current_format)
 
 elif st.session_state.status == "FAILURE" and 'status' in st.session_state.error:
     st.error(f"{__('transcription_failed')} {st.session_state.error.get('error', 'Unknown error')}")
