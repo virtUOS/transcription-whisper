@@ -3,7 +3,8 @@ EXPOSE 8501
 
 # Install debian packages
 RUN apt-get update && apt-get install -y \
-    ffmpeg
+    curl \
+	ffmpeg
 
 # Install dependencies
 COPY requirements.txt /kiwi/requirements.txt
