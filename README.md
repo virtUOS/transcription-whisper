@@ -33,6 +33,80 @@ API_URL=http://111.111.111.11:11300
 WHISPER_MODELS=tiny,base,small,medium,large-v1,large-v2,large-v3,large-v3-turbo
 # Default model selection
 DEFAULT_WHISPER_MODEL=base
+
+# Prometheus metrics configuration
+ENABLE_METRICS=true
+METRICS_PORT=8000
+```
+
+## Prometheus Metrics
+
+The application includes comprehensive Prometheus metrics for monitoring usage and performance. When enabled, metrics are exposed on a separate HTTP endpoint for Prometheus to scrape.
+
+### Available Metrics
+
+- **Application Metrics**:
+  - `transcription_page_views_total` - Total page views by UI language
+  - `transcription_active_sessions` - Number of active user sessions
+  - `transcription_app_info` - Application version and metadata
+
+- **File Upload Metrics**:
+  - `transcription_file_uploads_total` - Total file uploads by type and status
+  - `transcription_file_upload_size_bytes` - File upload size distribution
+
+- **Transcription Metrics**:
+  - `transcription_jobs_total` - Total transcription jobs by language, model, and status
+  - `transcription_duration_seconds` - Transcription processing time distribution
+  - `transcription_active_jobs` - Number of currently processing jobs
+  - `transcription_model_usage_total` - Usage count per Whisper model
+  - `transcription_language_usage_total` - Usage count per transcription language
+  - `transcription_speaker_detection_total` - Speaker detection usage statistics
+
+- **User Interaction Metrics**:
+  - `transcription_user_actions_total` - User actions (save, edit) by format
+  - `transcription_downloads_total` - File downloads by format
+
+- **API and Error Metrics**:
+  - `transcription_api_request_duration_seconds` - API request latency
+  - `transcription_errors_total` - Error count by type and component
+
+### Configuration
+
+Metrics are controlled by environment variables:
+
+- `ENABLE_METRICS=true` - Enable/disable metrics collection (default: true)
+- `METRICS_PORT=8000` - Port for metrics HTTP server (default: 8000)
+
+### Prometheus Configuration
+
+Add this job to your `prometheus.yml`:
+
+```yaml
+scrape_configs:
+  - job_name: 'transcription-app'
+    static_configs:
+      - targets: ['localhost:8000']
+    scrape_interval: 15s
+    metrics_path: /metrics
+```
+
+### Grafana Dashboard
+
+The metrics are designed to work well with Grafana. Key dashboard panels might include:
+
+- Active sessions and transcription jobs over time
+- Transcription success/failure rates
+- Processing time percentiles by model
+- File upload volume and sizes
+- Language and model usage distribution
+- Error rates and types
+
+### Testing Metrics
+
+You can test the metrics functionality using the included test script:
+
+```bash
+python test_metrics.py
 ```
 
 ## Development
@@ -45,6 +119,8 @@ Then simply run a development server like this:
 ```bash
 streamlit run app.py
 ```
+
+The metrics endpoint will be available at `http://localhost:8000/metrics` when the app is running.
 
 ## Authors
 
