@@ -6,9 +6,6 @@ This module defines and manages all metrics collected by the application.
 import time
 import os
 from prometheus_client import Counter, Histogram, Gauge, Info, start_http_server
-from functools import wraps
-import streamlit as st
-
 
 # Application info metric
 app_info = Info('transcription_app_info', 'Information about the transcription application')
@@ -125,6 +122,9 @@ class MetricsCollector:
     
     def __init__(self):
         self.start_time = time.time()
+        # Expose metrics for direct access
+        self.active_sessions = active_sessions
+        self.active_transcriptions = active_transcriptions
     
     def track_page_view(self, language='unknown'):
         """Track a page view."""
@@ -198,29 +198,18 @@ class MetricsCollector:
 metrics = MetricsCollector()
 
 
-def track_function_calls(metric_name):
-    """Decorator to track function call metrics."""
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            start_time = time.time()
-            try:
-                result = func(*args, **kwargs)
-                duration = time.time() - start_time
-                # You can add specific tracking here if needed
-                return result
-            except Exception as e:
-                metrics.track_error(type(e).__name__, func.__name__)
-                raise
-        return wrapper
-    return decorator
-
-
 def start_metrics_server(port=8000):
     """Start the Prometheus metrics HTTP server."""
     try:
         start_http_server(port)
         return True
+    except OSError as e:
+        if e.errno == 98:  # Address already in use
+            # Server is already running, which is fine
+            return True
+        else:
+            print(f"Failed to start metrics server on port {port}: {e}")
+            return False
     except Exception as e:
         print(f"Failed to start metrics server on port {port}: {e}")
         return False
