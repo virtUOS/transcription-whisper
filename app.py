@@ -235,6 +235,7 @@ class Language(Enum):
     SLOVAK = ("sk", {"de": "Slowakisch", "en": "Slovak"})
     SLOVENIAN = ("sl", {"de": "Slowenisch", "en": "Slovenian"})
     SPANISH = ("es", {"de": "Spanisch", "en": "Spanish"})
+    SWEDISH = ("sv", {"de": "Schwedisch", "en": "Swedish"})
     TELUGU = ("te", {"de": "Telugu", "en": "Telugu"})
     TURKISH = ("tr", {"de": "Türkisch", "en": "Turkish"})
     UKRAINIAN = ("uk", {"de": "Ukrainisch", "en": "Ukrainian"})
