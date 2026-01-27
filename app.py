@@ -326,8 +326,8 @@ def process_uploaded_file(uploaded_file):
     file_extension = os.path.splitext(uploaded_file.name)[1]
     temp_input_path = os.path.join(base_temp_dir, f"{unique_id}{file_extension}")
     
-    # Track file upload metrics
-    file_size = len(uploaded_file.getvalue())
+    # Track file upload metrics - use .size property to avoid loading file into memory twice
+    file_size = uploaded_file.size
     if get_metrics_enabled():
         metrics.track_file_upload(file_size, file_extension.lower(), 'success')
     
