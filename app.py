@@ -655,56 +655,66 @@ if st.session_state.status and st.session_state.status != "SUCCESS":
     placeholder_task = st.empty()
 
     while True:
-        status = check_status(st.session_state.task_id)
-        elapsed_time = time.time() - start_time
-        minutes, seconds = divmod(elapsed_time, 60)
+        try:
+            status = check_status(st.session_state.task_id)
+            elapsed_time = time.time() - start_time
+            minutes, seconds = divmod(elapsed_time, 60)
 
-        if status['status'] == "SUCCESS":
-            st.session_state.status = "SUCCESS"
-            # Fetch export formats from MurmurAI separate endpoints
-            task_id = st.session_state.task_id
-            st.session_state.result = {
-                'txt_content': fetch_export_format(task_id, 'txt'),
-                'srt_content': fetch_export_format(task_id, 'srt'),
-                'vtt_content': fetch_export_format(task_id, 'vtt'),
-                'json_content': json.dumps(status, indent=2)
-            }
-            
-            # Track successful transcription completion
-            if get_metrics_enabled():
-                transcription_duration = elapsed_time
-                lang = st.session_state.get('transcription_language_code', 'unknown')
-                model = st.session_state.get('selected_model', 'unknown')
-                metrics.track_transcription_complete(lang, model, transcription_duration, 'success')
-            
-            st.success(__("transcription_success"))
-            time.sleep(1)
-            st.rerun()
-        elif status['status'] == "FAILURE":
-            st.session_state.status = "FAILURE"
-            st.session_state.error = status  # We want all the information about the failure to display in next refresh
-            
-            # Track failed transcription
-            if get_metrics_enabled():
-                lang = st.session_state.get('transcription_language_code', 'unknown')
-                model = st.session_state.get('selected_model', 'unknown')
-                metrics.track_transcription_complete(lang, model, elapsed_time, 'failure')
-                metrics.track_error('TranscriptionFailure', 'transcription_job')
-            
-            # Display more detailed error info for debugging
-            error_msg = status.get('error', status.get('message', 'Unknown error'))
-            st.error(f"{__('transcription_failed')} {error_msg}")
-            # Show full response for debugging if error is unclear
-            if error_msg in ['Unknown error', 'confidence']:
-                st.code(json.dumps(status, indent=2), language='json')
+            if status['status'] == "SUCCESS":
+                st.session_state.status = "SUCCESS"
+                # Fetch export formats from MurmurAI separate endpoints
+                task_id = st.session_state.task_id
+                st.session_state.result = {
+                    'txt_content': fetch_export_format(task_id, 'txt'),
+                    'srt_content': fetch_export_format(task_id, 'srt'),
+                    'vtt_content': fetch_export_format(task_id, 'vtt'),
+                    'json_content': json.dumps(status, indent=2)
+                }
+                
+                # Track successful transcription completion
+                if get_metrics_enabled():
+                    transcription_duration = elapsed_time
+                    lang = st.session_state.get('transcription_language_code', 'unknown')
+                    model = st.session_state.get('selected_model', 'unknown')
+                    metrics.track_transcription_complete(lang, model, transcription_duration, 'success')
+                
+                st.success(__("transcription_success"))
+                time.sleep(1)
+                st.rerun()
+            elif status['status'] == "FAILURE":
+                st.session_state.status = "FAILURE"
+                st.session_state.error = status  # We want all the information about the failure to display in next refresh
+                
+                # Track failed transcription
+                if get_metrics_enabled():
+                    lang = st.session_state.get('transcription_language_code', 'unknown')
+                    model = st.session_state.get('selected_model', 'unknown')
+                    metrics.track_transcription_complete(lang, model, elapsed_time, 'failure')
+                    metrics.track_error('TranscriptionFailure', 'transcription_job')
+                
+                # Display more detailed error info for debugging
+                error_msg = status.get('error', status.get('message', 'Unknown error'))
+                st.error(f"{__('transcription_failed')} {error_msg}")
+                # Show full response for debugging if error is unclear
+                if str(error_msg) in ['Unknown error', 'confidence', "'confidence'"]:
+                    st.code(json.dumps(status, indent=2, default=str), language='json')
+                break
+            else:
+                st.session_state.status = status['status']
+                placeholder_task.info(
+                    f"{__('task_status')} {status['status']}. {__('elapsed_time')} {int(minutes)} min {int(seconds)} sec. "
+                    f"{__('checking_again_in')}"
+                )
+                time.sleep(30)
+        except KeyError as e:
+            st.error(f"{__('transcription_failed')} KeyError: {e}")
+            st.error(f"Status response: {json.dumps(status if 'status' in dir() else 'status not set', default=str)}")
             break
-        else:
-            st.session_state.status = status['status']
-            placeholder_task.info(
-                f"{__('task_status')} {status['status']}. {__('elapsed_time')} {int(minutes)} min {int(seconds)} sec. "
-                f"{__('checking_again_in')}"
-            )
-            time.sleep(30)
+        except Exception as e:
+            st.error(f"{__('transcription_failed')} {type(e).__name__}: {e}")
+            import traceback
+            st.code(traceback.format_exc())
+            break
 
 st.session_state.processing = False
 
