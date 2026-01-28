@@ -66,6 +66,12 @@ translations = {
         'elapsed_time': "Verstrichene Zeit:",
         'checking_again_in': "Erneutes Überprüfen in 30 Sekunden...",
         'logout': "Abmelden",
+        'initial_prompt': "Anfangs-Prompt",
+        'initial_prompt_help': "Optionaler Text als Kontext für das erste Fenster der Transkription. Kann helfen, den Stil oder spezifische Begriffe vorzugeben.",
+        'initial_prompt_placeholder': "z.B. Dies ist eine Vorlesung über Kognitionswissenschaft...",
+        'hotwords': "Schlüsselwörter",
+        'hotwords_help': "Kommagetrennte Schlüsselwörter oder Fachbegriffe, die das Modell besser erkennen soll.",
+        'hotwords_placeholder': "z.B. IKW, UOS, Osnabrück, Schopenhauer",
     },
     'en': {
         'title': "Transcription Service",
@@ -105,6 +111,12 @@ translations = {
         'elapsed_time': "Elapsed time:",
         'checking_again_in': "Checking again in 30 seconds...",
         'logout': "Logout",
+        'initial_prompt': "Initial Prompt",
+        'initial_prompt_help': "Optional text to provide as context for the first transcription window. Can help set the style or prime specific terms.",
+        'initial_prompt_placeholder': "e.g. This is a lecture about cognitive science...",
+        'hotwords': "Hotwords",
+        'hotwords_help': "Comma-separated keywords or technical terms to improve recognition.",
+        'hotwords_placeholder': "e.g. IKW, UOS, Osnabrück, Schopenhauer",
     }
 }
 
@@ -250,7 +262,7 @@ class Language(Enum):
         return self.names.get(lang_code, self.names.get('de'))
 
 
-def upload_file(file, lang, model, min_speakers, max_speakers):
+def upload_file(file, lang, model, min_speakers, max_speakers, initial_prompt=None, hotwords=None):
     files = {'file': file}
     data = {
         'lang': lang,
@@ -258,6 +270,12 @@ def upload_file(file, lang, model, min_speakers, max_speakers):
         'min_speakers': min_speakers,
         'max_speakers': max_speakers,
     }
+    
+    # Add optional parameters only if they have values
+    if initial_prompt:
+        data['initial_prompt'] = initial_prompt
+    if hotwords:
+        data['hotwords'] = hotwords
     
     # Track transcription start
     if get_metrics_enabled():
@@ -517,6 +535,22 @@ with st.sidebar:
             min_speakers = 0
             max_speakers = 0
 
+    with st.expander(__("advanced_options")):
+        initial_prompt = st.text_area(
+            __("initial_prompt"),
+            value="",
+            help=__("initial_prompt_help"),
+            placeholder=__("initial_prompt_placeholder"),
+            height=100
+        )
+        
+        hotwords = st.text_input(
+            __("hotwords"),
+            value="",
+            help=__("hotwords_help"),
+            placeholder=__("hotwords_placeholder")
+        )
+
     if st.session_state.result:
         transcribe_button_clicked = False
         st.button(__("delete_transcription"), 
@@ -558,7 +592,7 @@ elif st.session_state.media_file_data and transcribe_button_clicked:
     lang = st.session_state.transcription_language_code
 
     with open(st.session_state.unique_file_path, "rb") as file_to_transcribe:
-        upload_response = upload_file(file_to_transcribe, lang, model, min_speakers, max_speakers)
+        upload_response = upload_file(file_to_transcribe, lang, model, min_speakers, max_speakers, initial_prompt, hotwords)
     upload_placeholder = st.empty()  # Placeholder for upload message
 
     task_id = upload_response.get("task_id")
