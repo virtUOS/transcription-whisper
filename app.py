@@ -71,7 +71,7 @@ translations = {
         'initial_prompt_placeholder': "z.B. Dies ist eine Vorlesung über Kognitionswissenschaft...",
         'hotwords': "Schlüsselwörter",
         'hotwords_help': "Kommagetrennte Schlüsselwörter oder Fachbegriffe, die das Modell besser erkennen soll.",
-        'hotwords_placeholder': "z.B. IKW, UOS, Osnabrück, Seminar",
+        'hotwords_placeholder': "z.B. IKW, UOS, Osnabrück, Schopenhauer",
     },
     'en': {
         'title': "Transcription Service",
@@ -116,7 +116,7 @@ translations = {
         'initial_prompt_placeholder': "e.g. This is a lecture about cognitive science...",
         'hotwords': "Hotwords",
         'hotwords_help': "Comma-separated keywords or technical terms to improve recognition.",
-        'hotwords_placeholder': "e.g. IKW, UOS, Osnabrück, Seminar",
+        'hotwords_placeholder': "e.g. IKW, UOS, Osnabrück, Schopenhauer",
     }
 }
 
