@@ -270,14 +270,18 @@ def get_api_headers():
 
 
 def map_murmurai_status(status):
-    """Map MurmurAI status values to internal status values"""
+    """Map MurmurAI status values to internal status values (case-insensitive)"""
+    if not status:
+        return "UNKNOWN"
+    status_lower = str(status).lower()
     mapping = {
         "queued": "PENDING",
         "processing": "STARTED",
         "completed": "SUCCESS",
-        "error": "FAILURE"
+        "error": "FAILURE",
+        "failed": "FAILURE"
     }
-    return mapping.get(status, status.upper())
+    return mapping.get(status_lower, status_lower.upper())
 
 
 def fetch_export_format(task_id, format_type):
@@ -687,7 +691,12 @@ if st.session_state.status and st.session_state.status != "SUCCESS":
                 metrics.track_transcription_complete(lang, model, elapsed_time, 'failure')
                 metrics.track_error('TranscriptionFailure', 'transcription_job')
             
-            st.error(f"{__('transcription_failed')} {status.get('error', 'Unknown error')}")
+            # Display more detailed error info for debugging
+            error_msg = status.get('error', status.get('message', 'Unknown error'))
+            st.error(f"{__('transcription_failed')} {error_msg}")
+            # Show full response for debugging if error is unclear
+            if error_msg in ['Unknown error', 'confidence']:
+                st.code(json.dumps(status, indent=2), language='json')
             break
         else:
             st.session_state.status = status['status']
