@@ -13,6 +13,8 @@ Some of its features are:
 - Diarization support to detect multiple speakers (up to 20).
 - Srt, vtt and json formats provide timestamp and speaker information (when available).
 - Transcribed subtitles can be activated in uploaded videos.
+- Initial prompt support to provide context for the transcription.
+- Hotwords support to improve recognition of rare or technical terms.
 
 # Usage & Configuration
 
