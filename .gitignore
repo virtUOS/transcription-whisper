@@ -4,3 +4,5 @@ tmp/
 *.mp3
 *.mp4
 pyrightconfig.json
+__pycache__/
+*.pyc

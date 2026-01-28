@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 import time
 import os
+import json
 from io import BytesIO
 import subprocess
 from dotenv import load_dotenv
@@ -133,6 +134,7 @@ st.set_page_config(
 )
 
 API_URL = os.getenv("API_URL")
+MURMURAI_API_KEY = os.getenv("MURMURAI_API_KEY", "namastex888")
 FFMPEG_PATH = os.getenv("FFMPEG_PATH") or "ffmpeg"
 TEMP_PATH = os.getenv("TEMP_PATH") or "tmp/transcription-files"
 LOGOUT_URL = os.getenv("LOGOUT_URL")
@@ -262,13 +264,43 @@ class Language(Enum):
         return self.names.get(lang_code, self.names.get('de'))
 
 
+def get_api_headers():
+    """Get headers for MurmurAI API requests"""
+    return {"Authorization": MURMURAI_API_KEY}
+
+
+def map_murmurai_status(status):
+    """Map MurmurAI status values to internal status values"""
+    mapping = {
+        "queued": "PENDING",
+        "processing": "STARTED",
+        "completed": "SUCCESS",
+        "error": "FAILURE"
+    }
+    return mapping.get(status, status.upper())
+
+
+def fetch_export_format(task_id, format_type):
+    """Fetch a specific export format from MurmurAI API"""
+    try:
+        response = requests.get(
+            f"{API_URL}/v1/transcript/{task_id}/{format_type}",
+            headers=get_api_headers()
+        )
+        response.raise_for_status()
+        return response.text
+    except Exception:
+        return ""
+
+
 def upload_file(file, lang, model, min_speakers, max_speakers, initial_prompt=None, hotwords=None):
     files = {'file': file}
     data = {
-        'lang': lang,
+        'language': lang,
         'model': model,
         'min_speakers': min_speakers,
         'max_speakers': max_speakers,
+        'diarize': str(min_speakers > 0 or max_speakers > 0).lower(),
     }
     
     # Add optional parameters only if they have values
@@ -283,19 +315,24 @@ def upload_file(file, lang, model, min_speakers, max_speakers, initial_prompt=No
     
     start_time = time.time()
     try:
-        response = requests.post(f"{API_URL}/jobs", files=files, data=data)
+        response = requests.post(
+            f"{API_URL}/v1/transcript",
+            headers=get_api_headers(),
+            files=files,
+            data=data
+        )
         response.raise_for_status()
         
         # Track API request metrics
         if get_metrics_enabled():
             duration = time.time() - start_time
-            metrics.track_api_request("/jobs", "POST", response.status_code, duration)
+            metrics.track_api_request("/v1/transcript", "POST", response.status_code, duration)
         
         return response.json()
     except Exception as e:
         if get_metrics_enabled():
             duration = time.time() - start_time
-            metrics.track_api_request("/jobs", "POST", getattr(e.response, 'status_code', 500) if hasattr(e, 'response') else 500, duration)
+            metrics.track_api_request("/v1/transcript", "POST", getattr(e.response, 'status_code', 500) if hasattr(e, 'response') else 500, duration)
             metrics.track_error(type(e).__name__, 'upload_file')
         raise
 
@@ -303,19 +340,25 @@ def upload_file(file, lang, model, min_speakers, max_speakers, initial_prompt=No
 def check_status(task_id):
     start_time = time.time()
     try:
-        response = requests.get(f"{API_URL}/jobs/{task_id}")
+        response = requests.get(
+            f"{API_URL}/v1/transcript/{task_id}",
+            headers=get_api_headers()
+        )
         response.raise_for_status()
         
         # Track API request metrics
         if get_metrics_enabled():
             duration = time.time() - start_time
-            metrics.track_api_request(f"/jobs/{task_id}", "GET", response.status_code, duration)
+            metrics.track_api_request(f"/v1/transcript/{task_id}", "GET", response.status_code, duration)
         
-        return response.json()
+        result = response.json()
+        # Map MurmurAI status to internal status
+        result['status'] = map_murmurai_status(result.get('status', ''))
+        return result
     except Exception as e:
         if get_metrics_enabled():
             duration = time.time() - start_time
-            metrics.track_api_request(f"/jobs/{task_id}", "GET", getattr(e.response, 'status_code', 500) if hasattr(e, 'response') else 500, duration)
+            metrics.track_api_request(f"/v1/transcript/{task_id}", "GET", getattr(e.response, 'status_code', 500) if hasattr(e, 'response') else 500, duration)
             metrics.track_error(type(e).__name__, 'check_status')
         raise
 
@@ -595,7 +638,7 @@ elif st.session_state.media_file_data and transcribe_button_clicked:
         upload_response = upload_file(file_to_transcribe, lang, model, min_speakers, max_speakers, initial_prompt, hotwords)
     upload_placeholder = st.empty()  # Placeholder for upload message
 
-    task_id = upload_response.get("task_id")
+    task_id = upload_response.get("id")  # MurmurAI returns 'id' instead of 'task_id'
     if task_id:
         st.session_state.task_id = task_id
         st.session_state.status = "PENDING"
@@ -614,7 +657,14 @@ if st.session_state.status and st.session_state.status != "SUCCESS":
 
         if status['status'] == "SUCCESS":
             st.session_state.status = "SUCCESS"
-            st.session_state.result = status.get('result', {})
+            # Fetch export formats from MurmurAI separate endpoints
+            task_id = st.session_state.task_id
+            st.session_state.result = {
+                'txt_content': fetch_export_format(task_id, 'txt'),
+                'srt_content': fetch_export_format(task_id, 'srt'),
+                'vtt_content': fetch_export_format(task_id, 'vtt'),
+                'json_content': json.dumps(status, indent=2)
+            }
             
             # Track successful transcription completion
             if get_metrics_enabled():
