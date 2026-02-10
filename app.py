@@ -297,15 +297,97 @@ def fetch_export_format(task_id, format_type):
         return ""
 
 
+def _format_srt_timestamp(ms):
+    """Format milliseconds as SRT timestamp (HH:MM:SS,mmm)."""
+    s, ms = divmod(ms, 1000)
+    m, s = divmod(s, 60)
+    h, m = divmod(m, 60)
+    return f"{int(h):02d}:{int(m):02d}:{int(s):02d},{int(ms):03d}"
+
+
+def _format_vtt_timestamp(ms):
+    """Format milliseconds as VTT timestamp (HH:MM:SS.mmm)."""
+    s, ms = divmod(ms, 1000)
+    m, s = divmod(s, 60)
+    h, m = divmod(m, 60)
+    return f"{int(h):02d}:{int(m):02d}:{int(s):02d}.{int(ms):03d}"
+
+
+def generate_srt_from_json(status_json):
+    """Generate SRT with speaker labels from MurmurAI JSON response."""
+    utterances = status_json.get('utterances', [])
+    if not utterances:
+        return ""
+    lines = []
+    for i, utt in enumerate(utterances, 1):
+        start = _format_srt_timestamp(utt.get('start', 0))
+        end = _format_srt_timestamp(utt.get('end', 0))
+        text = utt.get('text', '')
+        speaker = utt.get('speaker')
+        if speaker:
+            text = f"[{speaker}]: {text}"
+        lines.append(f"{i}\n{start} --> {end}\n{text}\n")
+    return "\n".join(lines)
+
+
+def generate_vtt_from_json(status_json):
+    """Generate VTT with speaker labels from MurmurAI JSON response."""
+    utterances = status_json.get('utterances', [])
+    if not utterances:
+        return ""
+    lines = ["WEBVTT\n"]
+    for utt in utterances:
+        start = _format_vtt_timestamp(utt.get('start', 0))
+        end = _format_vtt_timestamp(utt.get('end', 0))
+        text = utt.get('text', '')
+        speaker = utt.get('speaker')
+        if speaker:
+            text = f"[{speaker}]: {text}"
+        lines.append(f"{start} --> {end}\n{text}\n")
+    return "\n".join(lines)
+
+
+def generate_txt_from_json(status_json):
+    """Generate plain text with speaker labels from MurmurAI JSON response."""
+    utterances = status_json.get('utterances', [])
+    if not utterances:
+        return status_json.get('text', '')
+    lines = []
+    for utt in utterances:
+        text = utt.get('text', '')
+        speaker = utt.get('speaker')
+        if speaker:
+            lines.append(f"[{speaker}]: {text}")
+        else:
+            lines.append(text)
+    return "\n".join(lines)
+
+
 def upload_file(file, lang, model, min_speakers, max_speakers, initial_prompt=None, hotwords=None):
     files = {'file': file}
+    
+    # MurmurAI API parameter names (different from WhisperX):
+    #   language_code (not 'language')
+    #   speaker_labels (not 'diarize')
+    #   word_timestamps (enables word-level timing + sentence segmentation)
+    #   model (per-request model selection, empty = server default)
+    enable_diarization = min_speakers > 0 or max_speakers > 0
     data = {
-        'language': lang,
-        'model': model,
-        'min_speakers': min_speakers,
-        'max_speakers': max_speakers,
-        'diarize': str(min_speakers > 0 or max_speakers > 0).lower(),
+        'language_code': lang,
+        'speaker_labels': str(enable_diarization).lower(),
+        'word_timestamps': 'true',
     }
+    
+    # Send model selection if specified
+    if model:
+        data['model'] = model
+    
+    # Only send speaker counts if diarization is enabled
+    if enable_diarization:
+        if min_speakers > 0:
+            data['min_speakers'] = min_speakers
+        if max_speakers > 0:
+            data['max_speakers'] = max_speakers
     
     # Add optional parameters only if they have values
     if initial_prompt:
@@ -680,12 +762,12 @@ if st.session_state.status and st.session_state.status != "SUCCESS":
 
             if status['status'] == "SUCCESS":
                 st.session_state.status = "SUCCESS"
-                # Fetch export formats from MurmurAI separate endpoints
-                task_id = st.session_state.task_id
+                # Generate export formats client-side from JSON to include speaker labels
+                # (MurmurAI's server-side SRT/VTT exports don't include speaker labels)
                 st.session_state.result = {
-                    'txt_content': fetch_export_format(task_id, 'txt'),
-                    'srt_content': fetch_export_format(task_id, 'srt'),
-                    'vtt_content': fetch_export_format(task_id, 'vtt'),
+                    'txt_content': generate_txt_from_json(status),
+                    'srt_content': generate_srt_from_json(status),
+                    'vtt_content': generate_vtt_from_json(status),
                     'json_content': json.dumps(status, indent=2)
                 }
                 
