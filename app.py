@@ -375,10 +375,14 @@ def convert_audio(input_path, output_path):
         if not os.path.exists(input_path):
             raise FileNotFoundError(f"Input file does not exist: {input_path}")
 
-        subprocess.run([FFMPEG_PATH, '-y', '-i', input_path, output_path], capture_output=True, text=True, check=True)
+        result = subprocess.run([FFMPEG_PATH, '-y', '-i', input_path, output_path], capture_output=True, text=True, check=True)
 
-    except subprocess.CalledProcessError:
-        st.error("Audio conversion failed.")
+    except subprocess.CalledProcessError as e:
+        stderr = e.stderr or ""
+        if "does not contain any stream" in stderr or "Output file is empty" in stderr:
+            st.error("Audio conversion failed: The uploaded file does not contain an audio track.")
+        else:
+            st.error(f"Audio conversion failed: {stderr[-500:] if stderr else 'Unknown error'}")
         raise
     except Exception as e:
         st.error(f"An error occurred: {e}")
@@ -513,7 +517,16 @@ def callback_validate_speakers_and_disable_controls():
 def callback_extract_file():
     message_placeholder = st.empty()
     message_placeholder.info(__("processing_uploaded_file"))
-    input_path, unique_file_path, original_file_name = process_uploaded_file(st.session_state.uploaded_file)
+    try:
+        input_path, unique_file_path, original_file_name = process_uploaded_file(st.session_state.uploaded_file)
+    except subprocess.CalledProcessError:
+        # Error message already displayed by convert_audio()
+        message_placeholder.empty()
+        return
+    except Exception as e:
+        message_placeholder.empty()
+        st.error(f"An error occurred processing the file: {e}")
+        return
     st.session_state.media_file_data = st.session_state.uploaded_file
     st.session_state.original_file_name = original_file_name
     st.session_state.input_path = input_path
