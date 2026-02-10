@@ -216,6 +216,7 @@ st.title(__("title"))
 
 # Define the Language Enum with language codes and display names
 class Language(Enum):
+    AUTO = ("auto", {"de": "Automatisch erkennen", "en": "Auto-detect"})
     ARABIC = ("ar", {"de": "Arabisch", "en": "Arabic"})
     BASQUE = ("eu", {"de": "Baskisch", "en": "Basque"})
     CATALAN = ("ca", {"de": "Katalanisch", "en": "Catalan"})
@@ -374,10 +375,13 @@ def upload_file(file, lang, model, min_speakers, max_speakers, initial_prompt=No
     #   model (per-request model selection, empty = server default)
     enable_diarization = min_speakers > 0 or max_speakers > 0
     data = {
-        'language_code': lang,
         'speaker_labels': str(enable_diarization).lower(),
         'word_timestamps': 'true',
     }
+    
+    # Only send language_code if a specific language is selected (not auto-detect)
+    if lang and lang != 'auto':
+        data['language_code'] = lang
     
     # Send model selection if specified
     if model:
@@ -651,11 +655,11 @@ with st.sidebar:
     if 'selected_transcription_language_code' in st.session_state:
         current_selection = st.session_state.selected_transcription_language_code
     else:
-        current_selection = "de"
+        current_selection = "auto"
 
     # Guard against stale session state containing display names instead of codes
     if current_selection not in language_code_list:
-        current_selection = "de"
+        current_selection = "auto"
         del st.session_state['selected_transcription_language_code']
 
     current_index = language_code_list.index(current_selection)
