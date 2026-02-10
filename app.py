@@ -3,6 +3,7 @@ import streamlit.runtime.scriptrunner as scriptrunner
 import requests
 import time
 import os
+import json
 from io import BytesIO
 import subprocess
 from dotenv import load_dotenv
@@ -134,6 +135,7 @@ st.set_page_config(
 )
 
 API_URL = os.getenv("API_URL")
+MURMURAI_API_KEY = os.getenv("MURMURAI_API_KEY", "namastex888")
 FFMPEG_PATH = os.getenv("FFMPEG_PATH") or "ffmpeg"
 TEMP_PATH = os.getenv("TEMP_PATH") or "tmp/transcription-files"
 LOGOUT_URL = os.getenv("LOGOUT_URL")
@@ -214,6 +216,7 @@ st.title(__("title"))
 
 # Define the Language Enum with language codes and display names
 class Language(Enum):
+    AUTO = ("auto", {"de": "Automatisch erkennen", "en": "Auto-detect"})
     ARABIC = ("ar", {"de": "Arabisch", "en": "Arabic"})
     BASQUE = ("eu", {"de": "Baskisch", "en": "Basque"})
     CATALAN = ("ca", {"de": "Katalanisch", "en": "Catalan"})
@@ -263,14 +266,133 @@ class Language(Enum):
         return self.names.get(lang_code, self.names.get('de'))
 
 
+def get_api_headers():
+    """Get headers for MurmurAI API requests"""
+    return {"Authorization": MURMURAI_API_KEY}
+
+
+def map_murmurai_status(status):
+    """Map MurmurAI status values to internal status values (case-insensitive)"""
+    if not status:
+        return "UNKNOWN"
+    status_lower = str(status).lower()
+    mapping = {
+        "queued": "PENDING",
+        "processing": "STARTED",
+        "completed": "SUCCESS",
+        "error": "FAILURE",
+        "failed": "FAILURE"
+    }
+    return mapping.get(status_lower, status_lower.upper())
+
+
+def fetch_export_format(task_id, format_type):
+    """Fetch a specific export format from MurmurAI API"""
+    try:
+        response = requests.get(
+            f"{API_URL}/v1/transcript/{task_id}/{format_type}",
+            headers=get_api_headers()
+        )
+        response.raise_for_status()
+        return response.text
+    except Exception:
+        return ""
+
+
+def _format_srt_timestamp(ms):
+    """Format milliseconds as SRT timestamp (HH:MM:SS,mmm)."""
+    s, ms = divmod(ms, 1000)
+    m, s = divmod(s, 60)
+    h, m = divmod(m, 60)
+    return f"{int(h):02d}:{int(m):02d}:{int(s):02d},{int(ms):03d}"
+
+
+def _format_vtt_timestamp(ms):
+    """Format milliseconds as VTT timestamp (HH:MM:SS.mmm)."""
+    s, ms = divmod(ms, 1000)
+    m, s = divmod(s, 60)
+    h, m = divmod(m, 60)
+    return f"{int(h):02d}:{int(m):02d}:{int(s):02d}.{int(ms):03d}"
+
+
+def generate_srt_from_json(status_json):
+    """Generate SRT with speaker labels from MurmurAI JSON response."""
+    utterances = status_json.get('utterances', [])
+    if not utterances:
+        return ""
+    lines = []
+    for i, utt in enumerate(utterances, 1):
+        start = _format_srt_timestamp(utt.get('start', 0))
+        end = _format_srt_timestamp(utt.get('end', 0))
+        text = utt.get('text', '')
+        speaker = utt.get('speaker')
+        if speaker:
+            text = f"[{speaker}]: {text}"
+        lines.append(f"{i}\n{start} --> {end}\n{text}\n")
+    return "\n".join(lines)
+
+
+def generate_vtt_from_json(status_json):
+    """Generate VTT with speaker labels from MurmurAI JSON response."""
+    utterances = status_json.get('utterances', [])
+    if not utterances:
+        return ""
+    lines = ["WEBVTT\n"]
+    for utt in utterances:
+        start = _format_vtt_timestamp(utt.get('start', 0))
+        end = _format_vtt_timestamp(utt.get('end', 0))
+        text = utt.get('text', '')
+        speaker = utt.get('speaker')
+        if speaker:
+            text = f"[{speaker}]: {text}"
+        lines.append(f"{start} --> {end}\n{text}\n")
+    return "\n".join(lines)
+
+
+def generate_txt_from_json(status_json):
+    """Generate plain text with speaker labels from MurmurAI JSON response."""
+    utterances = status_json.get('utterances', [])
+    if not utterances:
+        return status_json.get('text', '')
+    lines = []
+    for utt in utterances:
+        text = utt.get('text', '')
+        speaker = utt.get('speaker')
+        if speaker:
+            lines.append(f"[{speaker}]: {text}")
+        else:
+            lines.append(text)
+    return "\n".join(lines)
+
+
 def upload_file(file, lang, model, min_speakers, max_speakers, initial_prompt=None, hotwords=None):
     files = {'file': file}
+    
+    # MurmurAI API parameter names (different from WhisperX):
+    #   language_code (not 'language')
+    #   speaker_labels (not 'diarize')
+    #   word_timestamps (enables word-level timing + sentence segmentation)
+    #   model (per-request model selection, empty = server default)
+    enable_diarization = min_speakers > 0 or max_speakers > 0
     data = {
-        'lang': lang,
-        'model': model,
-        'min_speakers': min_speakers,
-        'max_speakers': max_speakers,
+        'speaker_labels': str(enable_diarization).lower(),
+        'word_timestamps': 'true',
     }
+    
+    # Only send language_code if a specific language is selected (not auto-detect)
+    if lang and lang != 'auto':
+        data['language_code'] = lang
+    
+    # Send model selection if specified
+    if model:
+        data['model'] = model
+    
+    # Only send speaker counts if diarization is enabled
+    if enable_diarization:
+        if min_speakers > 0:
+            data['min_speakers'] = min_speakers
+        if max_speakers > 0:
+            data['max_speakers'] = max_speakers
     
     # Add optional parameters only if they have values
     if initial_prompt:
@@ -284,19 +406,24 @@ def upload_file(file, lang, model, min_speakers, max_speakers, initial_prompt=No
     
     start_time = time.time()
     try:
-        response = requests.post(f"{API_URL}/jobs", files=files, data=data)
+        response = requests.post(
+            f"{API_URL}/v1/transcript",
+            headers=get_api_headers(),
+            files=files,
+            data=data
+        )
         response.raise_for_status()
         
         # Track API request metrics
         if get_metrics_enabled():
             duration = time.time() - start_time
-            metrics.track_api_request("/jobs", "POST", response.status_code, duration)
+            metrics.track_api_request("/v1/transcript", "POST", response.status_code, duration)
         
         return response.json()
     except Exception as e:
         if get_metrics_enabled():
             duration = time.time() - start_time
-            metrics.track_api_request("/jobs", "POST", getattr(e.response, 'status_code', 500) if hasattr(e, 'response') else 500, duration)
+            metrics.track_api_request("/v1/transcript", "POST", getattr(e.response, 'status_code', 500) if hasattr(e, 'response') else 500, duration)
             metrics.track_error(type(e).__name__, 'upload_file')
         raise
 
@@ -304,19 +431,25 @@ def upload_file(file, lang, model, min_speakers, max_speakers, initial_prompt=No
 def check_status(task_id):
     start_time = time.time()
     try:
-        response = requests.get(f"{API_URL}/jobs/{task_id}")
+        response = requests.get(
+            f"{API_URL}/v1/transcript/{task_id}",
+            headers=get_api_headers()
+        )
         response.raise_for_status()
         
         # Track API request metrics
         if get_metrics_enabled():
             duration = time.time() - start_time
-            metrics.track_api_request(f"/jobs/{task_id}", "GET", response.status_code, duration)
+            metrics.track_api_request(f"/v1/transcript/{task_id}", "GET", response.status_code, duration)
         
-        return response.json()
+        result = response.json()
+        # Map MurmurAI status to internal status
+        result['status'] = map_murmurai_status(result.get('status', ''))
+        return result
     except Exception as e:
         if get_metrics_enabled():
             duration = time.time() - start_time
-            metrics.track_api_request(f"/jobs/{task_id}", "GET", getattr(e.response, 'status_code', 500) if hasattr(e, 'response') else 500, duration)
+            metrics.track_api_request(f"/v1/transcript/{task_id}", "GET", getattr(e.response, 'status_code', 500) if hasattr(e, 'response') else 500, duration)
             metrics.track_error(type(e).__name__, 'check_status')
         raise
 
@@ -329,10 +462,14 @@ def convert_audio(input_path, output_path):
         if not os.path.exists(input_path):
             raise FileNotFoundError(f"Input file does not exist: {input_path}")
 
-        subprocess.run([FFMPEG_PATH, '-y', '-i', input_path, output_path], capture_output=True, text=True, check=True)
+        result = subprocess.run([FFMPEG_PATH, '-y', '-i', input_path, output_path], capture_output=True, text=True, check=True)
 
-    except subprocess.CalledProcessError:
-        st.error("Audio conversion failed.")
+    except subprocess.CalledProcessError as e:
+        stderr = e.stderr or ""
+        if "does not contain any stream" in stderr or "Output file is empty" in stderr:
+            st.error("Audio conversion failed: The uploaded file does not contain an audio track.")
+        else:
+            st.error(f"Audio conversion failed: {stderr[-500:] if stderr else 'Unknown error'}")
         raise
     except Exception as e:
         st.error(f"An error occurred: {e}")
@@ -467,7 +604,17 @@ def callback_validate_speakers_and_disable_controls():
 def callback_extract_file():
     message_placeholder = st.empty()
     message_placeholder.info(__("processing_uploaded_file"))
-    input_path, unique_file_path, original_file_name = process_uploaded_file(st.session_state.uploaded_file)
+    try:
+        input_path, unique_file_path, original_file_name = process_uploaded_file(st.session_state.uploaded_file)
+    except subprocess.CalledProcessError:
+        # Error message already displayed by convert_audio()
+        message_placeholder.empty()
+        return
+    except Exception as e:
+        message_placeholder.empty()
+        st.error(f"An error occurred processing the file: {e}")
+        return
+    st.session_state.media_file_data = st.session_state.uploaded_file
     st.session_state.original_file_name = original_file_name
     st.session_state.input_path = input_path
     st.session_state.unique_file_path = unique_file_path
@@ -508,7 +655,12 @@ with st.sidebar:
     if 'selected_transcription_language_code' in st.session_state:
         current_selection = st.session_state.selected_transcription_language_code
     else:
-        current_selection = "de"
+        current_selection = "auto"
+
+    # Guard against stale session state containing display names instead of codes
+    if current_selection not in language_code_list:
+        current_selection = "auto"
+        del st.session_state['selected_transcription_language_code']
 
     current_index = language_code_list.index(current_selection)
 
@@ -609,7 +761,7 @@ elif st.session_state.file_uploaded and transcribe_button_clicked:
         upload_response = upload_file(file_to_transcribe, lang, model, min_speakers, max_speakers, initial_prompt, hotwords)
     upload_placeholder = st.empty()  # Placeholder for upload message
 
-    task_id = upload_response.get("task_id")
+    task_id = upload_response.get("id")  # MurmurAI returns 'id' instead of 'task_id'
     if task_id:
         st.session_state.task_id = task_id
         st.session_state.status = "PENDING"
@@ -622,44 +774,66 @@ if st.session_state.status and st.session_state.status != "SUCCESS":
     placeholder_task = st.empty()
 
     while True:
-        status = check_status(st.session_state.task_id)
-        elapsed_time = time.time() - start_time
-        minutes, seconds = divmod(elapsed_time, 60)
+        try:
+            status = check_status(st.session_state.task_id)
+            elapsed_time = time.time() - start_time
+            minutes, seconds = divmod(elapsed_time, 60)
 
-        if status['status'] == "SUCCESS":
-            st.session_state.status = "SUCCESS"
-            st.session_state.result = status.get('result', {})
-            
-            # Track successful transcription completion
-            if get_metrics_enabled():
-                transcription_duration = elapsed_time
-                lang = st.session_state.get('transcription_language_code', 'unknown')
-                model = st.session_state.get('selected_model', 'unknown')
-                metrics.track_transcription_complete(lang, model, transcription_duration, 'success')
-            
-            st.success(__("transcription_success"))
-            time.sleep(1)
-            st.rerun()
-        elif status['status'] == "FAILURE":
-            st.session_state.status = "FAILURE"
-            st.session_state.error = status  # We want all the information about the failure to display in next refresh
-            
-            # Track failed transcription
-            if get_metrics_enabled():
-                lang = st.session_state.get('transcription_language_code', 'unknown')
-                model = st.session_state.get('selected_model', 'unknown')
-                metrics.track_transcription_complete(lang, model, elapsed_time, 'failure')
-                metrics.track_error('TranscriptionFailure', 'transcription_job')
-            
-            st.error(f"{__('transcription_failed')} {status.get('error', 'Unknown error')}")
+            if status['status'] == "SUCCESS":
+                st.session_state.status = "SUCCESS"
+                # Generate export formats client-side from JSON to include speaker labels
+                # (MurmurAI's server-side SRT/VTT exports don't include speaker labels)
+                st.session_state.result = {
+                    'txt_content': generate_txt_from_json(status),
+                    'srt_content': generate_srt_from_json(status),
+                    'vtt_content': generate_vtt_from_json(status),
+                    'json_content': json.dumps(status, indent=2)
+                }
+                
+                # Track successful transcription completion
+                if get_metrics_enabled():
+                    transcription_duration = elapsed_time
+                    lang = st.session_state.get('transcription_language_code', 'unknown')
+                    model = st.session_state.get('selected_model', 'unknown')
+                    metrics.track_transcription_complete(lang, model, transcription_duration, 'success')
+                
+                st.success(__("transcription_success"))
+                time.sleep(1)
+                st.rerun()
+            elif status['status'] == "FAILURE":
+                st.session_state.status = "FAILURE"
+                st.session_state.error = status  # We want all the information about the failure to display in next refresh
+                
+                # Track failed transcription
+                if get_metrics_enabled():
+                    lang = st.session_state.get('transcription_language_code', 'unknown')
+                    model = st.session_state.get('selected_model', 'unknown')
+                    metrics.track_transcription_complete(lang, model, elapsed_time, 'failure')
+                    metrics.track_error('TranscriptionFailure', 'transcription_job')
+                
+                # Display more detailed error info for debugging
+                error_msg = status.get('error', status.get('message', 'Unknown error'))
+                st.error(f"{__('transcription_failed')} {error_msg}")
+                # Show full response for debugging if error is unclear
+                if str(error_msg) in ['Unknown error', 'confidence', "'confidence'"]:
+                    st.code(json.dumps(status, indent=2, default=str), language='json')
+                break
+            else:
+                st.session_state.status = status['status']
+                placeholder_task.info(
+                    f"{__('task_status')} {status['status']}. {__('elapsed_time')} {int(minutes)} min {int(seconds)} sec. "
+                    f"{__('checking_again_in')}"
+                )
+                time.sleep(30)
+        except KeyError as e:
+            st.error(f"{__('transcription_failed')} KeyError: {e}")
+            st.error(f"Status response: {json.dumps(status if 'status' in dir() else 'status not set', default=str)}")
             break
-        else:
-            st.session_state.status = status['status']
-            placeholder_task.info(
-                f"{__('task_status')} {status['status']}. {__('elapsed_time')} {int(minutes)} min {int(seconds)} sec. "
-                f"{__('checking_again_in')}"
-            )
-            time.sleep(30)
+        except Exception as e:
+            st.error(f"{__('transcription_failed')} {type(e).__name__}: {e}")
+            import traceback
+            st.code(traceback.format_exc())
+            break
 
 st.session_state.processing = False
 

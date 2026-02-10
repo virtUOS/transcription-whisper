@@ -5,111 +5,144 @@ This module defines and manages all metrics collected by the application.
 
 import time
 import os
-from prometheus_client import Counter, Histogram, Gauge, Info, start_http_server
+from prometheus_client import Counter, Histogram, Gauge, Info, start_http_server, REGISTRY
+
+APP_VERSION = os.getenv('APP_VERSION', '0.3.0')
+
+
+def _get_or_create_metric(metric_cls, name, description, labelnames=None, **kwargs):
+    """Get an existing metric or create a new one, avoiding duplicate registration errors in Streamlit re-runs."""
+    try:
+        if labelnames:
+            return metric_cls(name, description, labelnames, **kwargs)
+        else:
+            return metric_cls(name, description, **kwargs)
+    except ValueError:
+        # Already registered - retrieve from the collector registry
+        return REGISTRY._names_to_collectors.get(name)
+
 
 # Application info metric
-app_info = Info('transcription_app_info', 'Information about the transcription application')
-app_info.info({
-    'version': '1.0.0',
-    'name': 'transcription-whisper',
-    'description': 'Streamlit transcription service using Whisper models'
-})
+try:
+    app_info = Info('transcription_app_info', 'Information about the transcription application')
+    app_info.info({
+        'version': APP_VERSION,
+        'name': 'transcription-whisper',
+        'description': 'Streamlit transcription service using Whisper models'
+    })
+except ValueError:
+    app_info = REGISTRY._names_to_collectors.get('transcription_app_info')
 
 # Core application metrics
-page_views_total = Counter(
+page_views_total = _get_or_create_metric(
+    Counter,
     'transcription_page_views_total',
     'Total number of page views',
     ['language']
 )
 
 # File upload metrics
-file_uploads_total = Counter(
+file_uploads_total = _get_or_create_metric(
+    Counter,
     'transcription_file_uploads_total',
     'Total number of file uploads',
     ['file_type', 'status']
 )
 
-file_upload_size_bytes = Histogram(
+file_upload_size_bytes = _get_or_create_metric(
+    Histogram,
     'transcription_file_upload_size_bytes',
     'Size of uploaded files in bytes',
     buckets=[1024, 10240, 102400, 1048576, 10485760, 104857600, 1073741824]  # 1KB to 1GB
 )
 
 # Transcription metrics
-transcriptions_total = Counter(
+transcriptions_total = _get_or_create_metric(
+    Counter,
     'transcription_jobs_total',
     'Total number of transcription jobs',
     ['language', 'model', 'status', 'speakers_detected']
 )
 
-transcription_duration_seconds = Histogram(
+transcription_duration_seconds = _get_or_create_metric(
+    Histogram,
     'transcription_duration_seconds',
     'Time taken for transcription jobs',
     ['language', 'model'],
     buckets=[1, 5, 10, 30, 60, 120, 300, 600, 1200, 1800, 3600]  # 1s to 1h
 )
 
-transcription_file_duration_seconds = Histogram(
+transcription_file_duration_seconds = _get_or_create_metric(
+    Histogram,
     'transcription_file_duration_seconds',
     'Duration of audio/video files being transcribed',
     buckets=[10, 30, 60, 300, 600, 1200, 1800, 3600, 7200]  # 10s to 2h
 )
 
 # Active sessions and processing
-active_sessions = Gauge(
+active_sessions = _get_or_create_metric(
+    Gauge,
     'transcription_active_sessions',
     'Number of active user sessions'
 )
 
-active_transcriptions = Gauge(
+active_transcriptions = _get_or_create_metric(
+    Gauge,
     'transcription_active_jobs',
     'Number of currently processing transcription jobs'
 )
 
 # Model usage metrics
-model_usage_total = Counter(
+model_usage_total = _get_or_create_metric(
+    Counter,
     'transcription_model_usage_total',
     'Total usage count per Whisper model',
     ['model']
 )
 
 # Language usage metrics
-language_usage_total = Counter(
+language_usage_total = _get_or_create_metric(
+    Counter,
     'transcription_language_usage_total',
     'Total usage count per transcription language',
     ['language']
 )
 
 # Error metrics
-errors_total = Counter(
+errors_total = _get_or_create_metric(
+    Counter,
     'transcription_errors_total',
     'Total number of errors',
     ['error_type', 'component']
 )
 
 # User interaction metrics
-user_actions_total = Counter(
+user_actions_total = _get_or_create_metric(
+    Counter,
     'transcription_user_actions_total',
     'Total number of user actions',
     ['action', 'format']
 )
 
 # Format download metrics
-downloads_total = Counter(
+downloads_total = _get_or_create_metric(
+    Counter,
     'transcription_downloads_total',
     'Total number of file downloads',
     ['format']
 )
 
 # Speaker detection metrics
-speaker_detection_total = Counter(
+speaker_detection_total = _get_or_create_metric(
+    Counter,
     'transcription_speaker_detection_total',
     'Total speaker detection usage',
     ['min_speakers', 'max_speakers']
 )
 
 # API response time metrics
-api_request_duration_seconds = Histogram(
+api_request_duration_seconds = _get_or_create_metric(
+    Histogram,
     'transcription_api_request_duration_seconds',
     'Time taken for API requests',
     ['endpoint', 'method', 'status'],

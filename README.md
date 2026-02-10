@@ -18,7 +18,7 @@ Some of its features are:
 
 # Usage & Configuration
 
-You first need to set up a [whisperx API server](https://github.com/virtUOS/whisperx-api) to work with this app.
+You first need to set up a [MurmurAI API server](https://github.com/namastexlabs/murmurai) to work with this app.
 
 Some environment variables should be set. Here is an example of a .env file:
 
@@ -29,8 +29,10 @@ FFMPEG_PATH=/usr/bin/ffmpeg
 TEMP_PATH=transcription-whisper-temp
 # Uncomment this up if you're using an authentication process to allow users to log out
 #LOGOUT_URL=/oauth2/sign_out
-# Url and port to the API server
-API_URL=http://111.111.111.11:11300
+# Url and port to the MurmurAI API server (default port is 8880)
+API_URL=http://111.111.111.11:8880
+# MurmurAI API key for authentication (default: namastex888)
+MURMURAI_API_KEY=namastex888
 # Available Whisper models (comma-separated)
 WHISPER_MODELS=tiny,base,small,medium,large-v1,large-v2,large-v3,large-v3-turbo
 # Default model selection
