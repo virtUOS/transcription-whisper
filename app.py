@@ -543,6 +543,11 @@ with st.sidebar:
     else:
         current_selection = "de"
 
+    # Guard against stale session state containing display names instead of codes
+    if current_selection not in language_code_list:
+        current_selection = "de"
+        del st.session_state['selected_transcription_language_code']
+
     current_index = language_code_list.index(current_selection)
 
     # Render the selectbox using the index parameter on first render.
