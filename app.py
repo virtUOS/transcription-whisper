@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.runtime.scriptrunner as scriptrunner
 import requests
 import time
 import os
@@ -509,7 +510,7 @@ if "initialized" not in st.session_state:
     st.session_state.input_path = None
     st.session_state.unique_file_path = None
     st.session_state.original_file_name = None
-    st.session_state.media_file_data = None
+    st.session_state.file_uploaded = False
     st.session_state.txt_edit = ""
     st.session_state.json_edit = ""
     st.session_state.srt_edit = ""
@@ -532,7 +533,7 @@ def reset_transcription_complete():
     st.session_state.input_path = None
     st.session_state.unique_file_path = None
     st.session_state.original_file_name = None
-    st.session_state.media_file_data = None
+    st.session_state.file_uploaded = False
     st.session_state.txt_edit = ""
     st.session_state.json_edit = ""
     st.session_state.srt_edit = ""
@@ -613,12 +614,26 @@ def callback_extract_file():
     st.session_state.original_file_name = original_file_name
     st.session_state.input_path = input_path
     st.session_state.unique_file_path = unique_file_path
+    st.session_state.file_uploaded = True
     message_placeholder.empty()
+    
+    # Memory optimization: Clear uploaded file from Streamlit's internal storage
+    # This prevents duplicate memory usage from the file_uploader widget
+    try:
+        ctx = scriptrunner.get_script_run_ctx()
+        if ctx and hasattr(ctx, 'uploaded_file_mgr'):
+            ctx.uploaded_file_mgr.remove_session_files(ctx.session_id)
+    except Exception:
+        pass  # Silently ignore if clearing fails
+    
+    # Clear the file uploader session state entry
+    if 'uploaded_file' in st.session_state:
+        del st.session_state['uploaded_file']
 
 
 with st.sidebar:
 
-    if st.session_state.media_file_data:
+    if st.session_state.file_uploaded:
         st.write(f"{__("uploaded_file")}: {st.session_state.original_file_name}.")
         st.button(__("delete_file"), on_click=reset_transcription_complete)
     else:
@@ -700,12 +715,12 @@ with st.sidebar:
 
     if st.session_state.result:
         transcribe_button_clicked = False
-        st.button(__("delete_transcription"), 
-                  disabled=(st.session_state.processing or not st.session_state.media_file_data),
+        st.button(__("delete_transcription"),
+                  disabled=(st.session_state.processing or not st.session_state.file_uploaded),
                   on_click=reset_transcription_except_uploaded_file)
     else:
         transcribe_button_clicked = st.button(__("transcribe"),
-                                            disabled=(st.session_state.processing or not st.session_state.media_file_data),
+                                            disabled=(st.session_state.processing or not st.session_state.file_uploaded),
                                             on_click=callback_validate_speakers_and_disable_controls)
 
     # Add Logout button if LOGOUT_URL is set
@@ -730,7 +745,7 @@ with st.sidebar:
 
 if st.session_state.speaker_error:
     st.error(__("validate_number_speakers"))
-elif st.session_state.media_file_data and transcribe_button_clicked:
+elif st.session_state.file_uploaded and transcribe_button_clicked:
 
     # Store the transcription language code and model used for this transcription
     st.session_state.transcription_language_code = st.session_state.selected_transcription_language_code
@@ -830,18 +845,21 @@ if st.session_state.status == "SUCCESS" and st.session_state.result:
 
     # Expander around the media player
     with st.expander(__("media_player"), expanded=True):
-        # Display the media player at the top
-        if st.session_state.media_file_data:
+        # Display the media player at the top - read from disk to save RAM
+        if st.session_state.file_uploaded and st.session_state.input_path and os.path.exists(st.session_state.input_path):
             ext = os.path.splitext(st.session_state.original_file_name)[1].lower()
+            # Read file from disk instead of keeping it in session state memory
+            with open(st.session_state.input_path, 'rb') as media_file:
+                media_data = media_file.read()
             if ext in ['.mp3', '.wav']:
-                st.audio(st.session_state.media_file_data)
+                st.audio(media_data)
             elif ext in ['.mp4']:
                 subtitle_content = result.get('vtt_content', '') or result.get('srt_content', '') or None
                 if subtitle_content:
-                    st.video(st.session_state.media_file_data,
+                    st.video(media_data,
                              subtitles={st.session_state.transcription_language_code: subtitle_content})
                 else:
-                    st.video(st.session_state.media_file_data)
+                    st.video(media_data)
 
     # Define format options with fixed identifiers
     format_options = ['srt', 'json', 'txt', 'vtt']
