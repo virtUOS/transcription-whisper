@@ -1,0 +1,74 @@
+{
+  "title": "Transcription Service",
+  "upload": {
+    "chooseFile": "Choose file",
+    "dragDrop": "Drag and drop a file or click to upload",
+    "uploadedFile": "Uploaded file",
+    "deleteFile": "Delete file",
+    "supportedFormats": "Supported formats: MP3, WAV, MP4 (max 1GB)"
+  },
+  "settings": {
+    "language": "Transcription language",
+    "model": "Model",
+    "detectSpeakers": "Detect speakers",
+    "minSpeakers": "Min speakers",
+    "maxSpeakers": "Max speakers",
+    "advancedOptions": "Advanced options",
+    "initialPrompt": "Initial prompt",
+    "initialPromptHelp": "Optional context for the transcription",
+    "hotwords": "Hotwords",
+    "hotwordsHelp": "Comma-separated technical terms"
+  },
+  "transcription": {
+    "transcribe": "Transcribe",
+    "inProgress": "Transcription in progress...",
+    "success": "Transcription successful!",
+    "failed": "Transcription failed",
+    "delete": "Delete transcription",
+    "history": "My Transcriptions"
+  },
+  "editor": {
+    "subtitles": "Subtitles",
+    "summary": "Summary",
+    "speakerNames": "Speaker Names",
+    "export": "Export",
+    "download": "Download",
+    "saveChanges": "Save changes",
+    "apply": "Apply"
+  },
+  "languages": {
+    "auto": "Auto-detect",
+    "de": "German",
+    "en": "English",
+    "fr": "French",
+    "es": "Spanish",
+    "it": "Italian",
+    "pt": "Portuguese",
+    "nl": "Dutch",
+    "pl": "Polish",
+    "ru": "Russian",
+    "zh": "Chinese",
+    "ja": "Japanese",
+    "ko": "Korean",
+    "ar": "Arabic",
+    "hi": "Hindi",
+    "tr": "Turkish",
+    "sv": "Swedish",
+    "da": "Danish",
+    "fi": "Finnish",
+    "el": "Greek",
+    "he": "Hebrew",
+    "hu": "Hungarian",
+    "cs": "Czech",
+    "ro": "Romanian",
+    "uk": "Ukrainian"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "close": "Close",
+    "logout": "Logout"
+  }
+}
