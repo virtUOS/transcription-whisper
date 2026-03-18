@@ -15,7 +15,7 @@ COPY backend/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/ ./
 COPY --from=frontend-build /app/frontend/dist ./static
-RUN mkdir -p /app/tmp/transcription-files && chown nobody:nogroup /app/tmp/transcription-files
+RUN mkdir -p /app/tmp/transcription-files && chown -R nobody:nogroup /app/tmp
 USER nobody
 EXPOSE 8000
 HEALTHCHECK CMD curl --fail http://localhost:8000/api/health || exit 1
