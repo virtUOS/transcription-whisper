@@ -1,51 +1,116 @@
 # Transcription Service App
 
-[Transcription Service App](https://pvm002.virtuos.uni-osnabrueck.de/) is a web app for universities to make simple transcriptions from video or audio files in multiple languages, currently tailored towards Open AI's Whisper models.
+[Transcription Service App](https://pvm002.virtuos.uni-osnabrueck.de/) is a web app for universities to make simple transcriptions from video or audio files in multiple languages, currently tailored towards OpenAI's Whisper models.
 
 ![screenshot.png](docs/assets/screenshot.png)
 
-Some of its features are:
+## Features
+
 - Supports transcriptions with or without simultaneous translations to multiple languages.
-- Simple interface.
-- Configurable access to Open AI's Whisper models (tiny, base, small, medium, large-v1, large-v2, large-v3, large-v3-turbo).
-- Supports upload from videos and audio files (up to 1gb).
-- Users can edit and download transcription results in 4 different formats (txt, vtt, srt and json).
-- Diarization support to detect multiple speakers (up to 20).
-- Srt, vtt and json formats provide timestamp and speaker information (when available).
+- Configurable access to OpenAI's Whisper models (tiny, base, small, medium, large-v1, large-v2, large-v3, large-v3-turbo).
+- Supports upload of video and audio files (up to 1GB).
+- Editable transcription results with inline subtitle editing synchronized with video playback.
+- Export and download in 4 formats (TXT, VTT, SRT and JSON).
+- Diarization support to detect and label multiple speakers (up to 20).
+- SRT, VTT and JSON formats provide timestamp and speaker information (when available).
 - Transcribed subtitles can be activated in uploaded videos.
 - Initial prompt support to provide context for the transcription.
 - Hotwords support to improve recognition of rare or technical terms.
+- LLM-powered summary generation (OpenAI or Ollama).
+- Transcription history with persistent storage.
+- Real-time progress updates via WebSocket.
+- Internationalization support (English and German).
 
-# Usage & Configuration
+## Architecture
 
-You first need to set up a [MurmurAI API server](https://github.com/namastexlabs/murmurai) to work with this app.
+The application uses a decoupled frontend/backend architecture:
 
-Some environment variables should be set. Here is an example of a .env file:
+- **Frontend**: React 19 + TypeScript SPA built with Vite, using Zustand for state management and Tailwind CSS for styling.
+- **Backend**: FastAPI (Python 3.12) with async SQLite database, serving the built frontend as static files.
+- **ASR**: Pluggable speech recognition backends — [MurmurAI](https://github.com/namastexlabs/murmurai) or WhisperX.
+- **LLM**: Pluggable summarization providers — OpenAI or Ollama.
+- **Deployment**: Multi-stage Docker build combining both frontend and backend into a single image.
 
-```yml
-# PATH to the ffmpeg library in your system
-FFMPEG_PATH=/usr/bin/ffmpeg
-# Path where temporal files will be generated
-TEMP_PATH=transcription-whisper-temp
-# Uncomment this up if you're using an authentication process to allow users to log out
-#LOGOUT_URL=/oauth2/sign_out
-# Url and port to the MurmurAI API server (default port is 8880)
-API_URL=http://111.111.111.11:8880
-# MurmurAI API key for authentication (default: namastex888)
-MURMURAI_API_KEY=namastex888
-# Available Whisper models (comma-separated)
-WHISPER_MODELS=tiny,base,small,medium,large-v1,large-v2,large-v3,large-v3-turbo
-# Default model selection
+## Usage & Configuration
+
+You need to set up an ASR backend to work with this app. Supported options:
+
+- [MurmurAI API server](https://github.com/namastexlabs/murmurai) (remote API)
+- WhisperX (local processing)
+
+Copy `.env.example` to `.env` and configure your environment variables:
+
+```bash
+# ASR Configuration
+ASR_BACKEND=murmurai              # or: whisperx
+ASR_URL=http://localhost:8880
+ASR_API_KEY=                      # required for MurmurAI only
+ASR_MAX_CONCURRENT=3              # max concurrent WhisperX requests
+
+# ASR Model Configuration
+WHISPER_MODELS=base,large-v3,large-v3-turbo
 DEFAULT_WHISPER_MODEL=base
 
-# Prometheus metrics configuration
+# LLM Configuration
+LLM_PROVIDER=openai               # or: ollama
+LLM_MODEL=gpt-4o
+LLM_API_KEY=                      # required for OpenAI
+LLM_BASE_URL=                     # for local servers (e.g., http://localhost:11434 for Ollama)
+
+# Application
+TEMP_PATH=tmp/transcription-files
+FFMPEG_PATH=ffmpeg
+LOGOUT_URL=/oauth2/sign_out
+CLEANUP_TTL_HOURS=168             # auto-delete files older than this (default 7 days)
+DATABASE_PATH=                    # SQLite DB path, defaults to {TEMP_PATH}/transcription.db
+
+# Metrics
 ENABLE_METRICS=true
-METRICS_PORT=8000
+
+# Development
+DEV_MODE=false                    # enables CORS for localhost:5173 (Vite dev server)
 ```
+
+## Docker
+
+Build and run the application with Docker:
+
+```bash
+docker build -t transcription-app .
+docker run -p 8000:8000 --env-file .env transcription-app
+```
+
+The app will be available at `http://localhost:8000`.
+
+## Development
+
+### Backend
+
+Install Python dependencies and run the FastAPI server:
+
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+```
+
+### Frontend
+
+Install Node.js dependencies and start the Vite dev server:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The Vite dev server runs on `http://localhost:5173` and proxies API requests to the backend at `http://localhost:8000`.
+
+Set `DEV_MODE=true` in your `.env` to enable CORS for the Vite dev server.
 
 ## Prometheus Metrics
 
-The application includes comprehensive Prometheus metrics for monitoring usage and performance. When enabled, metrics are exposed on a separate HTTP endpoint for Prometheus to scrape.
+The application includes comprehensive Prometheus metrics for monitoring usage and performance. When enabled, metrics are exposed at `/metrics` for Prometheus to scrape.
 
 ### Available Metrics
 
@@ -76,10 +141,7 @@ The application includes comprehensive Prometheus metrics for monitoring usage a
 
 ### Configuration
 
-Metrics are controlled by environment variables:
-
 - `ENABLE_METRICS=true` - Enable/disable metrics collection (default: true)
-- `METRICS_PORT=8000` - Port for metrics HTTP server (default: 8000)
 
 ### Prometheus Configuration
 
@@ -104,27 +166,6 @@ The metrics are designed to work well with Grafana. Key dashboard panels might i
 - File upload volume and sizes
 - Language and model usage distribution
 - Error rates and types
-
-### Testing Metrics
-
-You can test the metrics functionality using the included test script:
-
-```bash
-python test_metrics.py
-```
-
-## Development
-
-The app is developed in the [streamlit](https://streamlit.io/) framework.
-
-You can install the requirements needed to run and develop the app using `pip install -r requirements.txt`.
-Then simply run a development server like this:
-
-```bash
-streamlit run app.py
-```
-
-The metrics endpoint will be available at `http://localhost:8000/metrics` when the app is running.
 
 ## Authors
 
