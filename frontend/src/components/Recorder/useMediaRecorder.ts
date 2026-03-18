@@ -58,6 +58,10 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      discardingRef.current = true
+      if (recorderRef.current && recorderRef.current.state !== 'inactive') {
+        recorderRef.current.stop()
+      }
       if (timerRef.current) clearInterval(timerRef.current)
       streamRef.current?.getTracks().forEach((t) => t.stop())
     }
@@ -87,6 +91,7 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
   }, [])
 
   const start = useCallback(async () => {
+    if (recorderRef.current && recorderRef.current.state !== 'inactive') return
     setError(null)
     setBlob(null)
     chunksRef.current = []
@@ -125,12 +130,16 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
         const recordedBlob = new Blob(chunksRef.current, { type: finalMime })
         setBlob(recordedBlob)
         setState('stopped')
-        pauseTimer()
+        if (timerRef.current) pauseTimer()
       }
 
       recorder.onerror = () => {
+        discardingRef.current = true
         setError('deviceDisconnected')
-        recorder.stop()
+        if (recorderRef.current?.state !== 'inactive') recorderRef.current?.stop()
+        stopAllTracks()
+        resetTimer()
+        setState('idle')
       }
 
       recorderRef.current = recorder
@@ -144,7 +153,7 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
         setError('micRequired')
       }
     }
-  }, [options.audioDeviceId, options.videoDeviceId, options.useCamera, resetTimer, startTimer, pauseTimer])
+  }, [options.audioDeviceId, options.videoDeviceId, options.useCamera, resetTimer, startTimer, pauseTimer, stopAllTracks])
 
   const pause = useCallback(() => {
     if (recorderRef.current?.state === 'recording') {
