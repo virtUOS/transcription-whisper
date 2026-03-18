@@ -10,7 +10,7 @@ from app.services.audio import convert_to_mp3
 
 router = APIRouter()
 
-ALLOWED_EXTENSIONS = {".mp3", ".wav", ".mp4"}
+ALLOWED_EXTENSIONS = {".mp3", ".wav", ".mp4", ".webm"}
 MAX_FILE_SIZE = 1 * 1024 * 1024 * 1024  # 1GB
 
 
@@ -89,5 +89,5 @@ async def get_media(
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="File not found on disk")
 
-    media_types = {"mp3": "audio/mpeg", "wav": "audio/wav", "mp4": "video/mp4"}
+    media_types = {"mp3": "audio/mpeg", "wav": "audio/wav", "mp4": "video/mp4", "webm": "video/webm"}
     return FileResponse(file_path, media_type=media_types.get(row["media_type"], "application/octet-stream"))
