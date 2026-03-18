@@ -12,9 +12,10 @@ export function SubtitleEditor() {
   const currentTime = useStore((s) => s.currentTime)
   const speakerMappings = useStore((s) => s.speakerMappings)
   const setResult = useStore((s) => s.setTranscriptionResult)
+  const dirty = useStore((s) => s.unsavedEdits)
+  const setDirty = useStore((s) => s.setUnsavedEdits)
   const activeRef = useRef<HTMLTableRowElement | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
-  const [dirty, setDirty] = useState(false)
   const [saving, setSaving] = useState(false)
 
   const utterances = result?.utterances || []
@@ -29,16 +30,13 @@ export function SubtitleEditor() {
     }
   }, [activeIndex])
 
-  // Reset dirty flag when transcription changes
-  useEffect(() => { setDirty(false) }, [transcriptionId])
-
   const handleUpdate = useCallback((index: number, field: keyof Utterance, value: string | number) => {
     if (!result) return
     const updated = [...result.utterances]
     updated[index] = { ...updated[index], [field]: value }
     setResult({ ...result, utterances: updated })
     setDirty(true)
-  }, [result, setResult])
+  }, [result, setResult, setDirty])
 
   const handleSave = async () => {
     if (!transcriptionId || !result) return

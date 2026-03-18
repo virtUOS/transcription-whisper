@@ -24,6 +24,8 @@ interface AppState {
   setSeekTo: (time: number | null) => void
   activeTab: string
   setActiveTab: (tab: string) => void
+  unsavedEdits: boolean
+  setUnsavedEdits: (dirty: boolean) => void
   reset: () => void
 }
 
@@ -50,9 +52,11 @@ export const useStore = create<AppState>((set) => ({
   setSeekTo: (time) => set({ seekTo: time }),
   activeTab: 'subtitles',
   setActiveTab: (tab) => set({ activeTab: tab }),
+  unsavedEdits: false,
+  setUnsavedEdits: (dirty) => set({ unsavedEdits: dirty }),
   reset: () => set({
     file: null, transcriptionId: null, transcriptionStatus: null,
     transcriptionResult: null, speakerMappings: {}, summary: null,
-    currentTime: 0, seekTo: null, activeTab: 'subtitles',
+    currentTime: 0, seekTo: null, activeTab: 'subtitles', unsavedEdits: false,
   }),
 }))
