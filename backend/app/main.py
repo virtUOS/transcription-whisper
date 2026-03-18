@@ -61,3 +61,19 @@ app.include_router(config_router.router)
 app.include_router(upload.router)
 app.include_router(transcription.router)
 app.include_router(summary.router)
+
+# Serve frontend static files (only when built files exist, i.e., in Docker)
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+static_dir = os.path.join(os.path.dirname(__file__), "..", "static")
+if os.path.isdir(static_dir):
+    app.mount("/assets", StaticFiles(directory=os.path.join(static_dir, "assets")), name="assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        """Serve index.html for all non-API routes (SPA client-side routing)."""
+        index = os.path.join(static_dir, "index.html")
+        if os.path.isfile(index):
+            return FileResponse(index)
+        return FileResponse(os.path.join(static_dir, "index.html"))
