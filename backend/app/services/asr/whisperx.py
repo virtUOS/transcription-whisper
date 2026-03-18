@@ -86,4 +86,7 @@ class WhisperXBackend(ASRBackend):
         if not result:
             raise ValueError(f"No result for job {job_id}")
         result.id = job_id
+        # Clean up in-memory cache after retrieval
+        _results.pop(job_id, None)
+        _statuses.pop(job_id, None)
         return result

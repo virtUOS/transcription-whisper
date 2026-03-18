@@ -240,6 +240,19 @@ async def list_transcriptions(user: UserInfo = Depends(get_current_user)):
 async def websocket_status(websocket: WebSocket, transcription_id: str):
     await websocket.accept()
     try:
+        # Extract user from headers (same as get_current_user dependency)
+        user_id = websocket.headers.get("x-forwarded-user", "anonymous")
+
+        # Verify user owns this transcription
+        async with get_db() as db:
+            cursor = await db.execute(
+                "SELECT id FROM transcriptions WHERE id = ? AND user_id = ?",
+                (transcription_id, user_id),
+            )
+            if not await cursor.fetchone():
+                await websocket.close(code=4003, reason="Not found")
+                return
+
         while True:
             async with get_db() as db:
                 cursor = await db.execute(

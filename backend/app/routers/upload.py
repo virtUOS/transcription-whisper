@@ -27,11 +27,20 @@ async def upload_file(
     file_path = os.path.join(settings.TEMP_PATH, f"{file_id}{ext}")
 
     os.makedirs(settings.TEMP_PATH, exist_ok=True)
-    content = await file.read()
-    file_size = len(content)
 
-    if file_size > MAX_FILE_SIZE:
-        raise HTTPException(status_code=413, detail="File too large (max 1GB)")
+    # Read file in chunks to avoid loading huge files into memory
+    chunks = []
+    total_size = 0
+    while True:
+        chunk = await file.read(1024 * 1024)  # 1MB chunks
+        if not chunk:
+            break
+        total_size += len(chunk)
+        if total_size > MAX_FILE_SIZE:
+            raise HTTPException(status_code=413, detail="File too large (max 1GB)")
+        chunks.append(chunk)
+    content = b"".join(chunks)
+    file_size = total_size
 
     with open(file_path, "wb") as f:
         f.write(content)
