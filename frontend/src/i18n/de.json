@@ -5,7 +5,7 @@
     "dragDrop": "Datei hierher ziehen oder klicken zum Hochladen",
     "uploadedFile": "Hochgeladene Datei",
     "deleteFile": "Datei löschen",
-    "supportedFormats": "Unterstützte Formate: MP3, WAV, MP4 (max. 1GB)"
+    "supportedFormats": "Unterstützte Formate: MP3, WAV, MP4, WebM (max 1GB)"
   },
   "settings": {
     "language": "Sprache für die Transkription",
@@ -70,6 +70,26 @@
     "cs": "Tschechisch",
     "ro": "Rumänisch",
     "uk": "Ukrainisch"
+  },
+  "recorder": {
+    "tabUpload": "Hochladen",
+    "tabRecord": "Aufnehmen",
+    "startRecording": "Aufnahme starten",
+    "pause": "Pause",
+    "resume": "Fortsetzen",
+    "stop": "Stopp",
+    "discard": "Verwerfen",
+    "useRecording": "Aufnahme verwenden",
+    "uploading": "Aufnahme wird hochgeladen...",
+    "uploadFailed": "Upload fehlgeschlagen. Sie können es erneut versuchen.",
+    "micRequired": "Mikrofonzugriff ist erforderlich. Bitte erlauben Sie den Zugriff in Ihren Browsereinstellungen.",
+    "cameraFailed": "Kamerazugriff verweigert. Sie können weiterhin nur Audio aufnehmen.",
+    "deviceDisconnected": "Aufnahmegerät getrennt. Ihre bisherige Aufnahme wurde gespeichert.",
+    "unsavedRecording": "Sie haben eine nicht gespeicherte Aufnahme. Möchten Sie die Seite wirklich verlassen?",
+    "useCamera": "Kamera verwenden",
+    "selectMic": "Mikrofon",
+    "selectCamera": "Kamera",
+    "recordingNotSupported": "Aufnahme wird in diesem Browser nicht unterstützt."
   },
   "common": {
     "loading": "Laden...",

@@ -5,7 +5,7 @@
     "dragDrop": "Drag and drop a file or click to upload",
     "uploadedFile": "Uploaded file",
     "deleteFile": "Delete file",
-    "supportedFormats": "Supported formats: MP3, WAV, MP4 (max 1GB)"
+    "supportedFormats": "Supported formats: MP3, WAV, MP4, WebM (max 1GB)"
   },
   "settings": {
     "language": "Transcription language",
@@ -70,6 +70,26 @@
     "cs": "Czech",
     "ro": "Romanian",
     "uk": "Ukrainian"
+  },
+  "recorder": {
+    "tabUpload": "Upload",
+    "tabRecord": "Record",
+    "startRecording": "Start Recording",
+    "pause": "Pause",
+    "resume": "Resume",
+    "stop": "Stop",
+    "discard": "Discard",
+    "useRecording": "Use Recording",
+    "uploading": "Uploading recording...",
+    "uploadFailed": "Upload failed. You can retry.",
+    "micRequired": "Microphone access is required to record. Please allow access in your browser settings.",
+    "cameraFailed": "Camera access denied. You can still record audio only.",
+    "deviceDisconnected": "Recording device disconnected. Your recording up to this point has been saved.",
+    "unsavedRecording": "You have an unsaved recording. Are you sure you want to leave?",
+    "useCamera": "Use camera",
+    "selectMic": "Microphone",
+    "selectCamera": "Camera",
+    "recordingNotSupported": "Recording is not supported in this browser."
   },
   "common": {
     "loading": "Loading...",

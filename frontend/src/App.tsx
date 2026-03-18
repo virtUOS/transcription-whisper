@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Header } from './components/Header'
-import { FileUpload, SettingsPanel } from './components/FileUpload'
+import { SettingsPanel } from './components/FileUpload'
+import { InputPanel } from './components/InputPanel'
 import { ProgressBar } from './components/ProgressBar'
 import { TranscriptionList } from './components/TranscriptionList'
 import { MediaPlayer } from './components/MediaPlayer'
@@ -32,7 +33,7 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <Header />
-      <FileUpload />
+      <InputPanel />
       {file && !showEditor && <SettingsPanel />}
       <ProgressBar />
 
