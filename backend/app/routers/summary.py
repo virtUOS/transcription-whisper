@@ -43,6 +43,8 @@ async def generate_summary(
         if not row:
             raise HTTPException(status_code=404, detail="Transcription not found")
 
+        result_json = row["result_json"]
+
         # Get speaker mappings
         cursor = await db.execute(
             "SELECT original_label, custom_name FROM speaker_mappings WHERE transcription_id = ?",
@@ -51,17 +53,16 @@ async def generate_summary(
         mapping_rows = await cursor.fetchall()
         speaker_map = {r["original_label"]: r["custom_name"] for r in mapping_rows} if mapping_rows else None
 
-    utterances = json.loads(row["result_json"] or "[]")
-    transcript = format_transcript_for_llm(utterances, speaker_map)
-
-    # Insert placeholder row to mark generation as in-progress (enables 429 rate limiting)
-    async with get_db() as db:
+        # Insert placeholder row to mark generation as in-progress (enables 429 rate limiting)
         await db.execute(
             """INSERT OR IGNORE INTO summaries (transcription_id, summary_json, llm_provider, llm_model)
                VALUES (?, NULL, ?, ?)""",
             (transcription_id, settings.LLM_PROVIDER, settings.LLM_MODEL),
         )
         await db.commit()
+
+    utterances = json.loads(result_json or "[]")
+    transcript = format_transcript_for_llm(utterances, speaker_map)
 
     try:
         result = await provider.generate_summary(transcript)

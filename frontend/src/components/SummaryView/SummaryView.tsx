@@ -44,7 +44,7 @@ export function SummaryView() {
     return (
       <div className="p-6 text-center text-gray-400">
         <div className="animate-spin h-6 w-6 border-2 border-purple-500 border-t-transparent rounded-full mx-auto mb-2" />
-        Generating summary...
+        {t('editor.generatingSummary')}
       </div>
     )
   }
@@ -59,7 +59,7 @@ export function SummaryView() {
 
       {summary.chapters.length > 0 && (
         <div>
-          <h2 className="text-sm font-medium text-gray-400 mb-2">Chapters</h2>
+          <h2 className="text-sm font-medium text-gray-400 mb-2">{t('editor.chapters')}</h2>
           <div className="space-y-2">
             {summary.chapters.map((ch, i) => (
               <ChapterCard key={i} chapter={ch} index={i} />

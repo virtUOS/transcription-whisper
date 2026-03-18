@@ -34,7 +34,9 @@
     "export": "Exportieren",
     "download": "Herunterladen",
     "saveChanges": "Änderungen speichern",
-    "apply": "Anwenden"
+    "apply": "Anwenden",
+    "generatingSummary": "Zusammenfassung wird erstellt...",
+    "chapters": "Kapitel"
   },
   "languages": {
     "auto": "Automatisch erkennen",

@@ -30,17 +30,12 @@ Use speaker names when available. Respond ONLY with valid JSON matching this sch
 
 Do not include any text outside the JSON object."""
 
-USER_PROMPT_TEMPLATE = """Summarize the following transcript into chapters:
-
-{transcript}"""
-
-
 def build_system_prompt() -> str:
     return SYSTEM_PROMPT.format(schema=json.dumps(SUMMARY_SCHEMA, indent=2))
 
 
 def build_user_prompt(transcript: str) -> str:
-    return USER_PROMPT_TEMPLATE.format(transcript=transcript)
+    return f"Summarize the following transcript into chapters:\n\n{transcript}"
 
 
 def format_transcript_for_llm(utterances: list[dict], speaker_mappings: dict[str, str] | None = None) -> str:

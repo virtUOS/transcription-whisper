@@ -34,7 +34,9 @@
     "export": "Export",
     "download": "Download",
     "saveChanges": "Save changes",
-    "apply": "Apply"
+    "apply": "Apply",
+    "generatingSummary": "Generating summary...",
+    "chapters": "Chapters"
   },
   "languages": {
     "auto": "Auto-detect",
