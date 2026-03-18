@@ -1,6 +1,0 @@
-streamlit
-streamlit-quill
-requests
-python-dotenv
-ffmpeg
-prometheus_client
