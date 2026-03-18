@@ -1,24 +1,21 @@
+# Stage 1: Build frontend
+FROM node:20-slim AS frontend-build
+WORKDIR /app/frontend
+COPY frontend/package*.json ./
+RUN npm ci
+COPY frontend/ ./
+RUN npm run build
+
+# Stage 2: Python backend + static files
 FROM python:3.12-slim
-EXPOSE 8501
-
-# Install debian packages
-RUN apt-get update && apt-get install -y \
-    curl \
-	ffmpeg
-
-# Install dependencies
-COPY requirements.txt /kiwi/requirements.txt
-RUN pip install --no-cache-dir -r /kiwi/requirements.txt
-
-# Copy the current directory contents into the container at /app
-COPY . /kiwi
-WORKDIR /kiwi
-
-# Set the user to 'nobody' for security
+RUN apt-get update && apt-get install -y --no-install-recommends curl ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY backend/requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+COPY backend/ ./
+COPY --from=frontend-build /app/frontend/dist ./static
 USER nobody
-
-# Healthcheck to ensure the app is running
-HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
-
-# Run the Streamlit app
-ENTRYPOINT ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+EXPOSE 8000
+HEALTHCHECK CMD curl --fail http://localhost:8000/api/health || exit 1
+ENTRYPOINT ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
