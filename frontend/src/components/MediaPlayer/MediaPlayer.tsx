@@ -87,30 +87,32 @@ export function MediaPlayer({ fileId, mediaType }: Props) {
     const player = playerRef.current
     if (!player || !isVideo || !vttContent) return
 
-    // Remove old track
-    if (trackRef.current) {
-      player.removeRemoteTextTrack(trackRef.current as unknown as ReturnType<typeof player.addRemoteTextTrack>)
-      trackRef.current = null
-    }
-    if (blobUrlRef.current) {
-      URL.revokeObjectURL(blobUrlRef.current)
-      blobUrlRef.current = null
-    }
+    player.ready(() => {
+      // Remove old track
+      if (trackRef.current) {
+        player.removeRemoteTextTrack(trackRef.current as unknown as ReturnType<typeof player.addRemoteTextTrack>)
+        trackRef.current = null
+      }
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current)
+        blobUrlRef.current = null
+      }
 
-    // Create new blob URL and track
-    const blob = new Blob([vttContent], { type: 'text/vtt' })
-    const url = URL.createObjectURL(blob)
-    blobUrlRef.current = url
+      // Create new blob URL and track
+      const blob = new Blob([vttContent], { type: 'text/vtt' })
+      const url = URL.createObjectURL(blob)
+      blobUrlRef.current = url
 
-    const trackEl = player.addRemoteTextTrack({
-      kind: 'captions',
-      srclang: 'auto',
-      label: 'Subtitles',
-      src: url,
-      default: false,
-    }, false)
+      const trackEl = player.addRemoteTextTrack({
+        kind: 'captions',
+        srclang: 'auto',
+        label: 'Subtitles',
+        src: url,
+        default: false,
+      }, false)
 
-    trackRef.current = trackEl as unknown as HTMLTrackElement
+      trackRef.current = trackEl as unknown as HTMLTrackElement
+    })
   }, [vttContent, isVideo])
 
   useEffect(() => {

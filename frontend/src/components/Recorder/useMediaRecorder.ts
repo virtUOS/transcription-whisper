@@ -131,6 +131,8 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
         setBlob(recordedBlob)
         setState('stopped')
         if (timerRef.current) pauseTimer()
+        // Stop tracks after blob is created so MediaRecorder gets all data
+        stopAllTracks()
       }
 
       recorder.onerror = () => {
@@ -172,9 +174,9 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
   const stop = useCallback(() => {
     if (recorderRef.current && recorderRef.current.state !== 'inactive') {
       recorderRef.current.stop()
-      stopAllTracks()
+      // Don't stopAllTracks() here — let onstop fire first to create the blob
     }
-  }, [stopAllTracks])
+  }, [])
 
   const discard = useCallback(() => {
     discardingRef.current = true

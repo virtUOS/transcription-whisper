@@ -19,7 +19,8 @@ export function TranscriptionList() {
   const handleSelect = async (item: typeof history[0]) => {
     setTranscriptionId(item.id)
     setTranscriptionStatus(item.status)
-    setFile({ id: item.file_id, original_filename: item.original_filename, media_type: '', file_size: 0 })
+    const ext = item.original_filename.split('.').pop()?.toLowerCase() || ''
+    setFile({ id: item.file_id, original_filename: item.original_filename, media_type: ext, file_size: 0 })
     if (item.status === 'completed') {
       const result = await api.getTranscription(item.id)
       setResult(result)
