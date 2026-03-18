@@ -15,7 +15,13 @@ export function MediaPlayer({ fileId, mediaType }: Props) {
   const seekTo = useStore((s) => s.seekTo)
   const setSeekTo = useStore((s) => s.setSeekTo)
 
-  const isVideo = mediaType === 'mp4'
+  const isVideo = mediaType === 'mp4' || mediaType === 'webm'
+  const mimeTypes: Record<string, string> = {
+    mp4: 'video/mp4',
+    webm: 'video/webm',
+    mp3: 'audio/mpeg',
+    wav: 'audio/wav',
+  }
   const mediaUrl = `/api/media/${fileId}`
 
   useEffect(() => {
@@ -27,7 +33,7 @@ export function MediaPlayer({ fileId, mediaType }: Props) {
       fluid: !isVideo,
       sources: [{
         src: mediaUrl,
-        type: isVideo ? 'video/mp4' : 'audio/mpeg',
+        type: mimeTypes[mediaType] || 'audio/mpeg',
       }],
       ...(isVideo ? {} : { audioOnlyMode: true, height: 50 }),
     })
