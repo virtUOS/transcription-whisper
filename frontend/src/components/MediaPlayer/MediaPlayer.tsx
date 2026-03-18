@@ -41,15 +41,17 @@ export function MediaPlayer({ fileId, mediaType }: Props) {
       ...(isVideo ? {} : { audioOnlyMode: true, height: 50 }),
     })
 
-    // Add VTT subtitle track for video
+    // Add VTT subtitle track for video once player is ready
     if (isVideo && transcriptionId) {
-      player.addRemoteTextTrack({
-        kind: 'subtitles',
-        srclang: 'auto',
-        label: t('player.subtitles'),
-        src: `/api/transcription/${transcriptionId}/export/vtt`,
-        default: false,
-      }, false)
+      player.ready(() => {
+        player.addRemoteTextTrack({
+          kind: 'captions',
+          srclang: 'auto',
+          label: 'Subtitles',
+          src: `/api/transcription/${transcriptionId}/export/vtt`,
+          default: false,
+        }, false)
+      })
     }
 
     player.on('timeupdate', () => {
@@ -58,7 +60,7 @@ export function MediaPlayer({ fileId, mediaType }: Props) {
 
     playerRef.current = player
     return () => { player.dispose() }
-  }, [fileId, mediaType, isVideo, mediaUrl, setCurrentTime, transcriptionId, t])
+  }, [fileId, mediaType, isVideo, mediaUrl, setCurrentTime, transcriptionId])
 
   useEffect(() => {
     if (seekTo !== null && playerRef.current) {
