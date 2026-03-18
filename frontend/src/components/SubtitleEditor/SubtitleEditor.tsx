@@ -1,17 +1,21 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useStore } from '../../store'
+import { api } from '../../api/client'
 import { SubtitleRow } from './SubtitleRow'
 import type { Utterance } from '../../api/types'
 
 export function SubtitleEditor() {
   const { t } = useTranslation()
   const result = useStore((s) => s.transcriptionResult)
+  const transcriptionId = useStore((s) => s.transcriptionId)
   const currentTime = useStore((s) => s.currentTime)
   const speakerMappings = useStore((s) => s.speakerMappings)
   const setResult = useStore((s) => s.setTranscriptionResult)
   const activeRef = useRef<HTMLTableRowElement | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
+  const [dirty, setDirty] = useState(false)
+  const [saving, setSaving] = useState(false)
 
   const utterances = result?.utterances || []
 
@@ -25,12 +29,29 @@ export function SubtitleEditor() {
     }
   }, [activeIndex])
 
+  // Reset dirty flag when transcription changes
+  useEffect(() => { setDirty(false) }, [transcriptionId])
+
   const handleUpdate = useCallback((index: number, field: keyof Utterance, value: string | number) => {
     if (!result) return
     const updated = [...result.utterances]
     updated[index] = { ...updated[index], [field]: value }
     setResult({ ...result, utterances: updated })
+    setDirty(true)
   }, [result, setResult])
+
+  const handleSave = async () => {
+    if (!transcriptionId || !result) return
+    setSaving(true)
+    try {
+      await api.saveTranscription(transcriptionId, result.utterances)
+      setDirty(false)
+    } catch (e) {
+      console.error('Save failed:', e)
+    } finally {
+      setSaving(false)
+    }
+  }
 
   if (!utterances.length) return null
 
@@ -60,8 +81,17 @@ export function SubtitleEditor() {
           ))}
         </tbody>
       </table>
-      <div className="flex gap-2 px-3 py-2 bg-gray-800 text-xs">
+      <div className="flex items-center gap-2 px-3 py-2 bg-gray-800 text-xs">
         <span className="text-gray-500">{t('editor.editHint')}</span>
+        {dirty && (
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="ml-auto px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-500 disabled:opacity-50"
+          >
+            {saving ? t('common.loading') : t('editor.saveChanges')}
+          </button>
+        )}
       </div>
     </div>
   )

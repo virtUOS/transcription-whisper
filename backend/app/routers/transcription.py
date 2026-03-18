@@ -171,6 +171,25 @@ async def export_transcription(transcription_id: str, format_type: str, user: Us
     return Response(content=content, media_type=media_type)
 
 
+@router.put("/api/transcription/{transcription_id}")
+async def update_transcription(transcription_id: str, utterances: list[Utterance], user: UserInfo = Depends(get_current_user)):
+    async with get_db() as db:
+        cursor = await db.execute(
+            "SELECT id FROM transcriptions WHERE id = ? AND user_id = ? AND status = 'completed'",
+            (transcription_id, user.id),
+        )
+        if not await cursor.fetchone():
+            raise HTTPException(status_code=404, detail="Transcription not found")
+
+        await db.execute(
+            "UPDATE transcriptions SET result_json = ? WHERE id = ?",
+            (json.dumps([u.model_dump() for u in utterances]), transcription_id),
+        )
+        await db.commit()
+
+    return {"status": "ok"}
+
+
 @router.put("/api/transcription/{transcription_id}/speakers")
 async def update_speaker_mappings(transcription_id: str, request: SpeakerMappingRequest, user: UserInfo = Depends(get_current_user)):
     mappings = request.mappings
