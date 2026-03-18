@@ -1,9 +1,9 @@
 import asyncio
 import os
 from contextlib import asynccontextmanager
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import init_db, get_db
@@ -15,7 +15,7 @@ async def cleanup_old_files():
     while True:
         await asyncio.sleep(3600)  # Check every hour
         try:
-            cutoff = datetime.utcnow() - timedelta(hours=settings.CLEANUP_TTL_HOURS)
+            cutoff = datetime.now(timezone.utc) - timedelta(hours=settings.CLEANUP_TTL_HOURS)
             async with get_db() as db:
                 # Get old files to delete from disk
                 cursor = await db.execute(
@@ -73,6 +73,8 @@ if os.path.isdir(static_dir):
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
         """Serve index.html for all non-API routes (SPA client-side routing)."""
+        if full_path.startswith("api/"):
+            raise HTTPException(status_code=404)
         index = os.path.join(static_dir, "index.html")
         if os.path.isfile(index):
             return FileResponse(index)

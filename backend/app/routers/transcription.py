@@ -1,7 +1,7 @@
 import asyncio
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
 from app.config import settings
 from app.dependencies import get_current_user
@@ -83,7 +83,7 @@ async def _run_transcription(transcription_id: str, file_path: str, req: Transcr
             await db.execute(
                 """UPDATE transcriptions SET status = ?, result_json = ?, completed_at = ? WHERE id = ?""",
                 ("completed", json.dumps([u.model_dump() for u in result.utterances]),
-                 datetime.utcnow().isoformat(), transcription_id),
+                 datetime.now(timezone.utc).isoformat(), transcription_id),
             )
             await db.commit()
 

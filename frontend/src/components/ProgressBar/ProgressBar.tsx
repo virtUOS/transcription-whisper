@@ -11,6 +11,7 @@ export function ProgressBar() {
   const setResult = useStore((s) => s.setTranscriptionResult)
   const wsRef = useRef<WebSocket | null>(null)
   const retriesRef = useRef(0)
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
     if (!transcriptionId || status === 'completed' || status === 'failed') return
@@ -36,16 +37,18 @@ export function ProgressBar() {
           retriesRef.current++
           setTimeout(connect, delay)
         } else if (retriesRef.current >= 5) {
-          const poll = setInterval(async () => {
+          pollRef.current = setInterval(async () => {
             try {
               const s = await api.getStatus(transcriptionId)
               setStatus(s.status)
               if (s.status === 'completed') {
-                clearInterval(poll)
+                clearInterval(pollRef.current!)
+                pollRef.current = null
                 const result = await api.getTranscription(transcriptionId)
                 setResult(result)
               } else if (s.status === 'failed') {
-                clearInterval(poll)
+                clearInterval(pollRef.current!)
+                pollRef.current = null
               }
             } catch { /* ignore */ }
           }, 10000)
@@ -54,7 +57,13 @@ export function ProgressBar() {
     }
 
     connect()
-    return () => { wsRef.current?.close() }
+    return () => {
+      wsRef.current?.close()
+      if (pollRef.current) {
+        clearInterval(pollRef.current)
+        pollRef.current = null
+      }
+    }
   }, [transcriptionId, status, setStatus, setResult])
 
   if (!transcriptionId || status === 'completed') return null

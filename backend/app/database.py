@@ -70,5 +70,6 @@ async def init_db(db_path: str) -> None:
 async def get_db(db_path: str | None = None):
     path = db_path or _db_path
     async with aiosqlite.connect(path) as db:
+        await db.execute("PRAGMA foreign_keys = ON")
         db.row_factory = aiosqlite.Row
         yield db

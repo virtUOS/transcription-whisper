@@ -19,10 +19,12 @@ export function SettingsPanel() {
   const [hotwords, setHotwords] = useState('')
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleTranscribe = async () => {
     if (!file) return
     setSubmitting(true)
+    setError(null)
     try {
       const result = await api.startTranscription({
         file_id: file.id,
@@ -37,6 +39,7 @@ export function SettingsPanel() {
       setTranscriptionStatus(result.status)
     } catch (e) {
       console.error('Transcription failed:', e)
+      setError(e instanceof Error ? e.message : 'Transcription failed')
     } finally {
       setSubmitting(false)
     }
@@ -90,6 +93,9 @@ export function SettingsPanel() {
           {submitting ? t('common.loading') : t('transcription.transcribe')}
         </button>
       </div>
+      {error && (
+        <div className="text-red-400 text-sm px-1">{error}</div>
+      )}
       {showAdvanced && (
         <div className="flex gap-4">
           <div className="flex-1">
