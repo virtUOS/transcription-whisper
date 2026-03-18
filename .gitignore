@@ -7,3 +7,5 @@ pyrightconfig.json
 __pycache__/
 *.pyc
 .DS_Store
+.superpowers/
+docs/superpowers/
