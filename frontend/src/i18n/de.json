@@ -36,7 +36,13 @@
     "saveChanges": "Änderungen speichern",
     "apply": "Anwenden",
     "generatingSummary": "Zusammenfassung wird erstellt...",
-    "chapters": "Kapitel"
+    "chapters": "Kapitel",
+    "start": "Start",
+    "end": "Ende",
+    "speaker": "Sprecher",
+    "text": "Text",
+    "editHint": "Doppelklick zum Bearbeiten. Auf Zeitstempel klicken zum Springen.",
+    "noSpeakers": "Keine Sprecher erkannt."
   },
   "languages": {
     "auto": "Automatisch erkennen",

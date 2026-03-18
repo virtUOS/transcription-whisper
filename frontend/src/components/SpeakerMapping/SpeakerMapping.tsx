@@ -52,7 +52,7 @@ export function SpeakerMapping({ isOpen, onClose }: Props) {
           ))}
         </div>
         {speakers.length === 0 && (
-          <p className="text-gray-500 text-sm">No speakers detected.</p>
+          <p className="text-gray-500 text-sm">{t('editor.noSpeakers')}</p>
         )}
         <div className="flex justify-end gap-3 mt-6">
           <button onClick={onClose} className="px-4 py-1.5 text-sm text-gray-300 hover:text-white">

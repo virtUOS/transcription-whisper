@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useStore } from '../../store'
 import { SubtitleRow } from './SubtitleRow'
 import type { Utterance } from '../../api/types'
 
 export function SubtitleEditor() {
+  const { t } = useTranslation()
   const result = useStore((s) => s.transcriptionResult)
   const currentTime = useStore((s) => s.currentTime)
   const speakerMappings = useStore((s) => s.speakerMappings)
@@ -38,10 +40,10 @@ export function SubtitleEditor() {
         <thead>
           <tr className="bg-gray-800 text-gray-400 text-xs">
             <th className="px-3 py-2 text-left w-10">#</th>
-            <th className="px-2 py-2 text-left w-24">Start</th>
-            <th className="px-2 py-2 text-left w-24">End</th>
-            <th className="px-2 py-2 text-left w-32">Speaker</th>
-            <th className="px-3 py-2 text-left">Text</th>
+            <th className="px-2 py-2 text-left w-24">{t('editor.start')}</th>
+            <th className="px-2 py-2 text-left w-24">{t('editor.end')}</th>
+            <th className="px-2 py-2 text-left w-32">{t('editor.speaker')}</th>
+            <th className="px-3 py-2 text-left">{t('editor.text')}</th>
           </tr>
         </thead>
         <tbody>
@@ -59,7 +61,7 @@ export function SubtitleEditor() {
         </tbody>
       </table>
       <div className="flex gap-2 px-3 py-2 bg-gray-800 text-xs">
-        <span className="text-gray-500">Double-click cells to edit. Click timestamps to seek.</span>
+        <span className="text-gray-500">{t('editor.editHint')}</span>
       </div>
     </div>
   )

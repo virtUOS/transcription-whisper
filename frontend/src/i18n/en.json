@@ -36,7 +36,13 @@
     "saveChanges": "Save changes",
     "apply": "Apply",
     "generatingSummary": "Generating summary...",
-    "chapters": "Chapters"
+    "chapters": "Chapters",
+    "start": "Start",
+    "end": "End",
+    "speaker": "Speaker",
+    "text": "Text",
+    "editHint": "Double-click cells to edit. Click timestamps to seek.",
+    "noSpeakers": "No speakers detected."
   },
   "languages": {
     "auto": "Auto-detect",
