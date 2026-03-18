@@ -10,6 +10,7 @@ interface Props {
 export function FormatViewer({ format }: Props) {
   const { t } = useTranslation()
   const transcriptionId = useStore((s) => s.transcriptionId)
+  const file = useStore((s) => s.file)
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(true)
 
@@ -27,7 +28,8 @@ export function FormatViewer({ format }: Props) {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `transcription.${format}`
+    const baseName = file?.original_filename?.replace(/\.[^.]+$/, '') || 'transcription'
+    a.download = `${baseName}.${format}`
     a.click()
     URL.revokeObjectURL(url)
   }
