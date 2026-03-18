@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import init_db, get_db
-from app.routers import config_router, upload
+from app.routers import config_router, upload, transcription
 
 
 async def cleanup_old_files():
@@ -59,3 +59,4 @@ if settings.DEV_MODE:
 
 app.include_router(config_router.router)
 app.include_router(upload.router)
+app.include_router(transcription.router)
