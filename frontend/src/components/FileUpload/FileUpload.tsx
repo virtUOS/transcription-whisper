@@ -7,6 +7,7 @@ export function FileUpload() {
   const { t } = useTranslation()
   const file = useStore((s) => s.file)
   const setFile = useStore((s) => s.setFile)
+  const reset = useStore((s) => s.reset)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -39,7 +40,7 @@ export function FileUpload() {
       <div className="flex items-center gap-4 px-6 py-2 bg-gray-800 border-b border-gray-700 text-sm text-gray-300">
         <span>{file.original_filename}</span>
         <span className="text-gray-500">({(file.file_size / 1024 / 1024).toFixed(1)} MB)</span>
-        <button onClick={() => setFile(null)} className="text-red-400 hover:text-red-300">
+        <button onClick={() => reset()} className="text-red-400 hover:text-red-300">
           {t('upload.deleteFile')}
         </button>
       </div>
