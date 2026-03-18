@@ -91,6 +91,10 @@
     "selectCamera": "Kamera",
     "recordingNotSupported": "Aufnahme wird in diesem Browser nicht unterstützt."
   },
+  "player": {
+    "subtitles": "Untertitel",
+    "download": "Aufnahme herunterladen"
+  },
   "common": {
     "loading": "Laden...",
     "error": "Fehler",
