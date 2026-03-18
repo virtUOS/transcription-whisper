@@ -41,10 +41,11 @@ async def test_upload_webm_file():
                 "/api/upload",
                 files={"file": ("test.webm", b"\x1a\x45\xdf\xa3" + b"\x00" * 100, "audio/webm")},
             )
-    assert response.status_code == 200
-    data = response.json()
-    assert data["original_filename"] == "test.webm"
-    assert data["media_type"] == "webm"
+        assert response.status_code == 200
+        data = response.json()
+        assert data["original_filename"] == "test.webm"
+        assert data["media_type"] == "webm"
+        mock_convert.assert_called_once()
 
 
 @pytest.mark.asyncio
