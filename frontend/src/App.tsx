@@ -8,6 +8,7 @@ import { SubtitleEditor } from './components/SubtitleEditor'
 import { SpeakerMapping } from './components/SpeakerMapping'
 import { FormatViewer } from './components/FormatViewer'
 import { TabBar } from './components/TabBar'
+import { SummaryView } from './components/SummaryView'
 import { useStore } from './store'
 import { api } from './api/client'
 
@@ -42,11 +43,7 @@ function App() {
 
           <div className="mx-6 my-2">
             {activeTab === 'subtitles' && <SubtitleEditor />}
-            {activeTab === 'summary' && (
-              <div className="p-4 text-gray-500 text-sm">
-                Summary component coming in Plan 5
-              </div>
-            )}
+            {activeTab === 'summary' && <SummaryView />}
             {['srt', 'vtt', 'json', 'txt'].includes(activeTab) && (
               <FormatViewer format={activeTab} />
             )}
