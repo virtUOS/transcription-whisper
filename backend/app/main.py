@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import init_db
-from app.routers import config_router
+from app.routers import config_router, upload
 
 
 @asynccontextmanager
@@ -25,3 +25,4 @@ if settings.DEV_MODE:
     )
 
 app.include_router(config_router.router)
+app.include_router(upload.router)

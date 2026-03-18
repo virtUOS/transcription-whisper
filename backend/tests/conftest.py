@@ -2,6 +2,7 @@ import asyncio
 import os
 import tempfile
 import pytest
+import pytest_asyncio
 from app.database import init_db, get_db
 
 
@@ -16,3 +17,10 @@ def event_loop():
     loop = asyncio.new_event_loop()
     yield loop
     loop.close()
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def init_test_db(tmp_path):
+    """Initialize a fresh DB for each async test."""
+    db_path = str(tmp_path / "test.db")
+    await init_db(db_path)
