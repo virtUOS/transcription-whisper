@@ -12,43 +12,70 @@ export function ProgressBar() {
   const wsRef = useRef<WebSocket | null>(null)
   const retriesRef = useRef(0)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const doneRef = useRef(false)
 
   useEffect(() => {
     if (!transcriptionId || status === 'completed' || status === 'failed') return
 
+    doneRef.current = false
+    retriesRef.current = 0
+
+    const markDone = () => {
+      doneRef.current = true
+      wsRef.current?.close()
+      if (pollRef.current) {
+        clearInterval(pollRef.current)
+        pollRef.current = null
+      }
+    }
+
+    const handleCompleted = async () => {
+      markDone()
+      setStatus('completed')
+      const result = await api.getTranscription(transcriptionId)
+      setResult(result)
+    }
+
+    const handleFailed = () => {
+      markDone()
+      setStatus('failed')
+    }
+
     const connect = () => {
+      if (doneRef.current) return
       const ws = api.connectWebSocket(transcriptionId)
       wsRef.current = ws
 
-      ws.onmessage = async (event) => {
+      ws.onmessage = (event) => {
+        if (doneRef.current) return
         const data = JSON.parse(event.data)
         if (data.type === 'status') {
-          setStatus(data.status)
           if (data.status === 'completed') {
-            const result = await api.getTranscription(transcriptionId)
-            setResult(result)
+            handleCompleted()
+          } else if (data.status === 'failed') {
+            handleFailed()
+          } else {
+            setStatus(data.status)
           }
         }
       }
 
       ws.onclose = () => {
-        if (status !== 'completed' && status !== 'failed' && retriesRef.current < 5) {
+        if (doneRef.current) return
+        if (retriesRef.current < 5) {
           const delay = Math.min(1000 * Math.pow(2, retriesRef.current), 30000)
           retriesRef.current++
           setTimeout(connect, delay)
-        } else if (retriesRef.current >= 5) {
+        } else {
+          // Fall back to HTTP polling
           pollRef.current = setInterval(async () => {
+            if (doneRef.current) return
             try {
               const s = await api.getStatus(transcriptionId)
-              setStatus(s.status)
               if (s.status === 'completed') {
-                clearInterval(pollRef.current!)
-                pollRef.current = null
-                const result = await api.getTranscription(transcriptionId)
-                setResult(result)
+                handleCompleted()
               } else if (s.status === 'failed') {
-                clearInterval(pollRef.current!)
-                pollRef.current = null
+                handleFailed()
               }
             } catch { /* ignore */ }
           }, 10000)
@@ -58,6 +85,7 @@ export function ProgressBar() {
 
     connect()
     return () => {
+      doneRef.current = true
       wsRef.current?.close()
       if (pollRef.current) {
         clearInterval(pollRef.current)
