@@ -134,12 +134,10 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
       }
 
       recorder.onerror = () => {
-        discardingRef.current = true
+        // Let onstop create blob from partial chunks so user can save their recording
         setError('deviceDisconnected')
         if (recorderRef.current?.state !== 'inactive') recorderRef.current?.stop()
         stopAllTracks()
-        resetTimer()
-        setState('idle')
       }
 
       recorderRef.current = recorder
