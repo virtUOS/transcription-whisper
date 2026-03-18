@@ -1,8 +1,4 @@
 import { useEffect, useState } from 'react'
-import Editor from 'react-simple-code-editor'
-import Prism from 'prismjs'
-import 'prismjs/components/prism-json'
-import 'prismjs/themes/prism-tomorrow.css'
 import { useStore } from '../../store'
 import { api } from '../../api/client'
 import { useTranslation } from 'react-i18next'
@@ -36,29 +32,17 @@ export function FormatViewer({ format }: Props) {
     URL.revokeObjectURL(url)
   }
 
-  const highlight = (code: string) => {
-    if (format === 'json') {
-      return Prism.highlight(code, Prism.languages.json, 'json')
-    }
-    return code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-  }
-
   if (loading) return <div className="p-4 text-gray-500 text-sm">{t('common.loading')}</div>
 
   return (
     <div>
-      <div className="overflow-auto max-h-96 bg-gray-900 rounded">
-        <Editor
+      <div className="overflow-auto max-h-96 bg-gray-900 rounded border border-gray-700">
+        <textarea
           value={content}
-          onValueChange={setContent}
-          highlight={highlight}
-          padding={16}
-          style={{
-            fontFamily: '"Fira Code", "Fira Mono", monospace',
-            fontSize: 12,
-            color: '#e2e8f0',
-            minHeight: '200px',
-          }}
+          onChange={(e) => setContent(e.target.value)}
+          spellCheck={false}
+          className="w-full min-h-[200px] p-4 bg-transparent text-gray-300 text-xs font-mono resize-y focus:outline-none"
+          style={{ tabSize: 2 }}
         />
       </div>
       <div className="flex justify-end mt-2">
