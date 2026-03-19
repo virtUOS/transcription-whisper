@@ -100,7 +100,7 @@ async def rename_file(
     user: UserInfo = Depends(get_current_user),
 ):
     filename = body.filename.strip()
-    if not filename or len(filename) > 255:
+    if not filename:
         raise HTTPException(status_code=400, detail="Invalid filename")
 
     async with get_db() as db:
@@ -115,6 +115,9 @@ async def rename_file(
         # Preserve original extension
         original_ext = os.path.splitext(row["original_filename"])[1]
         new_filename = filename + original_ext
+
+        if len(new_filename) > 255:
+            raise HTTPException(status_code=400, detail="Filename too long")
 
         await db.execute(
             "UPDATE files SET original_filename = ? WHERE id = ? AND user_id = ?",
