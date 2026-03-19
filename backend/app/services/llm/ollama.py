@@ -2,8 +2,11 @@ import json
 import httpx
 from app.config import settings
 from app.services.llm.base import LLMProvider
-from app.services.llm.prompt import build_system_prompt, build_user_prompt, chunk_transcript, CONSOLIDATION_PROMPT
-from app.models import SummaryResult, SummaryChapter
+from app.services.llm.prompt import (
+    build_system_prompt, build_user_prompt, chunk_transcript, CONSOLIDATION_PROMPT,
+    build_protocol_system_prompt, build_protocol_user_prompt, PROTOCOL_CONSOLIDATION_PROMPT, PROTOCOL_SCHEMA,
+)
+from app.models import SummaryResult, SummaryChapter, ProtocolResult, ProtocolKeyPoint, ProtocolDecision, ProtocolActionItem
 
 
 class OllamaProvider(LLMProvider):
@@ -59,3 +62,42 @@ class OllamaProvider(LLMProvider):
             )
             response.raise_for_status()
             return response.json()["message"]["content"]
+
+    async def generate_protocol(self, transcript: str, summary_context: str | None = None) -> ProtocolResult:
+        chunks = chunk_transcript(transcript)
+
+        if len(chunks) == 1:
+            return await self._protocol_single(chunks[0], summary_context)
+
+        chunk_protocols = []
+        for chunk in chunks:
+            result = await self._protocol_single(chunk, summary_context)
+            chunk_protocols.append(json.dumps(result.model_dump()))
+
+        return await self._consolidate_protocol(chunk_protocols)
+
+    async def _protocol_single(self, transcript: str, summary_context: str | None = None) -> ProtocolResult:
+        content = await self._chat(build_protocol_system_prompt(), build_protocol_user_prompt(transcript, summary_context))
+        data = json.loads(content)
+        return ProtocolResult(
+            title=data.get("title", ""),
+            participants=data.get("participants", []),
+            key_points=[ProtocolKeyPoint(**kp) for kp in data.get("key_points", [])],
+            decisions=[ProtocolDecision(**d) for d in data.get("decisions", [])],
+            action_items=[ProtocolActionItem(**ai) for ai in data.get("action_items", [])],
+        )
+
+    async def _consolidate_protocol(self, chunk_protocols: list[str]) -> ProtocolResult:
+        prompt = PROTOCOL_CONSOLIDATION_PROMPT.format(
+            chunk_protocols="\n\n---\n\n".join(chunk_protocols),
+            schema=json.dumps(PROTOCOL_SCHEMA, indent=2),
+        )
+        content = await self._chat(build_protocol_system_prompt(), prompt)
+        data = json.loads(content)
+        return ProtocolResult(
+            title=data.get("title", ""),
+            participants=data.get("participants", []),
+            key_points=[ProtocolKeyPoint(**kp) for kp in data.get("key_points", [])],
+            decisions=[ProtocolDecision(**d) for d in data.get("decisions", [])],
+            action_items=[ProtocolActionItem(**ai) for ai in data.get("action_items", [])],
+        )
