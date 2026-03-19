@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator, model_validator
 
 
 class ErrorResponse(BaseModel):
@@ -68,6 +68,28 @@ class RenameRequest(BaseModel):
     filename: str
 
 
+class ChapterHint(BaseModel):
+    title: str | None = None
+    description: str | None = None
+
+    @model_validator(mode="after")
+    def at_least_one_field(self) -> "ChapterHint":
+        if not self.title and not self.description:
+            raise ValueError("At least one of title or description must be provided")
+        return self
+
+
+class SummarizeRequest(BaseModel):
+    chapter_hints: list[ChapterHint] | None = None
+
+    @field_validator("chapter_hints")
+    @classmethod
+    def max_hints(cls, v: list[ChapterHint] | None) -> list[ChapterHint] | None:
+        if v and len(v) > 30:
+            raise ValueError("Maximum 30 chapter hints allowed")
+        return v
+
+
 class SummaryChapter(BaseModel):
     title: str
     start_time: int
@@ -78,6 +100,7 @@ class SummaryChapter(BaseModel):
 class SummaryResult(BaseModel):
     summary: str
     chapters: list[SummaryChapter]
+    chapter_hints: list[ChapterHint] | None = None
     llm_provider: str | None = None
     llm_model: str | None = None
 
