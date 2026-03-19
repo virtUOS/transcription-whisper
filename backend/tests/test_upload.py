@@ -62,3 +62,74 @@ async def test_get_media_file():
         # Retrieve media
         response = await client.get(f"/api/media/{file_id}")
     assert response.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_rename_file():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        # Upload first
+        upload_resp = await client.post(
+            "/api/upload",
+            files={"file": ("test.mp3", b"fake mp3 content", "audio/mpeg")},
+        )
+        file_id = upload_resp.json()["id"]
+
+        # Rename
+        response = await client.patch(
+            f"/api/files/{file_id}/rename",
+            json={"filename": "my-meeting"},
+        )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["original_filename"] == "my-meeting.mp3"
+    assert data["id"] == file_id
+
+
+@pytest.mark.asyncio
+async def test_rename_file_empty_name():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        upload_resp = await client.post(
+            "/api/upload",
+            files={"file": ("test.mp3", b"fake mp3 content", "audio/mpeg")},
+        )
+        file_id = upload_resp.json()["id"]
+
+        response = await client.patch(
+            f"/api/files/{file_id}/rename",
+            json={"filename": "   "},
+        )
+    assert response.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_rename_file_not_found():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.patch(
+            "/api/files/nonexistent/rename",
+            json={"filename": "new-name"},
+        )
+    assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_rename_preserves_extension():
+    transport = ASGITransport(app=app)
+    with patch("app.routers.upload.convert_to_mp3", new_callable=AsyncMock) as mock_convert:
+        mock_convert.return_value = "/tmp/fake.mp3"
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            upload_resp = await client.post(
+                "/api/upload",
+                files={"file": ("recording.webm", b"\x1a\x45\xdf\xa3" + b"\x00" * 100, "audio/webm")},
+            )
+            file_id = upload_resp.json()["id"]
+
+            response = await client.patch(
+                f"/api/files/{file_id}/rename",
+                json={"filename": "team-standup"},
+            )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["original_filename"] == "team-standup.webm"

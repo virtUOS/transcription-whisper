@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, UploadFile, HTTPException
 from fastapi.responses import FileResponse
 from app.config import settings
 from app.dependencies import get_current_user
-from app.models import UserInfo, FileInfo
+from app.models import UserInfo, FileInfo, RenameRequest
 from app.database import get_db
 from app.services.audio import convert_to_mp3
 
@@ -91,3 +91,40 @@ async def get_media(
 
     media_types = {"mp3": "audio/mpeg", "wav": "audio/wav", "mp4": "video/mp4", "webm": "video/webm"}
     return FileResponse(file_path, media_type=media_types.get(row["media_type"], "application/octet-stream"))
+
+
+@router.patch("/api/files/{file_id}/rename", response_model=FileInfo)
+async def rename_file(
+    file_id: str,
+    body: RenameRequest,
+    user: UserInfo = Depends(get_current_user),
+):
+    filename = body.filename.strip()
+    if not filename or len(filename) > 255:
+        raise HTTPException(status_code=400, detail="Invalid filename")
+
+    async with get_db() as db:
+        cursor = await db.execute(
+            "SELECT original_filename, media_type, file_size FROM files WHERE id = ? AND user_id = ?",
+            (file_id, user.id),
+        )
+        row = await cursor.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="File not found")
+
+        # Preserve original extension
+        original_ext = os.path.splitext(row["original_filename"])[1]
+        new_filename = filename + original_ext
+
+        await db.execute(
+            "UPDATE files SET original_filename = ? WHERE id = ? AND user_id = ?",
+            (new_filename, file_id, user.id),
+        )
+        await db.commit()
+
+    return FileInfo(
+        id=file_id,
+        original_filename=new_filename,
+        media_type=row["media_type"],
+        file_size=row["file_size"],
+    )
