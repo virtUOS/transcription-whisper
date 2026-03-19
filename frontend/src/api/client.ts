@@ -67,6 +67,12 @@ export const api = {
 
   listTranscriptions: () => request<TranscriptionListItem[]>('/api/transcriptions'),
 
+  renameFile: (fileId: string, filename: string) =>
+    request<FileInfo>(`/api/files/${fileId}/rename`, {
+      method: 'PATCH',
+      body: JSON.stringify({ filename }),
+    }),
+
   generateSummary: (id: string) =>
     request<SummaryResult>(`/api/summarize/${id}`, { method: 'POST' }),
 
