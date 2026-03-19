@@ -20,6 +20,7 @@ export function TranscriptionList() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
+  const savingRef = useRef(false)
 
   useEffect(() => {
     api.listTranscriptions().then(setHistory).catch(console.error)
@@ -64,11 +65,13 @@ export function TranscriptionList() {
   }, [])
 
   const handleRenameSave = useCallback(async (item: TranscriptionListItem) => {
+    if (savingRef.current) return
+    if (editingId !== item.id) return
+
     const trimmed = editValue.trim()
-    if (!trimmed || editingId !== item.id) {
-      setEditingId(null)
-      return
-    }
+    setEditingId(null)
+
+    if (!trimmed) return
 
     const ext = item.original_filename.includes('.')
       ? '.' + item.original_filename.split('.').pop()
@@ -76,10 +79,7 @@ export function TranscriptionList() {
     const oldFilename = item.original_filename
     const newFilename = trimmed + ext
 
-    if (newFilename === oldFilename) {
-      setEditingId(null)
-      return
-    }
+    if (newFilename === oldFilename) return
 
     // Optimistic update
     setHistory(history.map((h) =>
@@ -88,18 +88,22 @@ export function TranscriptionList() {
     if (file && file.id === item.file_id) {
       setFile({ ...file, original_filename: newFilename })
     }
-    setEditingId(null)
 
+    savingRef.current = true
     try {
       await api.renameFile(item.file_id, trimmed)
     } catch {
-      // Revert on failure
-      setHistory(history.map((h) =>
+      // Revert on failure using current store state to avoid stale closure
+      const currentHistory = useStore.getState().transcriptionHistory
+      setHistory(currentHistory.map((h) =>
         h.id === item.id ? { ...h, original_filename: oldFilename } : h
       ))
-      if (file && file.id === item.file_id) {
-        setFile({ ...file, original_filename: oldFilename })
+      const currentFile = useStore.getState().file
+      if (currentFile && currentFile.id === item.file_id) {
+        setFile({ ...currentFile, original_filename: oldFilename })
       }
+    } finally {
+      savingRef.current = false
     }
   }, [editValue, editingId, history, setHistory, file, setFile])
 
