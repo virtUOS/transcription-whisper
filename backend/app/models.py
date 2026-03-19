@@ -64,6 +64,10 @@ class SpeakerMappingRequest(BaseModel):
     mappings: dict[str, str]  # {"Speaker 1": "Dr. Mueller"}
 
 
+class RenameRequest(BaseModel):
+    filename: str
+
+
 class SummaryChapter(BaseModel):
     title: str
     start_time: int
