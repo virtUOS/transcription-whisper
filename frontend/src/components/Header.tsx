@@ -11,7 +11,10 @@ export function Header() {
 
   return (
     <header className="flex items-center justify-between px-6 py-3 bg-gray-900 border-b border-gray-700">
-      <h1 className="text-lg font-semibold text-white">{t('title')}</h1>
+      <div className="flex items-center gap-3">
+        <img src="/whisper-logo.svg" alt="Whisper" className="h-8 w-8" />
+        <h1 className="text-lg font-semibold text-white">{t('title')}</h1>
+      </div>
       <div className="flex items-center gap-4">
         <button onClick={toggleLanguage} className="text-sm text-gray-300 hover:text-white">
           {i18n.language === 'de' ? 'EN' : 'DE'} | {i18n.language.toUpperCase()}

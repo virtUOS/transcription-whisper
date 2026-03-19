@@ -77,7 +77,8 @@ if os.path.isdir(static_dir):
         """Serve index.html for all non-API routes (SPA client-side routing)."""
         if full_path.startswith("api/"):
             raise HTTPException(status_code=404)
-        index = os.path.join(static_dir, "index.html")
-        if os.path.isfile(index):
-            return FileResponse(index)
+        # Serve root-level static files (e.g. favicon, logo) if they exist
+        candidate = os.path.join(static_dir, full_path)
+        if full_path and os.path.isfile(candidate):
+            return FileResponse(candidate)
         return FileResponse(os.path.join(static_dir, "index.html"))
