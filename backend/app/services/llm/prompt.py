@@ -89,3 +89,96 @@ CONSOLIDATION_PROMPT = """You were given a long transcript split into chunks. He
 {chunk_summaries}
 
 Consolidate these into a single summary with unified chapters. Respond ONLY with valid JSON matching the schema."""
+
+
+PROTOCOL_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "title": {"type": "string", "description": "Meeting title inferred from context"},
+        "participants": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Speaker names from the transcript",
+        },
+        "key_points": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "topic": {"type": "string"},
+                    "speaker": {"type": "string"},
+                    "timestamp": {
+                        "type": ["integer", "null"],
+                        "description": "Start time in milliseconds, null if not determinable",
+                    },
+                    "content": {"type": "string"},
+                },
+                "required": ["topic", "speaker", "timestamp", "content"],
+            },
+        },
+        "decisions": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "decision": {"type": "string"},
+                    "timestamp": {
+                        "type": ["integer", "null"],
+                        "description": "Time in milliseconds, null if not determinable",
+                    },
+                },
+                "required": ["decision", "timestamp"],
+            },
+        },
+        "action_items": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "task": {"type": "string"},
+                    "assignee": {"type": "string"},
+                    "timestamp": {
+                        "type": ["integer", "null"],
+                        "description": "Time in milliseconds, null if not determinable",
+                    },
+                },
+                "required": ["task", "assignee", "timestamp"],
+            },
+        },
+    },
+    "required": ["title", "participants", "key_points", "decisions", "action_items"],
+}
+
+PROTOCOL_SYSTEM_PROMPT = """You are a meeting protocol generator. Given a timestamped transcript of a meeting, produce a structured protocol with:
+1. A meeting title inferred from context
+2. A list of participants (from speaker labels; use "Unknown Speaker" if no speaker labels are present)
+3. Key discussion points attributed to speakers with timestamps
+4. Decisions made during the meeting
+5. Action items with assignees
+
+Use speaker names exactly as they appear in the transcript. If no speaker labels are present, use "Unknown Speaker" for all attributions.
+Respond in the same language as the transcript.
+Respond ONLY with valid JSON matching this schema:
+{schema}
+
+Do not include any text outside the JSON object."""
+
+
+def build_protocol_system_prompt() -> str:
+    return PROTOCOL_SYSTEM_PROMPT.format(schema=json.dumps(PROTOCOL_SCHEMA, indent=2))
+
+
+def build_protocol_user_prompt(transcript: str, summary_context: str | None = None) -> str:
+    prompt = f"Generate a meeting protocol from the following transcript:\n\n{transcript}"
+    if summary_context:
+        prompt += f"\n\nFor reference, here is an existing summary with chapters for this transcript:\n\n{summary_context}"
+    return prompt
+
+
+PROTOCOL_CONSOLIDATION_PROMPT = """You were given a long meeting transcript split into chunks. Here are the protocols of each chunk:
+
+{chunk_protocols}
+
+Consolidate these into a single meeting protocol. Merge duplicate participants, unify key points, decisions, and action items. Respond in the same language as the content above. Respond ONLY with valid JSON matching this schema:
+
+{schema}"""
