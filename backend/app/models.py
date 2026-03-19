@@ -76,6 +76,32 @@ class SummaryResult(BaseModel):
     chapters: list[SummaryChapter]
 
 
+class ProtocolKeyPoint(BaseModel):
+    topic: str
+    speaker: str
+    timestamp: int | None  # milliseconds, null if not determinable
+    content: str
+
+
+class ProtocolDecision(BaseModel):
+    decision: str
+    timestamp: int | None  # milliseconds, null if not determinable
+
+
+class ProtocolActionItem(BaseModel):
+    task: str
+    assignee: str
+    timestamp: int | None  # milliseconds, null if not determinable
+
+
+class ProtocolResult(BaseModel):
+    title: str
+    participants: list[str]
+    key_points: list[ProtocolKeyPoint]
+    decisions: list[ProtocolDecision]
+    action_items: list[ProtocolActionItem]
+
+
 class ConfigResponse(BaseModel):
     asr_backend: str
     whisper_models: list[str]
