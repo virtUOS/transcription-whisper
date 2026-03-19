@@ -20,6 +20,7 @@ export function TranscriptionList() {
   const [editValue, setEditValue] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
   const savingRef = useRef(false)
+  const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     api.listTranscriptions().then(setHistory).catch(console.error)
@@ -32,7 +33,7 @@ export function TranscriptionList() {
     }
   }, [editingId])
 
-  const handleSelect = async (item: typeof history[0]) => {
+  const doSelect = async (item: TranscriptionListItem) => {
     setTranscriptionId(item.id)
     setTranscriptionStatus(item.status)
     const ext = item.original_filename.split('.').pop()?.toLowerCase() || ''
@@ -46,6 +47,14 @@ export function TranscriptionList() {
     }
   }
 
+  const handleClick = useCallback((item: TranscriptionListItem) => {
+    if (clickTimerRef.current) clearTimeout(clickTimerRef.current)
+    clickTimerRef.current = setTimeout(() => {
+      clickTimerRef.current = null
+      doSelect(item)
+    }, 250)
+  }, [])
+
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation()
     try {
@@ -58,6 +67,10 @@ export function TranscriptionList() {
 
   const handleRenameStart = useCallback((e: React.MouseEvent, item: TranscriptionListItem) => {
     e.stopPropagation()
+    if (clickTimerRef.current) {
+      clearTimeout(clickTimerRef.current)
+      clickTimerRef.current = null
+    }
     const baseName = item.original_filename.replace(/\.[^.]+$/, '')
     setEditingId(item.id)
     setEditValue(baseName)
@@ -126,7 +139,7 @@ export function TranscriptionList() {
         {history.map((item) => (
           <div
             key={item.id}
-            onClick={() => handleSelect(item)}
+            onClick={() => handleClick(item)}
             className="w-full flex items-center gap-3 px-3 py-2 bg-gray-800 rounded hover:bg-gray-700 text-sm text-left cursor-pointer"
           >
             {editingId === item.id ? (
