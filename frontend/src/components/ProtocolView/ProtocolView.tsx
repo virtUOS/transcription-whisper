@@ -6,12 +6,12 @@ import { ProtocolCard } from './ProtocolCard'
 import { formatTime, downloadText } from '../../utils/format'
 import type { ProtocolResult } from '../../api/types'
 
-function protocolToText(protocol: ProtocolResult): string {
-  let text = `Meeting Protocol: ${protocol.title}\n`
-  text += `Participants: ${protocol.participants.join(', ')}\n`
+function protocolToText(protocol: ProtocolResult, t: (key: string) => string): string {
+  let text = `${t('editor.protocol')}: ${protocol.title}\n`
+  text += `${t('editor.participants')}: ${protocol.participants.join(', ')}\n`
 
   if (protocol.key_points.length > 0) {
-    text += '\nKEY POINTS\n'
+    text += `\n${t('editor.keyPoints').toUpperCase()}\n`
     protocol.key_points.forEach((kp, i) => {
       const ts = kp.timestamp !== null ? `[${formatTime(kp.timestamp)}] ` : ''
       text += `${i + 1}. ${ts}${kp.speaker} — ${kp.topic}\n   ${kp.content}\n\n`
@@ -19,7 +19,7 @@ function protocolToText(protocol: ProtocolResult): string {
   }
 
   if (protocol.decisions.length > 0) {
-    text += 'DECISIONS\n'
+    text += `${t('editor.decisions').toUpperCase()}\n`
     protocol.decisions.forEach((d, i) => {
       const ts = d.timestamp !== null ? `[${formatTime(d.timestamp)}] ` : ''
       text += `${i + 1}. ${ts}${d.decision}\n\n`
@@ -27,7 +27,7 @@ function protocolToText(protocol: ProtocolResult): string {
   }
 
   if (protocol.action_items.length > 0) {
-    text += 'ACTION ITEMS\n'
+    text += `${t('editor.actionItems').toUpperCase()}\n`
     protocol.action_items.forEach((ai, i) => {
       const ts = ai.timestamp !== null ? ` (${formatTime(ai.timestamp)})` : ''
       text += `${i + 1}. ${ai.assignee} — ${ai.task}${ts}\n\n`
@@ -37,12 +37,12 @@ function protocolToText(protocol: ProtocolResult): string {
   return text.trimEnd()
 }
 
-function protocolToMarkdown(protocol: ProtocolResult): string {
-  let md = `# Meeting Protocol: ${protocol.title}\n\n`
-  md += `**Participants:** ${protocol.participants.join(', ')}\n`
+function protocolToMarkdown(protocol: ProtocolResult, t: (key: string) => string): string {
+  let md = `# ${t('editor.protocol')}: ${protocol.title}\n\n`
+  md += `**${t('editor.participants')}:** ${protocol.participants.join(', ')}\n`
 
   if (protocol.key_points.length > 0) {
-    md += '\n## Key Points\n\n'
+    md += `\n## ${t('editor.keyPoints')}\n\n`
     protocol.key_points.forEach((kp, i) => {
       const ts = kp.timestamp !== null ? `[${formatTime(kp.timestamp)}] ` : ''
       md += `${i + 1}. **${ts}${kp.speaker}** — ${kp.topic}\n   ${kp.content}\n\n`
@@ -50,7 +50,7 @@ function protocolToMarkdown(protocol: ProtocolResult): string {
   }
 
   if (protocol.decisions.length > 0) {
-    md += '## Decisions\n\n'
+    md += `## ${t('editor.decisions')}\n\n`
     protocol.decisions.forEach((d, i) => {
       const ts = d.timestamp !== null ? `**[${formatTime(d.timestamp)}]** ` : ''
       md += `${i + 1}. ${ts}${d.decision}\n\n`
@@ -58,7 +58,7 @@ function protocolToMarkdown(protocol: ProtocolResult): string {
   }
 
   if (protocol.action_items.length > 0) {
-    md += '## Action Items\n\n'
+    md += `## ${t('editor.actionItems')}\n\n`
     protocol.action_items.forEach((ai) => {
       const ts = ai.timestamp !== null ? ` *(${formatTime(ai.timestamp)})*` : ''
       md += `- [ ] **${ai.assignee}** — ${ai.task}${ts}\n`
@@ -201,15 +201,15 @@ export function ProtocolView() {
 
       {/* Copy & Download buttons */}
       <div className="flex justify-end gap-2 pt-3 border-t border-gray-700">
-        <button onClick={() => handleCopy(protocolToText(protocol))} className={btnCopy}>
+        <button onClick={() => handleCopy(protocolToText(protocol, t))} className={btnCopy}>
           {copied ? checkIcon : copyIcon}
           {copied ? t('editor.copied') : t('editor.copyProtocol')}
         </button>
-        <button onClick={() => downloadText(protocolToText(protocol), `${baseName}_protocol.txt`)} className={btnDownload}>
+        <button onClick={() => downloadText(protocolToText(protocol, t), `${baseName}_protocol.txt`)} className={btnDownload}>
           {downloadIcon}
           {t('editor.downloadProtocolTxt')}
         </button>
-        <button onClick={() => downloadText(protocolToMarkdown(protocol), `${baseName}_protocol.md`)} className={btnDownload}>
+        <button onClick={() => downloadText(protocolToMarkdown(protocol, t), `${baseName}_protocol.md`)} className={btnDownload}>
           {downloadIcon}
           {t('editor.downloadProtocolMd')}
         </button>
