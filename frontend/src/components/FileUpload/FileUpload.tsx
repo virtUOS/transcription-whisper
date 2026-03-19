@@ -53,7 +53,7 @@ export function FileUpload() {
       onDragOver={(e) => e.preventDefault()}
       className="mx-6 my-4 p-8 border-2 border-dashed border-gray-600 rounded-lg text-center hover:border-blue-500 transition-colors cursor-pointer"
     >
-      <input type="file" accept=".mp3,.wav,.mp4" onChange={handleFileInput} className="hidden" id="file-upload" disabled={uploading} />
+      <input type="file" accept=".mp3,.wav,.mp4,.webm" onChange={handleFileInput} className="hidden" id="file-upload" disabled={uploading} />
       <label htmlFor="file-upload" className="cursor-pointer">
         <p className="text-gray-300">{uploading ? t('common.loading') : t('upload.dragDrop')}</p>
         <p className="text-gray-500 text-sm mt-2">{t('upload.supportedFormats')}</p>
