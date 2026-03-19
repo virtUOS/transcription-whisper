@@ -21,7 +21,7 @@ class Settings:
     TEMP_PATH: str = os.getenv("TEMP_PATH", "tmp/transcription-files")
     FFMPEG_PATH: str = os.getenv("FFMPEG_PATH", "ffmpeg")
     LOGOUT_URL: str = os.getenv("LOGOUT_URL", "")
-    CLEANUP_TTL_HOURS: int = int(os.getenv("CLEANUP_TTL_HOURS", "168"))
+    CLEANUP_TTL_HOURS: int = int(os.getenv("CLEANUP_TTL_HOURS", "720"))
     DATABASE_PATH: str = os.getenv("DATABASE_PATH", "")
 
     ENABLE_METRICS: bool = os.getenv("ENABLE_METRICS", "true").lower() in ("true", "1", "yes")
