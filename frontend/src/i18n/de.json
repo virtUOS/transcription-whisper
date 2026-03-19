@@ -119,7 +119,10 @@
     "selectMic": "Mikrofon",
     "selectCamera": "Kamera",
     "recordingNotSupported": "Aufnahme wird in diesem Browser nicht unterstützt.",
-    "unsavedSwitchTab": "Sie haben ungespeicherte Änderungen. Möchten Sie wirklich wechseln? Die aktuelle Transkription wird geschlossen."
+    "unsavedSwitchTab": "Sie haben ungespeicherte Änderungen. Möchten Sie wirklich wechseln? Die aktuelle Transkription wird geschlossen.",
+    "systemAudio": "Systemaudio",
+    "systemAudioWarning": "Experimentelle Funktion. Ihr Browser wird Sie bitten, einen Tab oder Bildschirm auszuwählen, dessen Audio aufgenommen werden soll. Dies funktioniert am besten mit Chrome/Edge unter Windows. macOS und andere Browser haben eingeschränkte oder keine Unterstützung für System-Audioaufnahme. Führen Sie das Meeting am besten in einem Browser-Tab durch und wählen Sie diesen Tab aus, wenn Sie dazu aufgefordert werden.",
+    "systemAudioFailed": "Systemaudio konnte nicht aufgenommen werden. Möglicherweise haben Sie die Eingabeaufforderung abgebrochen oder Ihr Browser unterstützt diese Funktion nicht."
   },
   "player": {
     "subtitles": "Untertitel",

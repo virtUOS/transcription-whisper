@@ -119,7 +119,10 @@
     "selectMic": "Microphone",
     "selectCamera": "Camera",
     "recordingNotSupported": "Recording is not supported in this browser.",
-    "unsavedSwitchTab": "You have unsaved changes. Are you sure you want to switch? Your current transcription will be closed."
+    "unsavedSwitchTab": "You have unsaved changes. Are you sure you want to switch? Your current transcription will be closed.",
+    "systemAudio": "System audio",
+    "systemAudioWarning": "Experimental feature. Your browser will ask you to select a tab or screen to capture audio from. This works best on Chrome/Edge on Windows. macOS and other browsers have limited or no support for system audio capture. For best results, run the meeting in a browser tab and select that tab when prompted.",
+    "systemAudioFailed": "Could not capture system audio. You may have cancelled the prompt or your browser does not support this feature."
   },
   "player": {
     "subtitles": "Subtitles",
