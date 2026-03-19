@@ -3,7 +3,7 @@ from openai import AsyncOpenAI
 from app.config import settings
 from app.services.llm.base import LLMProvider
 from app.services.llm.prompt import (
-    build_system_prompt, build_user_prompt, chunk_transcript, CONSOLIDATION_PROMPT,
+    build_system_prompt, build_user_prompt, chunk_transcript, build_consolidation_prompt,
     build_protocol_system_prompt, build_protocol_user_prompt, PROTOCOL_CONSOLIDATION_PROMPT, PROTOCOL_SCHEMA,
 )
 from app.models import SummaryResult, SummaryChapter, ProtocolResult, ProtocolKeyPoint, ProtocolDecision, ProtocolActionItem
@@ -17,25 +17,25 @@ class OpenAIProvider(LLMProvider):
         )
         self._model = settings.LLM_MODEL or "gpt-4o"
 
-    async def generate_summary(self, transcript: str) -> SummaryResult:
+    async def generate_summary(self, transcript: str, chapter_hints: list | None = None) -> SummaryResult:
         chunks = chunk_transcript(transcript)
 
         if len(chunks) == 1:
-            return await self._summarize_single(chunks[0])
+            return await self._summarize_single(chunks[0], chapter_hints)
 
         # Multi-chunk: summarize each, then consolidate
         chunk_summaries = []
         for chunk in chunks:
-            result = await self._summarize_single(chunk)
+            result = await self._summarize_single(chunk, chapter_hints)
             chunk_summaries.append(json.dumps(result.model_dump()))
 
-        return await self._consolidate(chunk_summaries)
+        return await self._consolidate(chunk_summaries, chapter_hints)
 
-    async def _summarize_single(self, transcript: str) -> SummaryResult:
+    async def _summarize_single(self, transcript: str, chapter_hints: list | None = None) -> SummaryResult:
         response = await self._client.chat.completions.create(
             model=self._model,
             messages=[
-                {"role": "system", "content": build_system_prompt()},
+                {"role": "system", "content": build_system_prompt(chapter_hints)},
                 {"role": "user", "content": build_user_prompt(transcript)},
             ],
             temperature=0.3,
@@ -50,14 +50,14 @@ class OpenAIProvider(LLMProvider):
             chapters=[SummaryChapter(**ch) for ch in data.get("chapters", [])],
         )
 
-    async def _consolidate(self, chunk_summaries: list[str]) -> SummaryResult:
-        prompt = CONSOLIDATION_PROMPT.format(
-            chunk_summaries="\n\n---\n\n".join(chunk_summaries)
+    async def _consolidate(self, chunk_summaries: list[str], chapter_hints: list | None = None) -> SummaryResult:
+        prompt = build_consolidation_prompt(
+            "\n\n---\n\n".join(chunk_summaries), chapter_hints
         )
         response = await self._client.chat.completions.create(
             model=self._model,
             messages=[
-                {"role": "system", "content": build_system_prompt()},
+                {"role": "system", "content": build_system_prompt(chapter_hints)},
                 {"role": "user", "content": prompt},
             ],
             temperature=0.3,

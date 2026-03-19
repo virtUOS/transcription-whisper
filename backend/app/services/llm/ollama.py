@@ -3,7 +3,7 @@ import httpx
 from app.config import settings
 from app.services.llm.base import LLMProvider
 from app.services.llm.prompt import (
-    build_system_prompt, build_user_prompt, chunk_transcript, CONSOLIDATION_PROMPT,
+    build_system_prompt, build_user_prompt, chunk_transcript, build_consolidation_prompt,
     build_protocol_system_prompt, build_protocol_user_prompt, PROTOCOL_CONSOLIDATION_PROMPT, PROTOCOL_SCHEMA,
 )
 from app.models import SummaryResult, SummaryChapter, ProtocolResult, ProtocolKeyPoint, ProtocolDecision, ProtocolActionItem
@@ -14,32 +14,32 @@ class OllamaProvider(LLMProvider):
         self._base_url = settings.LLM_BASE_URL or "http://localhost:11434"
         self._model = settings.LLM_MODEL or "llama3"
 
-    async def generate_summary(self, transcript: str) -> SummaryResult:
+    async def generate_summary(self, transcript: str, chapter_hints: list | None = None) -> SummaryResult:
         chunks = chunk_transcript(transcript)
 
         if len(chunks) == 1:
-            return await self._summarize_single(chunks[0])
+            return await self._summarize_single(chunks[0], chapter_hints)
 
         chunk_summaries = []
         for chunk in chunks:
-            result = await self._summarize_single(chunk)
+            result = await self._summarize_single(chunk, chapter_hints)
             chunk_summaries.append(json.dumps(result.model_dump()))
 
-        return await self._consolidate(chunk_summaries)
+        return await self._consolidate(chunk_summaries, chapter_hints)
 
-    async def _summarize_single(self, transcript: str) -> SummaryResult:
-        content = await self._chat(build_system_prompt(), build_user_prompt(transcript))
+    async def _summarize_single(self, transcript: str, chapter_hints: list | None = None) -> SummaryResult:
+        content = await self._chat(build_system_prompt(chapter_hints), build_user_prompt(transcript))
         data = json.loads(content)
         return SummaryResult(
             summary=data.get("summary", ""),
             chapters=[SummaryChapter(**ch) for ch in data.get("chapters", [])],
         )
 
-    async def _consolidate(self, chunk_summaries: list[str]) -> SummaryResult:
-        prompt = CONSOLIDATION_PROMPT.format(
-            chunk_summaries="\n\n---\n\n".join(chunk_summaries)
+    async def _consolidate(self, chunk_summaries: list[str], chapter_hints: list | None = None) -> SummaryResult:
+        prompt = build_consolidation_prompt(
+            "\n\n---\n\n".join(chunk_summaries), chapter_hints
         )
-        content = await self._chat(build_system_prompt(), prompt)
+        content = await self._chat(build_system_prompt(chapter_hints), prompt)
         data = json.loads(content)
         return SummaryResult(
             summary=data.get("summary", ""),

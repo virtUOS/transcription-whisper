@@ -4,7 +4,7 @@ from app.models import SummaryResult, ProtocolResult
 
 class LLMProvider(ABC):
     @abstractmethod
-    async def generate_summary(self, transcript: str) -> SummaryResult:
+    async def generate_summary(self, transcript: str, chapter_hints: list | None = None) -> SummaryResult:
         """Generate a summary with chapters from timestamped transcript text."""
 
     @abstractmethod
