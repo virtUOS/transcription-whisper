@@ -100,6 +100,16 @@ export function ProtocolView() {
     }
   }
 
+  const handleDelete = async () => {
+    if (!transcriptionId || !confirm(t('editor.confirmDeleteProtocol'))) return
+    try {
+      await api.deleteProtocol(transcriptionId)
+      setProtocol(null)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Delete failed')
+    }
+  }
+
   if (!protocol && !loading) {
     return (
       <div className="p-6 text-center">
@@ -201,6 +211,9 @@ export function ProtocolView() {
 
       {/* Copy & Download buttons */}
       <div className="flex justify-end gap-2 pt-3 border-t border-gray-700">
+        <button onClick={handleDelete} className="px-4 py-1.5 text-sm rounded flex items-center gap-2 text-red-300 bg-red-900/40 hover:bg-red-800/60 mr-auto">
+          {t('editor.deleteProtocol')}
+        </button>
         <button onClick={() => handleCopy(protocolToText(protocol, t))} className={btnCopy}>
           {copied ? checkIcon : copyIcon}
           {copied ? t('editor.copied') : t('editor.copyProtocol')}

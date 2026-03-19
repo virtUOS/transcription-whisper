@@ -59,7 +59,11 @@
     "actionItems": "Action Items",
     "copyProtocol": "Copy protocol",
     "downloadProtocolTxt": "Download TXT",
-    "downloadProtocolMd": "Download Markdown"
+    "downloadProtocolMd": "Download Markdown",
+    "deleteSummary": "Delete summary",
+    "deleteProtocol": "Delete protocol",
+    "confirmDeleteSummary": "Delete this summary? You can regenerate it afterwards.",
+    "confirmDeleteProtocol": "Delete this protocol? You can regenerate it afterwards."
   },
   "languages": {
     "auto": "Auto-detect",

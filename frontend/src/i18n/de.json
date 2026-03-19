@@ -59,7 +59,11 @@
     "actionItems": "Aufgaben",
     "copyProtocol": "Protokoll kopieren",
     "downloadProtocolTxt": "TXT herunterladen",
-    "downloadProtocolMd": "Markdown herunterladen"
+    "downloadProtocolMd": "Markdown herunterladen",
+    "deleteSummary": "Zusammenfassung löschen",
+    "deleteProtocol": "Protokoll löschen",
+    "confirmDeleteSummary": "Zusammenfassung löschen? Sie können sie danach neu erstellen.",
+    "confirmDeleteProtocol": "Protokoll löschen? Sie können es danach neu erstellen."
   },
   "languages": {
     "auto": "Automatisch erkennen",

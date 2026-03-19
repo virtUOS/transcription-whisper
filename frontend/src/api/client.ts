@@ -70,8 +70,14 @@ export const api = {
   generateSummary: (id: string) =>
     request<SummaryResult>(`/api/summarize/${id}`, { method: 'POST' }),
 
+  deleteSummary: (id: string) =>
+    request<{ status: string }>(`/api/summarize/${id}`, { method: 'DELETE' }),
+
   generateProtocol: (id: string) =>
     request<ProtocolResult>(`/api/protocol/${id}`, { method: 'POST' }),
+
+  deleteProtocol: (id: string) =>
+    request<{ status: string }>(`/api/protocol/${id}`, { method: 'DELETE' }),
 
   getMediaUrl: (fileId: string) => `${BASE}/api/media/${fileId}`,
 

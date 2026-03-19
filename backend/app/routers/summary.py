@@ -83,3 +83,22 @@ async def generate_summary(
         await db.commit()
 
     return result
+
+
+@router.delete("/api/summarize/{transcription_id}")
+async def delete_summary(
+    transcription_id: str,
+    user: UserInfo = Depends(get_current_user),
+):
+    async with get_db() as db:
+        cursor = await db.execute(
+            "SELECT id FROM transcriptions WHERE id = ? AND user_id = ?",
+            (transcription_id, user.id),
+        )
+        if not await cursor.fetchone():
+            raise HTTPException(status_code=404, detail="Transcription not found")
+
+        await db.execute("DELETE FROM summaries WHERE transcription_id = ?", (transcription_id,))
+        await db.commit()
+
+    return {"status": "deleted"}

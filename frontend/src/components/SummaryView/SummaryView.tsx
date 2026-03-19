@@ -55,6 +55,16 @@ export function SummaryView() {
     }
   }
 
+  const handleDelete = async () => {
+    if (!transcriptionId || !confirm(t('editor.confirmDeleteSummary'))) return
+    try {
+      await api.deleteSummary(transcriptionId)
+      setSummary(null)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Delete failed')
+    }
+  }
+
   if (!summary && !loading) {
     return (
       <div className="p-6 text-center">
@@ -133,6 +143,9 @@ export function SummaryView() {
       )}
 
       <div className="flex justify-end gap-2 pt-3 border-t border-gray-700">
+        <button onClick={handleDelete} className="px-4 py-1.5 text-sm rounded flex items-center gap-2 text-red-300 bg-red-900/40 hover:bg-red-800/60 mr-auto">
+          {t('editor.deleteSummary')}
+        </button>
         <button onClick={() => handleCopy(fullText, 'all')} className={btnCopy}>
           {copied === 'all' ? checkIcon : copyIcon}
           {copied === 'all' ? t('editor.copied') : t('editor.copyAll')}
