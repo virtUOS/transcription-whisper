@@ -15,7 +15,6 @@ export function TranscriptionList() {
   const setSummary = useStore((s) => s.setSummary)
   const setProtocol = useStore((s) => s.setProtocol)
   const setFile = useStore((s) => s.setFile)
-  const file = useStore((s) => s.file)
 
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
@@ -81,12 +80,14 @@ export function TranscriptionList() {
 
     if (newFilename === oldFilename) return
 
-    // Optimistic update
-    setHistory(history.map((h) =>
+    // Optimistic update using current store state to avoid stale closure
+    const currentHistory = useStore.getState().transcriptionHistory
+    setHistory(currentHistory.map((h) =>
       h.id === item.id ? { ...h, original_filename: newFilename } : h
     ))
-    if (file && file.id === item.file_id) {
-      setFile({ ...file, original_filename: newFilename })
+    const currentFile = useStore.getState().file
+    if (currentFile && currentFile.id === item.file_id) {
+      setFile({ ...currentFile, original_filename: newFilename })
     }
 
     savingRef.current = true
@@ -105,7 +106,7 @@ export function TranscriptionList() {
     } finally {
       savingRef.current = false
     }
-  }, [editValue, editingId, history, setHistory, file, setFile])
+  }, [editValue, editingId, setHistory, setFile])
 
   const handleRenameKeyDown = useCallback((e: React.KeyboardEvent, item: TranscriptionListItem) => {
     if (e.key === 'Enter') {
