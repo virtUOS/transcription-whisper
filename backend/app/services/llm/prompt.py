@@ -30,8 +30,19 @@ Use speaker names when available. Respond ONLY with valid JSON matching this sch
 
 Do not include any text outside the JSON object."""
 
-def build_system_prompt() -> str:
-    return SYSTEM_PROMPT.format(schema=json.dumps(SUMMARY_SCHEMA, indent=2))
+def build_system_prompt(chapter_hints: list | None = None) -> str:
+    prompt = SYSTEM_PROMPT.format(schema=json.dumps(SUMMARY_SCHEMA, indent=2))
+    if chapter_hints:
+        hint_lines = []
+        for i, hint in enumerate(chapter_hints, 1):
+            parts = []
+            if hint.title:
+                parts.append(f'Title: "{hint.title}"')
+            if hint.description:
+                parts.append(f'Description: "{hint.description}"')
+            hint_lines.append(f"{i}. {' — '.join(parts)}")
+        prompt += "\n\nThe user has provided the following chapter guidelines. Use these to guide your chapter segmentation. Match each hint to the relevant portion of the transcript. If a hint does not match any content in the recording, still include it as a chapter but explain in the summary field that this topic was not covered in the recording.\n\n" + "\n".join(hint_lines)
+    return prompt
 
 
 def build_user_prompt(transcript: str) -> str:
@@ -89,6 +100,34 @@ CONSOLIDATION_PROMPT = """You were given a long transcript split into chunks. He
 {chunk_summaries}
 
 Consolidate these into a single summary with unified chapters. Respond ONLY with valid JSON matching the schema."""
+
+
+CONSOLIDATION_PROMPT_WITH_HINTS = """You were given a long transcript split into chunks. Here are the summaries of each chunk:
+
+{chunk_summaries}
+
+The following chapter guidelines were provided by the user. Ensure each guideline appears exactly once in the final consolidated output, merging any duplicates from individual chunks.
+
+{hint_text}
+
+Consolidate these into a single summary with unified chapters. Respond ONLY with valid JSON matching the schema."""
+
+
+def build_consolidation_prompt(chunk_summaries: str, chapter_hints: list | None = None) -> str:
+    if chapter_hints:
+        hint_lines = []
+        for i, hint in enumerate(chapter_hints, 1):
+            parts = []
+            if hint.title:
+                parts.append(f'Title: "{hint.title}"')
+            if hint.description:
+                parts.append(f'Description: "{hint.description}"')
+            hint_lines.append(f"{i}. {' — '.join(parts)}")
+        return CONSOLIDATION_PROMPT_WITH_HINTS.format(
+            chunk_summaries=chunk_summaries,
+            hint_text="\n".join(hint_lines),
+        )
+    return CONSOLIDATION_PROMPT.format(chunk_summaries=chunk_summaries)
 
 
 PROTOCOL_SCHEMA = {
