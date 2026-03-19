@@ -250,6 +250,7 @@ async def delete_transcription(transcription_id: str, user: UserInfo = Depends(g
         if not row:
             raise HTTPException(status_code=404, detail="Transcription not found")
 
+        await db.execute("DELETE FROM protocols WHERE transcription_id = ?", (transcription_id,))
         await db.execute("DELETE FROM summaries WHERE transcription_id = ?", (transcription_id,))
         await db.execute("DELETE FROM speaker_mappings WHERE transcription_id = ?", (transcription_id,))
         await db.execute("DELETE FROM transcriptions WHERE id = ?", (transcription_id,))
