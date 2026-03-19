@@ -71,7 +71,15 @@
     "chapterTitle": "Kapiteltitel",
     "chapterDescription": "Kurze Beschreibung",
     "removeChapter": "Entfernen",
-    "maxChaptersReached": "Maximal 30 Kapitel"
+    "maxChaptersReached": "Maximal 30 Kapitel",
+    "search": {
+      "placeholder": "Untertitel durchsuchen...",
+      "matchCount": "{{count}} von {{total}} Segmenten",
+      "scopeText": "Text",
+      "scopeSpeaker": "Sprecher",
+      "hiddenSegments": "{{count}} Segmente ausgeblendet",
+      "noMatches": "Keine passenden Segmente"
+    }
   },
   "languages": {
     "auto": "Automatisch erkennen",

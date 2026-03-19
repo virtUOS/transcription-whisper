@@ -71,7 +71,15 @@
     "chapterTitle": "Chapter title",
     "chapterDescription": "Brief description",
     "removeChapter": "Remove",
-    "maxChaptersReached": "Maximum 30 chapters"
+    "maxChaptersReached": "Maximum 30 chapters",
+    "search": {
+      "placeholder": "Search subtitles...",
+      "matchCount": "{{count}} of {{total}} segments",
+      "scopeText": "Text",
+      "scopeSpeaker": "Speaker",
+      "hiddenSegments": "{{count}} segments hidden",
+      "noMatches": "No matching segments"
+    }
   },
   "languages": {
     "auto": "Auto-detect",
