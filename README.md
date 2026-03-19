@@ -19,6 +19,9 @@
 - Hotwords support to improve recognition of rare or technical terms.
 - LLM-powered summary generation (OpenAI or Ollama).
 - LLM-powered protocol generation with key points, decisions, and action items.
+- Inline file renaming in transcription history.
+- Delete and regenerate summaries and protocols.
+- LLM provider and model attribution display on generated content.
 - Transcription history with persistent storage.
 - Real-time progress updates via WebSocket.
 - Internationalization support (English and German).
@@ -116,30 +119,44 @@ The application includes comprehensive Prometheus metrics for monitoring usage a
 
 ### Available Metrics
 
-- **Application Metrics**:
-  - `transcription_page_views_total` - Total page views by UI language
-  - `transcription_active_sessions` - Number of active user sessions
-  - `transcription_app_info` - Application version and metadata
+- **Application Info**:
+  - `transcription_app_info` — Application version and metadata
 
-- **File Upload Metrics**:
-  - `transcription_file_uploads_total` - Total file uploads by type and status
-  - `transcription_file_upload_size_bytes` - File upload size distribution
+- **File Uploads**:
+  - `transcription_file_uploads_total` — Total uploads by file type and status (success/rejected)
+  - `transcription_file_upload_size_bytes` — Upload size distribution
+  - `transcription_file_renames_total` — Total file renames
 
-- **Transcription Metrics**:
-  - `transcription_jobs_total` - Total transcription jobs by language, model, and status
-  - `transcription_duration_seconds` - Transcription processing time distribution
-  - `transcription_active_jobs` - Number of currently processing jobs
-  - `transcription_model_usage_total` - Usage count per Whisper model
-  - `transcription_language_usage_total` - Usage count per transcription language
-  - `transcription_speaker_detection_total` - Speaker detection usage statistics
+- **Transcription Jobs**:
+  - `transcription_jobs_total` — Total jobs by language, model, and status
+  - `transcription_duration_seconds` — Processing time distribution by language and model
+  - `transcription_active_jobs` — Number of currently processing jobs
+  - `transcription_diarization_speakers_detected` — Speakers detected per job distribution
 
-- **User Interaction Metrics**:
-  - `transcription_user_actions_total` - User actions (save, edit) by format
-  - `transcription_downloads_total` - File downloads by format
+- **Editing & Interaction**:
+  - `transcription_edits_saved_total` — Transcription edits saved
+  - `transcription_speaker_renames_total` — Speaker mapping updates
+  - `transcription_downloads_total` — Exports/downloads by format
 
-- **API and Error Metrics**:
-  - `transcription_api_request_duration_seconds` - API request latency
-  - `transcription_errors_total` - Error count by type and component
+- **LLM (Summaries & Protocols)**:
+  - `transcription_llm_requests_total` — LLM requests by provider, model, and operation
+  - `transcription_llm_duration_seconds` — LLM request duration by provider, model, and operation
+  - `transcription_llm_errors_total` — LLM errors by provider, model, and operation
+
+- **Deletions**:
+  - `transcription_deletions_total` — Resource deletions by type (transcription/summary/protocol)
+
+- **WebSocket**:
+  - `transcription_websocket_connections_active` — Active WebSocket connections
+  - `transcription_websocket_connections_total` — Total WebSocket connections
+
+- **Cleanup**:
+  - `transcription_cleanup_runs_total` — Cleanup job runs by status (success/failed)
+  - `transcription_cleanup_items_deleted_total` — Items deleted by resource type
+
+- **API & Errors**:
+  - `transcription_api_request_duration_seconds` — API request latency by endpoint, method, and status
+  - `transcription_errors_total` — Errors by type and component
 
 ### Configuration
 
@@ -162,12 +179,13 @@ scrape_configs:
 
 The metrics are designed to work well with Grafana. Key dashboard panels might include:
 
-- Active sessions and transcription jobs over time
-- Transcription success/failure rates
+- Active transcription jobs and WebSocket connections over time
+- Transcription success/failure rates by model and language
 - Processing time percentiles by model
 - File upload volume and sizes
-- Language and model usage distribution
-- Error rates and types
+- LLM request duration and error rates by provider
+- Export/download format distribution
+- Cleanup job effectiveness
 
 ## Authors
 
