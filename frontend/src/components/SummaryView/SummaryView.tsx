@@ -155,6 +155,12 @@ export function SummaryView() {
           {t('editor.downloadAll')}
         </button>
       </div>
+
+      {summary.llm_provider && summary.llm_model && (
+        <p className="text-xs text-gray-500 text-right">
+          {t('editor.generatedWithModel', { provider: summary.llm_provider, model: summary.llm_model })}
+        </p>
+      )}
     </div>
   )
 }

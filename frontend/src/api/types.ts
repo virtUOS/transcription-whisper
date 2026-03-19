@@ -60,6 +60,8 @@ export interface SummaryChapter {
 export interface SummaryResult {
   summary: string
   chapters: SummaryChapter[]
+  llm_provider: string | null
+  llm_model: string | null
 }
 
 export interface ProtocolKeyPoint {
@@ -86,6 +88,8 @@ export interface ProtocolResult {
   key_points: ProtocolKeyPoint[]
   decisions: ProtocolDecision[]
   action_items: ProtocolActionItem[]
+  llm_provider: string | null
+  llm_model: string | null
 }
 
 export interface ConfigResponse {

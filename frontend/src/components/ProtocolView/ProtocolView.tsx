@@ -227,6 +227,12 @@ export function ProtocolView() {
           {t('editor.downloadProtocolMd')}
         </button>
       </div>
+
+      {protocol.llm_provider && protocol.llm_model && (
+        <p className="text-xs text-gray-500 text-right">
+          {t('editor.generatedWithModel', { provider: protocol.llm_provider, model: protocol.llm_model })}
+        </p>
+      )}
     </div>
   )
 }

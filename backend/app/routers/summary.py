@@ -22,12 +22,14 @@ async def generate_summary(
     async with get_db() as db:
         # Check for existing summary
         cursor = await db.execute(
-            "SELECT summary_json FROM summaries WHERE transcription_id = ?",
+            "SELECT summary_json, llm_provider, llm_model FROM summaries WHERE transcription_id = ?",
             (transcription_id,),
         )
         existing = await cursor.fetchone()
         if existing and existing["summary_json"]:
             data = json.loads(existing["summary_json"])
+            data["llm_provider"] = existing["llm_provider"]
+            data["llm_model"] = existing["llm_model"]
             return SummaryResult(**data)
 
         # Rate limit: reject if summary is already in progress
@@ -82,6 +84,8 @@ async def generate_summary(
         )
         await db.commit()
 
+    result.llm_provider = settings.LLM_PROVIDER
+    result.llm_model = settings.LLM_MODEL
     return result
 
 

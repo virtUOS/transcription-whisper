@@ -22,12 +22,14 @@ async def generate_protocol(
     async with get_db() as db:
         # Check for existing protocol
         cursor = await db.execute(
-            "SELECT protocol_json FROM protocols WHERE transcription_id = ?",
+            "SELECT protocol_json, llm_provider, llm_model FROM protocols WHERE transcription_id = ?",
             (transcription_id,),
         )
         existing = await cursor.fetchone()
         if existing and existing["protocol_json"]:
             data = json.loads(existing["protocol_json"])
+            data["llm_provider"] = existing["llm_provider"]
+            data["llm_model"] = existing["llm_model"]
             return ProtocolResult(**data)
 
         # Rate limit: reject if protocol is already in progress
@@ -92,6 +94,8 @@ async def generate_protocol(
         )
         await db.commit()
 
+    result.llm_provider = settings.LLM_PROVIDER
+    result.llm_model = settings.LLM_MODEL
     return result
 
 

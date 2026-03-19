@@ -74,6 +74,8 @@ class SummaryChapter(BaseModel):
 class SummaryResult(BaseModel):
     summary: str
     chapters: list[SummaryChapter]
+    llm_provider: str | None = None
+    llm_model: str | None = None
 
 
 class ProtocolKeyPoint(BaseModel):
@@ -100,6 +102,8 @@ class ProtocolResult(BaseModel):
     key_points: list[ProtocolKeyPoint]
     decisions: list[ProtocolDecision]
     action_items: list[ProtocolActionItem]
+    llm_provider: str | None = None
+    llm_model: str | None = None
 
 
 class ConfigResponse(BaseModel):

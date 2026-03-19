@@ -63,7 +63,8 @@
     "deleteSummary": "Zusammenfassung löschen",
     "deleteProtocol": "Protokoll löschen",
     "confirmDeleteSummary": "Zusammenfassung löschen? Sie können sie danach neu erstellen.",
-    "confirmDeleteProtocol": "Protokoll löschen? Sie können es danach neu erstellen."
+    "confirmDeleteProtocol": "Protokoll löschen? Sie können es danach neu erstellen.",
+    "generatedWithModel": "Erstellt mit {{provider}} / {{model}}"
   },
   "languages": {
     "auto": "Automatisch erkennen",

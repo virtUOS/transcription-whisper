@@ -63,7 +63,8 @@
     "deleteSummary": "Delete summary",
     "deleteProtocol": "Delete protocol",
     "confirmDeleteSummary": "Delete this summary? You can regenerate it afterwards.",
-    "confirmDeleteProtocol": "Delete this protocol? You can regenerate it afterwards."
+    "confirmDeleteProtocol": "Delete this protocol? You can regenerate it afterwards.",
+    "generatedWithModel": "Generated with {{provider}} / {{model}}"
   },
   "languages": {
     "auto": "Auto-detect",
