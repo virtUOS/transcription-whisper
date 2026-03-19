@@ -1,13 +1,6 @@
 import { useStore } from '../../store'
+import { formatTime } from '../../utils/format'
 import type { SummaryChapter } from '../../api/types'
-
-function formatTime(ms: number): string {
-  const s = Math.floor(ms / 1000)
-  const m = Math.floor(s / 60)
-  const h = Math.floor(m / 60)
-  const pad = (n: number) => n.toString().padStart(2, '0')
-  return `${pad(h)}:${pad(m % 60)}:${pad(s % 60)}`
-}
 
 interface Props {
   chapter: SummaryChapter

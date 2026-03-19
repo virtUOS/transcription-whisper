@@ -3,15 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { useStore } from '../../store'
 import { api } from '../../api/client'
 import { ChapterCard } from './ChapterCard'
+import { formatTime, downloadText } from '../../utils/format'
 import type { SummaryResult, SummaryChapter } from '../../api/types'
-
-function formatTime(ms: number): string {
-  const s = Math.floor(ms / 1000)
-  const m = Math.floor(s / 60)
-  const h = Math.floor(m / 60)
-  const pad = (n: number) => n.toString().padStart(2, '0')
-  return `${pad(h)}:${pad(m % 60)}:${pad(s % 60)}`
-}
 
 function summaryToText(summary: SummaryResult): string {
   let text = summary.summary + '\n'
@@ -28,16 +21,6 @@ function chaptersToText(chapters: SummaryChapter[]): string {
   return chapters.map((ch, i) =>
     `${i + 1}. ${ch.title} [${formatTime(ch.start_time)} — ${formatTime(ch.end_time)}]\n${ch.summary}`
   ).join('\n\n')
-}
-
-function downloadText(content: string, filename: string) {
-  const blob = new Blob([content], { type: 'text/plain' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  a.click()
-  URL.revokeObjectURL(url)
 }
 
 export function SummaryView() {

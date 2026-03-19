@@ -3,15 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { useStore } from '../../store'
 import { api } from '../../api/client'
 import { ProtocolCard } from './ProtocolCard'
+import { formatTime, downloadText } from '../../utils/format'
 import type { ProtocolResult } from '../../api/types'
-
-function formatTime(ms: number): string {
-  const s = Math.floor(ms / 1000)
-  const m = Math.floor(s / 60)
-  const h = Math.floor(m / 60)
-  const pad = (n: number) => n.toString().padStart(2, '0')
-  return `${pad(h)}:${pad(m % 60)}:${pad(s % 60)}`
-}
 
 function protocolToText(protocol: ProtocolResult): string {
   let text = `Meeting Protocol: ${protocol.title}\n`
@@ -73,16 +66,6 @@ function protocolToMarkdown(protocol: ProtocolResult): string {
   }
 
   return md.trimEnd()
-}
-
-function downloadText(content: string, filename: string) {
-  const blob = new Blob([content], { type: 'text/plain' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  a.click()
-  URL.revokeObjectURL(url)
 }
 
 export function ProtocolView() {
