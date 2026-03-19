@@ -1,4 +1,5 @@
 import { useState, forwardRef } from 'react'
+import type { ReactNode } from 'react'
 import { useStore } from '../../store'
 import type { Utterance } from '../../api/types'
 
@@ -10,15 +11,32 @@ function formatTimestamp(ms: number): string {
   return `${pad(h)}:${pad(m % 60)}:${pad(s % 60)}`
 }
 
+function highlightText(text: string, query: string): ReactNode {
+  if (!query) return text
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const regex = new RegExp(`(${escaped})`, 'gi')
+  const parts = text.split(regex)
+  if (parts.length === 1) return text
+  const queryLower = query.toLowerCase()
+  return parts.map((part, i) =>
+    part.toLowerCase() === queryLower
+      ? <span key={i} className="bg-yellow-600/40 text-yellow-200 rounded px-0.5">{part}</span>
+      : part
+  )
+}
+
 interface Props {
   index: number
   utterance: Utterance
   isActive: boolean
+  isContext?: boolean
   speakerMappings: Record<string, string>
   onUpdate: (index: number, field: keyof Utterance, value: string | number) => void
+  highlightTerms?: string
+  highlightScope?: 'text' | 'speaker' | 'both'
 }
 
-export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function SubtitleRow({ index, utterance, isActive, speakerMappings, onUpdate }, ref) {
+export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function SubtitleRow({ index, utterance, isActive, isContext, speakerMappings, onUpdate, highlightTerms, highlightScope }, ref) {
   const setSeekTo = useStore((s) => s.setSeekTo)
   const [editingField, setEditingField] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
@@ -43,7 +61,7 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
     setEditingField(null)
   }
 
-  const renderCell = (field: keyof Utterance, value: string, className?: string) => {
+  const renderCell = (field: keyof Utterance, value: string, displayContent?: ReactNode, className?: string) => {
     if (editingField === field) {
       return (
         <input
@@ -61,13 +79,13 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
         className={`cursor-pointer hover:text-blue-400 ${className || ''}`}
         onDoubleClick={() => startEdit(field, value)}
       >
-        {value}
+        {displayContent ?? value}
       </span>
     )
   }
 
   return (
-    <tr ref={ref} className={`border-b border-gray-700 text-xs ${isActive ? 'bg-blue-900/30' : 'hover:bg-gray-800'}`}>
+    <tr ref={ref} className={`border-b border-gray-700 text-xs ${isActive ? 'bg-blue-900/30' : 'hover:bg-gray-800'} ${isContext ? 'opacity-50' : ''}`}>
       <td className="px-3 py-2 text-gray-500">{index + 1}</td>
       <td className="px-2 py-2 text-blue-400 cursor-pointer" onClick={() => setSeekTo(utterance.start)}>
         {renderCell('start', formatTimestamp(utterance.start))}
@@ -76,10 +94,18 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
         {renderCell('end', formatTimestamp(utterance.end))}
       </td>
       <td className="px-2 py-2 text-green-400">
-        {renderCell('speaker', speakerDisplay)}
+        {renderCell('speaker', speakerDisplay,
+          highlightTerms && (highlightScope === 'speaker' || highlightScope === 'both')
+            ? highlightText(speakerDisplay, highlightTerms)
+            : undefined
+        )}
       </td>
       <td className="px-3 py-2 text-gray-200">
-        {renderCell('text', utterance.text)}
+        {renderCell('text', utterance.text,
+          highlightTerms && (highlightScope === 'text' || highlightScope === 'both')
+            ? highlightText(utterance.text, highlightTerms)
+            : undefined
+        )}
       </td>
     </tr>
   )
