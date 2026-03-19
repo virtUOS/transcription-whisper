@@ -25,7 +25,8 @@
     "success": "Transcription successful!",
     "failed": "Transcription failed",
     "delete": "Delete transcription",
-    "history": "My Transcriptions"
+    "history": "My Transcriptions",
+    "doubleClickToRename": "Double-click to rename"
   },
   "editor": {
     "subtitles": "Subtitles",

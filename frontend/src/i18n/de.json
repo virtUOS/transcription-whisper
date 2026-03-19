@@ -25,7 +25,8 @@
     "success": "Transkription erfolgreich!",
     "failed": "Transkription fehlgeschlagen",
     "delete": "Transkription löschen",
-    "history": "Meine Transkriptionen"
+    "history": "Meine Transkriptionen",
+    "doubleClickToRename": "Doppelklick zum Umbenennen"
   },
   "editor": {
     "subtitles": "Untertitel",
