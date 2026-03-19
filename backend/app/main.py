@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import init_db, get_db
-from app.routers import config_router, upload, transcription, summary
+from app.routers import config_router, upload, transcription, summary, protocol
 
 
 async def cleanup_old_files():
@@ -30,6 +30,7 @@ async def cleanup_old_files():
 
                 # Delete old DB records (cascade via foreign keys)
                 await db.execute("DELETE FROM summaries WHERE transcription_id IN (SELECT id FROM transcriptions WHERE created_at < ?)", (cutoff.isoformat(),))
+                await db.execute("DELETE FROM protocols WHERE transcription_id IN (SELECT id FROM transcriptions WHERE created_at < ?)", (cutoff.isoformat(),))
                 await db.execute("DELETE FROM speaker_mappings WHERE transcription_id IN (SELECT id FROM transcriptions WHERE created_at < ?)", (cutoff.isoformat(),))
                 await db.execute("DELETE FROM transcriptions WHERE created_at < ?", (cutoff.isoformat(),))
                 await db.execute("DELETE FROM files WHERE created_at < ?", (cutoff.isoformat(),))
@@ -61,6 +62,7 @@ app.include_router(config_router.router)
 app.include_router(upload.router)
 app.include_router(transcription.router)
 app.include_router(summary.router)
+app.include_router(protocol.router)
 
 # Serve frontend static files (only when built files exist, i.e., in Docker)
 from fastapi.staticfiles import StaticFiles
