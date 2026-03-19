@@ -110,7 +110,8 @@
     "useCamera": "Kamera verwenden",
     "selectMic": "Mikrofon",
     "selectCamera": "Kamera",
-    "recordingNotSupported": "Aufnahme wird in diesem Browser nicht unterstützt."
+    "recordingNotSupported": "Aufnahme wird in diesem Browser nicht unterstützt.",
+    "unsavedSwitchTab": "Sie haben ungespeicherte Änderungen. Möchten Sie wirklich wechseln? Die aktuelle Transkription wird geschlossen."
   },
   "player": {
     "subtitles": "Untertitel",
