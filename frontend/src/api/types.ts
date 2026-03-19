@@ -35,6 +35,9 @@ export interface TranscriptionResult {
   utterances: Utterance[]
   text: string
   language: string | null
+  speaker_mappings: Record<string, string>
+  summary: SummaryResult | null
+  protocol: ProtocolResult | null
 }
 
 export interface TranscriptionListItem {

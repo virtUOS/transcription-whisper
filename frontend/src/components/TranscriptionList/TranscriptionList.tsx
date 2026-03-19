@@ -10,6 +10,9 @@ export function TranscriptionList() {
   const setTranscriptionId = useStore((s) => s.setTranscriptionId)
   const setTranscriptionStatus = useStore((s) => s.setTranscriptionStatus)
   const setResult = useStore((s) => s.setTranscriptionResult)
+  const setSpeakerMappings = useStore((s) => s.setSpeakerMappings)
+  const setSummary = useStore((s) => s.setSummary)
+  const setProtocol = useStore((s) => s.setProtocol)
   const setFile = useStore((s) => s.setFile)
 
   useEffect(() => {
@@ -24,6 +27,9 @@ export function TranscriptionList() {
     if (item.status === 'completed') {
       const result = await api.getTranscription(item.id)
       setResult(result)
+      setSpeakerMappings(result.speaker_mappings || {})
+      setSummary(result.summary || null)
+      setProtocol(result.protocol || null)
     }
   }
 

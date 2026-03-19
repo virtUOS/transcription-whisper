@@ -123,11 +123,37 @@ async def get_transcription(transcription_id: str, user: UserInfo = Depends(get_
         raise HTTPException(status_code=400, detail="Transcription not yet completed")
 
     utterances = [Utterance(**u) for u in json.loads(row["result_json"] or "[]")]
+
+    async with get_db() as db:
+        cursor = await db.execute(
+            "SELECT original_label, custom_name FROM speaker_mappings WHERE transcription_id = ?",
+            (transcription_id,),
+        )
+        mapping_rows = await cursor.fetchall()
+        speaker_mappings = {r["original_label"]: r["custom_name"] for r in mapping_rows} if mapping_rows else {}
+
+        cursor = await db.execute(
+            "SELECT summary_json FROM summaries WHERE transcription_id = ?",
+            (transcription_id,),
+        )
+        summary_row = await cursor.fetchone()
+        summary = json.loads(summary_row["summary_json"]) if summary_row and summary_row["summary_json"] else None
+
+        cursor = await db.execute(
+            "SELECT protocol_json FROM protocols WHERE transcription_id = ?",
+            (transcription_id,),
+        )
+        protocol_row = await cursor.fetchone()
+        protocol = json.loads(protocol_row["protocol_json"]) if protocol_row and protocol_row["protocol_json"] else None
+
     return {
         "id": row["id"], "status": row["status"],
         "utterances": [u.model_dump() for u in utterances],
         "text": " ".join(u.text for u in utterances),
         "language": row["language"],
+        "speaker_mappings": speaker_mappings,
+        "summary": summary,
+        "protocol": protocol,
     }
 
 
