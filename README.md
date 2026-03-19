@@ -38,7 +38,7 @@ The application uses a decoupled frontend/backend architecture:
 You need to set up an ASR backend to work with this app. Supported options:
 
 - [MurmurAI API server](https://github.com/namastexlabs/murmurai) (remote API)
-- WhisperX (local processing)
+- [WhisperX API server](https://github.com/Nyralei/whisperx-api-server) (remote API)
 
 Copy `.env.example` to `.env` and configure your environment variables:
 
