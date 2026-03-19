@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import init_db, get_db
 from app.routers import config_router, upload, transcription, summary, protocol
+from app.metrics import inc, cleanup_runs_total, cleanup_items_deleted_total
 
 
 async def cleanup_old_files():
@@ -23,19 +24,34 @@ async def cleanup_old_files():
                     (cutoff.isoformat(),),
                 )
                 rows = await cursor.fetchall()
+                files_deleted = 0
                 for row in rows:
                     for path in [row["file_path"], row["mp3_path"]]:
                         if path and os.path.exists(path):
                             os.unlink(path)
+                            files_deleted += 1
 
                 # Delete old DB records (cascade via foreign keys)
-                await db.execute("DELETE FROM summaries WHERE transcription_id IN (SELECT id FROM transcriptions WHERE created_at < ?)", (cutoff.isoformat(),))
-                await db.execute("DELETE FROM protocols WHERE transcription_id IN (SELECT id FROM transcriptions WHERE created_at < ?)", (cutoff.isoformat(),))
-                await db.execute("DELETE FROM speaker_mappings WHERE transcription_id IN (SELECT id FROM transcriptions WHERE created_at < ?)", (cutoff.isoformat(),))
-                await db.execute("DELETE FROM transcriptions WHERE created_at < ?", (cutoff.isoformat(),))
-                await db.execute("DELETE FROM files WHERE created_at < ?", (cutoff.isoformat(),))
+                cursor = await db.execute("DELETE FROM summaries WHERE transcription_id IN (SELECT id FROM transcriptions WHERE created_at < ?)", (cutoff.isoformat(),))
+                summaries_deleted = cursor.rowcount
+                cursor = await db.execute("DELETE FROM protocols WHERE transcription_id IN (SELECT id FROM transcriptions WHERE created_at < ?)", (cutoff.isoformat(),))
+                protocols_deleted = cursor.rowcount
+                cursor = await db.execute("DELETE FROM speaker_mappings WHERE transcription_id IN (SELECT id FROM transcriptions WHERE created_at < ?)", (cutoff.isoformat(),))
+                mappings_deleted = cursor.rowcount
+                cursor = await db.execute("DELETE FROM transcriptions WHERE created_at < ?", (cutoff.isoformat(),))
+                transcriptions_deleted = cursor.rowcount
+                cursor = await db.execute("DELETE FROM files WHERE created_at < ?", (cutoff.isoformat(),))
+                db_files_deleted = cursor.rowcount
                 await db.commit()
+
+            inc(cleanup_runs_total, "success")
+            inc(cleanup_items_deleted_total, "file", amount=files_deleted + db_files_deleted)
+            inc(cleanup_items_deleted_total, "transcription", amount=transcriptions_deleted)
+            inc(cleanup_items_deleted_total, "summary", amount=summaries_deleted)
+            inc(cleanup_items_deleted_total, "protocol", amount=protocols_deleted)
+            inc(cleanup_items_deleted_total, "speaker_mapping", amount=mappings_deleted)
         except Exception as e:
+            inc(cleanup_runs_total, "failed")
             print(f"Cleanup error: {e}")
 
 

@@ -1,5 +1,6 @@
 import asyncio
 import json
+import time
 import uuid
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
@@ -13,6 +14,13 @@ from app.database import get_db
 from app.services.asr import get_asr_backend
 from app.services.asr.base import TranscriptionSettings
 from app.services.formats import generate_srt, generate_vtt, generate_txt
+from app.metrics import (
+    inc, observe, gauge_inc, gauge_dec,
+    transcriptions_total, transcription_duration_seconds, active_transcriptions,
+    diarization_speakers_detected, edits_saved_total, speaker_renames_total,
+    downloads_total, deletions_total, errors_total,
+    websocket_connections_active, websocket_connections_total,
+)
 
 router = APIRouter()
 
@@ -58,6 +66,9 @@ async def _run_transcription(transcription_id: str, file_path: str, req: Transcr
         initial_prompt=req.initial_prompt, hotwords=req.hotwords,
     )
 
+    gauge_inc(active_transcriptions)
+    start_time = time.monotonic()
+
     try:
         async with get_db() as db:
             await db.execute("UPDATE transcriptions SET status = ? WHERE id = ?", ("processing", transcription_id))
@@ -79,6 +90,15 @@ async def _run_transcription(transcription_id: str, file_path: str, req: Transcr
 
         result = await backend.get_result(asr_job_id)
 
+        duration = time.monotonic() - start_time
+        observe(transcription_duration_seconds, duration, req.language or "auto", req.model or "default")
+        inc(transcriptions_total, req.language or "auto", req.model or "default", "completed")
+
+        # Track number of unique speakers detected
+        speakers = {u.speaker for u in result.utterances if u.speaker}
+        if speakers:
+            observe(diarization_speakers_detected, len(speakers))
+
         async with get_db() as db:
             await db.execute(
                 """UPDATE transcriptions SET status = ?, result_json = ?, completed_at = ? WHERE id = ?""",
@@ -88,12 +108,17 @@ async def _run_transcription(transcription_id: str, file_path: str, req: Transcr
             await db.commit()
 
     except Exception as e:
+        inc(transcriptions_total, req.language or "auto", req.model or "default", "failed")
+        inc(errors_total, "transcription_failed", "asr")
+
         async with get_db() as db:
             await db.execute(
                 "UPDATE transcriptions SET status = ?, error_message = ? WHERE id = ?",
                 ("failed", str(e), transcription_id),
             )
             await db.commit()
+    finally:
+        gauge_dec(active_transcriptions)
 
 
 @router.get("/api/status/{transcription_id}")
@@ -193,6 +218,8 @@ async def export_transcription(transcription_id: str, format_type: str, user: Us
         content = json.dumps([u.model_dump() for u in utterances], indent=2)
         media_type = "application/json"
 
+    inc(downloads_total, format_type)
+
     from fastapi.responses import Response
     return Response(content=content, media_type=media_type)
 
@@ -212,6 +239,8 @@ async def update_transcription(transcription_id: str, utterances: list[Utterance
             (json.dumps([u.model_dump() for u in utterances]), transcription_id),
         )
         await db.commit()
+
+    inc(edits_saved_total)
 
     return {"status": "ok"}
 
@@ -235,6 +264,8 @@ async def update_speaker_mappings(transcription_id: str, request: SpeakerMapping
             )
         await db.commit()
 
+    inc(speaker_renames_total)
+
     return {"status": "ok"}
 
 
@@ -255,6 +286,8 @@ async def delete_transcription(transcription_id: str, user: UserInfo = Depends(g
         await db.execute("DELETE FROM speaker_mappings WHERE transcription_id = ?", (transcription_id,))
         await db.execute("DELETE FROM transcriptions WHERE id = ?", (transcription_id,))
         await db.commit()
+
+    inc(deletions_total, "transcription")
 
     return {"status": "deleted"}
 
@@ -285,6 +318,8 @@ async def list_transcriptions(user: UserInfo = Depends(get_current_user)):
 @router.websocket("/api/ws/status/{transcription_id}")
 async def websocket_status(websocket: WebSocket, transcription_id: str):
     await websocket.accept()
+    inc(websocket_connections_total)
+    gauge_inc(websocket_connections_active)
     try:
         # Extract user from headers (same as get_current_user dependency)
         user_id = websocket.headers.get("x-forwarded-user", "anonymous")
@@ -321,6 +356,7 @@ async def websocket_status(websocket: WebSocket, transcription_id: str):
     except WebSocketDisconnect:
         pass
     finally:
+        gauge_dec(websocket_connections_active)
         try:
             await websocket.close()
         except Exception:

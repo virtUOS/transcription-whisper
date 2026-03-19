@@ -1,4 +1,5 @@
 import json
+import time
 from fastapi import APIRouter, Depends, HTTPException
 from app.config import settings
 from app.dependencies import get_current_user
@@ -6,6 +7,7 @@ from app.models import UserInfo, ProtocolResult
 from app.database import get_db
 from app.services.llm import get_llm_provider
 from app.services.llm.prompt import format_transcript_for_llm
+from app.metrics import inc, observe, llm_requests_total, llm_duration_seconds, llm_errors_total, deletions_total, errors_total
 
 router = APIRouter()
 
@@ -76,14 +78,21 @@ async def generate_protocol(
     utterances = json.loads(result_json or "[]")
     transcript = format_transcript_for_llm(utterances, speaker_map)
 
+    start_time = time.monotonic()
     try:
         result = await provider.generate_protocol(transcript, summary_context)
     except Exception:
+        inc(llm_errors_total, settings.LLM_PROVIDER, settings.LLM_MODEL, "protocol")
+        inc(errors_total, "llm_failed", "protocol")
         # Remove placeholder on failure so user can retry
         async with get_db() as db:
             await db.execute("DELETE FROM protocols WHERE transcription_id = ? AND protocol_json IS NULL", (transcription_id,))
             await db.commit()
         raise
+
+    duration = time.monotonic() - start_time
+    inc(llm_requests_total, settings.LLM_PROVIDER, settings.LLM_MODEL, "protocol")
+    observe(llm_duration_seconds, duration, settings.LLM_PROVIDER, settings.LLM_MODEL, "protocol")
 
     # Store completed protocol
     async with get_db() as db:
@@ -114,5 +123,7 @@ async def delete_protocol(
 
         await db.execute("DELETE FROM protocols WHERE transcription_id = ?", (transcription_id,))
         await db.commit()
+
+    inc(deletions_total, "protocol")
 
     return {"status": "deleted"}

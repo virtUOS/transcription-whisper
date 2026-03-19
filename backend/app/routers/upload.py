@@ -7,6 +7,7 @@ from app.dependencies import get_current_user
 from app.models import UserInfo, FileInfo, RenameRequest
 from app.database import get_db
 from app.services.audio import convert_to_mp3
+from app.metrics import inc, observe, file_uploads_total, file_upload_size_bytes, file_renames_total, errors_total
 
 router = APIRouter()
 
@@ -21,6 +22,8 @@ async def upload_file(
 ):
     ext = os.path.splitext(file.filename or "")[1].lower()
     if ext not in ALLOWED_EXTENSIONS:
+        inc(file_uploads_total, ext.lstrip("."), "rejected")
+        inc(errors_total, "unsupported_file_type", "upload")
         raise HTTPException(status_code=400, detail=f"Unsupported file type: {ext}")
 
     file_id = str(uuid.uuid4())
@@ -37,6 +40,8 @@ async def upload_file(
             break
         total_size += len(chunk)
         if total_size > MAX_FILE_SIZE:
+            inc(file_uploads_total, ext.lstrip("."), "rejected")
+            inc(errors_total, "file_too_large", "upload")
             raise HTTPException(status_code=413, detail="File too large (max 1GB)")
         chunks.append(chunk)
     content = b"".join(chunks)
@@ -61,6 +66,9 @@ async def upload_file(
             (file_id, user.id, file.filename, file_path, mp3_path, media_type, file_size),
         )
         await db.commit()
+
+    inc(file_uploads_total, media_type, "success")
+    observe(file_upload_size_bytes, file_size)
 
     return FileInfo(
         id=file_id,
@@ -124,6 +132,8 @@ async def rename_file(
             (new_filename, file_id, user.id),
         )
         await db.commit()
+
+    inc(file_renames_total)
 
     return FileInfo(
         id=file_id,
