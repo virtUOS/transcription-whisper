@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { FileInfo, TranscriptionResult, TranscriptionListItem, ConfigResponse, SummaryResult } from '../api/types'
+import type { FileInfo, TranscriptionResult, TranscriptionListItem, ConfigResponse, SummaryResult, ProtocolResult } from '../api/types'
 
 interface AppState {
   config: ConfigResponse | null
@@ -16,6 +16,8 @@ interface AppState {
   setSpeakerMappings: (mappings: Record<string, string>) => void
   summary: SummaryResult | null
   setSummary: (summary: SummaryResult | null) => void
+  protocol: ProtocolResult | null
+  setProtocol: (protocol: ProtocolResult | null) => void
   transcriptionHistory: TranscriptionListItem[]
   setTranscriptionHistory: (list: TranscriptionListItem[]) => void
   currentTime: number
@@ -44,6 +46,8 @@ export const useStore = create<AppState>((set) => ({
   setSpeakerMappings: (mappings) => set({ speakerMappings: mappings }),
   summary: null,
   setSummary: (summary) => set({ summary }),
+  protocol: null,
+  setProtocol: (protocol) => set({ protocol }),
   transcriptionHistory: [],
   setTranscriptionHistory: (list) => set({ transcriptionHistory: list }),
   currentTime: 0,
@@ -56,7 +60,7 @@ export const useStore = create<AppState>((set) => ({
   setUnsavedEdits: (dirty) => set({ unsavedEdits: dirty }),
   reset: () => set({
     file: null, transcriptionId: null, transcriptionStatus: null,
-    transcriptionResult: null, speakerMappings: {}, summary: null,
+    transcriptionResult: null, speakerMappings: {}, summary: null, protocol: null,
     currentTime: 0, seekTo: null, activeTab: 'subtitles', unsavedEdits: false,
   }),
 }))

@@ -1,7 +1,7 @@
 import type {
   FileInfo, TranscriptionSettings, TranscriptionStatus,
   TranscriptionResult, TranscriptionListItem, ConfigResponse,
-  SummaryResult,
+  SummaryResult, ProtocolResult,
 } from './types'
 
 const BASE = ''
@@ -69,6 +69,9 @@ export const api = {
 
   generateSummary: (id: string) =>
     request<SummaryResult>(`/api/summarize/${id}`, { method: 'POST' }),
+
+  generateProtocol: (id: string) =>
+    request<ProtocolResult>(`/api/protocol/${id}`, { method: 'POST' }),
 
   getMediaUrl: (fileId: string) => `${BASE}/api/media/${fileId}`,
 

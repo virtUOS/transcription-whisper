@@ -59,6 +59,32 @@ export interface SummaryResult {
   chapters: SummaryChapter[]
 }
 
+export interface ProtocolKeyPoint {
+  topic: string
+  speaker: string
+  timestamp: number | null
+  content: string
+}
+
+export interface ProtocolDecision {
+  decision: string
+  timestamp: number | null
+}
+
+export interface ProtocolActionItem {
+  task: string
+  assignee: string
+  timestamp: number | null
+}
+
+export interface ProtocolResult {
+  title: string
+  participants: string[]
+  key_points: ProtocolKeyPoint[]
+  decisions: ProtocolDecision[]
+  action_items: ProtocolActionItem[]
+}
+
 export interface ConfigResponse {
   asr_backend: string
   whisper_models: string[]
