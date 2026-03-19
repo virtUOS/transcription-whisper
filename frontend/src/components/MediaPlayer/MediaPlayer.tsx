@@ -132,7 +132,7 @@ export function MediaPlayer({ fileId, mediaType }: Props) {
 
   return (
     <div className={`mx-6 my-2 ${isVideo ? 'flex flex-col items-center' : 'max-h-16'}`}>
-      <div data-vjs-player className={isVideo ? 'w-full max-w-3xl' : ''}>
+      <div data-vjs-player className={isVideo ? 'w-full max-w-3xl max-h-[50vh] [&_.video-js]:max-h-[50vh]' : ''}>
         <video ref={videoRef} className="video-js vjs-theme-city" />
       </div>
       <button
