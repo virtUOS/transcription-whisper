@@ -3,7 +3,7 @@ import time
 from fastapi import APIRouter, Depends, HTTPException
 from app.config import settings
 from app.dependencies import get_current_user
-from app.models import UserInfo, SummaryResult
+from app.models import UserInfo, SummaryResult, SummarizeRequest
 from app.database import get_db
 from app.services.llm import get_llm_provider
 from app.services.llm.prompt import format_transcript_for_llm
@@ -15,6 +15,7 @@ router = APIRouter()
 @router.post("/api/summarize/{transcription_id}", response_model=SummaryResult)
 async def generate_summary(
     transcription_id: str,
+    body: SummarizeRequest | None = None,
     user: UserInfo = Depends(get_current_user),
 ):
     provider = get_llm_provider()
@@ -28,11 +29,28 @@ async def generate_summary(
             (transcription_id,),
         )
         existing = await cursor.fetchone()
+
+        chapter_hints = body.chapter_hints if body and body.chapter_hints else None
+
         if existing and existing["summary_json"]:
             data = json.loads(existing["summary_json"])
-            data["llm_provider"] = existing["llm_provider"]
-            data["llm_model"] = existing["llm_model"]
-            return SummaryResult(**data)
+            # Only invalidate cache if hints were explicitly provided and differ
+            if body is not None and body.chapter_hints is not None:
+                existing_hints = data.get("chapter_hints")
+                new_hints_serialized = [h.model_dump() for h in chapter_hints] if chapter_hints else None
+                if existing_hints != new_hints_serialized:
+                    # Hints differ — delete cached summary to regenerate
+                    await db.execute("DELETE FROM summaries WHERE transcription_id = ?", (transcription_id,))
+                    await db.commit()
+                else:
+                    data["llm_provider"] = existing["llm_provider"]
+                    data["llm_model"] = existing["llm_model"]
+                    return SummaryResult(**data)
+            else:
+                # No body or no hints provided — return cached result
+                data["llm_provider"] = existing["llm_provider"]
+                data["llm_model"] = existing["llm_model"]
+                return SummaryResult(**data)
 
         # Rate limit: reject if summary is already in progress
         if existing and not existing["summary_json"]:
@@ -70,7 +88,7 @@ async def generate_summary(
 
     start_time = time.monotonic()
     try:
-        result = await provider.generate_summary(transcript)
+        result = await provider.generate_summary(transcript, chapter_hints)
     except Exception:
         inc(llm_errors_total, settings.LLM_PROVIDER, settings.LLM_MODEL, "summary")
         inc(errors_total, "llm_failed", "summary")
@@ -83,6 +101,8 @@ async def generate_summary(
     duration = time.monotonic() - start_time
     inc(llm_requests_total, settings.LLM_PROVIDER, settings.LLM_MODEL, "summary")
     observe(llm_duration_seconds, duration, settings.LLM_PROVIDER, settings.LLM_MODEL, "summary")
+
+    result.chapter_hints = chapter_hints
 
     # Store completed summary
     async with get_db() as db:
