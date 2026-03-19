@@ -10,6 +10,7 @@
 - Supports upload of video and audio files (up to 1GB).
 - In-browser audio and video recording with device selection and level metering.
 - Editable transcription results with inline subtitle editing synchronized with video playback.
+- Subtitle search with text and speaker scope filtering, context display around matches.
 - Export and download in 4 formats (TXT, VTT, SRT and JSON).
 - Diarization support to detect and label multiple speakers (up to 20).
 - Speaker mapping to assign custom names to detected speakers.
@@ -26,6 +27,7 @@
 - LLM provider and model attribution display on generated content.
 - Transcription history with persistent storage.
 - Real-time progress updates via WebSocket.
+- System audio capture for recording online meetings (experimental; best on Chrome/Edge on Windows).
 - Internationalization support (English and German).
 
 ## Architecture
