@@ -41,7 +41,7 @@ def build_system_prompt(chapter_hints: list | None = None) -> str:
             if hint.description:
                 parts.append(f'Description: "{hint.description}"')
             hint_lines.append(f"{i}. {' — '.join(parts)}")
-        prompt += "\n\nThe user has provided the following chapter guidelines. Use these to guide your chapter segmentation. Match each hint to the relevant portion of the transcript. If a hint does not match any content in the recording, still include it as a chapter but explain in the summary field that this topic was not covered in the recording.\n\n" + "\n".join(hint_lines)
+        prompt += "\n\nThe user has provided the following chapter guidelines. Use these to guide your chapter segmentation. Match each hint to the relevant portion of the transcript. If a hint does not match any content in the recording, still include it as a chapter with start_time and end_time both set to 0, and explain in the summary field that this topic was not covered in the recording.\n\n" + "\n".join(hint_lines)
     return prompt
 
 

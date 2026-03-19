@@ -79,6 +79,16 @@ export function SummaryView() {
     }
   }
 
+  const handleDeleteChapter = useCallback(async (index: number) => {
+    if (!summary || !transcriptionId) return
+    try {
+      const updated = await api.deleteChapter(transcriptionId, index)
+      setSummary(updated)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to delete chapter')
+    }
+  }, [summary, transcriptionId, setSummary])
+
   const handleDelete = async () => {
     if (!transcriptionId || !confirm(t('editor.confirmDeleteSummary'))) return
     try {
@@ -212,7 +222,7 @@ export function SummaryView() {
           <h2 className="text-sm font-medium text-gray-400 mb-2">{t('editor.chapters')}</h2>
           <div className="space-y-2">
             {summary.chapters.map((ch, i) => (
-              <ChapterCard key={i} chapter={ch} index={i} />
+              <ChapterCard key={i} chapter={ch} index={i} onDelete={() => handleDeleteChapter(i)} />
             ))}
           </div>
           <div className="flex justify-end gap-2 mt-3">

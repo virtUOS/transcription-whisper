@@ -81,6 +81,9 @@ export const api = {
     return request<SummaryResult>(`/api/summarize/${id}`, options)
   },
 
+  deleteChapter: (id: string, chapterIndex: number) =>
+    request<SummaryResult>(`/api/summarize/${id}/chapters/${chapterIndex}`, { method: 'DELETE' }),
+
   deleteSummary: (id: string) =>
     request<{ status: string }>(`/api/summarize/${id}`, { method: 'DELETE' }),
 

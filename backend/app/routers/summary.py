@@ -3,7 +3,7 @@ import time
 from fastapi import APIRouter, Depends, HTTPException
 from app.config import settings
 from app.dependencies import get_current_user
-from app.models import UserInfo, SummaryResult, SummarizeRequest
+from app.models import UserInfo, SummaryResult, SummaryChapter, SummarizeRequest
 from app.database import get_db
 from app.services.llm import get_llm_provider
 from app.services.llm.prompt import format_transcript_for_llm
@@ -116,6 +116,47 @@ async def generate_summary(
     result.llm_provider = settings.LLM_PROVIDER
     result.llm_model = settings.LLM_MODEL
     return result
+
+
+@router.delete("/api/summarize/{transcription_id}/chapters/{chapter_index}")
+async def delete_chapter(
+    transcription_id: str,
+    chapter_index: int,
+    user: UserInfo = Depends(get_current_user),
+):
+    async with get_db() as db:
+        cursor = await db.execute(
+            "SELECT id FROM transcriptions WHERE id = ? AND user_id = ?",
+            (transcription_id, user.id),
+        )
+        if not await cursor.fetchone():
+            raise HTTPException(status_code=404, detail="Transcription not found")
+
+        cursor = await db.execute(
+            "SELECT summary_json, llm_provider, llm_model FROM summaries WHERE transcription_id = ?",
+            (transcription_id,),
+        )
+        row = await cursor.fetchone()
+        if not row or not row["summary_json"]:
+            raise HTTPException(status_code=404, detail="Summary not found")
+
+        data = json.loads(row["summary_json"])
+        chapters = data.get("chapters", [])
+        if chapter_index < 0 or chapter_index >= len(chapters):
+            raise HTTPException(status_code=404, detail="Chapter not found")
+
+        chapters.pop(chapter_index)
+        data["chapters"] = chapters
+
+        await db.execute(
+            "UPDATE summaries SET summary_json = ? WHERE transcription_id = ?",
+            (json.dumps(data), transcription_id),
+        )
+        await db.commit()
+
+    data["llm_provider"] = row["llm_provider"]
+    data["llm_model"] = row["llm_model"]
+    return SummaryResult(**data)
 
 
 @router.delete("/api/summarize/{transcription_id}")

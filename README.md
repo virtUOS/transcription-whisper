@@ -17,7 +17,9 @@
 - Transcribed subtitles can be activated in uploaded videos.
 - Initial prompt support to provide context for the transcription.
 - Hotwords support to improve recognition of rare or technical terms.
-- LLM-powered summary generation (OpenAI or Ollama).
+- LLM-powered summary generation with automatic chapter segmentation (OpenAI or Ollama).
+- Optional user-defined chapter hints to guide LLM chapter segmentation.
+- Individual chapter deletion from generated summaries.
 - LLM-powered protocol generation with key points, decisions, and action items.
 - Inline file renaming in transcription history.
 - Delete and regenerate summaries and protocols.
