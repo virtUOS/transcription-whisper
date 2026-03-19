@@ -50,6 +50,11 @@ export interface TranscriptionListItem {
   created_at: string
 }
 
+export interface ChapterHint {
+  title?: string
+  description?: string
+}
+
 export interface SummaryChapter {
   title: string
   start_time: number
@@ -60,6 +65,7 @@ export interface SummaryChapter {
 export interface SummaryResult {
   summary: string
   chapters: SummaryChapter[]
+  chapter_hints?: ChapterHint[]
   llm_provider: string | null
   llm_model: string | null
 }

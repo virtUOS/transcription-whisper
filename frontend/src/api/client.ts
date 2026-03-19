@@ -1,7 +1,7 @@
 import type {
   FileInfo, TranscriptionSettings, TranscriptionStatus,
   TranscriptionResult, TranscriptionListItem, ConfigResponse,
-  SummaryResult, ProtocolResult,
+  SummaryResult, ProtocolResult, ChapterHint,
 } from './types'
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '')
@@ -73,8 +73,13 @@ export const api = {
       body: JSON.stringify({ filename }),
     }),
 
-  generateSummary: (id: string) =>
-    request<SummaryResult>(`/api/summarize/${id}`, { method: 'POST' }),
+  generateSummary: (id: string, chapterHints?: ChapterHint[]) => {
+    const options: RequestInit = { method: 'POST' }
+    if (chapterHints?.length) {
+      options.body = JSON.stringify({ chapter_hints: chapterHints })
+    }
+    return request<SummaryResult>(`/api/summarize/${id}`, options)
+  },
 
   deleteSummary: (id: string) =>
     request<{ status: string }>(`/api/summarize/${id}`, { method: 'DELETE' }),
