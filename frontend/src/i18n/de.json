@@ -65,7 +65,13 @@
     "deleteProtocol": "Protokoll löschen",
     "confirmDeleteSummary": "Zusammenfassung löschen? Sie können sie danach neu erstellen.",
     "confirmDeleteProtocol": "Protokoll löschen? Sie können es danach neu erstellen.",
-    "generatedWithModel": "Erstellt mit {{provider}} / {{model}}"
+    "generatedWithModel": "Erstellt mit {{provider}} / {{model}}",
+    "chapterHints": "Kapitel definieren (optional)",
+    "addChapter": "Kapitel hinzufügen",
+    "chapterTitle": "Kapiteltitel",
+    "chapterDescription": "Kurze Beschreibung",
+    "removeChapter": "Entfernen",
+    "maxChaptersReached": "Maximal 30 Kapitel"
   },
   "languages": {
     "auto": "Automatisch erkennen",

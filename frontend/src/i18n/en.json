@@ -65,7 +65,13 @@
     "deleteProtocol": "Delete protocol",
     "confirmDeleteSummary": "Delete this summary? You can regenerate it afterwards.",
     "confirmDeleteProtocol": "Delete this protocol? You can regenerate it afterwards.",
-    "generatedWithModel": "Generated with {{provider}} / {{model}}"
+    "generatedWithModel": "Generated with {{provider}} / {{model}}",
+    "chapterHints": "Define chapters (optional)",
+    "addChapter": "Add chapter",
+    "chapterTitle": "Chapter title",
+    "chapterDescription": "Brief description",
+    "removeChapter": "Remove",
+    "maxChaptersReached": "Maximum 30 chapters"
   },
   "languages": {
     "auto": "Auto-detect",
