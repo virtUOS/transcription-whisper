@@ -6,17 +6,19 @@
 
 ## Features
 
-- Supports transcriptions with or without simultaneous translations to multiple languages.
 - Configurable access to OpenAI's Whisper models (tiny, base, small, medium, large-v1, large-v2, large-v3, large-v3-turbo).
 - Supports upload of video and audio files (up to 1GB).
+- In-browser audio and video recording with device selection and level metering.
 - Editable transcription results with inline subtitle editing synchronized with video playback.
 - Export and download in 4 formats (TXT, VTT, SRT and JSON).
 - Diarization support to detect and label multiple speakers (up to 20).
+- Speaker mapping to assign custom names to detected speakers.
 - SRT, VTT and JSON formats provide timestamp and speaker information (when available).
 - Transcribed subtitles can be activated in uploaded videos.
 - Initial prompt support to provide context for the transcription.
 - Hotwords support to improve recognition of rare or technical terms.
 - LLM-powered summary generation (OpenAI or Ollama).
+- LLM-powered protocol generation with key points, decisions, and action items.
 - Transcription history with persistent storage.
 - Real-time progress updates via WebSocket.
 - Internationalization support (English and German).
