@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useStore } from '../../store'
 import { api } from '../../api/client'
 import { ChapterCard } from './ChapterCard'
 import { formatTime, downloadText } from '../../utils/format'
-import type { SummaryResult, SummaryChapter } from '../../api/types'
+import type { SummaryResult, SummaryChapter, ChapterHint } from '../../api/types'
 
 function summaryToText(summary: SummaryResult): string {
   let text = summary.summary + '\n'
@@ -32,8 +32,23 @@ export function SummaryView() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
+  const [hintsExpanded, setHintsExpanded] = useState(false)
+  const [hints, setHints] = useState<ChapterHint[]>([])
 
   const baseName = file?.original_filename?.replace(/\.[^.]+$/, '') || 'transcription'
+
+  const handleAddHint = useCallback(() => {
+    if (hints.length >= 30) return
+    setHints(prev => [...prev, { title: '', description: '' }])
+  }, [hints.length])
+
+  const handleRemoveHint = useCallback((index: number) => {
+    setHints(prev => prev.filter((_, i) => i !== index))
+  }, [])
+
+  const handleHintChange = useCallback((index: number, field: 'title' | 'description', value: string) => {
+    setHints(prev => prev.map((h, i) => i === index ? { ...h, [field]: value } : h))
+  }, [])
 
   const handleCopy = async (text: string, key: string) => {
     await navigator.clipboard.writeText(text)
@@ -46,7 +61,16 @@ export function SummaryView() {
     setLoading(true)
     setError(null)
     try {
-      const result = await api.generateSummary(transcriptionId)
+      // Filter out empty hints (neither title nor description)
+      const validHints = hints.filter(h => h.title?.trim() || h.description?.trim())
+        .map(h => ({
+          ...(h.title?.trim() ? { title: h.title.trim() } : {}),
+          ...(h.description?.trim() ? { description: h.description.trim() } : {}),
+        }))
+      const result = await api.generateSummary(
+        transcriptionId,
+        validHints.length > 0 ? validHints : undefined,
+      )
       setSummary(result)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Summary generation failed')
@@ -58,6 +82,11 @@ export function SummaryView() {
   const handleDelete = async () => {
     if (!transcriptionId || !confirm(t('editor.confirmDeleteSummary'))) return
     try {
+      // Pre-fill hints from existing summary before deleting
+      if (summary?.chapter_hints?.length) {
+        setHints(summary.chapter_hints.map(h => ({ title: h.title || '', description: h.description || '' })))
+        setHintsExpanded(true)
+      }
       await api.deleteSummary(transcriptionId)
       setSummary(null)
     } catch (e) {
@@ -67,14 +96,71 @@ export function SummaryView() {
 
   if (!summary && !loading) {
     return (
-      <div className="p-6 text-center">
-        <button
-          onClick={handleGenerate}
-          className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-500"
-        >
-          {t('editor.summary')} ✨
-        </button>
-        {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
+      <div className="p-6 space-y-4">
+        {/* Collapsible chapter hints section */}
+        <div className="border border-gray-700 rounded-lg">
+          <button
+            onClick={() => setHintsExpanded(!hintsExpanded)}
+            className="w-full px-4 py-2.5 text-sm text-left text-gray-300 hover:bg-gray-800 rounded-lg flex items-center justify-between"
+          >
+            {t('editor.chapterHints')}
+            <svg
+              className={`w-4 h-4 transition-transform ${hintsExpanded ? 'rotate-180' : ''}`}
+              fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {hintsExpanded && (
+            <div className="px-4 pb-4 space-y-2">
+              {hints.map((hint, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <input
+                    type="text"
+                    value={hint.title || ''}
+                    onChange={(e) => handleHintChange(i, 'title', e.target.value)}
+                    placeholder={t('editor.chapterTitle')}
+                    className="flex-1 px-3 py-1.5 text-sm bg-gray-800 border border-gray-600 rounded text-gray-200 placeholder-gray-500"
+                  />
+                  <input
+                    type="text"
+                    value={hint.description || ''}
+                    onChange={(e) => handleHintChange(i, 'description', e.target.value)}
+                    placeholder={t('editor.chapterDescription')}
+                    className="flex-1 px-3 py-1.5 text-sm bg-gray-800 border border-gray-600 rounded text-gray-200 placeholder-gray-500"
+                  />
+                  <button
+                    onClick={() => handleRemoveHint(i)}
+                    className="p-1.5 text-gray-400 hover:text-red-400"
+                    title={t('editor.removeChapter')}
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+              <button
+                onClick={handleAddHint}
+                disabled={hints.length >= 30}
+                className="text-sm text-purple-400 hover:text-purple-300 disabled:text-gray-600 disabled:cursor-not-allowed"
+              >
+                + {hints.length >= 30 ? t('editor.maxChaptersReached') : t('editor.addChapter')}
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className="text-center">
+          <button
+            onClick={handleGenerate}
+            className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-500"
+          >
+            {t('editor.summary')} ✨
+          </button>
+          {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
+        </div>
       </div>
     )
   }
