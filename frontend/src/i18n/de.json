@@ -49,7 +49,17 @@
     "speaker": "Sprecher",
     "text": "Text",
     "editHint": "Doppelklick zum Bearbeiten. Auf Zeitstempel klicken zum Springen.",
-    "noSpeakers": "Keine Sprecher erkannt."
+    "noSpeakers": "Keine Sprecher erkannt.",
+    "protocol": "Protokoll",
+    "generateProtocol": "Protokoll erstellen",
+    "generatingProtocol": "Protokoll wird erstellt...",
+    "participants": "Teilnehmer",
+    "keyPoints": "Kernpunkte",
+    "decisions": "Entscheidungen",
+    "actionItems": "Aufgaben",
+    "copyProtocol": "Protokoll kopieren",
+    "downloadProtocolTxt": "TXT herunterladen",
+    "downloadProtocolMd": "Markdown herunterladen"
   },
   "languages": {
     "auto": "Automatisch erkennen",

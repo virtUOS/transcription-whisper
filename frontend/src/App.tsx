@@ -10,6 +10,7 @@ import { SpeakerMapping } from './components/SpeakerMapping'
 import { FormatViewer } from './components/FormatViewer'
 import { TabBar } from './components/TabBar'
 import { SummaryView } from './components/SummaryView'
+import { ProtocolView } from './components/ProtocolView'
 import { useStore } from './store'
 import { api } from './api/client'
 
@@ -45,6 +46,7 @@ function App() {
           <div className="mx-6 my-2">
             {activeTab === 'subtitles' && <SubtitleEditor />}
             {activeTab === 'summary' && <SummaryView />}
+            {activeTab === 'protocol' && <ProtocolView />}
             {['srt', 'vtt', 'json', 'txt'].includes(activeTab) && (
               <FormatViewer format={activeTab} />
             )}

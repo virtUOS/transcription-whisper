@@ -49,7 +49,17 @@
     "speaker": "Speaker",
     "text": "Text",
     "editHint": "Double-click cells to edit. Click timestamps to seek.",
-    "noSpeakers": "No speakers detected."
+    "noSpeakers": "No speakers detected.",
+    "protocol": "Protocol",
+    "generateProtocol": "Generate Protocol",
+    "generatingProtocol": "Generating protocol...",
+    "participants": "Participants",
+    "keyPoints": "Key Points",
+    "decisions": "Decisions",
+    "actionItems": "Action Items",
+    "copyProtocol": "Copy protocol",
+    "downloadProtocolTxt": "Download TXT",
+    "downloadProtocolMd": "Download Markdown"
   },
   "languages": {
     "auto": "Auto-detect",
