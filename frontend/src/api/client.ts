@@ -4,7 +4,7 @@ import type {
   SummaryResult, ProtocolResult,
 } from './types'
 
-const BASE = ''
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, '')
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${BASE}${url}`, {
@@ -83,6 +83,6 @@ export const api = {
 
   connectWebSocket: (transcriptionId: string): WebSocket => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-    return new WebSocket(`${protocol}//${window.location.host}/api/ws/status/${transcriptionId}`)
+    return new WebSocket(`${protocol}//${window.location.host}${BASE}/api/ws/status/${transcriptionId}`)
   },
 }

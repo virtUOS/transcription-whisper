@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import videojs from 'video.js'
 import 'video.js/dist/video-js.css'
 import { useStore } from '../../store'
+import { api } from '../../api/client'
 import type { Utterance } from '../../api/types'
 
 function formatVttTime(ms: number): string {
@@ -50,7 +51,7 @@ export function MediaPlayer({ fileId, mediaType }: Props) {
     mp3: 'audio/mpeg',
     wav: 'audio/wav',
   }
-  const mediaUrl = `/api/media/${fileId}`
+  const mediaUrl = api.getMediaUrl(fileId)
 
   useEffect(() => {
     if (!videoRef.current) return
