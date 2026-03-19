@@ -8,6 +8,8 @@ interface DeviceSelectorProps {
   onAudioDeviceChange: (id: string) => void
   videoDeviceId: string
   onVideoDeviceChange: (id: string) => void
+  captureSystemAudio: boolean
+  onCaptureSystemAudioChange: (capture: boolean) => void
   disabled?: boolean
 }
 
@@ -18,11 +20,15 @@ export function DeviceSelector({
   onAudioDeviceChange,
   videoDeviceId,
   onVideoDeviceChange,
+  captureSystemAudio,
+  onCaptureSystemAudioChange,
   disabled = false,
 }: DeviceSelectorProps) {
   const { t } = useTranslation()
   const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([])
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([])
+
+  const supportsDisplayMedia = typeof navigator.mediaDevices?.getDisplayMedia === 'function'
 
   useEffect(() => {
     async function enumerate() {
@@ -58,27 +64,57 @@ export function DeviceSelector({
         </select>
       </div>
 
-      <div className="flex items-center gap-3">
-        <label className="text-sm text-gray-300 min-w-24">{t('recorder.useCamera')}</label>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={useCamera}
-          onClick={() => onUseCameraChange(!useCamera)}
-          disabled={disabled}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50 ${
-            useCamera ? 'bg-blue-600' : 'bg-gray-600'
-          }`}
-        >
-          <span
-            className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
-              useCamera ? 'translate-x-6' : 'translate-x-1'
+      {supportsDisplayMedia && (
+        <div className="flex items-center gap-3">
+          <label className="text-sm text-gray-300 min-w-24">{t('recorder.systemAudio')}</label>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={captureSystemAudio}
+            onClick={() => onCaptureSystemAudioChange(!captureSystemAudio)}
+            disabled={disabled}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50 ${
+              captureSystemAudio ? 'bg-blue-600' : 'bg-gray-600'
             }`}
-          />
-        </button>
-      </div>
+          >
+            <span
+              className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
+                captureSystemAudio ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+      )}
 
-      {useCamera && (
+      {captureSystemAudio && (
+        <div className="bg-amber-900/50 border border-amber-700 rounded-lg px-3 py-2 text-xs text-amber-200">
+          {t('recorder.systemAudioWarning')}
+        </div>
+      )}
+
+      {!captureSystemAudio && (
+        <div className="flex items-center gap-3">
+          <label className="text-sm text-gray-300 min-w-24">{t('recorder.useCamera')}</label>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={useCamera}
+            onClick={() => onUseCameraChange(!useCamera)}
+            disabled={disabled}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50 ${
+              useCamera ? 'bg-blue-600' : 'bg-gray-600'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
+                useCamera ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+      )}
+
+      {!captureSystemAudio && useCamera && (
         <div className="flex items-center gap-3">
           <label className="text-sm text-gray-300 min-w-24">{t('recorder.selectCamera')}</label>
           <select
