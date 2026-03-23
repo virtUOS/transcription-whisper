@@ -14,7 +14,15 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
       ...options?.headers,
     },
   })
+  if (response.redirected) {
+    window.location.href = response.url
+    throw new Error('Redirected to auth')
+  }
   if (!response.ok) {
+    if (response.status === 401 || response.status === 403) {
+      window.location.reload()
+      throw new Error('Authentication required')
+    }
     const error = await response.json().catch(() => ({ detail: response.statusText }))
     throw new Error(error.detail || response.statusText)
   }
