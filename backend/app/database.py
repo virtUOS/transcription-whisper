@@ -36,7 +36,9 @@ CREATE TABLE IF NOT EXISTS transcriptions (
     result_json TEXT,
     error_message TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    completed_at TIMESTAMP
+    completed_at TIMESTAMP,
+    refined_utterances_json TEXT,
+    refinement_metadata_json TEXT
 );
 
 CREATE TABLE IF NOT EXISTS speaker_mappings (
