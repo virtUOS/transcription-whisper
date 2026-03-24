@@ -20,14 +20,29 @@ export function SubtitleEditor() {
   const setResult = useStore((s) => s.setTranscriptionResult)
   const dirty = useStore((s) => s.unsavedEdits)
   const setDirty = useStore((s) => s.setUnsavedEdits)
+  const refinedUtterances = useStore((s) => s.refinedUtterances)
+  const refinementMetadata = useStore((s) => s.refinementMetadata)
+  const activeView = useStore((s) => s.activeView)
+  const setRefinedUtterances = useStore((s) => s.setRefinedUtterances)
+  const setRefinementMetadata = useStore((s) => s.setRefinementMetadata)
+  const setActiveView = useStore((s) => s.setActiveView)
+  const clearRefinement = useStore((s) => s.clearRefinement)
+  const config = useStore((s) => s.config)
+  const llmAvailable = config?.llm_available ?? false
   const activeRef = useRef<HTMLTableRowElement | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [saving, setSaving] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [searchScope, setSearchScope] = useState<SearchScope>('both')
+  const [showRefineModal, setShowRefineModal] = useState(false)
+  const [refineContext, setRefineContext] = useState('')
+  const [refining, setRefining] = useState(false)
+  const [summaryCollapsed, setSummaryCollapsed] = useState(false)
 
-  const utterances = result?.utterances || []
+  const utterances = activeView === 'refined' && refinedUtterances
+    ? refinedUtterances
+    : (result?.utterances || [])
 
   const activeIndex = utterances.findIndex(
     (u) => currentTime >= u.start && currentTime < u.end
@@ -132,7 +147,36 @@ export function SubtitleEditor() {
     }
   }
 
-  if (!utterances.length) return null
+  const handleRefine = async () => {
+    if (!transcriptionId) return
+    setRefining(true)
+    try {
+      const refinementResult = await api.generateRefinement(transcriptionId, refineContext || undefined)
+      setRefinedUtterances(refinementResult.utterances)
+      setRefinementMetadata(refinementResult.metadata)
+      setActiveView('refined')
+      setShowRefineModal(false)
+      setRefineContext('')
+    } catch {
+      console.error('Refinement failed')
+    } finally {
+      setRefining(false)
+    }
+  }
+
+  const handleDeleteRefinement = async () => {
+    if (!transcriptionId || !confirm(t('editor.confirmDeleteRefinement'))) return
+    try {
+      await api.deleteRefinement(transcriptionId)
+      clearRefinement()
+    } catch {
+      console.error('Failed to delete refinement')
+    }
+  }
+
+  const baseUtterances = result?.utterances || []
+
+  if (!utterances.length && !baseUtterances.length) return null
 
   return (
     <div>
@@ -182,6 +226,85 @@ export function SubtitleEditor() {
         )}
       </div>
 
+      {/* Refinement toolbar */}
+      <div className="flex items-center gap-2 px-3 py-2 bg-gray-800 border-b border-gray-700">
+        {llmAvailable && !refinementMetadata && (
+          <button
+            onClick={() => setShowRefineModal(true)}
+            className="flex items-center gap-1.5 px-3 py-1 text-xs bg-amber-700/40 text-amber-300 border border-amber-700/50 rounded hover:bg-amber-700/60"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            {t('editor.refineTranscription')}
+          </button>
+        )}
+        {refinementMetadata && (
+          <>
+            <div className="flex rounded overflow-hidden border border-gray-600">
+              <button
+                onClick={() => setActiveView('original')}
+                className={`px-3 py-1 text-xs ${activeView === 'original' ? 'bg-gray-600 text-white' : 'bg-gray-700 text-gray-400 hover:bg-gray-650'}`}
+              >
+                {t('editor.viewOriginal')}
+              </button>
+              <button
+                onClick={() => setActiveView('refined')}
+                className={`px-3 py-1 text-xs ${activeView === 'refined' ? 'bg-amber-700/70 text-amber-200' : 'bg-gray-700 text-gray-400 hover:bg-gray-650'}`}
+              >
+                {t('editor.viewRefined')}
+              </button>
+            </div>
+            <button
+              onClick={handleDeleteRefinement}
+              className="ml-auto px-2 py-1 text-xs text-gray-500 hover:text-red-400 border border-gray-700 rounded hover:border-red-700/50"
+              title={t('editor.deleteRefinement')}
+            >
+              {t('editor.deleteRefinement')}
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* Changes summary banner */}
+      {activeView === 'refined' && refinementMetadata && (
+        <div className="px-3 py-2 bg-amber-900/20 border-b border-amber-700/30">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSummaryCollapsed(c => !c)}
+              className="flex items-center gap-1.5 text-xs text-amber-400 font-medium"
+            >
+              <svg
+                className={`w-3 h-3 transition-transform ${summaryCollapsed ? '-rotate-90' : ''}`}
+                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+              {t('editor.changesSummary')}
+              <span className="text-amber-600 font-normal">
+                ({refinementMetadata.changed_indices.length})
+              </span>
+            </button>
+            {refinementMetadata.llm_provider && refinementMetadata.llm_model && (
+              <span className="ml-auto text-xs text-gray-600">
+                {refinementMetadata.llm_provider} / {refinementMetadata.llm_model}
+              </span>
+            )}
+          </div>
+          {!summaryCollapsed && (
+            <div className="mt-1.5 space-y-1">
+              <p className="text-xs text-amber-200/70">{refinementMetadata.changes_summary}</p>
+              {refinementMetadata.context && (
+                <p className="text-xs text-gray-500">
+                  <span className="text-gray-600">{t('editor.changesContext')}: </span>
+                  {refinementMetadata.context}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Scrollable subtitle table */}
       <div ref={containerRef} className="overflow-auto max-h-96">
         <table className="w-full border-collapse text-sm">
@@ -224,6 +347,8 @@ export function SubtitleEditor() {
                     onUpdate={handleUpdate}
                     highlightTerms={debouncedQuery || undefined}
                     highlightScope={searchScope}
+                    isChanged={activeView === 'refined' && (refinementMetadata?.changed_indices.includes(entry.originalIndex) ?? false)}
+                    originalText={activeView === 'refined' ? result?.utterances[entry.originalIndex]?.text : undefined}
                   />
                 )
               })
@@ -243,6 +368,46 @@ export function SubtitleEditor() {
           )}
         </div>
       </div>
+
+      {/* Refine modal */}
+      {showRefineModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-xl w-full max-w-md mx-4 p-5">
+            <h3 className="text-sm font-medium text-gray-200 mb-3">{t('editor.refineTranscription')}</h3>
+            <label className="block text-xs text-gray-400 mb-1">{t('editor.refinementContext')}</label>
+            <textarea
+              value={refineContext}
+              onChange={(e) => setRefineContext(e.target.value)}
+              placeholder={t('editor.refinementContextPlaceholder')}
+              disabled={refining}
+              rows={3}
+              className="w-full bg-gray-700 text-gray-200 text-xs px-3 py-2 rounded border border-gray-600 focus:border-amber-500 focus:outline-none resize-none disabled:opacity-50"
+            />
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                onClick={() => { setShowRefineModal(false); setRefineContext('') }}
+                disabled={refining}
+                className="px-3 py-1.5 text-xs text-gray-400 border border-gray-600 rounded hover:border-gray-500 hover:text-gray-200 disabled:opacity-50"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={handleRefine}
+                disabled={refining}
+                className="px-3 py-1.5 text-xs bg-amber-700/60 text-amber-200 border border-amber-700/50 rounded hover:bg-amber-700/80 disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {refining && (
+                  <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                )}
+                {refining ? t('editor.refining') : t('editor.refine')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
