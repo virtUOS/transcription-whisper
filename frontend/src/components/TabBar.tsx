@@ -13,8 +13,7 @@ export function TabBar({ onSpeakerNamesClick }: Props) {
 
   const tabs = [
     { id: 'subtitles', label: t('editor.subtitles') },
-    ...(config?.llm_available ? [{ id: 'summary', label: t('editor.summary') }] : []),
-    ...(config?.llm_available ? [{ id: 'protocol', label: t('editor.protocol') }] : []),
+    ...(config?.llm_available ? [{ id: 'analysis', label: t('editor.analysis') }] : []),
     { id: 'srt', label: 'SRT' },
     { id: 'vtt', label: 'VTT' },
     { id: 'json', label: 'JSON' },

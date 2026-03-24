@@ -13,6 +13,7 @@ import { FormatViewer } from './components/FormatViewer'
 import { TabBar } from './components/TabBar'
 import { SummaryView } from './components/SummaryView'
 import { ProtocolView } from './components/ProtocolView'
+import { AnalysisView } from './components/AnalysisView'
 import { useStore } from './store'
 import { api } from './api/client'
 
@@ -99,8 +100,7 @@ function App() {
 
               <div className="mx-6 my-2">
                 {activeTab === 'subtitles' && <SubtitleEditor onOpenSpeakerModal={handleOpenSpeakerModal} />}
-                {activeTab === 'summary' && <SummaryView />}
-                {activeTab === 'protocol' && <ProtocolView />}
+                {activeTab === 'analysis' && <AnalysisView />}
                 {['srt', 'vtt', 'json', 'txt'].includes(activeTab) && (
                   <FormatViewer format={activeTab} />
                 )}

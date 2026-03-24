@@ -38,6 +38,12 @@ interface AppState {
   setRefinedUtterances: (utterances: Utterance[] | null) => void
   setRefinementMetadata: (metadata: RefinementMetadata | null) => void
   setActiveView: (view: 'original' | 'refined') => void
+  analysisResult: unknown | null
+  analysisTemplate: string | null
+  analysisPrompt: string | null
+  setAnalysisResult: (result: unknown | null) => void
+  setAnalysisTemplate: (template: string | null) => void
+  setAnalysisPrompt: (prompt: string | null) => void
   clearRefinement: () => void
   reset: () => void
 }
@@ -77,6 +83,12 @@ export const useStore = create<AppState>((set) => ({
   setRefinedUtterances: (utterances) => set({ refinedUtterances: utterances }),
   setRefinementMetadata: (metadata) => set({ refinementMetadata: metadata }),
   setActiveView: (view) => set({ activeView: view }),
+  analysisResult: null,
+  analysisTemplate: null,
+  analysisPrompt: null,
+  setAnalysisResult: (result) => set({ analysisResult: result }),
+  setAnalysisTemplate: (template) => set({ analysisTemplate: template }),
+  setAnalysisPrompt: (prompt) => set({ analysisPrompt: prompt }),
   clearRefinement: () => set({ refinedUtterances: null, refinementMetadata: null, activeView: 'original' as const }),
   reset: () => set({
     currentView: 'archive' as const,
@@ -84,5 +96,6 @@ export const useStore = create<AppState>((set) => ({
     transcriptionResult: null, speakerMappings: {}, summary: null, protocol: null,
     currentTime: 0, seekTo: null, activeTab: 'subtitles', unsavedEdits: false,
     refinedUtterances: null, refinementMetadata: null, activeView: 'original' as const,
+    analysisResult: null, analysisTemplate: null, analysisPrompt: null,
   }),
 }))

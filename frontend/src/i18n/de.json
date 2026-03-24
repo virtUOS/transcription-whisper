@@ -104,7 +104,26 @@
     "hotkeyLegend": "Tastenkürzel",
     "hotkeyTab": "Nächste Untertitel",
     "hotkeyShiftTab": "Vorherige Untertitel",
-    "hotkeyEscape": "Bearbeitung beenden"
+    "hotkeyEscape": "Bearbeitung beenden",
+    "analysis": "Analyse"
+  },
+  "analysis": {
+    "selectTemplate": "Vorlage auswählen",
+    "customPrompt": "Benutzerdefiniert",
+    "customizePrompt": "Prompt anpassen",
+    "resetPrompt": "Auf Vorlage zurücksetzen",
+    "agenda": "Agenda",
+    "agendaPlaceholder": "Fügen Sie hier Ihre Tagesordnung ein...",
+    "generate": "Generieren",
+    "regenerate": "Neu generieren",
+    "delete": "Löschen",
+    "promptUsed": "Verwendeter Prompt",
+    "result": "Ergebnis",
+    "confirmDelete": "Analyse löschen? Sie können sie danach neu erstellen.",
+    "generating": "Analyse wird erstellt...",
+    "generationFailed": "Analyse-Erstellung fehlgeschlagen",
+    "copyResult": "Ergebnis kopieren",
+    "downloadResult": "Ergebnis herunterladen"
   },
   "languages": {
     "auto": "Automatisch erkennen",
