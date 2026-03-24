@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../../api/client'
 import { useStore } from '../../store'
+import { formatFileSize } from '../../utils/format'
 
 export function FileUpload() {
   const { t } = useTranslation()
@@ -39,7 +40,7 @@ export function FileUpload() {
     return (
       <div className="flex items-center gap-4 px-6 py-2 bg-gray-800 border-b border-gray-700 text-sm text-gray-300">
         <span>{file.original_filename}</span>
-        <span className="text-gray-500">({(file.file_size / 1024 / 1024).toFixed(1)} MB)</span>
+        <span className="text-gray-500">({formatFileSize(file.file_size)})</span>
         <button onClick={() => reset()} className="text-red-400 hover:text-red-300">
           {t('upload.deleteFile')}
         </button>
