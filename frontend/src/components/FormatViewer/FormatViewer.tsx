@@ -68,17 +68,31 @@ export function FormatViewer({ format }: Props) {
   const result = useStore((s) => s.transcriptionResult)
   const speakerMappings = useStore((s) => s.speakerMappings)
   const file = useStore((s) => s.file)
+  const refinedUtterances = useStore((s) => s.refinedUtterances)
+  const activeView = useStore((s) => s.activeView)
 
   const content = useMemo(() => {
-    const utterances = result?.utterances || []
+    const originalUtterances = result?.utterances || []
+    const utterances = activeView === 'refined' && refinedUtterances
+      ? refinedUtterances
+      : originalUtterances
+
     switch (format) {
       case 'srt': return generateSrt(utterances, speakerMappings)
       case 'vtt': return generateVtt(utterances, speakerMappings)
       case 'txt': return generateTxt(utterances, speakerMappings)
-      case 'json': return generateJson(utterances, speakerMappings)
+      case 'json': {
+        if (activeView === 'refined' && refinedUtterances) {
+          return JSON.stringify({
+            utterances: originalUtterances.map(u => ({ ...u, speaker: getSpeakerLabel(u, speakerMappings) || u.speaker })),
+            refined_utterances: refinedUtterances.map(u => ({ ...u, speaker: getSpeakerLabel(u, speakerMappings) || u.speaker })),
+          }, null, 2)
+        }
+        return generateJson(utterances, speakerMappings)
+      }
       default: return ''
     }
-  }, [result, speakerMappings, format])
+  }, [result, refinedUtterances, activeView, speakerMappings, format])
 
   const handleDownload = () => {
     const blob = new Blob([content], { type: 'text/plain' })
