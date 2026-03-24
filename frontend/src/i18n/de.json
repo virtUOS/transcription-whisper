@@ -101,6 +101,13 @@
       "hiddenSegments": "{{count}} Segmente ausgeblendet",
       "noMatches": "Keine passenden Segmente"
     },
+    "translate": "Übersetzen",
+    "translateTo": "Übersetzen nach",
+    "translated": "Übersetzt",
+    "translating": "Übersetze...",
+    "deleteTranslation": "Übersetzung löschen",
+    "confirmDeleteTranslation": "Übersetzung löschen? Sie können sie danach neu erstellen.",
+    "translationLanguage": "Übersetzungssprache",
     "hotkeyLegend": "Tastenkürzel",
     "hotkeyTab": "Nächste Untertitel",
     "hotkeyShiftTab": "Vorherige Untertitel",

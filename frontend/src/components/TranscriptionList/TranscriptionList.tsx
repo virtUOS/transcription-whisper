@@ -18,6 +18,9 @@ export function TranscriptionList() {
   const setRefinedUtterances = useStore((s) => s.setRefinedUtterances)
   const setRefinementMetadata = useStore((s) => s.setRefinementMetadata)
   const clearRefinement = useStore((s) => s.clearRefinement)
+  const setTranslatedUtterances = useStore((s) => s.setTranslatedUtterances)
+  const setTranslationLanguage = useStore((s) => s.setTranslationLanguage)
+  const clearTranslation = useStore((s) => s.clearTranslation)
   const setCurrentView = useStore((s) => s.setCurrentView)
 
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -58,6 +61,13 @@ export function TranscriptionList() {
           setRefinementMetadata(refinement.metadata)
         } catch {
           clearRefinement()
+        }
+        try {
+          const translation = await api.getTranslation(item.id)
+          setTranslatedUtterances(translation.utterances)
+          setTranslationLanguage(translation.language)
+        } catch {
+          clearTranslation()
         }
       } catch {
         reset()

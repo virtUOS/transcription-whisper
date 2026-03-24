@@ -2,7 +2,7 @@ import type {
   FileInfo, TranscriptionSettings, TranscriptionStatus,
   TranscriptionResult, TranscriptionListItem, ConfigResponse,
   SummaryResult, ProtocolResult, ChapterHint, RefinementResult,
-  AnalysisTemplate, AnalysisGenerateRequest,
+  AnalysisTemplate, AnalysisGenerateRequest, Utterance,
 } from './types'
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '')
@@ -132,6 +132,18 @@ export const api = {
 
   deleteAnalysis: (id: string) =>
     request<void>(`/api/analysis/${id}`, { method: 'DELETE' }),
+
+  translateTranscription: (id: string, targetLanguage: string) =>
+    request<{ utterances: Utterance[], language: string }>(`/api/translate/${id}`, {
+      method: 'POST',
+      body: JSON.stringify({ target_language: targetLanguage }),
+    }),
+
+  getTranslation: (id: string) =>
+    request<{ utterances: Utterance[], language: string }>(`/api/translate/${id}`),
+
+  deleteTranslation: (id: string) =>
+    request<{ status: string }>(`/api/translate/${id}`, { method: 'DELETE' }),
 
   getMediaUrl: (fileId: string) => `${BASE}/api/media/${fileId}`,
 

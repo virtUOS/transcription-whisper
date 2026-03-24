@@ -101,6 +101,13 @@
       "hiddenSegments": "{{count}} segments hidden",
       "noMatches": "No matching segments"
     },
+    "translate": "Translate",
+    "translateTo": "Translate to",
+    "translated": "Translated",
+    "translating": "Translating...",
+    "deleteTranslation": "Delete translation",
+    "confirmDeleteTranslation": "Delete this translation? You can regenerate it afterwards.",
+    "translationLanguage": "Translation language",
     "hotkeyLegend": "Keyboard shortcuts",
     "hotkeyTab": "Next caption",
     "hotkeyShiftTab": "Previous caption",

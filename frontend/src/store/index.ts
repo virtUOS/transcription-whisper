@@ -34,10 +34,15 @@ interface AppState {
   setUnsavedEdits: (dirty: boolean) => void
   refinedUtterances: Utterance[] | null
   refinementMetadata: RefinementMetadata | null
-  activeView: 'original' | 'refined'
+  activeView: 'original' | 'refined' | 'translated'
   setRefinedUtterances: (utterances: Utterance[] | null) => void
   setRefinementMetadata: (metadata: RefinementMetadata | null) => void
-  setActiveView: (view: 'original' | 'refined') => void
+  setActiveView: (view: 'original' | 'refined' | 'translated') => void
+  translatedUtterances: Utterance[] | null
+  translationLanguage: string | null
+  setTranslatedUtterances: (utterances: Utterance[] | null) => void
+  setTranslationLanguage: (language: string | null) => void
+  clearTranslation: () => void
   analysisResult: unknown | null
   analysisTemplate: string | null
   analysisPrompt: string | null
@@ -83,6 +88,11 @@ export const useStore = create<AppState>((set) => ({
   setRefinedUtterances: (utterances) => set({ refinedUtterances: utterances }),
   setRefinementMetadata: (metadata) => set({ refinementMetadata: metadata }),
   setActiveView: (view) => set({ activeView: view }),
+  translatedUtterances: null,
+  translationLanguage: null,
+  setTranslatedUtterances: (utterances) => set({ translatedUtterances: utterances }),
+  setTranslationLanguage: (language) => set({ translationLanguage: language }),
+  clearTranslation: () => set({ translatedUtterances: null, translationLanguage: null, activeView: 'original' as const }),
   analysisResult: null,
   analysisTemplate: null,
   analysisPrompt: null,
@@ -96,6 +106,7 @@ export const useStore = create<AppState>((set) => ({
     transcriptionResult: null, speakerMappings: {}, summary: null, protocol: null,
     currentTime: 0, seekTo: null, activeTab: 'subtitles', unsavedEdits: false,
     refinedUtterances: null, refinementMetadata: null, activeView: 'original' as const,
+    translatedUtterances: null, translationLanguage: null,
     analysisResult: null, analysisTemplate: null, analysisPrompt: null,
   }),
 }))
