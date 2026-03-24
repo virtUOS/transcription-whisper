@@ -281,11 +281,28 @@ async def delete_transcription(transcription_id: str, user: UserInfo = Depends(g
         if not row:
             raise HTTPException(status_code=404, detail="Transcription not found")
 
+        # Get file paths before deleting DB records
+        file_id = row["file_id"]
+        file_cursor = await db.execute(
+            "SELECT file_path, mp3_path FROM files WHERE id = ?", (file_id,),
+        )
+        file_row = await file_cursor.fetchone()
+
         await db.execute("DELETE FROM protocols WHERE transcription_id = ?", (transcription_id,))
         await db.execute("DELETE FROM summaries WHERE transcription_id = ?", (transcription_id,))
         await db.execute("DELETE FROM speaker_mappings WHERE transcription_id = ?", (transcription_id,))
         await db.execute("DELETE FROM transcriptions WHERE id = ?", (transcription_id,))
+        await db.execute("DELETE FROM files WHERE id = ?", (file_id,))
         await db.commit()
+
+    # Remove files from disk
+    if file_row:
+        for path in (file_row["file_path"], file_row["mp3_path"]):
+            if path:
+                try:
+                    os.remove(path)
+                except OSError:
+                    pass
 
     inc(deletions_total, "transcription")
 

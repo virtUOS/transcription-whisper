@@ -12,7 +12,19 @@ export function RecorderPanel() {
   const { t } = useTranslation()
   const file = useStore((s) => s.file)
   const setFile = useStore((s) => s.setFile)
+  const transcriptionId = useStore((s) => s.transcriptionId)
   const reset = useStore((s) => s.reset)
+
+  const handleDelete = useCallback(async () => {
+    if (transcriptionId) {
+      try {
+        await api.deleteTranscription(transcriptionId)
+      } catch (e) {
+        console.error('Delete failed:', e)
+      }
+    }
+    reset()
+  }, [transcriptionId, reset])
 
   const [audioDeviceId, setAudioDeviceId] = useState('')
   const [videoDeviceId, setVideoDeviceId] = useState('')
@@ -78,7 +90,7 @@ export function RecorderPanel() {
       <div className="flex items-center gap-4 px-6 py-2 bg-gray-800 border-b border-gray-700 text-sm text-gray-300">
         <span>{file.original_filename}</span>
         <span className="text-gray-500">({formatFileSize(file.file_size)})</span>
-        <button onClick={() => reset()} className="text-red-400 hover:text-red-300">
+        <button onClick={handleDelete} className="text-red-400 hover:text-red-300">
           {t('upload.deleteFile')}
         </button>
       </div>
