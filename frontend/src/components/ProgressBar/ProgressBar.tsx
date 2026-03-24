@@ -96,13 +96,22 @@ export function ProgressBar() {
 
   if (!transcriptionId || status === 'completed') return null
 
+  if (status === 'failed') {
+    return (
+      <div className="mx-6 my-4 p-4 bg-red-900/30 rounded-lg border border-red-700">
+        <div className="flex items-center gap-3">
+          <span className="text-red-400 text-lg">!</span>
+          <span className="text-red-300 text-sm">{t('transcription.failed')}</span>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="mx-6 my-4 p-4 bg-gray-800 rounded-lg border border-gray-700">
       <div className="flex items-center gap-3">
         <div className="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full" />
-        <span className="text-gray-300 text-sm">
-          {status === 'failed' ? t('transcription.failed') : t('transcription.inProgress')}
-        </span>
+        <span className="text-gray-300 text-sm">{t('transcription.inProgress')}</span>
       </div>
     </div>
   )
