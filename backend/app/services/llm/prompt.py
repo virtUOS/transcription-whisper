@@ -221,3 +221,79 @@ PROTOCOL_CONSOLIDATION_PROMPT = """You were given a long meeting transcript spli
 Consolidate these into a single meeting protocol. Merge duplicate participants, unify key points, decisions, and action items. Respond in the same language as the content above. Respond ONLY with valid JSON matching this schema:
 
 {schema}"""
+
+
+REFINEMENT_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "utterances": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "start": {"type": "number"},
+                    "end": {"type": "number"},
+                    "speaker": {"type": ["string", "null"]},
+                    "text": {"type": "string"},
+                },
+                "required": ["start", "end", "text"],
+            },
+        },
+        "changes_summary": {"type": "string"},
+    },
+    "required": ["utterances", "changes_summary"],
+}
+
+REFINEMENT_SYSTEM_PROMPT = """You are a transcription refinement assistant. You receive a JSON array of utterances from an automatic speech recognition (ASR) system and must return a corrected version.
+
+Rules:
+- Fix spelling, punctuation, and grammar errors
+- Normalize inconsistent terminology and proper nouns (e.g. if "Fourier" appears as "fourier", "four year", use the correct form consistently)
+- Remove filler words (uh, um, er, also, sozusagen, quasi, etc.) when they add no meaning
+- Repair disfluencies (false starts, self-corrections) while preserving the intended meaning
+- Do NOT change timestamps (start, end) — return them exactly as received
+- Do NOT change speaker labels — return them exactly as received
+- Return EXACTLY the same number of utterances in the same order
+- Do NOT add, invent, or remove substantive content
+- If an utterance needs no changes, return it unchanged
+- Return a changes_summary string describing what you changed at a high level (e.g. "Fixed 3 punctuation errors, normalized 'Fourier' spelling across 2 utterances, removed 4 filler words")
+- If nothing needed changing, set changes_summary to "No changes needed"
+
+Return valid JSON matching this schema:
+{schema}"""
+
+REFINEMENT_CONTEXT_ADDENDUM = """
+Additional context provided by the user to guide your corrections:
+{context}
+
+Use this context to better identify domain-specific terminology, proper nouns, and technical terms."""
+
+
+def build_refinement_system_prompt(context: str | None = None) -> str:
+    prompt = REFINEMENT_SYSTEM_PROMPT.format(schema=json.dumps(REFINEMENT_SCHEMA, indent=2))
+    if context:
+        prompt += REFINEMENT_CONTEXT_ADDENDUM.format(context=context)
+    return prompt
+
+
+def build_refinement_user_prompt(utterances: list[dict]) -> str:
+    return json.dumps(utterances, ensure_ascii=False)
+
+
+def chunk_utterances_for_refinement(
+    utterances: list[dict], max_utterances: int = 200
+) -> list[list[dict]]:
+    if len(utterances) <= max_utterances:
+        return [utterances]
+    chunks = []
+    for i in range(0, len(utterances), max_utterances):
+        chunks.append(utterances[i:i + max_utterances])
+    return chunks
+
+
+REFINEMENT_CONSOLIDATION_PROMPT = """You received multiple changes_summary strings from refining different chunks of the same transcript. Combine them into a single concise summary.
+
+Individual summaries:
+{summaries}
+
+Return a single combined summary string (not JSON, just the text)."""
