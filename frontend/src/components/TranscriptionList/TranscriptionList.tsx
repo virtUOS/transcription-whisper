@@ -33,17 +33,24 @@ export function TranscriptionList() {
     }
   }, [editingId])
 
+  const reset = useStore((s) => s.reset)
+
   const doSelect = async (item: TranscriptionListItem) => {
     setTranscriptionId(item.id)
     setTranscriptionStatus(item.status)
     const ext = item.original_filename.split('.').pop()?.toLowerCase() || ''
     setFile({ id: item.file_id, original_filename: item.original_filename, media_type: ext, file_size: item.file_size })
     if (item.status === 'completed') {
-      const result = await api.getTranscription(item.id)
-      setResult(result)
-      setSpeakerMappings(result.speaker_mappings || {})
-      setSummary(result.summary || null)
-      setProtocol(result.protocol || null)
+      try {
+        const result = await api.getTranscription(item.id)
+        setResult(result)
+        setSpeakerMappings(result.speaker_mappings || {})
+        setSummary(result.summary || null)
+        setProtocol(result.protocol || null)
+      } catch {
+        reset()
+        setHistory(history.filter((h) => h.id !== item.id))
+      }
     }
   }
 
