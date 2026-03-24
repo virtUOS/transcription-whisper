@@ -63,34 +63,55 @@ interface Props {
   isChanged?: boolean
   originalText?: string
   readOnly?: boolean
-  isEditing?: boolean
-  onStartEditing?: (index: number) => void
+  editingField?: string
+  onStartEditing?: (index: number, field?: string) => void
+  onStopEditing?: () => void
 }
 
-export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function SubtitleRow({ index, utterance, isActive, isContext, speakerMappings, onUpdate, onEditSpeaker, speakerColorIndex, highlightTerms, highlightScope, isChanged, originalText, readOnly, isEditing, onStartEditing }, ref) {
+export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function SubtitleRow({ index, utterance, isActive, isContext, speakerMappings, onUpdate, onEditSpeaker, speakerColorIndex, highlightTerms, highlightScope, isChanged, originalText, readOnly, editingField, onStartEditing, onStopEditing }, ref) {
   const { t } = useTranslation()
   const setSeekTo = useStore((s) => s.setSeekTo)
-  const [editingField, setEditingField] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
   const [showDiff, setShowDiff] = useState(false)
   const [inlineText, setInlineText] = useState(utterance.text)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  // Sync inlineText when utterance changes externally or when entering edit mode
+  const speakerDisplay = utterance.speaker
+    ? speakerMappings[utterance.speaker] || utterance.speaker
+    : ''
+
+  // Sync inlineText when utterance changes externally or when not editing text
   useEffect(() => {
-    if (!isEditing) {
+    if (editingField !== 'text') {
       setInlineText(utterance.text)
     }
-  }, [utterance.text, isEditing])
+  }, [utterance.text, editingField])
 
-  // Auto-focus and auto-size textarea when entering edit mode
+  // Initialize editValue when a non-text field starts editing on this row
   useEffect(() => {
-    if (isEditing && textareaRef.current) {
+    if (!editingField || editingField === 'text') return
+    if (editingField === 'start') setEditValue(formatTimestamp(utterance.start))
+    else if (editingField === 'end') setEditValue(formatTimestamp(utterance.end))
+    else if (editingField === 'speaker') setEditValue(speakerDisplay)
+  }, [editingField, utterance.start, utterance.end, speakerDisplay])
+
+  // Auto-focus and auto-size textarea when entering text edit mode
+  useEffect(() => {
+    if (editingField === 'text' && textareaRef.current) {
       textareaRef.current.focus()
       textareaRef.current.style.height = 'auto'
       textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px'
     }
-  }, [isEditing])
+  }, [editingField])
+
+  // Auto-focus input when entering non-text edit mode
+  useEffect(() => {
+    if (editingField && editingField !== 'text' && inputRef.current) {
+      inputRef.current.focus()
+      inputRef.current.select()
+    }
+  }, [editingField])
 
   const commitInlineEdit = () => {
     if (inlineText !== utterance.text) {
@@ -98,18 +119,14 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
     }
   }
 
-  const speakerDisplay = utterance.speaker
-    ? speakerMappings[utterance.speaker] || utterance.speaker
-    : ''
-
   const colorClass = speakerColorIndex !== undefined
     ? SPEAKER_COLORS[speakerColorIndex % SPEAKER_COLORS.length]
     : undefined
 
   const startEdit = (field: string, value: string) => {
     if (readOnly) return
-    setEditingField(field)
     setEditValue(value)
+    onStartEditing?.(index, field)
   }
 
   const commitEdit = (field: keyof Utterance) => {
@@ -120,19 +137,19 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
     } else {
       onUpdate(index, field, editValue)
     }
-    setEditingField(null)
   }
 
   const renderCell = (field: keyof Utterance, value: string, displayContent?: ReactNode, className?: string) => {
     if (editingField === field) {
       return (
         <input
+          ref={inputRef}
           value={editValue}
           onChange={(e) => setEditValue(e.target.value)}
-          onBlur={() => commitEdit(field)}
-          onKeyDown={(e) => e.key === 'Enter' && commitEdit(field)}
-          className="bg-gray-600 text-white text-xs px-1 py-0.5 rounded w-full"
-          autoFocus
+          onBlur={() => { commitEdit(field); onStopEditing?.() }}
+          onKeyDown={(e) => e.key === 'Enter' && (commitEdit(field), onStopEditing?.())}
+          className="bg-gray-600 text-white text-xs px-1 py-0.5 rounded w-full border border-blue-500 focus:outline-none"
+          data-subtitle-input="true"
         />
       )
     }
@@ -195,14 +212,14 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
         <td
           className="px-3 py-2 text-gray-200 break-words"
           onClick={(e) => {
-            if (!readOnly && !isEditing && onStartEditing) {
+            if (!readOnly && editingField !== 'text' && onStartEditing) {
               e.stopPropagation()
-              onStartEditing(index)
+              onStartEditing(index, 'text')
               setSeekTo(utterance.start)
             }
           }}
         >
-          {isEditing && !readOnly ? (
+          {editingField === 'text' && !readOnly ? (
             <textarea
               ref={textareaRef}
               value={inlineText}
@@ -211,7 +228,7 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
                 e.target.style.height = 'auto'
                 e.target.style.height = e.target.scrollHeight + 'px'
               }}
-              onBlur={() => commitInlineEdit()}
+              onBlur={() => { commitInlineEdit(); onStopEditing?.() }}
               className="w-full bg-gray-700 text-gray-200 text-xs px-2 py-1 rounded border border-blue-500 focus:outline-none resize-none"
               data-subtitle-textarea="true"
               rows={1}

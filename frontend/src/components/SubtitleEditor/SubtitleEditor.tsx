@@ -52,7 +52,7 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
   const [translateLanguage, setTranslateLanguage] = useState('en')
   const [translating, setTranslating] = useState(false)
   const [summaryCollapsed, setSummaryCollapsed] = useState(false)
-  const [editingIndex, setEditingIndex] = useState<number | null>(null)
+  const [editingCell, setEditingCell] = useState<{ index: number; field: string } | null>(null)
   const setSeekTo = useStore((s) => s.setSeekTo)
 
   const utterances = activeView === 'translated' && translatedUtterances
@@ -152,10 +152,14 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
     }
   }, [activeIndex, debouncedQuery])
 
-  const handleStartEditing = useCallback((index: number) => {
+  const handleStartEditing = useCallback((index: number, field: string = 'text') => {
     if (activeView === 'refined' || activeView === 'translated') return
-    setEditingIndex(index)
+    setEditingCell({ index, field })
   }, [activeView])
+
+  const handleStopEditing = useCallback(() => {
+    setEditingCell(null)
+  }, [])
 
   // Hotkey handler for subtitle editing navigation
   useEffect(() => {
@@ -163,34 +167,32 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
     if (!container) return
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Only capture when a subtitle textarea is focused
       const target = e.target as HTMLElement
-      if (!target.hasAttribute('data-subtitle-textarea')) return
+      if (!target.hasAttribute('data-subtitle-textarea') && !target.hasAttribute('data-subtitle-input')) return
 
       if (e.key === 'Tab') {
         e.preventDefault()
-        if (editingIndex === null) return
+        if (editingCell === null) return
 
-        // Explicitly blur current textarea to trigger save via onBlur/commitInlineEdit
-        if (target instanceof HTMLTextAreaElement) target.blur()
+        // Explicitly blur to trigger save
+        if (target instanceof HTMLTextAreaElement || target instanceof HTMLInputElement) target.blur()
 
         const nextIndex = e.shiftKey
-          ? Math.max(0, editingIndex - 1)
-          : Math.min(utterances.length - 1, editingIndex + 1)
+          ? Math.max(0, editingCell.index - 1)
+          : Math.min(utterances.length - 1, editingCell.index + 1)
 
-        setEditingIndex(nextIndex)
+        setEditingCell({ index: nextIndex, field: editingCell.field })
         setSeekTo(utterances[nextIndex].start)
       } else if (e.key === 'Escape') {
         e.preventDefault()
-        // Explicitly blur to trigger save before exiting edit mode
-        if (target instanceof HTMLTextAreaElement) target.blur()
-        setEditingIndex(null)
+        if (target instanceof HTMLTextAreaElement || target instanceof HTMLInputElement) target.blur()
+        setEditingCell(null)
       }
     }
 
     container.addEventListener('keydown', handleKeyDown)
     return () => container.removeEventListener('keydown', handleKeyDown)
-  }, [editingIndex, utterances, setSeekTo])
+  }, [editingCell, utterances, setSeekTo])
 
   const handleEditSpeaker = useCallback((speakerId: string) => {
     onOpenSpeakerModal?.(speakerId)
@@ -482,8 +484,9 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
                     isChanged={activeView === 'refined' && (refinementMetadata?.changed_indices.includes(entry.originalIndex) ?? false)}
                     originalText={activeView === 'refined' ? result?.utterances[entry.originalIndex]?.text : undefined}
                     readOnly={activeView === 'refined' || activeView === 'translated'}
-                    isEditing={editingIndex === entry.originalIndex}
+                    editingField={editingCell?.index === entry.originalIndex ? editingCell.field : undefined}
                     onStartEditing={handleStartEditing}
+                    onStopEditing={handleStopEditing}
                   />
                 )
               })
