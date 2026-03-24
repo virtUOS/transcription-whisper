@@ -16,8 +16,13 @@ export function Header() {
         <h1 className="text-lg font-semibold text-white">{t('title')}</h1>
       </div>
       <div className="flex items-center gap-4">
-        <button onClick={toggleLanguage} className="text-sm text-gray-300 hover:text-white">
-          {i18n.language === 'de' ? 'EN' : 'DE'} | {i18n.language.toUpperCase()}
+        <button
+          onClick={toggleLanguage}
+          className="text-sm text-gray-300 hover:text-white"
+          title={i18n.language === 'de' ? 'Switch to English' : 'Auf Deutsch wechseln'}
+          aria-label={i18n.language === 'de' ? 'Switch to English' : 'Auf Deutsch wechseln'}
+        >
+          {i18n.language.toUpperCase()}
         </button>
         {config?.logout_url && (
           <a href={config.logout_url} className="text-sm text-red-400 hover:text-red-300">
