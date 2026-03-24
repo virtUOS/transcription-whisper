@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import init_db, get_db
-from app.routers import config_router, upload, transcription, summary, protocol, refinement, analysis
+from app.routers import config_router, upload, transcription, summary, protocol, refinement, analysis, translation
 from app.metrics import inc, cleanup_runs_total, cleanup_items_deleted_total
 
 
@@ -84,6 +84,7 @@ app.include_router(summary.router)
 app.include_router(protocol.router)
 app.include_router(refinement.router)
 app.include_router(analysis.router)
+app.include_router(translation.router)
 
 # Serve frontend static files (only when built files exist, i.e., in Docker)
 from fastapi.staticfiles import StaticFiles

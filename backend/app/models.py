@@ -175,6 +175,10 @@ class AnalysisRequest(BaseModel):
     agenda: str | None = None
 
 
+class TranslationRequest(BaseModel):
+    target_language: str
+
+
 class ConfigResponse(BaseModel):
     asr_backend: str
     whisper_models: list[str]

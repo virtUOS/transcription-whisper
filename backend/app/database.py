@@ -83,6 +83,8 @@ MIGRATIONS = [
     # (column_name, table, column_def)
     ("refined_utterances_json", "transcriptions", "refined_utterances_json TEXT"),
     ("refinement_metadata_json", "transcriptions", "refinement_metadata_json TEXT"),
+    ("translated_utterances_json", "transcriptions", "translated_utterances_json TEXT"),
+    ("translation_language", "transcriptions", "translation_language TEXT"),
 ]
 
 

@@ -333,6 +333,55 @@ Individual summaries:
 Return a single combined summary string (not JSON, just the text)."""
 
 
+TRANSLATION_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "utterances": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "start": {"type": "number"},
+                    "end": {"type": "number"},
+                    "speaker": {"type": ["string", "null"]},
+                    "text": {"type": "string"},
+                },
+                "required": ["start", "end", "text"],
+            },
+        },
+    },
+    "required": ["utterances"],
+}
+
+TRANSLATION_SYSTEM_PROMPT = """You are a subtitle translator. Given a timestamped transcript, translate all text to {target_language}.
+
+Rules:
+- Translate the text field of each utterance to {target_language}
+- Preserve the exact timestamps (start, end) without modification
+- Preserve speaker labels exactly as they are
+- Preserve meaning, tone, and technical terms
+- Return the SAME number of utterances in the SAME order
+- Do not merge or split utterances
+
+{language_instruction}Respond ONLY with valid JSON matching this schema:
+{schema}
+
+Do not include any text outside the JSON object."""
+
+
+def build_translation_system_prompt(target_language: str) -> str:
+    lang_name = _language_name(target_language)
+    return TRANSLATION_SYSTEM_PROMPT.format(
+        target_language=lang_name,
+        language_instruction=f"Respond in {lang_name}.\n",
+        schema=json.dumps(TRANSLATION_SCHEMA, indent=2),
+    )
+
+
+def build_translation_user_prompt(utterances: list[dict]) -> str:
+    return json.dumps(utterances, ensure_ascii=False)
+
+
 ANALYSIS_TEMPLATES = {
     "summary": {
         "name": "Summary with chapters",
