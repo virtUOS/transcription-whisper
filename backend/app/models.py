@@ -82,6 +82,7 @@ class ChapterHint(BaseModel):
 
 class SummarizeRequest(BaseModel):
     chapter_hints: list[ChapterHint] | None = None
+    language: str | None = None
 
     @field_validator("chapter_hints")
     @classmethod
@@ -102,8 +103,13 @@ class SummaryResult(BaseModel):
     summary: str
     chapters: list[SummaryChapter]
     chapter_hints: list[ChapterHint] | None = None
+    language: str | None = None
     llm_provider: str | None = None
     llm_model: str | None = None
+
+
+class ProtocolRequest(BaseModel):
+    language: str | None = None
 
 
 class ProtocolKeyPoint(BaseModel):
@@ -130,6 +136,7 @@ class ProtocolResult(BaseModel):
     key_points: list[ProtocolKeyPoint]
     decisions: list[ProtocolDecision]
     action_items: list[ProtocolActionItem]
+    language: str | None = None
     llm_provider: str | None = None
     llm_model: str | None = None
 

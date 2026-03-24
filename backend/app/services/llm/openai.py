@@ -19,25 +19,25 @@ class OpenAIProvider(LLMProvider):
         )
         self._model = settings.LLM_MODEL or "gpt-4o"
 
-    async def generate_summary(self, transcript: str, chapter_hints: list | None = None) -> SummaryResult:
+    async def generate_summary(self, transcript: str, chapter_hints: list | None = None, language: str | None = None) -> SummaryResult:
         chunks = chunk_transcript(transcript)
 
         if len(chunks) == 1:
-            return await self._summarize_single(chunks[0], chapter_hints)
+            return await self._summarize_single(chunks[0], chapter_hints, language)
 
         # Multi-chunk: summarize each, then consolidate
         chunk_summaries = []
         for chunk in chunks:
-            result = await self._summarize_single(chunk, chapter_hints)
+            result = await self._summarize_single(chunk, chapter_hints, language)
             chunk_summaries.append(json.dumps(result.model_dump()))
 
-        return await self._consolidate(chunk_summaries, chapter_hints)
+        return await self._consolidate(chunk_summaries, chapter_hints, language)
 
-    async def _summarize_single(self, transcript: str, chapter_hints: list | None = None) -> SummaryResult:
+    async def _summarize_single(self, transcript: str, chapter_hints: list | None = None, language: str | None = None) -> SummaryResult:
         response = await self._client.chat.completions.create(
             model=self._model,
             messages=[
-                {"role": "system", "content": build_system_prompt(chapter_hints)},
+                {"role": "system", "content": build_system_prompt(chapter_hints, language)},
                 {"role": "user", "content": build_user_prompt(transcript)},
             ],
             temperature=0.3,
@@ -52,14 +52,14 @@ class OpenAIProvider(LLMProvider):
             chapters=[SummaryChapter(**ch) for ch in data.get("chapters", [])],
         )
 
-    async def _consolidate(self, chunk_summaries: list[str], chapter_hints: list | None = None) -> SummaryResult:
+    async def _consolidate(self, chunk_summaries: list[str], chapter_hints: list | None = None, language: str | None = None) -> SummaryResult:
         prompt = build_consolidation_prompt(
-            "\n\n---\n\n".join(chunk_summaries), chapter_hints
+            "\n\n---\n\n".join(chunk_summaries), chapter_hints, language
         )
         response = await self._client.chat.completions.create(
             model=self._model,
             messages=[
-                {"role": "system", "content": build_system_prompt(chapter_hints)},
+                {"role": "system", "content": build_system_prompt(chapter_hints, language)},
                 {"role": "user", "content": prompt},
             ],
             temperature=0.3,
@@ -74,24 +74,24 @@ class OpenAIProvider(LLMProvider):
             chapters=[SummaryChapter(**ch) for ch in data.get("chapters", [])],
         )
 
-    async def generate_protocol(self, transcript: str, summary_context: str | None = None) -> ProtocolResult:
+    async def generate_protocol(self, transcript: str, summary_context: str | None = None, language: str | None = None) -> ProtocolResult:
         chunks = chunk_transcript(transcript)
 
         if len(chunks) == 1:
-            return await self._protocol_single(chunks[0], summary_context)
+            return await self._protocol_single(chunks[0], summary_context, language)
 
         chunk_protocols = []
         for chunk in chunks:
-            result = await self._protocol_single(chunk, summary_context)
+            result = await self._protocol_single(chunk, summary_context, language)
             chunk_protocols.append(json.dumps(result.model_dump()))
 
-        return await self._consolidate_protocol(chunk_protocols)
+        return await self._consolidate_protocol(chunk_protocols, language)
 
-    async def _protocol_single(self, transcript: str, summary_context: str | None = None) -> ProtocolResult:
+    async def _protocol_single(self, transcript: str, summary_context: str | None = None, language: str | None = None) -> ProtocolResult:
         response = await self._client.chat.completions.create(
             model=self._model,
             messages=[
-                {"role": "system", "content": build_protocol_system_prompt()},
+                {"role": "system", "content": build_protocol_system_prompt(language)},
                 {"role": "user", "content": build_protocol_user_prompt(transcript, summary_context)},
             ],
             temperature=0.3,
@@ -109,15 +109,18 @@ class OpenAIProvider(LLMProvider):
             action_items=[ProtocolActionItem(**ai) for ai in data.get("action_items", [])],
         )
 
-    async def _consolidate_protocol(self, chunk_protocols: list[str]) -> ProtocolResult:
+    async def _consolidate_protocol(self, chunk_protocols: list[str], language: str | None = None) -> ProtocolResult:
+        from app.services.llm.prompt import _language_name
+        language_instruction = f"Respond in {_language_name(language)}." if language else "Respond in the same language as the content above."
         prompt = PROTOCOL_CONSOLIDATION_PROMPT.format(
             chunk_protocols="\n\n---\n\n".join(chunk_protocols),
             schema=json.dumps(PROTOCOL_SCHEMA, indent=2),
+            language_instruction=language_instruction,
         )
         response = await self._client.chat.completions.create(
             model=self._model,
             messages=[
-                {"role": "system", "content": build_protocol_system_prompt()},
+                {"role": "system", "content": build_protocol_system_prompt(language)},
                 {"role": "user", "content": prompt},
             ],
             temperature=0.3,

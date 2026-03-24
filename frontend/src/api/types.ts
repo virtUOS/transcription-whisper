@@ -67,6 +67,7 @@ export interface SummaryResult {
   summary: string
   chapters: SummaryChapter[]
   chapter_hints?: ChapterHint[]
+  language?: string | null
   llm_provider: string | null
   llm_model: string | null
 }
@@ -95,6 +96,7 @@ export interface ProtocolResult {
   key_points: ProtocolKeyPoint[]
   decisions: ProtocolDecision[]
   action_items: ProtocolActionItem[]
+  language?: string | null
   llm_provider: string | null
   llm_model: string | null
 }

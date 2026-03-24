@@ -81,10 +81,13 @@ export const api = {
       body: JSON.stringify({ filename }),
     }),
 
-  generateSummary: (id: string, chapterHints?: ChapterHint[]) => {
+  generateSummary: (id: string, chapterHints?: ChapterHint[], language?: string) => {
     const options: RequestInit = { method: 'POST' }
-    if (chapterHints?.length) {
-      options.body = JSON.stringify({ chapter_hints: chapterHints })
+    if (chapterHints?.length || language) {
+      options.body = JSON.stringify({
+        ...(chapterHints?.length ? { chapter_hints: chapterHints } : {}),
+        ...(language ? { language } : {}),
+      })
     }
     return request<SummaryResult>(`/api/summarize/${id}`, options)
   },
@@ -95,8 +98,13 @@ export const api = {
   deleteSummary: (id: string) =>
     request<{ status: string }>(`/api/summarize/${id}`, { method: 'DELETE' }),
 
-  generateProtocol: (id: string) =>
-    request<ProtocolResult>(`/api/protocol/${id}`, { method: 'POST' }),
+  generateProtocol: (id: string, language?: string) => {
+    const options: RequestInit = { method: 'POST' }
+    if (language) {
+      options.body = JSON.stringify({ language })
+    }
+    return request<ProtocolResult>(`/api/protocol/${id}`, options)
+  },
 
   deleteProtocol: (id: string) =>
     request<{ status: string }>(`/api/protocol/${id}`, { method: 'DELETE' }),

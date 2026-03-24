@@ -19,6 +19,7 @@
 - Initial prompt support to provide context for the transcription.
 - Hotwords support to improve recognition of rare or technical terms.
 - LLM-powered summary generation with automatic chapter segmentation (OpenAI or Ollama).
+- Selectable output language for summaries and protocols, defaulting to the detected transcript language.
 - Optional user-defined chapter hints to guide LLM chapter segmentation.
 - Individual chapter deletion from generated summaries.
 - LLM-powered protocol generation with key points, decisions, and action items.

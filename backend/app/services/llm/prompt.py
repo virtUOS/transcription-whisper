@@ -1,5 +1,19 @@
 import json
 
+LANGUAGE_NAMES = {
+    "de": "German", "en": "English", "fr": "French", "es": "Spanish",
+    "it": "Italian", "pt": "Portuguese", "nl": "Dutch", "pl": "Polish",
+    "ru": "Russian", "zh": "Chinese", "ja": "Japanese", "ko": "Korean",
+    "ar": "Arabic", "hi": "Hindi", "tr": "Turkish", "sv": "Swedish",
+    "da": "Danish", "fi": "Finnish", "el": "Greek", "he": "Hebrew",
+    "hu": "Hungarian", "cs": "Czech", "ro": "Romanian", "uk": "Ukrainian",
+}
+
+
+def _language_name(code: str) -> str:
+    """Convert ISO language code to full name for LLM prompts."""
+    return LANGUAGE_NAMES.get(code, code)
+
 SUMMARY_SCHEMA = {
     "type": "object",
     "properties": {
@@ -25,13 +39,21 @@ SYSTEM_PROMPT = """You are a transcript summarizer. Given a timestamped transcri
 1. An overall summary (1-3 paragraphs)
 2. Chapters based on topic shifts, each with a title, start/end timestamps (in milliseconds), and a brief description
 
-Use speaker names when available. Respond ONLY with valid JSON matching this schema:
+Use speaker names when available.
+{language_instruction}Respond ONLY with valid JSON matching this schema:
 {schema}
 
 Do not include any text outside the JSON object."""
 
-def build_system_prompt(chapter_hints: list | None = None) -> str:
-    prompt = SYSTEM_PROMPT.format(schema=json.dumps(SUMMARY_SCHEMA, indent=2))
+def build_system_prompt(chapter_hints: list | None = None, language: str | None = None) -> str:
+    if language:
+        language_instruction = f"Respond in {_language_name(language)}.\n"
+    else:
+        language_instruction = "Respond in the same language as the transcript.\n"
+    prompt = SYSTEM_PROMPT.format(
+        schema=json.dumps(SUMMARY_SCHEMA, indent=2),
+        language_instruction=language_instruction,
+    )
     if chapter_hints:
         hint_lines = []
         for i, hint in enumerate(chapter_hints, 1):
@@ -99,7 +121,7 @@ CONSOLIDATION_PROMPT = """You were given a long transcript split into chunks. He
 
 {chunk_summaries}
 
-Consolidate these into a single summary with unified chapters. Respond ONLY with valid JSON matching the schema."""
+Consolidate these into a single summary with unified chapters. {language_instruction}Respond ONLY with valid JSON matching the schema."""
 
 
 CONSOLIDATION_PROMPT_WITH_HINTS = """You were given a long transcript split into chunks. Here are the summaries of each chunk:
@@ -110,10 +132,14 @@ The following chapter guidelines were provided by the user. Ensure each guidelin
 
 {hint_text}
 
-Consolidate these into a single summary with unified chapters. Respond ONLY with valid JSON matching the schema."""
+Consolidate these into a single summary with unified chapters. {language_instruction}Respond ONLY with valid JSON matching the schema."""
 
 
-def build_consolidation_prompt(chunk_summaries: str, chapter_hints: list | None = None) -> str:
+def build_consolidation_prompt(chunk_summaries: str, chapter_hints: list | None = None, language: str | None = None) -> str:
+    if language:
+        language_instruction = f"Respond in {_language_name(language)}. "
+    else:
+        language_instruction = "Respond in the same language as the content above. "
     if chapter_hints:
         hint_lines = []
         for i, hint in enumerate(chapter_hints, 1):
@@ -126,8 +152,9 @@ def build_consolidation_prompt(chunk_summaries: str, chapter_hints: list | None 
         return CONSOLIDATION_PROMPT_WITH_HINTS.format(
             chunk_summaries=chunk_summaries,
             hint_text="\n".join(hint_lines),
+            language_instruction=language_instruction,
         )
-    return CONSOLIDATION_PROMPT.format(chunk_summaries=chunk_summaries)
+    return CONSOLIDATION_PROMPT.format(chunk_summaries=chunk_summaries, language_instruction=language_instruction)
 
 
 PROTOCOL_SCHEMA = {
@@ -196,15 +223,22 @@ PROTOCOL_SYSTEM_PROMPT = """You are a meeting protocol generator. Given a timest
 5. Action items with assignees
 
 Use speaker names exactly as they appear in the transcript. If no speaker labels are present, use "Unknown Speaker" for all attributions.
-Respond in the same language as the transcript.
+{language_instruction}
 Respond ONLY with valid JSON matching this schema:
 {schema}
 
 Do not include any text outside the JSON object."""
 
 
-def build_protocol_system_prompt() -> str:
-    return PROTOCOL_SYSTEM_PROMPT.format(schema=json.dumps(PROTOCOL_SCHEMA, indent=2))
+def build_protocol_system_prompt(language: str | None = None) -> str:
+    if language:
+        language_instruction = f"Respond in {_language_name(language)}."
+    else:
+        language_instruction = "Respond in the same language as the transcript."
+    return PROTOCOL_SYSTEM_PROMPT.format(
+        schema=json.dumps(PROTOCOL_SCHEMA, indent=2),
+        language_instruction=language_instruction,
+    )
 
 
 def build_protocol_user_prompt(transcript: str, summary_context: str | None = None) -> str:
@@ -218,7 +252,7 @@ PROTOCOL_CONSOLIDATION_PROMPT = """You were given a long meeting transcript spli
 
 {chunk_protocols}
 
-Consolidate these into a single meeting protocol. Merge duplicate participants, unify key points, decisions, and action items. Respond in the same language as the content above. Respond ONLY with valid JSON matching this schema:
+Consolidate these into a single meeting protocol. Merge duplicate participants, unify key points, decisions, and action items. {language_instruction} Respond ONLY with valid JSON matching this schema:
 
 {schema}"""
 

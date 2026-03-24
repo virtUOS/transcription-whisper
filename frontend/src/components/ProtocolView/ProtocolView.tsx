@@ -4,6 +4,7 @@ import { useStore } from '../../store'
 import { api } from '../../api/client'
 import { ProtocolCard } from './ProtocolCard'
 import { formatTime, downloadText } from '../../utils/format'
+import { LANGUAGES } from '../../utils/languages'
 import type { ProtocolResult } from '../../api/types'
 
 function protocolToText(protocol: ProtocolResult, t: (key: string) => string): string {
@@ -74,9 +75,11 @@ export function ProtocolView() {
   const protocol = useStore((s) => s.protocol)
   const setProtocol = useStore((s) => s.setProtocol)
   const file = useStore((s) => s.file)
+  const detectedLanguage = useStore((s) => s.transcriptionResult?.language)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [protocolLanguage, setProtocolLanguage] = useState<string>(detectedLanguage || 'en')
 
   const baseName = file?.original_filename?.replace(/\.[^.]+$/, '') || 'transcription'
 
@@ -91,7 +94,7 @@ export function ProtocolView() {
     setLoading(true)
     setError(null)
     try {
-      const result = await api.generateProtocol(transcriptionId)
+      const result = await api.generateProtocol(transcriptionId, protocolLanguage)
       setProtocol(result)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Protocol generation failed')
@@ -112,14 +115,28 @@ export function ProtocolView() {
 
   if (!protocol && !loading) {
     return (
-      <div className="p-6 text-center">
-        <button
-          onClick={handleGenerate}
-          className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-500"
-        >
-          {t('editor.generateProtocol')} ✨
-        </button>
-        {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
+      <div className="p-6">
+        <div className="flex items-center justify-center gap-3">
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">{t('editor.protocolLanguage')}</label>
+            <select
+              value={protocolLanguage}
+              onChange={(e) => setProtocolLanguage(e.target.value)}
+              className="bg-gray-700 text-white text-sm rounded px-3 py-1.5"
+            >
+              {LANGUAGES.map((code) => (
+                <option key={code} value={code}>{t(`languages.${code}`, code)}</option>
+              ))}
+            </select>
+          </div>
+          <button
+            onClick={handleGenerate}
+            className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-500 self-end"
+          >
+            {t('editor.generateProtocol')} ✨
+          </button>
+        </div>
+        {error && <p className="text-red-400 text-sm mt-2 text-center">{error}</p>}
       </div>
     )
   }

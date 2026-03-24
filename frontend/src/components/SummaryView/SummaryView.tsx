@@ -4,6 +4,7 @@ import { useStore } from '../../store'
 import { api } from '../../api/client'
 import { ChapterCard } from './ChapterCard'
 import { formatTime, downloadText } from '../../utils/format'
+import { LANGUAGES } from '../../utils/languages'
 import type { SummaryResult, SummaryChapter, ChapterHint } from '../../api/types'
 
 function summaryToText(summary: SummaryResult): string {
@@ -29,11 +30,13 @@ export function SummaryView() {
   const summary = useStore((s) => s.summary)
   const setSummary = useStore((s) => s.setSummary)
   const file = useStore((s) => s.file)
+  const detectedLanguage = useStore((s) => s.transcriptionResult?.language)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
   const [hintsExpanded, setHintsExpanded] = useState(false)
   const [hints, setHints] = useState<ChapterHint[]>([])
+  const [summaryLanguage, setSummaryLanguage] = useState<string>(detectedLanguage || 'en')
 
   const baseName = file?.original_filename?.replace(/\.[^.]+$/, '') || 'transcription'
 
@@ -70,6 +73,7 @@ export function SummaryView() {
       const result = await api.generateSummary(
         transcriptionId,
         validHints.length > 0 ? validHints : undefined,
+        summaryLanguage,
       )
       setSummary(result)
     } catch (e) {
@@ -162,10 +166,22 @@ export function SummaryView() {
           )}
         </div>
 
-        <div className="text-center">
+        <div className="flex items-center justify-center gap-3">
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">{t('editor.summaryLanguage')}</label>
+            <select
+              value={summaryLanguage}
+              onChange={(e) => setSummaryLanguage(e.target.value)}
+              className="bg-gray-700 text-white text-sm rounded px-3 py-1.5"
+            >
+              {LANGUAGES.map((code) => (
+                <option key={code} value={code}>{t(`languages.${code}`, code)}</option>
+              ))}
+            </select>
+          </div>
           <button
             onClick={handleGenerate}
-            className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-500"
+            className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-500 self-end"
           >
             {t('editor.summary')} ✨
           </button>

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useStore } from '../../store'
 import { api } from '../../api/client'
+import { LANGUAGES_WITH_AUTO } from '../../utils/languages'
 
 export function SettingsPanel() {
   const { t } = useTranslation()
@@ -45,19 +46,13 @@ export function SettingsPanel() {
     }
   }
 
-  const languageOptions = [
-    'auto', 'de', 'en', 'fr', 'es', 'it', 'pt', 'nl', 'pl', 'ru',
-    'zh', 'ja', 'ko', 'ar', 'hi', 'tr', 'sv', 'da', 'fi', 'el',
-    'he', 'hu', 'cs', 'ro', 'uk',
-  ]
-
   return (
     <div className="px-6 py-3 bg-gray-800 border-b border-gray-700 space-y-3">
       <div className="flex flex-wrap gap-4 items-end">
         <div>
           <label className="block text-xs text-gray-400 mb-1">{t('settings.language')}</label>
           <select value={language} onChange={(e) => setLanguage(e.target.value)} className="bg-gray-700 text-white text-sm rounded px-3 py-1.5">
-            {languageOptions.map((code) => (
+            {LANGUAGES_WITH_AUTO.map((code) => (
               <option key={code} value={code}>{t(`languages.${code}`, code)}</option>
             ))}
           </select>

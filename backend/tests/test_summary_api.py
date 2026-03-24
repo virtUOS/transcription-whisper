@@ -140,7 +140,7 @@ async def test_summarize_cache_invalidation_on_different_hints():
     """A POST with different hints should regenerate the summary."""
     call_count = 0
 
-    async def mock_generate(transcript, chapter_hints=None):
+    async def mock_generate(transcript, chapter_hints=None, language=None):
         nonlocal call_count
         call_count += 1
         return SummaryResult(

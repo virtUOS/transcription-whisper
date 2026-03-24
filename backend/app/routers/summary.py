@@ -31,14 +31,16 @@ async def generate_summary(
         existing = await cursor.fetchone()
 
         chapter_hints = body.chapter_hints if body and body.chapter_hints else None
+        request_language = body.language if body else None
 
         if existing and existing["summary_json"]:
             data = json.loads(existing["summary_json"])
-            # Only invalidate cache if hints were explicitly provided and differ
-            if body is not None and body.chapter_hints is not None:
+            # Only invalidate cache if hints or language were explicitly provided and differ
+            if body is not None and (body.chapter_hints is not None or body.language is not None):
                 existing_hints = data.get("chapter_hints")
+                existing_language = data.get("language")
                 new_hints_serialized = [h.model_dump() for h in chapter_hints] if chapter_hints else None
-                if existing_hints != new_hints_serialized:
+                if existing_hints != new_hints_serialized or existing_language != request_language:
                     # Hints differ — delete cached summary to regenerate
                     await db.execute("DELETE FROM summaries WHERE transcription_id = ?", (transcription_id,))
                     await db.commit()
@@ -58,7 +60,7 @@ async def generate_summary(
 
         # Get transcription
         cursor = await db.execute(
-            "SELECT result_json FROM transcriptions WHERE id = ? AND user_id = ? AND status = 'completed'",
+            "SELECT result_json, language FROM transcriptions WHERE id = ? AND user_id = ? AND status = 'completed'",
             (transcription_id, user.id),
         )
         row = await cursor.fetchone()
@@ -66,6 +68,8 @@ async def generate_summary(
             raise HTTPException(status_code=404, detail="Transcription not found")
 
         result_json = row["result_json"]
+        # Use explicitly requested language, or fall back to detected language
+        summary_language = request_language or row["language"]
 
         # Get speaker mappings
         cursor = await db.execute(
@@ -88,7 +92,7 @@ async def generate_summary(
 
     start_time = time.monotonic()
     try:
-        result = await provider.generate_summary(transcript, chapter_hints)
+        result = await provider.generate_summary(transcript, chapter_hints, summary_language)
     except Exception:
         inc(llm_errors_total, settings.LLM_PROVIDER, settings.LLM_MODEL, "summary")
         inc(errors_total, "llm_failed", "summary")
@@ -103,6 +107,7 @@ async def generate_summary(
     observe(llm_duration_seconds, duration, settings.LLM_PROVIDER, settings.LLM_MODEL, "summary")
 
     result.chapter_hints = chapter_hints
+    result.language = summary_language
 
     # Store completed summary
     async with get_db() as db:
