@@ -15,6 +15,9 @@ export function TranscriptionList() {
   const setSummary = useStore((s) => s.setSummary)
   const setProtocol = useStore((s) => s.setProtocol)
   const setFile = useStore((s) => s.setFile)
+  const setRefinedUtterances = useStore((s) => s.setRefinedUtterances)
+  const setRefinementMetadata = useStore((s) => s.setRefinementMetadata)
+  const clearRefinement = useStore((s) => s.clearRefinement)
 
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
@@ -47,6 +50,13 @@ export function TranscriptionList() {
         setSpeakerMappings(result.speaker_mappings || {})
         setSummary(result.summary || null)
         setProtocol(result.protocol || null)
+        try {
+          const refinement = await api.getRefinement(item.id)
+          setRefinedUtterances(refinement.utterances)
+          setRefinementMetadata(refinement.metadata)
+        } catch {
+          clearRefinement()
+        }
       } catch {
         reset()
         setHistory(history.filter((h) => h.id !== item.id))

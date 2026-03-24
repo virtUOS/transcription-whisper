@@ -1,5 +1,6 @@
 import { useState, forwardRef } from 'react'
 import type { ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useStore } from '../../store'
 import type { Utterance } from '../../api/types'
 
@@ -34,18 +35,24 @@ interface Props {
   onUpdate: (index: number, field: keyof Utterance, value: string | number) => void
   highlightTerms?: string
   highlightScope?: 'text' | 'speaker' | 'both'
+  isChanged?: boolean
+  originalText?: string
+  readOnly?: boolean
 }
 
-export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function SubtitleRow({ index, utterance, isActive, isContext, speakerMappings, onUpdate, highlightTerms, highlightScope }, ref) {
+export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function SubtitleRow({ index, utterance, isActive, isContext, speakerMappings, onUpdate, highlightTerms, highlightScope, isChanged, originalText, readOnly }, ref) {
+  const { t } = useTranslation()
   const setSeekTo = useStore((s) => s.setSeekTo)
   const [editingField, setEditingField] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
+  const [showDiff, setShowDiff] = useState(false)
 
   const speakerDisplay = utterance.speaker
     ? speakerMappings[utterance.speaker] || utterance.speaker
     : ''
 
   const startEdit = (field: string, value: string) => {
+    if (readOnly) return
     setEditingField(field)
     setEditValue(value)
   }
@@ -84,29 +91,60 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
     )
   }
 
+  const handleRowClick = () => {
+    if (isChanged) setShowDiff(d => !d)
+  }
+
   return (
-    <tr ref={ref} className={`border-b border-gray-700 text-xs ${isActive ? 'bg-blue-900/30' : 'hover:bg-gray-800'} ${isContext ? 'opacity-50' : ''}`}>
-      <td className="px-3 py-2 text-gray-500">{index + 1}</td>
-      <td className="px-2 py-2 text-blue-400 cursor-pointer" onClick={() => setSeekTo(utterance.start)}>
-        {renderCell('start', formatTimestamp(utterance.start))}
-      </td>
-      <td className="px-2 py-2 text-blue-400 cursor-pointer" onClick={() => setSeekTo(utterance.end)}>
-        {renderCell('end', formatTimestamp(utterance.end))}
-      </td>
-      <td className="px-2 py-2 text-green-400">
-        {renderCell('speaker', speakerDisplay,
-          highlightTerms && (highlightScope === 'speaker' || highlightScope === 'both')
-            ? highlightText(speakerDisplay, highlightTerms)
-            : undefined
-        )}
-      </td>
-      <td className="px-3 py-2 text-gray-200">
-        {renderCell('text', utterance.text,
-          highlightTerms && (highlightScope === 'text' || highlightScope === 'both')
-            ? highlightText(utterance.text, highlightTerms)
-            : undefined
-        )}
-      </td>
-    </tr>
+    <>
+      <tr
+        ref={ref}
+        onClick={handleRowClick}
+        className={`border-b border-gray-700 text-xs ${isActive ? 'bg-blue-900/30' : 'hover:bg-gray-800'} ${isContext ? 'opacity-50' : ''} ${isChanged ? 'border-l-2 border-l-amber-500' : ''} ${isChanged ? 'cursor-pointer' : ''}`}
+      >
+        <td className="px-3 py-2 text-gray-500">
+          {index + 1}
+          {isChanged && (
+            <span className="ml-1 inline-block w-1.5 h-1.5 rounded-full bg-amber-500 align-middle" title={t('editor.utteranceChanged')} />
+          )}
+        </td>
+        <td className="px-2 py-2 text-blue-400 cursor-pointer" onClick={(e) => { e.stopPropagation(); setSeekTo(utterance.start) }}>
+          {renderCell('start', formatTimestamp(utterance.start))}
+        </td>
+        <td className="px-2 py-2 text-blue-400 cursor-pointer" onClick={(e) => { e.stopPropagation(); setSeekTo(utterance.end) }}>
+          {renderCell('end', formatTimestamp(utterance.end))}
+        </td>
+        <td className="px-2 py-2 text-green-400">
+          {renderCell('speaker', speakerDisplay,
+            highlightTerms && (highlightScope === 'speaker' || highlightScope === 'both')
+              ? highlightText(speakerDisplay, highlightTerms)
+              : undefined
+          )}
+        </td>
+        <td className="px-3 py-2 text-gray-200">
+          {renderCell('text', utterance.text,
+            highlightTerms && (highlightScope === 'text' || highlightScope === 'both')
+              ? highlightText(utterance.text, highlightTerms)
+              : undefined
+          )}
+        </td>
+      </tr>
+      {showDiff && originalText && (
+        <tr className="bg-gray-800/50">
+          <td colSpan={5} className="px-3 py-2">
+            <div className="flex gap-4 text-xs">
+              <div className="flex-1">
+                <span className="text-gray-500 font-medium">{t('editor.originalText')}:</span>
+                <p className="text-red-400/70 mt-0.5">{originalText}</p>
+              </div>
+              <div className="flex-1">
+                <span className="text-gray-500 font-medium">{t('editor.refinedText')}:</span>
+                <p className="text-green-400/70 mt-0.5">{utterance.text}</p>
+              </div>
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
   )
 })

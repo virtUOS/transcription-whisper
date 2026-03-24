@@ -134,6 +134,32 @@ class ProtocolResult(BaseModel):
     llm_model: str | None = None
 
 
+class RefineRequest(BaseModel):
+    context: str | None = None
+
+
+class LLMRefinementResponse(BaseModel):
+    """Raw response from LLM provider — no provider/model metadata."""
+    utterances: list[Utterance]
+    changes_summary: str
+
+
+class RefinementMetadata(BaseModel):
+    """Assembled by the router after the LLM call."""
+    changed_indices: list[int]
+    changes_summary: str
+    context: str | None = None
+    llm_provider: str | None = None
+    llm_model: str | None = None
+    created_at: str | None = None
+
+
+class RefinementResult(BaseModel):
+    """Full response returned to the frontend."""
+    utterances: list[Utterance]
+    metadata: RefinementMetadata
+
+
 class ConfigResponse(BaseModel):
     asr_backend: str
     whisper_models: list[str]

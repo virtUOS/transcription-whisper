@@ -36,7 +36,9 @@ CREATE TABLE IF NOT EXISTS transcriptions (
     result_json TEXT,
     error_message TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    completed_at TIMESTAMP
+    completed_at TIMESTAMP,
+    refined_utterances_json TEXT,
+    refinement_metadata_json TEXT
 );
 
 CREATE TABLE IF NOT EXISTS speaker_mappings (
@@ -66,11 +68,24 @@ CREATE TABLE IF NOT EXISTS protocols (
 _db_path: str = ""
 
 
+MIGRATIONS = [
+    # (column_name, table, column_def)
+    ("refined_utterances_json", "transcriptions", "refined_utterances_json TEXT"),
+    ("refinement_metadata_json", "transcriptions", "refinement_metadata_json TEXT"),
+]
+
+
 async def init_db(db_path: str) -> None:
     global _db_path
     _db_path = db_path
     async with aiosqlite.connect(db_path) as db:
         await db.executescript(SCHEMA)
+        # Add columns that may be missing on existing databases
+        for col_name, table, col_def in MIGRATIONS:
+            cursor = await db.execute(f"PRAGMA table_info({table})")
+            columns = {row[1] for row in await cursor.fetchall()}
+            if col_name not in columns:
+                await db.execute(f"ALTER TABLE {table} ADD COLUMN {col_def}")
         await db.commit()
 
 

@@ -1,7 +1,7 @@
 import type {
   FileInfo, TranscriptionSettings, TranscriptionStatus,
   TranscriptionResult, TranscriptionListItem, ConfigResponse,
-  SummaryResult, ProtocolResult, ChapterHint,
+  SummaryResult, ProtocolResult, ChapterHint, RefinementResult,
 } from './types'
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '')
@@ -100,6 +100,18 @@ export const api = {
 
   deleteProtocol: (id: string) =>
     request<{ status: string }>(`/api/protocol/${id}`, { method: 'DELETE' }),
+
+  generateRefinement: (id: string, context?: string) =>
+    request<RefinementResult>(`/api/refine/${id}`, {
+      method: 'POST',
+      ...(context ? { body: JSON.stringify({ context }) } : {}),
+    }),
+
+  getRefinement: (id: string) =>
+    request<RefinementResult>(`/api/refine/${id}`),
+
+  deleteRefinement: (id: string) =>
+    request<{ status: string }>(`/api/refine/${id}`, { method: 'DELETE' }),
 
   getMediaUrl: (fileId: string) => `${BASE}/api/media/${fileId}`,
 

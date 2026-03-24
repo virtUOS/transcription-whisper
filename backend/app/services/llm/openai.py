@@ -5,8 +5,10 @@ from app.services.llm.base import LLMProvider
 from app.services.llm.prompt import (
     build_system_prompt, build_user_prompt, chunk_transcript, build_consolidation_prompt,
     build_protocol_system_prompt, build_protocol_user_prompt, PROTOCOL_CONSOLIDATION_PROMPT, PROTOCOL_SCHEMA,
+    build_refinement_system_prompt, build_refinement_user_prompt, chunk_utterances_for_refinement,
+    REFINEMENT_CONSOLIDATION_PROMPT,
 )
-from app.models import SummaryResult, SummaryChapter, ProtocolResult, ProtocolKeyPoint, ProtocolDecision, ProtocolActionItem
+from app.models import SummaryResult, SummaryChapter, ProtocolResult, ProtocolKeyPoint, ProtocolDecision, ProtocolActionItem, LLMRefinementResponse, Utterance
 
 
 class OpenAIProvider(LLMProvider):
@@ -131,4 +133,41 @@ class OpenAIProvider(LLMProvider):
             key_points=[ProtocolKeyPoint(**kp) for kp in data.get("key_points", [])],
             decisions=[ProtocolDecision(**d) for d in data.get("decisions", [])],
             action_items=[ProtocolActionItem(**ai) for ai in data.get("action_items", [])],
+        )
+
+    async def generate_refinement(self, transcript: str, context: str | None = None) -> LLMRefinementResponse:
+        utterances = json.loads(transcript)
+        chunks = chunk_utterances_for_refinement(utterances)
+
+        all_refined: list[dict] = []
+        summaries: list[str] = []
+
+        for chunk in chunks:
+            system = build_refinement_system_prompt(context)
+            user = build_refinement_user_prompt(chunk)
+            resp = await self._client.chat.completions.create(
+                model=self._model,
+                messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
+                temperature=0.3,
+                response_format={"type": "json_object"},
+            )
+            data = json.loads(resp.choices[0].message.content or "{}")
+            all_refined.extend(data.get("utterances", []))
+            summaries.append(data.get("changes_summary", ""))
+
+        if len(summaries) > 1:
+            consolidation_resp = await self._client.chat.completions.create(
+                model=self._model,
+                messages=[{"role": "user", "content": REFINEMENT_CONSOLIDATION_PROMPT.format(
+                    summaries="\n".join(f"- {s}" for s in summaries)
+                )}],
+                temperature=0.3,
+            )
+            combined_summary = (consolidation_resp.choices[0].message.content or "").strip()
+        else:
+            combined_summary = summaries[0] if summaries else "No changes needed"
+
+        return LLMRefinementResponse(
+            utterances=[Utterance(**u) for u in all_refined],
+            changes_summary=combined_summary,
         )
