@@ -100,7 +100,11 @@
       "scopeSpeaker": "Speaker",
       "hiddenSegments": "{{count}} segments hidden",
       "noMatches": "No matching segments"
-    }
+    },
+    "hotkeyLegend": "Keyboard shortcuts",
+    "hotkeyTab": "Next caption",
+    "hotkeyShiftTab": "Previous caption",
+    "hotkeyEscape": "Exit editing"
   },
   "languages": {
     "auto": "Auto-detect",

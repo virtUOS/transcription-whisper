@@ -1,4 +1,4 @@
-import { useState, forwardRef } from 'react'
+import { useState, useRef, useEffect, forwardRef } from 'react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useStore } from '../../store'
@@ -63,14 +63,40 @@ interface Props {
   isChanged?: boolean
   originalText?: string
   readOnly?: boolean
+  isEditing?: boolean
+  onStartEditing?: (index: number) => void
 }
 
-export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function SubtitleRow({ index, utterance, isActive, isContext, speakerMappings, onUpdate, onEditSpeaker, speakerColorIndex, highlightTerms, highlightScope, isChanged, originalText, readOnly }, ref) {
+export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function SubtitleRow({ index, utterance, isActive, isContext, speakerMappings, onUpdate, onEditSpeaker, speakerColorIndex, highlightTerms, highlightScope, isChanged, originalText, readOnly, isEditing, onStartEditing }, ref) {
   const { t } = useTranslation()
   const setSeekTo = useStore((s) => s.setSeekTo)
   const [editingField, setEditingField] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
   const [showDiff, setShowDiff] = useState(false)
+  const [inlineText, setInlineText] = useState(utterance.text)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  // Sync inlineText when utterance changes externally or when entering edit mode
+  useEffect(() => {
+    if (!isEditing) {
+      setInlineText(utterance.text)
+    }
+  }, [utterance.text, isEditing])
+
+  // Auto-focus and auto-size textarea when entering edit mode
+  useEffect(() => {
+    if (isEditing && textareaRef.current) {
+      textareaRef.current.focus()
+      textareaRef.current.style.height = 'auto'
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px'
+    }
+  }, [isEditing])
+
+  const commitInlineEdit = () => {
+    if (inlineText !== utterance.text) {
+      onUpdate(index, 'text', inlineText)
+    }
+  }
 
   const speakerDisplay = utterance.speaker
     ? speakerMappings[utterance.speaker] || utterance.speaker
@@ -166,11 +192,36 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
             )}
           </span>
         </td>
-        <td className="px-3 py-2 text-gray-200 break-words">
-          {renderCell('text', utterance.text,
-            highlightTerms && (highlightScope === 'text' || highlightScope === 'both')
-              ? highlightText(utterance.text, highlightTerms)
-              : undefined
+        <td
+          className="px-3 py-2 text-gray-200 break-words"
+          onClick={(e) => {
+            if (!readOnly && !isEditing && onStartEditing) {
+              e.stopPropagation()
+              onStartEditing(index)
+              setSeekTo(utterance.start)
+            }
+          }}
+        >
+          {isEditing && !readOnly ? (
+            <textarea
+              ref={textareaRef}
+              value={inlineText}
+              onChange={(e) => {
+                setInlineText(e.target.value)
+                e.target.style.height = 'auto'
+                e.target.style.height = e.target.scrollHeight + 'px'
+              }}
+              onBlur={() => commitInlineEdit()}
+              className="w-full bg-gray-700 text-gray-200 text-xs px-2 py-1 rounded border border-blue-500 focus:outline-none resize-none"
+              data-subtitle-textarea="true"
+              rows={1}
+            />
+          ) : (
+            renderCell('text', utterance.text,
+              highlightTerms && (highlightScope === 'text' || highlightScope === 'both')
+                ? highlightText(utterance.text, highlightTerms)
+                : undefined
+            )
           )}
         </td>
       </tr>

@@ -43,6 +43,8 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
   const [refineContext, setRefineContext] = useState('')
   const [refining, setRefining] = useState(false)
   const [summaryCollapsed, setSummaryCollapsed] = useState(false)
+  const [editingIndex, setEditingIndex] = useState<number | null>(null)
+  const setSeekTo = useStore((s) => s.setSeekTo)
 
   const utterances = activeView === 'refined' && refinedUtterances
     ? refinedUtterances
@@ -138,6 +140,46 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
       activeRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     }
   }, [activeIndex, debouncedQuery])
+
+  const handleStartEditing = useCallback((index: number) => {
+    if (activeView === 'refined') return
+    setEditingIndex(index)
+  }, [activeView])
+
+  // Hotkey handler for subtitle editing navigation
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only capture when a subtitle textarea is focused
+      const target = e.target as HTMLElement
+      if (!target.hasAttribute('data-subtitle-textarea')) return
+
+      if (e.key === 'Tab') {
+        e.preventDefault()
+        if (editingIndex === null) return
+
+        // Explicitly blur current textarea to trigger save via onBlur/commitInlineEdit
+        if (target instanceof HTMLTextAreaElement) target.blur()
+
+        const nextIndex = e.shiftKey
+          ? Math.max(0, editingIndex - 1)
+          : Math.min(utterances.length - 1, editingIndex + 1)
+
+        setEditingIndex(nextIndex)
+        setSeekTo(utterances[nextIndex].start)
+      } else if (e.key === 'Escape') {
+        e.preventDefault()
+        // Explicitly blur to trigger save before exiting edit mode
+        if (target instanceof HTMLTextAreaElement) target.blur()
+        setEditingIndex(null)
+      }
+    }
+
+    container.addEventListener('keydown', handleKeyDown)
+    return () => container.removeEventListener('keydown', handleKeyDown)
+  }, [editingIndex, utterances, setSeekTo])
 
   const handleEditSpeaker = useCallback((speakerId: string) => {
     onOpenSpeakerModal?.(speakerId)
@@ -369,6 +411,8 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
                     isChanged={activeView === 'refined' && (refinementMetadata?.changed_indices.includes(entry.originalIndex) ?? false)}
                     originalText={activeView === 'refined' ? result?.utterances[entry.originalIndex]?.text : undefined}
                     readOnly={activeView === 'refined'}
+                    isEditing={editingIndex === entry.originalIndex}
+                    onStartEditing={handleStartEditing}
                   />
                 )
               })
@@ -387,6 +431,19 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
             </button>
           )}
         </div>
+        <details className="px-3 py-1.5 bg-gray-800 border-t border-gray-700 text-xs">
+          <summary className="text-gray-500 cursor-pointer hover:text-gray-400 select-none">
+            {t('editor.hotkeyLegend')}
+          </summary>
+          <div className="mt-1.5 mb-1 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-gray-400">
+            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-gray-300 font-mono text-[10px]">Tab</kbd>
+            <span>{t('editor.hotkeyTab')}</span>
+            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-gray-300 font-mono text-[10px]">Shift+Tab</kbd>
+            <span>{t('editor.hotkeyShiftTab')}</span>
+            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-gray-300 font-mono text-[10px]">Esc</kbd>
+            <span>{t('editor.hotkeyEscape')}</span>
+          </div>
+        </details>
       </div>
 
       {/* Refine modal */}

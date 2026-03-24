@@ -100,7 +100,11 @@
       "scopeSpeaker": "Sprecher",
       "hiddenSegments": "{{count}} Segmente ausgeblendet",
       "noMatches": "Keine passenden Segmente"
-    }
+    },
+    "hotkeyLegend": "Tastenkürzel",
+    "hotkeyTab": "Nächste Untertitel",
+    "hotkeyShiftTab": "Vorherige Untertitel",
+    "hotkeyEscape": "Bearbeitung beenden"
   },
   "languages": {
     "auto": "Automatisch erkennen",
