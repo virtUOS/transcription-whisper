@@ -25,9 +25,12 @@ export function Header() {
           {i18n.language.toUpperCase()}
         </button>
         {config?.logout_url && (
-          <a href={config.logout_url} className="text-sm text-red-400 hover:text-red-300">
+          <button
+            onClick={() => { window.location.href = config.logout_url }}
+            className="text-sm text-red-400 hover:text-red-300"
+          >
             {t('common.logout')}
-          </a>
+          </button>
         )}
       </div>
     </header>
