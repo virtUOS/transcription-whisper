@@ -75,6 +75,7 @@
     "removeChapter": "Remove",
     "maxChaptersReached": "Maximum 30 chapters",
     "summaryLanguage": "Summary language",
+    "outputLanguage": "Output language",
     "refineTranscription": "Refine with LLM",
     "refining": "Refining transcription...",
     "refinementContext": "Context (optional)",
@@ -120,6 +121,9 @@
   "analysis": {
     "selectTemplate": "Select a template",
     "customPrompt": "Custom",
+    "templateSummary": "Summary with chapters",
+    "templateProtocol": "Meeting protocol",
+    "templateAgenda": "Agenda-based notes",
     "customizePrompt": "Customize prompt",
     "resetPrompt": "Reset to template",
     "agenda": "Agenda",

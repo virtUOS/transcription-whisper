@@ -378,7 +378,7 @@ export function AnalysisView() {
               }`}
               title={tpl.description}
             >
-              {tpl.name}
+              {t(`analysis.template${tpl.id.charAt(0).toUpperCase()}${tpl.id.slice(1)}`, tpl.name)}
             </button>
           ))}
           <button
@@ -501,7 +501,7 @@ export function AnalysisView() {
       {/* Language selector + Generate button */}
       <div className="flex items-center justify-center gap-3">
         <div>
-          <label className="block text-xs text-gray-400 mb-1">{t('editor.summaryLanguage')}</label>
+          <label className="block text-xs text-gray-400 mb-1">{t('editor.outputLanguage')}</label>
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value)}

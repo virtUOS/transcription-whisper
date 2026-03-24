@@ -75,6 +75,7 @@
     "removeChapter": "Entfernen",
     "maxChaptersReached": "Maximal 30 Kapitel",
     "summaryLanguage": "Sprache der Zusammenfassung",
+    "outputLanguage": "Ausgabesprache",
     "refineTranscription": "Mit LLM verfeinern",
     "refining": "Transkription wird verfeinert...",
     "refinementContext": "Kontext (optional)",
@@ -120,6 +121,9 @@
   "analysis": {
     "selectTemplate": "Vorlage auswählen",
     "customPrompt": "Benutzerdefiniert",
+    "templateSummary": "Zusammenfassung mit Kapiteln",
+    "templateProtocol": "Sitzungsprotokoll",
+    "templateAgenda": "Agendabasierte Notizen",
     "customizePrompt": "Prompt anpassen",
     "resetPrompt": "Auf Vorlage zurücksetzen",
     "agenda": "Agenda",
