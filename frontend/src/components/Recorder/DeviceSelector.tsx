@@ -34,10 +34,20 @@ export function DeviceSelector({
     async function enumerate() {
       try {
         const devices = await navigator.mediaDevices.enumerateDevices()
-        setAudioDevices(devices.filter((d) => d.kind === 'audioinput'))
-        setVideoDevices(devices.filter((d) => d.kind === 'videoinput'))
+        const hasLabels = devices.some((d) => d.label)
+        if (!hasLabels) {
+          // Request permission so browsers expose device labels
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+          stream.getTracks().forEach((t) => t.stop())
+          const devicesAfter = await navigator.mediaDevices.enumerateDevices()
+          setAudioDevices(devicesAfter.filter((d) => d.kind === 'audioinput'))
+          setVideoDevices(devicesAfter.filter((d) => d.kind === 'videoinput'))
+        } else {
+          setAudioDevices(devices.filter((d) => d.kind === 'audioinput'))
+          setVideoDevices(devices.filter((d) => d.kind === 'videoinput'))
+        }
       } catch {
-        // Permission not yet granted — devices will populate after getUserMedia
+        // Permission denied — show empty list
       }
     }
     enumerate()
