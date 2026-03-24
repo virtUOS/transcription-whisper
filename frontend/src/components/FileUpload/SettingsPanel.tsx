@@ -78,11 +78,19 @@ export function SettingsPanel() {
           <>
             <div>
               <label className="block text-xs text-gray-400 mb-1">{t('settings.minSpeakers')}</label>
-              <input type="number" min={1} max={20} value={minSpeakers} onChange={(e) => setMinSpeakers(Number(e.target.value))} className="bg-gray-700 text-white text-sm rounded px-3 py-1.5 w-16" />
+              <input type="number" min={1} max={20} value={minSpeakers} onChange={(e) => {
+                const val = Math.max(1, Math.min(20, Number(e.target.value)))
+                setMinSpeakers(val)
+                if (val > maxSpeakers) setMaxSpeakers(val)
+              }} className="bg-gray-700 text-white text-sm rounded px-3 py-1.5 w-16" />
             </div>
             <div>
               <label className="block text-xs text-gray-400 mb-1">{t('settings.maxSpeakers')}</label>
-              <input type="number" min={1} max={20} value={maxSpeakers} onChange={(e) => setMaxSpeakers(Number(e.target.value))} className="bg-gray-700 text-white text-sm rounded px-3 py-1.5 w-16" />
+              <input type="number" min={1} max={20} value={maxSpeakers} onChange={(e) => {
+                const val = Math.max(1, Math.min(20, Number(e.target.value)))
+                setMaxSpeakers(val)
+                if (val < minSpeakers) setMinSpeakers(val)
+              }} className="bg-gray-700 text-white text-sm rounded px-3 py-1.5 w-16" />
             </div>
           </>
         )}
