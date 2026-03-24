@@ -25,24 +25,28 @@ export function InputPanel() {
 
   return (
     <div>
-      <div className="flex gap-2 mx-6 mt-4 mb-4">
+      <div className="flex mx-6 mt-4 mb-4 border-b border-gray-700" role="tablist">
         <button
+          role="tab"
+          aria-selected={activeTab === 'upload'}
           onClick={() => switchTab('upload')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+          className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
             activeTab === 'upload'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              ? 'border-blue-500 text-white'
+              : 'border-transparent text-gray-400 hover:text-gray-200'
           }`}
         >
           {t('recorder.tabUpload')}
         </button>
         {supportsRecording && (
           <button
+            role="tab"
+            aria-selected={activeTab === 'record'}
             onClick={() => switchTab('record')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
               activeTab === 'record'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                ? 'border-blue-500 text-white'
+                : 'border-transparent text-gray-400 hover:text-gray-200'
             }`}
           >
             {t('recorder.tabRecord')}
