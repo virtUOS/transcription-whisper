@@ -31,24 +31,26 @@ async def upload_file(
 
     os.makedirs(settings.TEMP_PATH, exist_ok=True)
 
-    # Read file in chunks to avoid loading huge files into memory
-    chunks = []
+    # Stream file to disk in chunks, reject early if too large
     total_size = 0
-    while True:
-        chunk = await file.read(1024 * 1024)  # 1MB chunks
-        if not chunk:
-            break
-        total_size += len(chunk)
-        if total_size > MAX_FILE_SIZE:
-            inc(file_uploads_total, ext.lstrip("."), "rejected")
-            inc(errors_total, "file_too_large", "upload")
-            raise HTTPException(status_code=413, detail="File too large (max 1GB)")
-        chunks.append(chunk)
-    content = b"".join(chunks)
+    try:
+        with open(file_path, "wb") as f:
+            while True:
+                chunk = await file.read(1024 * 1024)  # 1MB chunks
+                if not chunk:
+                    break
+                total_size += len(chunk)
+                if total_size > MAX_FILE_SIZE:
+                    inc(file_uploads_total, ext.lstrip("."), "rejected")
+                    inc(errors_total, "file_too_large", "upload")
+                    raise HTTPException(status_code=413, detail="File too large (max 1GB)")
+                f.write(chunk)
+    except HTTPException:
+        # Clean up partial file on rejection
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        raise
     file_size = total_size
-
-    with open(file_path, "wb") as f:
-        f.write(content)
 
     # Convert to MP3 if needed
     mp3_path = await convert_to_mp3(file_path)

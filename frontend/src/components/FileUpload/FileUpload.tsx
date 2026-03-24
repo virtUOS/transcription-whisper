@@ -24,9 +24,15 @@ export function FileUpload() {
     reset()
   }, [transcriptionId, reset])
 
+  const MAX_FILE_SIZE = 1 * 1024 * 1024 * 1024 // 1GB
+
   const handleUpload = useCallback(async (selectedFile: File) => {
-    setUploading(true)
     setError(null)
+    if (selectedFile.size > MAX_FILE_SIZE) {
+      setError(t('upload.fileTooLarge'))
+      return
+    }
+    setUploading(true)
     try {
       const fileInfo = await api.uploadFile(selectedFile)
       setFile(fileInfo)
@@ -35,7 +41,7 @@ export function FileUpload() {
     } finally {
       setUploading(false)
     }
-  }, [setFile])
+  }, [setFile, t])
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
