@@ -13,6 +13,8 @@ export function FileUpload() {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const setCurrentView = useStore((s) => s.setCurrentView)
+
   const handleDelete = useCallback(async () => {
     if (transcriptionId) {
       try {
@@ -22,7 +24,8 @@ export function FileUpload() {
       }
     }
     reset()
-  }, [transcriptionId, reset])
+    setCurrentView('archive')
+  }, [transcriptionId, reset, setCurrentView])
 
   const MAX_FILE_SIZE = 1 * 1024 * 1024 * 1024 // 1GB
 

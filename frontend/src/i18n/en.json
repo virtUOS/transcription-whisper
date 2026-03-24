@@ -161,6 +161,11 @@
     "subtitles": "Subtitles",
     "download": "Download recording"
   },
+  "nav": {
+    "backToRecordings": "Recordings",
+    "newUpload": "Upload",
+    "newRecording": "Record"
+  },
   "common": {
     "loading": "Loading...",
     "error": "Error",

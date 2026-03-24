@@ -161,6 +161,11 @@
     "subtitles": "Untertitel",
     "download": "Aufnahme herunterladen"
   },
+  "nav": {
+    "backToRecordings": "Aufnahmen",
+    "newUpload": "Hochladen",
+    "newRecording": "Aufnehmen"
+  },
   "common": {
     "loading": "Laden...",
     "error": "Fehler",

@@ -1,7 +1,11 @@
 import { create } from 'zustand'
 import type { FileInfo, TranscriptionResult, TranscriptionListItem, ConfigResponse, SummaryResult, ProtocolResult, Utterance, RefinementMetadata } from '../api/types'
 
+type AppView = 'archive' | 'upload' | 'record' | 'detail'
+
 interface AppState {
+  currentView: AppView
+  setCurrentView: (view: AppView) => void
   config: ConfigResponse | null
   setConfig: (config: ConfigResponse) => void
   file: FileInfo | null
@@ -39,6 +43,8 @@ interface AppState {
 }
 
 export const useStore = create<AppState>((set) => ({
+  currentView: 'archive' as const,
+  setCurrentView: (view) => set({ currentView: view }),
   config: null,
   setConfig: (config) => set({ config }),
   file: null,
@@ -73,6 +79,7 @@ export const useStore = create<AppState>((set) => ({
   setActiveView: (view) => set({ activeView: view }),
   clearRefinement: () => set({ refinedUtterances: null, refinementMetadata: null, activeView: 'original' as const }),
   reset: () => set({
+    currentView: 'archive' as const,
     file: null, transcriptionId: null, transcriptionStatus: null,
     transcriptionResult: null, speakerMappings: {}, summary: null, protocol: null,
     currentTime: 0, seekTo: null, activeTab: 'subtitles', unsavedEdits: false,
