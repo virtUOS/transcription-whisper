@@ -32,7 +32,7 @@ function App() {
   const showEditor = transcriptionStatus === 'completed' && transcriptionResult
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-gray-900 text-white max-w-5xl mx-auto">
       <Header />
       <InputPanel />
       {file && !showEditor && <SettingsPanel />}
