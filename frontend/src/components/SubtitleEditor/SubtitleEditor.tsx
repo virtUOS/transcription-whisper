@@ -3,7 +3,12 @@ import { useTranslation } from 'react-i18next'
 import { useStore } from '../../store'
 import { api } from '../../api/client'
 import { SubtitleRow } from './SubtitleRow'
+import { LANGUAGES } from '../../utils/languages'
 import type { Utterance } from '../../api/types'
+
+interface SubtitleEditorProps {
+  onOpenSpeakerModal?: (speakerId?: string) => void
+}
 
 type SearchScope = 'text' | 'speaker' | 'both'
 
@@ -11,7 +16,7 @@ type DisplayEntry =
   | { type: 'utterance'; originalIndex: number; utterance: Utterance; isMatch: boolean }
   | { type: 'separator'; hiddenCount: number }
 
-export function SubtitleEditor() {
+export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
   const { t } = useTranslation()
   const result = useStore((s) => s.transcriptionResult)
   const transcriptionId = useStore((s) => s.transcriptionId)
@@ -27,6 +32,11 @@ export function SubtitleEditor() {
   const setRefinementMetadata = useStore((s) => s.setRefinementMetadata)
   const setActiveView = useStore((s) => s.setActiveView)
   const clearRefinement = useStore((s) => s.clearRefinement)
+  const translatedUtterances = useStore((s) => s.translatedUtterances)
+  const translationLanguage = useStore((s) => s.translationLanguage)
+  const setTranslatedUtterances = useStore((s) => s.setTranslatedUtterances)
+  const setTranslationLanguage = useStore((s) => s.setTranslationLanguage)
+  const clearTranslation = useStore((s) => s.clearTranslation)
   const config = useStore((s) => s.config)
   const llmAvailable = config?.llm_available ?? false
   const activeRef = useRef<HTMLTableRowElement | null>(null)
@@ -38,11 +48,27 @@ export function SubtitleEditor() {
   const [showRefineModal, setShowRefineModal] = useState(false)
   const [refineContext, setRefineContext] = useState('')
   const [refining, setRefining] = useState(false)
+  const [showTranslateModal, setShowTranslateModal] = useState(false)
+  const [translateLanguage, setTranslateLanguage] = useState('en')
+  const [translating, setTranslating] = useState(false)
   const [summaryCollapsed, setSummaryCollapsed] = useState(false)
+  const [editingIndex, setEditingIndex] = useState<number | null>(null)
+  const setSeekTo = useStore((s) => s.setSeekTo)
 
-  const utterances = activeView === 'refined' && refinedUtterances
-    ? refinedUtterances
-    : (result?.utterances || [])
+  const utterances = activeView === 'translated' && translatedUtterances
+    ? translatedUtterances
+    : activeView === 'refined' && refinedUtterances
+      ? refinedUtterances
+      : (result?.utterances || [])
+
+  const speakerColorMap = useMemo(() => {
+    const speakers = new Set<string>()
+    ;(result?.utterances || []).forEach((u) => { if (u.speaker) speakers.add(u.speaker) })
+    const sorted = Array.from(speakers).sort()
+    const map: Record<string, number> = {}
+    sorted.forEach((s, i) => { map[s] = i })
+    return map
+  }, [result])
 
   const activeIndex = utterances.findIndex(
     (u) => currentTime >= u.start && currentTime < u.end
@@ -126,6 +152,50 @@ export function SubtitleEditor() {
     }
   }, [activeIndex, debouncedQuery])
 
+  const handleStartEditing = useCallback((index: number) => {
+    if (activeView === 'refined' || activeView === 'translated') return
+    setEditingIndex(index)
+  }, [activeView])
+
+  // Hotkey handler for subtitle editing navigation
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only capture when a subtitle textarea is focused
+      const target = e.target as HTMLElement
+      if (!target.hasAttribute('data-subtitle-textarea')) return
+
+      if (e.key === 'Tab') {
+        e.preventDefault()
+        if (editingIndex === null) return
+
+        // Explicitly blur current textarea to trigger save via onBlur/commitInlineEdit
+        if (target instanceof HTMLTextAreaElement) target.blur()
+
+        const nextIndex = e.shiftKey
+          ? Math.max(0, editingIndex - 1)
+          : Math.min(utterances.length - 1, editingIndex + 1)
+
+        setEditingIndex(nextIndex)
+        setSeekTo(utterances[nextIndex].start)
+      } else if (e.key === 'Escape') {
+        e.preventDefault()
+        // Explicitly blur to trigger save before exiting edit mode
+        if (target instanceof HTMLTextAreaElement) target.blur()
+        setEditingIndex(null)
+      }
+    }
+
+    container.addEventListener('keydown', handleKeyDown)
+    return () => container.removeEventListener('keydown', handleKeyDown)
+  }, [editingIndex, utterances, setSeekTo])
+
+  const handleEditSpeaker = useCallback((speakerId: string) => {
+    onOpenSpeakerModal?.(speakerId)
+  }, [onOpenSpeakerModal])
+
   const handleUpdate = useCallback((index: number, field: keyof Utterance, value: string | number) => {
     if (!result) return
     const updated = [...result.utterances]
@@ -171,6 +241,32 @@ export function SubtitleEditor() {
       clearRefinement()
     } catch {
       console.error('Failed to delete refinement')
+    }
+  }
+
+  const handleTranslate = async () => {
+    if (!transcriptionId) return
+    setTranslating(true)
+    try {
+      const translationResult = await api.translateTranscription(transcriptionId, translateLanguage)
+      setTranslatedUtterances(translationResult.utterances)
+      setTranslationLanguage(translationResult.language)
+      setActiveView('translated')
+      setShowTranslateModal(false)
+    } catch {
+      console.error('Translation failed')
+    } finally {
+      setTranslating(false)
+    }
+  }
+
+  const handleDeleteTranslation = async () => {
+    if (!transcriptionId || !confirm(t('editor.confirmDeleteTranslation'))) return
+    try {
+      await api.deleteTranslation(transcriptionId)
+      clearTranslation()
+    } catch {
+      console.error('Failed to delete translation')
     }
   }
 
@@ -226,7 +322,7 @@ export function SubtitleEditor() {
         )}
       </div>
 
-      {/* Refinement toolbar */}
+      {/* Refinement / Translation toolbar */}
       <div className="flex items-center gap-2 px-3 py-2 bg-gray-800 border-b border-gray-700">
         {llmAvailable && !refinementMetadata && (
           <button
@@ -239,7 +335,18 @@ export function SubtitleEditor() {
             {t('editor.refineTranscription')}
           </button>
         )}
-        {refinementMetadata && (
+        {llmAvailable && !translatedUtterances && (
+          <button
+            onClick={() => setShowTranslateModal(true)}
+            className="flex items-center gap-1.5 px-3 py-1 text-xs bg-indigo-700/40 text-indigo-300 border border-indigo-700/50 rounded hover:bg-indigo-700/60"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+            </svg>
+            {t('editor.translate')}
+          </button>
+        )}
+        {(refinementMetadata || translatedUtterances) && (
           <>
             <div className="flex rounded overflow-hidden border border-gray-600">
               <button
@@ -248,20 +355,43 @@ export function SubtitleEditor() {
               >
                 {t('editor.viewOriginal')}
               </button>
-              <button
-                onClick={() => setActiveView('refined')}
-                className={`px-3 py-1 text-xs ${activeView === 'refined' ? 'bg-amber-700/70 text-amber-200' : 'bg-gray-700 text-gray-400 hover:bg-gray-650'}`}
-              >
-                {t('editor.viewRefined')}
-              </button>
+              {refinementMetadata && (
+                <button
+                  onClick={() => setActiveView('refined')}
+                  className={`px-3 py-1 text-xs ${activeView === 'refined' ? 'bg-amber-700/70 text-amber-200' : 'bg-gray-700 text-gray-400 hover:bg-gray-650'}`}
+                >
+                  {t('editor.viewRefined')}
+                </button>
+              )}
+              {translatedUtterances && (
+                <button
+                  onClick={() => setActiveView('translated')}
+                  className={`px-3 py-1 text-xs ${activeView === 'translated' ? 'bg-indigo-700/70 text-indigo-200' : 'bg-gray-700 text-gray-400 hover:bg-gray-650'}`}
+                >
+                  {t('editor.translated')}{translationLanguage ? ` (${translationLanguage.toUpperCase()})` : ''}
+                </button>
+              )}
             </div>
-            <button
-              onClick={handleDeleteRefinement}
-              className="ml-auto px-2 py-1 text-xs text-gray-500 hover:text-red-400 border border-gray-700 rounded hover:border-red-700/50"
-              title={t('editor.deleteRefinement')}
-            >
-              {t('editor.deleteRefinement')}
-            </button>
+            <div className="ml-auto flex items-center gap-1">
+              {translatedUtterances && (
+                <button
+                  onClick={handleDeleteTranslation}
+                  className="px-2 py-1 text-xs text-gray-500 hover:text-red-400 border border-gray-700 rounded hover:border-red-700/50"
+                  title={t('editor.deleteTranslation')}
+                >
+                  {t('editor.deleteTranslation')}
+                </button>
+              )}
+              {refinementMetadata && (
+                <button
+                  onClick={handleDeleteRefinement}
+                  className="px-2 py-1 text-xs text-gray-500 hover:text-red-400 border border-gray-700 rounded hover:border-red-700/50"
+                  title={t('editor.deleteRefinement')}
+                >
+                  {t('editor.deleteRefinement')}
+                </button>
+              )}
+            </div>
           </>
         )}
       </div>
@@ -307,7 +437,7 @@ export function SubtitleEditor() {
 
       {/* Scrollable subtitle table */}
       <div ref={containerRef} className="overflow-auto max-h-[calc(100vh-22rem)]">
-        <table className="w-full border-collapse text-sm">
+        <table className="w-full border-collapse text-sm table-fixed">
           <thead>
             <tr className="bg-gray-800 text-gray-400 text-xs">
               <th className="px-3 py-2 text-left w-10">#</th>
@@ -345,11 +475,15 @@ export function SubtitleEditor() {
                     isContext={!entry.isMatch && !!debouncedQuery}
                     speakerMappings={speakerMappings}
                     onUpdate={handleUpdate}
+                    onEditSpeaker={handleEditSpeaker}
+                    speakerColorIndex={entry.utterance.speaker ? speakerColorMap[entry.utterance.speaker] : undefined}
                     highlightTerms={debouncedQuery || undefined}
                     highlightScope={searchScope}
                     isChanged={activeView === 'refined' && (refinementMetadata?.changed_indices.includes(entry.originalIndex) ?? false)}
                     originalText={activeView === 'refined' ? result?.utterances[entry.originalIndex]?.text : undefined}
-                    readOnly={activeView === 'refined'}
+                    readOnly={activeView === 'refined' || activeView === 'translated'}
+                    isEditing={editingIndex === entry.originalIndex}
+                    onStartEditing={handleStartEditing}
                   />
                 )
               })
@@ -368,6 +502,19 @@ export function SubtitleEditor() {
             </button>
           )}
         </div>
+        <details className="px-3 py-1.5 bg-gray-800 border-t border-gray-700 text-xs">
+          <summary className="text-gray-500 cursor-pointer hover:text-gray-400 select-none">
+            {t('editor.hotkeyLegend')}
+          </summary>
+          <div className="mt-1.5 mb-1 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-gray-400">
+            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-gray-300 font-mono text-[10px]">Tab</kbd>
+            <span>{t('editor.hotkeyTab')}</span>
+            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-gray-300 font-mono text-[10px]">Shift+Tab</kbd>
+            <span>{t('editor.hotkeyShiftTab')}</span>
+            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-gray-300 font-mono text-[10px]">Esc</kbd>
+            <span>{t('editor.hotkeyEscape')}</span>
+          </div>
+        </details>
       </div>
 
       {/* Refine modal */}
@@ -409,6 +556,50 @@ export function SubtitleEditor() {
                   </svg>
                 )}
                 {refining ? t('editor.refining') : t('editor.refine')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Translate modal */}
+      {showTranslateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-xl w-full max-w-sm mx-4 p-5">
+            <h3 className="text-sm font-medium text-gray-200 mb-3">{t('editor.translateTo')}</h3>
+            <label className="block text-xs text-gray-400 mb-1">{t('editor.translationLanguage')}</label>
+            <select
+              value={translateLanguage}
+              onChange={(e) => setTranslateLanguage(e.target.value)}
+              disabled={translating}
+              className="w-full bg-gray-700 text-gray-200 text-xs px-3 py-2 rounded border border-gray-600 focus:border-indigo-500 focus:outline-none disabled:opacity-50"
+            >
+              {LANGUAGES.map((lang) => (
+                <option key={lang} value={lang}>
+                  {t(`languages.${lang}`)}
+                </option>
+              ))}
+            </select>
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                onClick={() => setShowTranslateModal(false)}
+                disabled={translating}
+                className="px-3 py-1.5 text-xs text-gray-400 border border-gray-600 rounded hover:border-gray-500 hover:text-gray-200 disabled:opacity-50"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={handleTranslate}
+                disabled={translating}
+                className="px-3 py-1.5 text-xs bg-indigo-700/60 text-indigo-200 border border-indigo-700/50 rounded hover:bg-indigo-700/80 disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {translating && (
+                  <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                )}
+                {translating ? t('editor.translating') : t('editor.translate')}
               </button>
             </div>
           </div>

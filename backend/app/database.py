@@ -63,6 +63,17 @@ CREATE TABLE IF NOT EXISTS protocols (
     llm_model TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS analyses (
+    transcription_id TEXT PRIMARY KEY REFERENCES transcriptions(id),
+    analysis_json TEXT,
+    template TEXT,
+    custom_prompt TEXT,
+    language TEXT,
+    llm_provider TEXT,
+    llm_model TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 """
 
 _db_path: str = ""
@@ -72,6 +83,8 @@ MIGRATIONS = [
     # (column_name, table, column_def)
     ("refined_utterances_json", "transcriptions", "refined_utterances_json TEXT"),
     ("refinement_metadata_json", "transcriptions", "refinement_metadata_json TEXT"),
+    ("translated_utterances_json", "transcriptions", "translated_utterances_json TEXT"),
+    ("translation_language", "transcriptions", "translation_language TEXT"),
 ]
 
 

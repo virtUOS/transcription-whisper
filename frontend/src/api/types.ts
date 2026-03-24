@@ -123,6 +123,21 @@ export interface ConfigResponse {
   logout_url: string
 }
 
+export interface AnalysisTemplate {
+  id: string
+  name: string
+  description: string
+  default_prompt: string
+}
+
+export interface AnalysisGenerateRequest {
+  template?: string | null
+  custom_prompt?: string | null
+  language?: string | null
+  chapter_hints?: ChapterHint[] | null
+  agenda?: string | null
+}
+
 export interface ErrorResponse {
   error: string
   detail: string

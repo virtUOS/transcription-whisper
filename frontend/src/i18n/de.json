@@ -91,6 +91,7 @@
     "refinementWarningLong": "Diese Transkription hat {{count}} Äußerungen. Die Verfeinerung kann mehrere Minuten dauern.",
     "originalText": "Original",
     "refinedText": "Verfeinert",
+    "editSpeaker": "Sprechername bearbeiten",
     "utteranceChanged": "Vom LLM geändert",
     "search": {
       "placeholder": "Untertitel durchsuchen...",
@@ -99,7 +100,37 @@
       "scopeSpeaker": "Sprecher",
       "hiddenSegments": "{{count}} Segmente ausgeblendet",
       "noMatches": "Keine passenden Segmente"
-    }
+    },
+    "translate": "Übersetzen",
+    "translateTo": "Übersetzen nach",
+    "translated": "Übersetzt",
+    "translating": "Übersetze...",
+    "deleteTranslation": "Übersetzung löschen",
+    "confirmDeleteTranslation": "Übersetzung löschen? Sie können sie danach neu erstellen.",
+    "translationLanguage": "Übersetzungssprache",
+    "hotkeyLegend": "Tastenkürzel",
+    "hotkeyTab": "Nächste Untertitel",
+    "hotkeyShiftTab": "Vorherige Untertitel",
+    "hotkeyEscape": "Bearbeitung beenden",
+    "analysis": "Analyse"
+  },
+  "analysis": {
+    "selectTemplate": "Vorlage auswählen",
+    "customPrompt": "Benutzerdefiniert",
+    "customizePrompt": "Prompt anpassen",
+    "resetPrompt": "Auf Vorlage zurücksetzen",
+    "agenda": "Agenda",
+    "agendaPlaceholder": "Fügen Sie hier Ihre Tagesordnung ein...",
+    "generate": "Generieren",
+    "regenerate": "Neu generieren",
+    "delete": "Löschen",
+    "promptUsed": "Verwendeter Prompt",
+    "result": "Ergebnis",
+    "confirmDelete": "Analyse löschen? Sie können sie danach neu erstellen.",
+    "generating": "Analyse wird erstellt...",
+    "generationFailed": "Analyse-Erstellung fehlgeschlagen",
+    "copyResult": "Ergebnis kopieren",
+    "downloadResult": "Ergebnis herunterladen"
   },
   "languages": {
     "auto": "Automatisch erkennen",
@@ -155,6 +186,11 @@
   "player": {
     "subtitles": "Untertitel",
     "download": "Aufnahme herunterladen"
+  },
+  "nav": {
+    "backToRecordings": "Aufnahmen",
+    "newUpload": "Hochladen",
+    "newRecording": "Aufnehmen"
   },
   "common": {
     "loading": "Laden...",

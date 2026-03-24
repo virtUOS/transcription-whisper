@@ -69,13 +69,16 @@ export function FormatViewer({ format }: Props) {
   const speakerMappings = useStore((s) => s.speakerMappings)
   const file = useStore((s) => s.file)
   const refinedUtterances = useStore((s) => s.refinedUtterances)
+  const translatedUtterances = useStore((s) => s.translatedUtterances)
   const activeView = useStore((s) => s.activeView)
 
   const content = useMemo(() => {
     const originalUtterances = result?.utterances || []
-    const utterances = activeView === 'refined' && refinedUtterances
-      ? refinedUtterances
-      : originalUtterances
+    const utterances = activeView === 'translated' && translatedUtterances
+      ? translatedUtterances
+      : activeView === 'refined' && refinedUtterances
+        ? refinedUtterances
+        : originalUtterances
 
     switch (format) {
       case 'srt': return generateSrt(utterances, speakerMappings)
@@ -92,7 +95,7 @@ export function FormatViewer({ format }: Props) {
       }
       default: return ''
     }
-  }, [result, refinedUtterances, activeView, speakerMappings, format])
+  }, [result, refinedUtterances, translatedUtterances, activeView, speakerMappings, format])
 
   const handleDownload = () => {
     const blob = new Blob([content], { type: 'text/plain' })

@@ -91,6 +91,7 @@
     "refinementWarningLong": "This transcription has {{count}} utterances. Refinement may take several minutes.",
     "originalText": "Original",
     "refinedText": "Refined",
+    "editSpeaker": "Edit speaker name",
     "utteranceChanged": "Modified by LLM",
     "search": {
       "placeholder": "Search subtitles...",
@@ -99,7 +100,37 @@
       "scopeSpeaker": "Speaker",
       "hiddenSegments": "{{count}} segments hidden",
       "noMatches": "No matching segments"
-    }
+    },
+    "translate": "Translate",
+    "translateTo": "Translate to",
+    "translated": "Translated",
+    "translating": "Translating...",
+    "deleteTranslation": "Delete translation",
+    "confirmDeleteTranslation": "Delete this translation? You can regenerate it afterwards.",
+    "translationLanguage": "Translation language",
+    "hotkeyLegend": "Keyboard shortcuts",
+    "hotkeyTab": "Next caption",
+    "hotkeyShiftTab": "Previous caption",
+    "hotkeyEscape": "Exit editing",
+    "analysis": "Analysis"
+  },
+  "analysis": {
+    "selectTemplate": "Select a template",
+    "customPrompt": "Custom",
+    "customizePrompt": "Customize prompt",
+    "resetPrompt": "Reset to template",
+    "agenda": "Agenda",
+    "agendaPlaceholder": "Paste your meeting agenda here...",
+    "generate": "Generate",
+    "regenerate": "Regenerate",
+    "delete": "Delete",
+    "promptUsed": "Prompt used",
+    "result": "Result",
+    "confirmDelete": "Delete this analysis? You can regenerate it afterwards.",
+    "generating": "Generating analysis...",
+    "generationFailed": "Analysis generation failed",
+    "copyResult": "Copy result",
+    "downloadResult": "Download result"
   },
   "languages": {
     "auto": "Auto-detect",
@@ -155,6 +186,11 @@
   "player": {
     "subtitles": "Subtitles",
     "download": "Download recording"
+  },
+  "nav": {
+    "backToRecordings": "Recordings",
+    "newUpload": "Upload",
+    "newRecording": "Record"
   },
   "common": {
     "loading": "Loading...",

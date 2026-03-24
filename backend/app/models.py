@@ -167,6 +167,18 @@ class RefinementResult(BaseModel):
     metadata: RefinementMetadata
 
 
+class AnalysisRequest(BaseModel):
+    template: str | None = "summary"
+    custom_prompt: str | None = None
+    language: str | None = None
+    chapter_hints: list[ChapterHint] | None = None
+    agenda: str | None = None
+
+
+class TranslationRequest(BaseModel):
+    target_language: str
+
+
 class ConfigResponse(BaseModel):
     asr_backend: str
     whisper_models: list[str]

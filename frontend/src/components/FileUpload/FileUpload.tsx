@@ -13,6 +13,8 @@ export function FileUpload() {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const setCurrentView = useStore((s) => s.setCurrentView)
+
   const handleDelete = useCallback(async () => {
     if (transcriptionId) {
       try {
@@ -22,7 +24,8 @@ export function FileUpload() {
       }
     }
     reset()
-  }, [transcriptionId, reset])
+    setCurrentView('archive')
+  }, [transcriptionId, reset, setCurrentView])
 
   const MAX_FILE_SIZE = 1 * 1024 * 1024 * 1024 // 1GB
 
@@ -56,10 +59,10 @@ export function FileUpload() {
 
   if (file) {
     return (
-      <div className="flex items-center gap-4 px-6 py-2 bg-gray-800 border-b border-gray-700 text-sm text-gray-300">
-        <span>{file.original_filename}</span>
-        <span className="text-gray-500">({formatFileSize(file.file_size)})</span>
-        <button onClick={handleDelete} className="text-red-400 hover:text-red-300">
+      <div className="flex items-center gap-4 px-6 py-2 bg-gray-800 border-b border-gray-700 text-sm text-gray-300 min-w-0">
+        <span className="truncate min-w-0">{file.original_filename}</span>
+        <span className="text-gray-500 shrink-0">({formatFileSize(file.file_size)})</span>
+        <button onClick={handleDelete} className="text-red-400 hover:text-red-300 shrink-0">
           {t('upload.deleteFile')}
         </button>
       </div>

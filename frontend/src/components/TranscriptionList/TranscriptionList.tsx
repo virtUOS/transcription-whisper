@@ -18,6 +18,10 @@ export function TranscriptionList() {
   const setRefinedUtterances = useStore((s) => s.setRefinedUtterances)
   const setRefinementMetadata = useStore((s) => s.setRefinementMetadata)
   const clearRefinement = useStore((s) => s.clearRefinement)
+  const setTranslatedUtterances = useStore((s) => s.setTranslatedUtterances)
+  const setTranslationLanguage = useStore((s) => s.setTranslationLanguage)
+  const clearTranslation = useStore((s) => s.clearTranslation)
+  const setCurrentView = useStore((s) => s.setCurrentView)
 
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
@@ -43,6 +47,7 @@ export function TranscriptionList() {
     setTranscriptionStatus(item.status)
     const ext = item.original_filename.split('.').pop()?.toLowerCase() || ''
     setFile({ id: item.file_id, original_filename: item.original_filename, media_type: ext, file_size: item.file_size })
+    setCurrentView('detail')
     if (item.status === 'completed') {
       try {
         const result = await api.getTranscription(item.id)
@@ -56,6 +61,13 @@ export function TranscriptionList() {
           setRefinementMetadata(refinement.metadata)
         } catch {
           clearRefinement()
+        }
+        try {
+          const translation = await api.getTranslation(item.id)
+          setTranslatedUtterances(translation.utterances)
+          setTranslationLanguage(translation.language)
+        } catch {
+          clearTranslation()
         }
       } catch {
         reset()
@@ -147,10 +159,29 @@ export function TranscriptionList() {
     }
   }, [handleRenameSave])
 
-  if (history.length === 0) return null
+  const supportsRecording = typeof MediaRecorder !== 'undefined'
 
   return (
     <div className="mx-6 my-4">
+      <div className="flex items-center gap-3 mb-4">
+        <button
+          onClick={() => setCurrentView('upload')}
+          className="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
+        >
+          + {t('nav.newUpload')}
+        </button>
+        {supportsRecording && (
+          <button
+            onClick={() => setCurrentView('record')}
+            className="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
+          >
+            + {t('nav.newRecording')}
+          </button>
+        )}
+      </div>
+
+      {history.length > 0 && (
+        <>
       <h2 className="text-sm font-medium text-gray-400 mb-2">{t('transcription.history')}</h2>
       <div className="space-y-1">
         {history.map((item) => (
@@ -202,6 +233,8 @@ export function TranscriptionList() {
           </div>
         ))}
       </div>
+        </>
+      )}
     </div>
   )
 }
