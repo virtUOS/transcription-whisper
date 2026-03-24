@@ -99,6 +99,20 @@ export interface ProtocolResult {
   llm_model: string | null
 }
 
+export interface RefinementMetadata {
+  changed_indices: number[]
+  changes_summary: string
+  context: string | null
+  llm_provider: string | null
+  llm_model: string | null
+  created_at: string | null
+}
+
+export interface RefinementResult {
+  utterances: Utterance[]
+  metadata: RefinementMetadata
+}
+
 export interface ConfigResponse {
   asr_backend: string
   whisper_models: string[]

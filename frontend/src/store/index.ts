@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { FileInfo, TranscriptionResult, TranscriptionListItem, ConfigResponse, SummaryResult, ProtocolResult } from '../api/types'
+import type { FileInfo, TranscriptionResult, TranscriptionListItem, ConfigResponse, SummaryResult, ProtocolResult, Utterance, RefinementMetadata } from '../api/types'
 
 interface AppState {
   config: ConfigResponse | null
@@ -28,6 +28,13 @@ interface AppState {
   setActiveTab: (tab: string) => void
   unsavedEdits: boolean
   setUnsavedEdits: (dirty: boolean) => void
+  refinedUtterances: Utterance[] | null
+  refinementMetadata: RefinementMetadata | null
+  activeView: 'original' | 'refined'
+  setRefinedUtterances: (utterances: Utterance[] | null) => void
+  setRefinementMetadata: (metadata: RefinementMetadata | null) => void
+  setActiveView: (view: 'original' | 'refined') => void
+  clearRefinement: () => void
   reset: () => void
 }
 
@@ -58,9 +65,17 @@ export const useStore = create<AppState>((set) => ({
   setActiveTab: (tab) => set({ activeTab: tab }),
   unsavedEdits: false,
   setUnsavedEdits: (dirty) => set({ unsavedEdits: dirty }),
+  refinedUtterances: null,
+  refinementMetadata: null,
+  activeView: 'original' as const,
+  setRefinedUtterances: (utterances) => set({ refinedUtterances: utterances }),
+  setRefinementMetadata: (metadata) => set({ refinementMetadata: metadata }),
+  setActiveView: (view) => set({ activeView: view }),
+  clearRefinement: () => set({ refinedUtterances: null, refinementMetadata: null, activeView: 'original' as const }),
   reset: () => set({
     file: null, transcriptionId: null, transcriptionStatus: null,
     transcriptionResult: null, speakerMappings: {}, summary: null, protocol: null,
     currentTime: 0, seekTo: null, activeTab: 'subtitles', unsavedEdits: false,
+    refinedUtterances: null, refinementMetadata: null, activeView: 'original' as const,
   }),
 }))
