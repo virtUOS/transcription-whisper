@@ -364,7 +364,10 @@ async def websocket_status(websocket: WebSocket, transcription_id: str):
                 break
 
             status = row["status"]
-            await websocket.send_json({"type": "status", "status": status})
+            msg = {"type": "status", "status": status}
+            if status == "failed" and row["error_message"]:
+                msg["error"] = row["error_message"]
+            await websocket.send_json(msg)
 
             if status in ("completed", "failed"):
                 break

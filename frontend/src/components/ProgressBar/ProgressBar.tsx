@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useStore } from '../../store'
 import { api } from '../../api/client'
@@ -13,6 +13,7 @@ export function ProgressBar() {
   const retriesRef = useRef(0)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const doneRef = useRef(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   useEffect(() => {
     if (!transcriptionId || status === 'completed' || status === 'failed') return
@@ -36,9 +37,10 @@ export function ProgressBar() {
       setResult(result)
     }
 
-    const handleFailed = () => {
+    const handleFailed = (error?: string) => {
       markDone()
       setStatus('failed')
+      if (error) setErrorMessage(error)
     }
 
     const connect = () => {
@@ -53,7 +55,7 @@ export function ProgressBar() {
           if (data.status === 'completed') {
             handleCompleted()
           } else if (data.status === 'failed') {
-            handleFailed()
+            handleFailed(data.error)
           } else {
             setStatus(data.status)
           }
@@ -75,7 +77,7 @@ export function ProgressBar() {
               if (s.status === 'completed') {
                 handleCompleted()
               } else if (s.status === 'failed') {
-                handleFailed()
+                handleFailed(s.error || undefined)
               }
             } catch { /* ignore */ }
           }, 10000)
@@ -101,7 +103,10 @@ export function ProgressBar() {
       <div className="mx-6 my-4 p-4 bg-red-900/30 rounded-lg border border-red-700">
         <div className="flex items-center gap-3">
           <span className="text-red-400 text-lg">!</span>
-          <span className="text-red-300 text-sm">{t('transcription.failed')}</span>
+          <div>
+            <span className="text-red-300 text-sm">{t('transcription.failed')}</span>
+            {errorMessage && <p className="text-red-400/80 text-xs mt-1">{errorMessage}</p>}
+          </div>
         </div>
       </div>
     )
