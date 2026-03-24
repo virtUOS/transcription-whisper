@@ -86,6 +86,8 @@ export function AnalysisView() {
   const setAnalysisResult = useStore((s) => s.setAnalysisResult)
   const analysisPrompt = useStore((s) => s.analysisPrompt)
   const setAnalysisPrompt = useStore((s) => s.setAnalysisPrompt)
+  const analysisTemplate = useStore((s) => s.analysisTemplate)
+  const setAnalysisTemplate = useStore((s) => s.setAnalysisTemplate)
   const file = useStore((s) => s.file)
   const detectedLanguage = useStore((s) => s.transcriptionResult?.language)
 
@@ -181,6 +183,7 @@ export function AnalysisView() {
       })
       setAnalysisResult(result)
       setAnalysisPrompt(customPrompt)
+      setAnalysisTemplate(selectedTemplate)
     } catch (e) {
       setError(e instanceof Error ? e.message : t('analysis.generationFailed'))
     } finally {
@@ -212,12 +215,25 @@ export function AnalysisView() {
   const btnCopy = "px-4 py-1.5 text-sm rounded flex items-center gap-2 text-gray-300 bg-gray-700 hover:bg-gray-600"
   const btnDownload = "px-4 py-1.5 text-sm rounded flex items-center gap-2 text-white bg-green-700 hover:bg-green-600"
 
+  // Resolve display label for the analysis type
+  const resolvedTemplate = (() => {
+    const r = analysisResult as Record<string, unknown> | null
+    return r?.template as string | null ?? analysisTemplate
+  })()
+  const templateLabel = resolvedTemplate
+    ? (templates.find((tp) => tp.id === resolvedTemplate)?.name ?? resolvedTemplate)
+    : t('analysis.customPrompt')
+
   // Loading state
   if (loading) {
+    const generatingLabel = selectedTemplate
+      ? (templates.find((tp) => tp.id === selectedTemplate)?.name ?? selectedTemplate)
+      : t('analysis.customPrompt')
+
     return (
       <div className="p-6 text-center text-gray-400">
         <div className="animate-spin h-6 w-6 border-2 border-purple-500 border-t-transparent rounded-full mx-auto mb-2" />
-        {t('analysis.generating')}
+        {t('analysis.generatingType', { type: generatingLabel })}
       </div>
     )
   }
@@ -228,6 +244,13 @@ export function AnalysisView() {
 
     return (
       <div className="p-4 space-y-4">
+        {/* Analysis type badge */}
+        <div className="flex items-center gap-2">
+          <span className="px-3 py-1 text-xs font-medium rounded-full bg-purple-900/40 text-purple-300 border border-purple-700/50">
+            {templateLabel}
+          </span>
+        </div>
+
         {/* Smart result rendering */}
         {isSummaryShape(analysisResult) && (
           <>

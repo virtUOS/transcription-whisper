@@ -131,6 +131,7 @@
     "result": "Ergebnis",
     "confirmDelete": "Analyse löschen? Sie können sie danach neu erstellen.",
     "generating": "Analyse wird erstellt...",
+    "generatingType": "{{type}} wird erstellt...",
     "generationFailed": "Analyse-Erstellung fehlgeschlagen",
     "copyResult": "Ergebnis kopieren",
     "downloadResult": "Ergebnis herunterladen"

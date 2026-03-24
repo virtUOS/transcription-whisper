@@ -131,6 +131,7 @@
     "result": "Result",
     "confirmDelete": "Delete this analysis? You can regenerate it afterwards.",
     "generating": "Generating analysis...",
+    "generatingType": "Generating {{type}}...",
     "generationFailed": "Analysis generation failed",
     "copyResult": "Copy result",
     "downloadResult": "Download result"
