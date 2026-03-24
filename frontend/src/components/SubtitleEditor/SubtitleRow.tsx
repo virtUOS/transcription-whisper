@@ -37,9 +37,10 @@ interface Props {
   highlightScope?: 'text' | 'speaker' | 'both'
   isChanged?: boolean
   originalText?: string
+  readOnly?: boolean
 }
 
-export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function SubtitleRow({ index, utterance, isActive, isContext, speakerMappings, onUpdate, highlightTerms, highlightScope, isChanged, originalText }, ref) {
+export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function SubtitleRow({ index, utterance, isActive, isContext, speakerMappings, onUpdate, highlightTerms, highlightScope, isChanged, originalText, readOnly }, ref) {
   const { t } = useTranslation()
   const setSeekTo = useStore((s) => s.setSeekTo)
   const [editingField, setEditingField] = useState<string | null>(null)
@@ -51,6 +52,7 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
     : ''
 
   const startEdit = (field: string, value: string) => {
+    if (readOnly) return
     setEditingField(field)
     setEditValue(value)
   }

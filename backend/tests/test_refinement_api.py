@@ -164,3 +164,48 @@ async def test_delete_refinement():
 
     assert resp_del.status_code == 200
     assert resp_get.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_refine_wrong_utterance_count_returns_500():
+    mock_provider = AsyncMock()
+    mock_provider.generate_refinement.return_value = LLMRefinementResponse(
+        utterances=[
+            Utterance(start=0, end=5000, text="Only one.", speaker="Speaker 1"),
+        ],
+        changes_summary="Fixed things",
+    )
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        txn_id = await _setup_transcription(client, "test-refine-mismatch")
+        with patch("app.routers.refinement.get_llm_provider", return_value=mock_provider):
+            resp = await client.post(f"/api/refine/{txn_id}")
+
+    assert resp.status_code == 500
+    assert "expected 2" in resp.json()["detail"]
+
+    # Verify placeholder was cleaned up so retry is possible
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp_get = await client.get(f"/api/refine/{txn_id}")
+    assert resp_get.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_refine_llm_failure_cleans_placeholder():
+    mock_provider = AsyncMock()
+    mock_provider.generate_refinement.side_effect = RuntimeError("LLM exploded")
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        txn_id = await _setup_transcription(client, "test-refine-fail")
+        with patch("app.routers.refinement.get_llm_provider", return_value=mock_provider):
+            resp = await client.post(f"/api/refine/{txn_id}")
+
+    assert resp.status_code == 500
+    assert "failed" in resp.json()["detail"].lower()
+
+    # Verify placeholder was cleaned up so retry is possible
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp_get = await client.get(f"/api/refine/{txn_id}")
+    assert resp_get.status_code == 404

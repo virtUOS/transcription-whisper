@@ -349,6 +349,7 @@ export function SubtitleEditor() {
                     highlightScope={searchScope}
                     isChanged={activeView === 'refined' && (refinementMetadata?.changed_indices.includes(entry.originalIndex) ?? false)}
                     originalText={activeView === 'refined' ? result?.utterances[entry.originalIndex]?.text : undefined}
+                    readOnly={activeView === 'refined'}
                   />
                 )
               })
