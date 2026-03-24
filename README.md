@@ -1,85 +1,170 @@
 # Transcription Service App
 
-[Transcription Service App](https://pvm002.virtuos.uni-osnabrueck.de/) is a web app for universities to make simple transcriptions from video or audio files in multiple languages, currently tailored towards Open AI's Whisper models.
+[Transcription Service App](https://transcription.uni-osnabrueck.de/) is a web app for universities to make simple transcriptions from video or audio files in multiple languages, currently tailored towards OpenAI's Whisper models.
 
 ![screenshot.png](docs/assets/screenshot.png)
 
-Some of its features are:
-- Supports transcriptions with or without simultaneous translations to multiple languages.
-- Simple interface.
-- Configurable access to Open AI's Whisper models (tiny, base, small, medium, large-v1, large-v2, large-v3, large-v3-turbo).
-- Supports upload from videos and audio files (up to 1gb).
-- Users can edit and download transcription results in 4 different formats (txt, vtt, srt and json).
-- Diarization support to detect multiple speakers (up to 20).
-- Srt, vtt and json formats provide timestamp and speaker information (when available).
+## Features
+
+- Configurable access to OpenAI's Whisper models (tiny, base, small, medium, large-v1, large-v2, large-v3, large-v3-turbo).
+- Supports upload of video and audio files (up to 1GB).
+- In-browser audio and video recording with device selection and level metering.
+- Editable transcription results with inline subtitle editing synchronized with video playback.
+- Subtitle search with text and speaker scope filtering, context display around matches.
+- Export and download in 4 formats (TXT, VTT, SRT and JSON).
+- Diarization support to detect and label multiple speakers (up to 20).
+- Speaker mapping to assign custom names to detected speakers.
+- SRT, VTT and JSON formats provide timestamp and speaker information (when available).
 - Transcribed subtitles can be activated in uploaded videos.
 - Initial prompt support to provide context for the transcription.
 - Hotwords support to improve recognition of rare or technical terms.
+- LLM-powered summary generation with automatic chapter segmentation (OpenAI or Ollama).
+- Optional user-defined chapter hints to guide LLM chapter segmentation.
+- Individual chapter deletion from generated summaries.
+- LLM-powered protocol generation with key points, decisions, and action items.
+- Inline file renaming in transcription history.
+- Delete and regenerate summaries and protocols.
+- LLM provider and model attribution display on generated content.
+- Transcription history with persistent storage.
+- Real-time progress updates via WebSocket.
+- System audio capture for recording online meetings (experimental; best on Chrome/Edge on Windows).
+- Internationalization support (English and German).
 
-# Usage & Configuration
+## Architecture
 
-You first need to set up a [MurmurAI API server](https://github.com/namastexlabs/murmurai) to work with this app.
+The application uses a decoupled frontend/backend architecture:
 
-Some environment variables should be set. Here is an example of a .env file:
+- **Frontend**: React 19 + TypeScript SPA built with Vite, using Zustand for state management and Tailwind CSS for styling.
+- **Backend**: FastAPI (Python 3.12) with async SQLite database, serving the built frontend as static files.
+- **ASR**: Pluggable speech recognition backends — [MurmurAI](https://github.com/namastexlabs/murmurai) or WhisperX.
+- **LLM**: Pluggable summarization providers — OpenAI or Ollama.
+- **Deployment**: Multi-stage Docker build combining both frontend and backend into a single image.
 
-```yml
-# PATH to the ffmpeg library in your system
-FFMPEG_PATH=/usr/bin/ffmpeg
-# Path where temporal files will be generated
-TEMP_PATH=transcription-whisper-temp
-# Uncomment this up if you're using an authentication process to allow users to log out
-#LOGOUT_URL=/oauth2/sign_out
-# Url and port to the MurmurAI API server (default port is 8880)
-API_URL=http://111.111.111.11:8880
-# MurmurAI API key for authentication (default: namastex888)
-MURMURAI_API_KEY=namastex888
-# Available Whisper models (comma-separated)
-WHISPER_MODELS=tiny,base,small,medium,large-v1,large-v2,large-v3,large-v3-turbo
-# Default model selection
+## Usage & Configuration
+
+You need to set up an ASR backend to work with this app. Supported options:
+
+- [MurmurAI API server](https://github.com/namastexlabs/murmurai) (remote API)
+- [WhisperX API server](https://github.com/Nyralei/whisperx-api-server) (remote API)
+
+Copy `.env.example` to `.env` and configure your environment variables:
+
+```bash
+# ASR Configuration
+ASR_BACKEND=murmurai              # or: whisperx
+ASR_URL=http://localhost:8880
+ASR_API_KEY=                      # required for MurmurAI only
+ASR_MAX_CONCURRENT=3              # max concurrent WhisperX requests
+
+# ASR Model Configuration
+WHISPER_MODELS=base,large-v3,large-v3-turbo
 DEFAULT_WHISPER_MODEL=base
 
-# Prometheus metrics configuration
+# LLM Configuration
+LLM_PROVIDER=openai               # or: ollama
+LLM_MODEL=gpt-4o
+LLM_API_KEY=                      # required for OpenAI
+LLM_BASE_URL=                     # for local servers (e.g., http://localhost:11434 for Ollama)
+
+# Application
+TEMP_PATH=tmp/transcription-files
+FFMPEG_PATH=ffmpeg
+LOGOUT_URL=/oauth2/sign_out
+CLEANUP_TTL_HOURS=168             # auto-delete files older than this (default 7 days)
+DATABASE_PATH=                    # SQLite DB path, defaults to {TEMP_PATH}/transcription.db
+
+# Metrics
 ENABLE_METRICS=true
-METRICS_PORT=8000
+
+# Development
+DEV_MODE=false                    # enables CORS for localhost:5173 (Vite dev server)
 ```
+
+## Docker
+
+Build and run the application with Docker:
+
+```bash
+docker build -t transcription-app .
+docker run -p 8000:8000 --env-file .env transcription-app
+```
+
+The app will be available at `http://localhost:8000`.
+
+## Development
+
+### Backend
+
+Install Python dependencies and run the FastAPI server:
+
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+```
+
+### Frontend
+
+Install Node.js dependencies and start the Vite dev server:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The Vite dev server runs on `http://localhost:5173` and proxies API requests to the backend at `http://localhost:8000`.
+
+Set `DEV_MODE=true` in your `.env` to enable CORS for the Vite dev server.
 
 ## Prometheus Metrics
 
-The application includes comprehensive Prometheus metrics for monitoring usage and performance. When enabled, metrics are exposed on a separate HTTP endpoint for Prometheus to scrape.
+The application includes comprehensive Prometheus metrics for monitoring usage and performance. When enabled, metrics are exposed at `/metrics` for Prometheus to scrape.
 
 ### Available Metrics
 
-- **Application Metrics**:
-  - `transcription_page_views_total` - Total page views by UI language
-  - `transcription_active_sessions` - Number of active user sessions
-  - `transcription_app_info` - Application version and metadata
+- **Application Info**:
+  - `transcription_app_info` — Application version and metadata
 
-- **File Upload Metrics**:
-  - `transcription_file_uploads_total` - Total file uploads by type and status
-  - `transcription_file_upload_size_bytes` - File upload size distribution
+- **File Uploads**:
+  - `transcription_file_uploads_total` — Total uploads by file type and status (success/rejected)
+  - `transcription_file_upload_size_bytes` — Upload size distribution
+  - `transcription_file_renames_total` — Total file renames
 
-- **Transcription Metrics**:
-  - `transcription_jobs_total` - Total transcription jobs by language, model, and status
-  - `transcription_duration_seconds` - Transcription processing time distribution
-  - `transcription_active_jobs` - Number of currently processing jobs
-  - `transcription_model_usage_total` - Usage count per Whisper model
-  - `transcription_language_usage_total` - Usage count per transcription language
-  - `transcription_speaker_detection_total` - Speaker detection usage statistics
+- **Transcription Jobs**:
+  - `transcription_jobs_total` — Total jobs by language, model, and status
+  - `transcription_duration_seconds` — Processing time distribution by language and model
+  - `transcription_active_jobs` — Number of currently processing jobs
+  - `transcription_diarization_speakers_detected` — Speakers detected per job distribution
 
-- **User Interaction Metrics**:
-  - `transcription_user_actions_total` - User actions (save, edit) by format
-  - `transcription_downloads_total` - File downloads by format
+- **Editing & Interaction**:
+  - `transcription_edits_saved_total` — Transcription edits saved
+  - `transcription_speaker_renames_total` — Speaker mapping updates
+  - `transcription_downloads_total` — Exports/downloads by format
 
-- **API and Error Metrics**:
-  - `transcription_api_request_duration_seconds` - API request latency
-  - `transcription_errors_total` - Error count by type and component
+- **LLM (Summaries & Protocols)**:
+  - `transcription_llm_requests_total` — LLM requests by provider, model, and operation
+  - `transcription_llm_duration_seconds` — LLM request duration by provider, model, and operation
+  - `transcription_llm_errors_total` — LLM errors by provider, model, and operation
+
+- **Deletions**:
+  - `transcription_deletions_total` — Resource deletions by type (transcription/summary/protocol)
+
+- **WebSocket**:
+  - `transcription_websocket_connections_active` — Active WebSocket connections
+  - `transcription_websocket_connections_total` — Total WebSocket connections
+
+- **Cleanup**:
+  - `transcription_cleanup_runs_total` — Cleanup job runs by status (success/failed)
+  - `transcription_cleanup_items_deleted_total` — Items deleted by resource type
+
+- **API & Errors**:
+  - `transcription_api_request_duration_seconds` — API request latency by endpoint, method, and status
+  - `transcription_errors_total` — Errors by type and component
 
 ### Configuration
 
-Metrics are controlled by environment variables:
-
 - `ENABLE_METRICS=true` - Enable/disable metrics collection (default: true)
-- `METRICS_PORT=8000` - Port for metrics HTTP server (default: 8000)
 
 ### Prometheus Configuration
 
@@ -98,33 +183,13 @@ scrape_configs:
 
 The metrics are designed to work well with Grafana. Key dashboard panels might include:
 
-- Active sessions and transcription jobs over time
-- Transcription success/failure rates
+- Active transcription jobs and WebSocket connections over time
+- Transcription success/failure rates by model and language
 - Processing time percentiles by model
 - File upload volume and sizes
-- Language and model usage distribution
-- Error rates and types
-
-### Testing Metrics
-
-You can test the metrics functionality using the included test script:
-
-```bash
-python test_metrics.py
-```
-
-## Development
-
-The app is developed in the [streamlit](https://streamlit.io/) framework.
-
-You can install the requirements needed to run and develop the app using `pip install -r requirements.txt`.
-Then simply run a development server like this:
-
-```bash
-streamlit run app.py
-```
-
-The metrics endpoint will be available at `http://localhost:8000/metrics` when the app is running.
+- LLM request duration and error rates by provider
+- Export/download format distribution
+- Cleanup job effectiveness
 
 ## Authors
 
