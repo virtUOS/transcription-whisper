@@ -30,18 +30,27 @@ export function DeviceSelector({
 
   const supportsDisplayMedia = typeof navigator.mediaDevices?.getDisplayMedia === 'function'
 
+  async function enumerateWithPermission(requestVideo: boolean) {
+    try {
+      const constraints: MediaStreamConstraints = { audio: true }
+      if (requestVideo) constraints.video = true
+      const stream = await navigator.mediaDevices.getUserMedia(constraints)
+      stream.getTracks().forEach((t) => t.stop())
+      const devices = await navigator.mediaDevices.enumerateDevices()
+      setAudioDevices(devices.filter((d) => d.kind === 'audioinput'))
+      setVideoDevices(devices.filter((d) => d.kind === 'videoinput'))
+    } catch {
+      // Permission denied
+    }
+  }
+
   useEffect(() => {
     async function enumerate() {
       try {
         const devices = await navigator.mediaDevices.enumerateDevices()
-        const hasLabels = devices.some((d) => d.label)
-        if (!hasLabels) {
-          // Request permission so browsers expose device labels
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-          stream.getTracks().forEach((t) => t.stop())
-          const devicesAfter = await navigator.mediaDevices.enumerateDevices()
-          setAudioDevices(devicesAfter.filter((d) => d.kind === 'audioinput'))
-          setVideoDevices(devicesAfter.filter((d) => d.kind === 'videoinput'))
+        const hasAudioLabels = devices.some((d) => d.kind === 'audioinput' && d.label)
+        if (!hasAudioLabels) {
+          await enumerateWithPermission(false)
         } else {
           setAudioDevices(devices.filter((d) => d.kind === 'audioinput'))
           setVideoDevices(devices.filter((d) => d.kind === 'videoinput'))
@@ -54,6 +63,14 @@ export function DeviceSelector({
     navigator.mediaDevices.addEventListener('devicechange', enumerate)
     return () => navigator.mediaDevices.removeEventListener('devicechange', enumerate)
   }, [])
+
+  useEffect(() => {
+    if (!useCamera) return
+    const hasVideoLabels = videoDevices.some((d) => d.label)
+    if (!hasVideoLabels) {
+      enumerateWithPermission(true)
+    }
+  }, [useCamera])
 
   return (
     <div className="flex flex-col gap-3">
