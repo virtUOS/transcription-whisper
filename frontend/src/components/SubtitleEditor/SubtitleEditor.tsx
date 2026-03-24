@@ -384,6 +384,11 @@ export function SubtitleEditor() {
               rows={3}
               className="w-full bg-gray-700 text-gray-200 text-xs px-3 py-2 rounded border border-gray-600 focus:border-amber-500 focus:outline-none resize-none disabled:opacity-50"
             />
+            {baseUtterances.length > 50 && (
+              <p className="text-xs text-amber-400/80 mt-2">
+                {t('editor.refinementWarningLong', { count: baseUtterances.length })}
+              </p>
+            )}
             <div className="flex justify-end gap-2 mt-4">
               <button
                 onClick={() => { setShowRefineModal(false); setRefineContext('') }}

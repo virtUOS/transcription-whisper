@@ -86,6 +86,7 @@
     "confirmDeleteRefinement": "Sind Sie sicher, dass Sie die Verfeinerung löschen möchten? Dies stellt die ursprüngliche Transkription wieder her.",
     "refinementDeleted": "Verfeinerung gelöscht",
     "refinementFailed": "Verfeinerung fehlgeschlagen. Bitte versuchen Sie es erneut.",
+    "refinementWarningLong": "Diese Transkription hat {{count}} Äußerungen. Die Verfeinerung kann mehrere Minuten dauern.",
     "originalText": "Original",
     "refinedText": "Verfeinert",
     "utteranceChanged": "Vom LLM geändert",

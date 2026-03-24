@@ -86,6 +86,7 @@
     "confirmDeleteRefinement": "Are you sure you want to delete the refinement? This will revert to the original transcription.",
     "refinementDeleted": "Refinement deleted",
     "refinementFailed": "Refinement failed. Please try again.",
+    "refinementWarningLong": "This transcription has {{count}} utterances. Refinement may take several minutes.",
     "originalText": "Original",
     "refinedText": "Refined",
     "utteranceChanged": "Modified by LLM",
