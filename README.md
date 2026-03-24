@@ -22,6 +22,7 @@
 - Optional user-defined chapter hints to guide LLM chapter segmentation.
 - Individual chapter deletion from generated summaries.
 - LLM-powered protocol generation with key points, decisions, and action items.
+- LLM-powered transcription refinement to fix spelling, punctuation, terminology, filler words, and disfluencies — with original/refined toggle, per-utterance diff view, and changes summary.
 - Inline file renaming in transcription history.
 - Delete and regenerate summaries and protocols.
 - LLM provider and model attribution display on generated content.
@@ -37,7 +38,7 @@ The application uses a decoupled frontend/backend architecture:
 - **Frontend**: React 19 + TypeScript SPA built with Vite, using Zustand for state management and Tailwind CSS for styling.
 - **Backend**: FastAPI (Python 3.12) with async SQLite database, serving the built frontend as static files.
 - **ASR**: Pluggable speech recognition backends — [MurmurAI](https://github.com/namastexlabs/murmurai) or WhisperX.
-- **LLM**: Pluggable summarization providers — OpenAI or Ollama.
+- **LLM**: Pluggable LLM providers — OpenAI-compatible API (OpenAI, vLLM, etc.) or Ollama.
 - **Deployment**: Multi-stage Docker build combining both frontend and backend into a single image.
 
 ## Usage & Configuration
@@ -60,11 +61,11 @@ ASR_MAX_CONCURRENT=3              # max concurrent WhisperX requests
 WHISPER_MODELS=base,large-v3,large-v3-turbo
 DEFAULT_WHISPER_MODEL=base
 
-# LLM Configuration
-LLM_PROVIDER=openai               # or: ollama
+# LLM Configuration (for summaries, protocols, and transcription refinement)
+LLM_PROVIDER=openai               # or: ollama (openai works with any OpenAI-compatible API like vLLM)
 LLM_MODEL=gpt-4o
-LLM_API_KEY=                      # required for OpenAI
-LLM_BASE_URL=                     # for local servers (e.g., http://localhost:11434 for Ollama)
+LLM_API_KEY=                      # required for OpenAI / OpenAI-compatible APIs
+LLM_BASE_URL=                     # for custom endpoints (e.g., vLLM, Ollama: http://localhost:11434)
 
 # Application
 TEMP_PATH=tmp/transcription-files
@@ -142,13 +143,13 @@ The application includes comprehensive Prometheus metrics for monitoring usage a
   - `transcription_speaker_renames_total` — Speaker mapping updates
   - `transcription_downloads_total` — Exports/downloads by format
 
-- **LLM (Summaries & Protocols)**:
+- **LLM (Summaries, Protocols & Refinement)**:
   - `transcription_llm_requests_total` — LLM requests by provider, model, and operation
   - `transcription_llm_duration_seconds` — LLM request duration by provider, model, and operation
   - `transcription_llm_errors_total` — LLM errors by provider, model, and operation
 
 - **Deletions**:
-  - `transcription_deletions_total` — Resource deletions by type (transcription/summary/protocol)
+  - `transcription_deletions_total` — Resource deletions by type (transcription/summary/protocol/refinement)
 
 - **WebSocket**:
   - `transcription_websocket_connections_active` — Active WebSocket connections
