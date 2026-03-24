@@ -165,14 +165,14 @@ export function TranscriptionList() {
     <div className="mx-6 my-4">
       <div className="flex items-center gap-3 mb-4">
         <button
-          onClick={() => setCurrentView('upload')}
+          onClick={() => { reset(); setCurrentView('upload') }}
           className="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
         >
           + {t('nav.newUpload')}
         </button>
         {supportsRecording && (
           <button
-            onClick={() => setCurrentView('record')}
+            onClick={() => { reset(); setCurrentView('record') }}
             className="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
           >
             + {t('nav.newRecording')}

@@ -324,7 +324,33 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
         )}
       </div>
 
-      {/* Refinement / Translation toolbar */}
+      {/* Edit hint + shortcuts + Refinement / Translation toolbar */}
+      <div className="flex items-center gap-2 px-3 py-2 bg-gray-800 border-b border-gray-700 flex-wrap">
+        <span className="text-gray-500 text-xs">{t('editor.editHint')}</span>
+        <details className="text-xs">
+          <summary className="text-gray-500 cursor-pointer hover:text-gray-400 select-none">
+            {t('editor.hotkeyLegend')}
+          </summary>
+          <div className="mt-1.5 mb-1 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-gray-400">
+            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-gray-300 font-mono text-[10px]">Tab</kbd>
+            <span>{t('editor.hotkeyTab')}</span>
+            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-gray-300 font-mono text-[10px]">Shift+Tab</kbd>
+            <span>{t('editor.hotkeyShiftTab')}</span>
+            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-gray-300 font-mono text-[10px]">Esc</kbd>
+            <span>{t('editor.hotkeyEscape')}</span>
+          </div>
+        </details>
+        {dirty && (
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="ml-auto px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-500 disabled:opacity-50"
+          >
+            {saving ? t('common.loading') : t('editor.saveChanges')}
+          </button>
+        )}
+      </div>
+      {(llmAvailable || refinementMetadata || translatedUtterances) && (
       <div className="flex items-center gap-2 px-3 py-2 bg-gray-800 border-b border-gray-700">
         {llmAvailable && !refinementMetadata && (
           <button
@@ -397,6 +423,7 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
           </>
         )}
       </div>
+      )}
 
       {/* Changes summary banner */}
       {activeView === 'refined' && refinementMetadata && (
@@ -493,31 +520,6 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
             )}
           </tbody>
         </table>
-        <div className="flex items-center gap-2 px-3 py-2 bg-gray-800 text-xs">
-          <span className="text-gray-500">{t('editor.editHint')}</span>
-          {dirty && (
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="ml-auto px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-500 disabled:opacity-50"
-            >
-              {saving ? t('common.loading') : t('editor.saveChanges')}
-            </button>
-          )}
-        </div>
-        <details className="px-3 py-1.5 bg-gray-800 border-t border-gray-700 text-xs">
-          <summary className="text-gray-500 cursor-pointer hover:text-gray-400 select-none">
-            {t('editor.hotkeyLegend')}
-          </summary>
-          <div className="mt-1.5 mb-1 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-gray-400">
-            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-gray-300 font-mono text-[10px]">Tab</kbd>
-            <span>{t('editor.hotkeyTab')}</span>
-            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-gray-300 font-mono text-[10px]">Shift+Tab</kbd>
-            <span>{t('editor.hotkeyShiftTab')}</span>
-            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-gray-300 font-mono text-[10px]">Esc</kbd>
-            <span>{t('editor.hotkeyEscape')}</span>
-          </div>
-        </details>
       </div>
 
       {/* Refine modal */}
