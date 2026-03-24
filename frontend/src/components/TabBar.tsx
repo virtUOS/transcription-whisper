@@ -22,7 +22,7 @@ export function TabBar({ onSpeakerNamesClick }: Props) {
   ]
 
   return (
-    <div className="flex items-center gap-1 px-6 py-2 bg-gray-800 border-b border-gray-700">
+    <div className="flex items-center gap-1 px-6 py-2 bg-gray-800 border-b border-gray-700 overflow-x-auto">
       {tabs.map((tab) => (
         <button
           key={tab.id}
