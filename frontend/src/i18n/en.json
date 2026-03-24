@@ -89,9 +89,12 @@
     "refinementDeleted": "Refinement deleted",
     "refinementFailed": "Refinement failed. Please try again.",
     "refinementWarningLong": "This transcription has {{count}} utterances. Refinement may take several minutes.",
+    "translationWarningLong": "This transcription has {{count}} utterances. Translation may take several minutes.",
     "originalText": "Original",
     "refinedText": "Refined",
     "editSpeaker": "Edit speaker name",
+    "editTimestamp": "Edit timestamp",
+    "editText": "Edit text",
     "utteranceChanged": "Modified by LLM",
     "search": {
       "placeholder": "Search subtitles...",

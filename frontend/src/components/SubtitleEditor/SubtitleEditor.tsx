@@ -583,6 +583,11 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
                 </option>
               ))}
             </select>
+            {baseUtterances.length > 50 && (
+              <p className="text-xs text-indigo-400/80 mt-2">
+                {t('editor.translationWarningLong', { count: baseUtterances.length })}
+              </p>
+            )}
             <div className="flex justify-end gap-2 mt-4">
               <button
                 onClick={() => setShowTranslateModal(false)}

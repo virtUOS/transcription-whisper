@@ -76,6 +76,16 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
   const [inlineText, setInlineText] = useState(utterance.text)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const delayedSeek = (time: number) => {
+    if (clickTimer.current) clearTimeout(clickTimer.current)
+    clickTimer.current = setTimeout(() => { setSeekTo(time); clickTimer.current = null }, 250)
+  }
+
+  const cancelSeek = () => {
+    if (clickTimer.current) { clearTimeout(clickTimer.current); clickTimer.current = null }
+  }
 
   const speakerDisplay = utterance.speaker
     ? speakerMappings[utterance.speaker] || utterance.speaker
@@ -148,6 +158,7 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
           onChange={(e) => setEditValue(e.target.value)}
           onBlur={() => { commitEdit(field); onStopEditing?.() }}
           onKeyDown={(e) => e.key === 'Enter' && (commitEdit(field), onStopEditing?.())}
+          onClick={(e) => e.stopPropagation()}
           className="bg-gray-600 text-white text-xs px-1 py-0.5 rounded w-full border border-blue-500 focus:outline-none"
           data-subtitle-input="true"
         />
@@ -156,7 +167,7 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
     return (
       <span
         className={`cursor-pointer hover:text-blue-400 ${className || ''}`}
-        onDoubleClick={() => startEdit(field, value)}
+        onDoubleClick={(e) => { e.stopPropagation(); cancelSeek(); startEdit(field, value) }}
       >
         {displayContent ?? value}
       </span>
@@ -180,13 +191,39 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
             <span className="ml-1 inline-block w-1.5 h-1.5 rounded-full bg-amber-500 align-middle" title={t('editor.utteranceChanged')} />
           )}
         </td>
-        <td className="px-2 py-2 text-blue-400 cursor-pointer" onClick={(e) => { e.stopPropagation(); setSeekTo(utterance.start) }}>
-          {renderCell('start', formatTimestamp(utterance.start))}
+        <td className="px-2 py-2 text-blue-400 cursor-pointer group" onClick={(e) => { e.stopPropagation(); delayedSeek(utterance.start) }}>
+          <span className="inline-flex items-center gap-1">
+            {renderCell('start', formatTimestamp(utterance.start))}
+            {!readOnly && editingField !== 'start' && (
+              <button
+                onClick={(e) => { e.stopPropagation(); cancelSeek(); startEdit('start', formatTimestamp(utterance.start)) }}
+                className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-blue-400 shrink-0"
+                title={t('editor.editTimestamp')}
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+              </button>
+            )}
+          </span>
         </td>
-        <td className="px-2 py-2 text-blue-400 cursor-pointer" onClick={(e) => { e.stopPropagation(); setSeekTo(utterance.end) }}>
-          {renderCell('end', formatTimestamp(utterance.end))}
+        <td className="px-2 py-2 text-blue-400 cursor-pointer group" onClick={(e) => { e.stopPropagation(); delayedSeek(utterance.end) }}>
+          <span className="inline-flex items-center gap-1">
+            {renderCell('end', formatTimestamp(utterance.end))}
+            {!readOnly && editingField !== 'end' && (
+              <button
+                onClick={(e) => { e.stopPropagation(); cancelSeek(); startEdit('end', formatTimestamp(utterance.end)) }}
+                className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-blue-400 shrink-0"
+                title={t('editor.editTimestamp')}
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+              </button>
+            )}
+          </span>
         </td>
-        <td className="px-2 py-2 text-green-400 group">
+        <td className="px-2 py-2 text-green-400 group cursor-pointer" onClick={(e) => { e.stopPropagation(); delayedSeek(utterance.start) }}>
           <span className="inline-flex items-center gap-1.5">
             {colorClass && (
               <span className={`inline-block w-2 h-2 rounded-full ${colorClass} shrink-0`} />
@@ -198,7 +235,7 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
             )}
             {utterance.speaker && onEditSpeaker && (
               <button
-                onClick={(e) => { e.stopPropagation(); onEditSpeaker(utterance.speaker!) }}
+                onClick={(e) => { e.stopPropagation(); cancelSeek(); onEditSpeaker(utterance.speaker!) }}
                 className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-blue-400 shrink-0"
                 title={t('editor.editSpeaker')}
               >
@@ -210,14 +247,8 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
           </span>
         </td>
         <td
-          className="px-3 py-2 text-gray-200 break-words"
-          onClick={(e) => {
-            if (!readOnly && editingField !== 'text' && onStartEditing) {
-              e.stopPropagation()
-              onStartEditing(index, 'text')
-              setSeekTo(utterance.start)
-            }
-          }}
+          className="px-3 py-2 text-gray-200 break-words group cursor-pointer"
+          onClick={(e) => { e.stopPropagation(); delayedSeek(utterance.start) }}
         >
           {editingField === 'text' && !readOnly ? (
             <textarea
@@ -229,16 +260,43 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
                 e.target.style.height = e.target.scrollHeight + 'px'
               }}
               onBlur={() => { commitInlineEdit(); onStopEditing?.() }}
+              onClick={(e) => e.stopPropagation()}
               className="w-full bg-gray-700 text-gray-200 text-xs px-2 py-1 rounded border border-blue-500 focus:outline-none resize-none"
               data-subtitle-textarea="true"
               rows={1}
             />
           ) : (
-            renderCell('text', utterance.text,
-              highlightTerms && (highlightScope === 'text' || highlightScope === 'both')
-                ? highlightText(utterance.text, highlightTerms)
-                : undefined
-            )
+            <span
+              className="inline-flex items-start gap-1"
+              onDoubleClick={(e) => {
+                if (!readOnly && onStartEditing) {
+                  e.stopPropagation()
+                  cancelSeek()
+                  onStartEditing(index, 'text')
+                }
+              }}
+            >
+              <span className="flex-1">
+                {highlightTerms && (highlightScope === 'text' || highlightScope === 'both')
+                  ? highlightText(utterance.text, highlightTerms)
+                  : utterance.text}
+              </span>
+              {!readOnly && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    cancelSeek()
+                    onStartEditing?.(index, 'text')
+                  }}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-blue-400 shrink-0 mt-0.5"
+                  title={t('editor.editText')}
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                </button>
+              )}
+            </span>
           )}
         </td>
       </tr>
