@@ -5,13 +5,17 @@ import { api } from '../../api/client'
 import { SubtitleRow } from './SubtitleRow'
 import type { Utterance } from '../../api/types'
 
+interface SubtitleEditorProps {
+  onOpenSpeakerModal?: (speakerId?: string) => void
+}
+
 type SearchScope = 'text' | 'speaker' | 'both'
 
 type DisplayEntry =
   | { type: 'utterance'; originalIndex: number; utterance: Utterance; isMatch: boolean }
   | { type: 'separator'; hiddenCount: number }
 
-export function SubtitleEditor() {
+export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
   const { t } = useTranslation()
   const result = useStore((s) => s.transcriptionResult)
   const transcriptionId = useStore((s) => s.transcriptionId)
@@ -43,6 +47,15 @@ export function SubtitleEditor() {
   const utterances = activeView === 'refined' && refinedUtterances
     ? refinedUtterances
     : (result?.utterances || [])
+
+  const speakerColorMap = useMemo(() => {
+    const speakers = new Set<string>()
+    ;(result?.utterances || []).forEach((u) => { if (u.speaker) speakers.add(u.speaker) })
+    const sorted = Array.from(speakers).sort()
+    const map: Record<string, number> = {}
+    sorted.forEach((s, i) => { map[s] = i })
+    return map
+  }, [result])
 
   const activeIndex = utterances.findIndex(
     (u) => currentTime >= u.start && currentTime < u.end
@@ -125,6 +138,10 @@ export function SubtitleEditor() {
       activeRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     }
   }, [activeIndex, debouncedQuery])
+
+  const handleEditSpeaker = useCallback((speakerId: string) => {
+    onOpenSpeakerModal?.(speakerId)
+  }, [onOpenSpeakerModal])
 
   const handleUpdate = useCallback((index: number, field: keyof Utterance, value: string | number) => {
     if (!result) return
@@ -345,6 +362,8 @@ export function SubtitleEditor() {
                     isContext={!entry.isMatch && !!debouncedQuery}
                     speakerMappings={speakerMappings}
                     onUpdate={handleUpdate}
+                    onEditSpeaker={handleEditSpeaker}
+                    speakerColorIndex={entry.utterance.speaker ? speakerColorMap[entry.utterance.speaker] : undefined}
                     highlightTerms={debouncedQuery || undefined}
                     highlightScope={searchScope}
                     isChanged={activeView === 'refined' && (refinementMetadata?.changed_indices.includes(entry.originalIndex) ?? false)}

@@ -22,6 +22,12 @@ function App() {
   const transcriptionResult = useStore((s) => s.transcriptionResult)
   const activeTab = useStore((s) => s.activeTab)
   const [speakerModalOpen, setSpeakerModalOpen] = useState(false)
+  const [focusSpeaker, setFocusSpeaker] = useState<string | undefined>(undefined)
+
+  const handleOpenSpeakerModal = (speakerId?: string) => {
+    setFocusSpeaker(speakerId)
+    setSpeakerModalOpen(true)
+  }
 
   useEffect(() => {
     api.getConfig().then(setConfig).catch(console.error)
@@ -41,10 +47,10 @@ function App() {
       {showEditor && file && (
         <>
           <MediaPlayer fileId={file.id} mediaType={file.media_type} />
-          <TabBar onSpeakerNamesClick={() => setSpeakerModalOpen(true)} />
+          <TabBar onSpeakerNamesClick={() => handleOpenSpeakerModal()} />
 
           <div className="mx-6 my-2">
-            {activeTab === 'subtitles' && <SubtitleEditor />}
+            {activeTab === 'subtitles' && <SubtitleEditor onOpenSpeakerModal={handleOpenSpeakerModal} />}
             {activeTab === 'summary' && <SummaryView />}
             {activeTab === 'protocol' && <ProtocolView />}
             {['srt', 'vtt', 'json', 'txt'].includes(activeTab) && (
@@ -52,7 +58,7 @@ function App() {
             )}
           </div>
 
-          <SpeakerMapping isOpen={speakerModalOpen} onClose={() => setSpeakerModalOpen(false)} />
+          <SpeakerMapping isOpen={speakerModalOpen} onClose={() => { setSpeakerModalOpen(false); setFocusSpeaker(undefined) }} focusSpeaker={focusSpeaker} />
         </>
       )}
 

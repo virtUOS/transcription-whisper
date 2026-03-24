@@ -91,6 +91,7 @@
     "refinementWarningLong": "Diese Transkription hat {{count}} Äußerungen. Die Verfeinerung kann mehrere Minuten dauern.",
     "originalText": "Original",
     "refinedText": "Verfeinert",
+    "editSpeaker": "Sprechername bearbeiten",
     "utteranceChanged": "Vom LLM geändert",
     "search": {
       "placeholder": "Untertitel durchsuchen...",
