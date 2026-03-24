@@ -56,3 +56,31 @@ async def test_generate_protocol_parses_response():
     assert result.key_points[0].speaker == "Alice"
     assert len(result.decisions) == 1
     assert len(result.action_items) == 1
+
+
+@pytest.mark.asyncio
+async def test_generate_refinement_parses_response():
+    provider = OpenAIProvider()
+
+    utterances = [
+        {"start": 0, "end": 3000, "text": "Helo world", "speaker": "Speaker 1"},
+        {"start": 3000, "end": 6000, "text": "This is a test", "speaker": "Speaker 2"},
+    ]
+
+    mock_response = MagicMock()
+    mock_response.choices = [MagicMock()]
+    mock_response.choices[0].message.content = json.dumps({
+        "utterances": [
+            {"start": 0, "end": 3000, "text": "Hello world", "speaker": "Speaker 1"},
+            {"start": 3000, "end": 6000, "text": "This is a test", "speaker": "Speaker 2"},
+        ],
+        "changes_summary": "Fixed typo in first utterance",
+    })
+
+    with patch.object(provider, "_client") as mock_client:
+        mock_client.chat.completions.create = AsyncMock(return_value=mock_response)
+        result = await provider.generate_refinement(json.dumps(utterances))
+
+    assert len(result.utterances) == 2
+    assert result.utterances[0].text == "Hello world"
+    assert result.changes_summary == "Fixed typo in first utterance"
