@@ -9,26 +9,27 @@
 - Configurable access to OpenAI's Whisper models (tiny, base, small, medium, large-v1, large-v2, large-v3, large-v3-turbo).
 - Supports upload of video and audio files (up to 1GB).
 - In-browser audio and video recording with device selection and level metering.
-- Editable transcription results with inline subtitle editing synchronized with video playback.
+- Editable transcription results with inline subtitle editing synchronized with video playback — click any text cell to edit, Tab/Shift+Tab to navigate between rows, Escape to exit.
 - Subtitle search with text and speaker scope filtering, context display around matches.
 - Export and download in 4 formats (TXT, VTT, SRT and JSON).
 - Diarization support to detect and label multiple speakers (up to 20).
-- Speaker mapping to assign custom names to detected speakers.
+- Speaker mapping to assign custom names to detected speakers — hover pencil icon on any speaker cell, color-coded speaker dots, name suggestions from existing names.
 - SRT, VTT and JSON formats provide timestamp and speaker information (when available).
 - Transcribed subtitles can be activated in uploaded videos.
 - Initial prompt support to provide context for the transcription.
 - Hotwords support to improve recognition of rare or technical terms.
-- LLM-powered summary generation with automatic chapter segmentation (OpenAI or Ollama).
-- Selectable output language for summaries and protocols, defaulting to the detected transcript language.
-- Optional user-defined chapter hints to guide LLM chapter segmentation.
-- Individual chapter deletion from generated summaries.
-- LLM-powered protocol generation with key points, decisions, and action items.
+- Unified Analysis tab with selectable templates: summary with chapters, meeting protocol, agenda-based notes, or fully custom prompts.
+- Selectable output language for analysis results, defaulting to the detected transcript language.
+- Optional user-defined chapter hints and agenda to guide LLM analysis.
+- Editable LLM prompts — view and customize the prompt before generating analysis results.
 - LLM-powered transcription refinement to fix spelling, punctuation, terminology, filler words, and disfluencies — with original/refined toggle, per-utterance diff view, and changes summary.
+- LLM-powered caption translation to any supported language with Original/Translated view toggle and cached results.
 - Inline file renaming in transcription history.
-- Delete and regenerate summaries and protocols.
+- Copy, download, and delete generated analysis results.
 - LLM provider and model attribution display on generated content.
-- Transcription history with persistent storage.
+- Transcription history as default landing page with persistent storage.
 - Real-time progress updates via WebSocket.
+- Responsive layout — mobile-friendly UI with no horizontal overflow on small screens.
 - System audio capture for recording online meetings (experimental; best on Chrome/Edge on Windows).
 - Internationalization support (English and German).
 
@@ -62,7 +63,7 @@ ASR_MAX_CONCURRENT=3              # max concurrent WhisperX requests
 WHISPER_MODELS=base,large-v3,large-v3-turbo
 DEFAULT_WHISPER_MODEL=base
 
-# LLM Configuration (for summaries, protocols, and transcription refinement)
+# LLM Configuration (for analysis, translation, and transcription refinement)
 LLM_PROVIDER=openai               # or: ollama (openai works with any OpenAI-compatible API like vLLM)
 LLM_MODEL=gpt-4o
 LLM_API_KEY=                      # required for OpenAI / OpenAI-compatible APIs
@@ -144,13 +145,13 @@ The application includes comprehensive Prometheus metrics for monitoring usage a
   - `transcription_speaker_renames_total` — Speaker mapping updates
   - `transcription_downloads_total` — Exports/downloads by format
 
-- **LLM (Summaries, Protocols & Refinement)**:
+- **LLM (Analysis, Translation & Refinement)**:
   - `transcription_llm_requests_total` — LLM requests by provider, model, and operation
   - `transcription_llm_duration_seconds` — LLM request duration by provider, model, and operation
   - `transcription_llm_errors_total` — LLM errors by provider, model, and operation
 
 - **Deletions**:
-  - `transcription_deletions_total` — Resource deletions by type (transcription/summary/protocol/refinement)
+  - `transcription_deletions_total` — Resource deletions by type (transcription/analysis/translation/refinement)
 
 - **WebSocket**:
   - `transcription_websocket_connections_active` — Active WebSocket connections
