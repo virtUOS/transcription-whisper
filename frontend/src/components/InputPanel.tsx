@@ -12,8 +12,10 @@ export function InputPanel() {
   const unsavedEdits = useStore((s) => s.unsavedEdits)
   const reset = useStore((s) => s.reset)
 
+  const transcriptionId = useStore((s) => s.transcriptionId)
+
   function switchTab(tab: 'upload' | 'record') {
-    if (tab === activeTab) return
+    if (tab === activeTab && !transcriptionId) return
     if (file) {
       if (unsavedEdits) {
         if (!window.confirm(t('recorder.unsavedSwitchTab'))) return
