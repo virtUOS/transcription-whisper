@@ -70,7 +70,7 @@ export function SettingsPanel() {
             ))}
           </select>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 py-1.5">
           <input type="checkbox" checked={detectSpeakers} onChange={(e) => setDetectSpeakers(e.target.checked)} className="rounded" />
           <label className="text-sm text-gray-300">{t('settings.detectSpeakers')}</label>
         </div>
