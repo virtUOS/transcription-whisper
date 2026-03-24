@@ -48,6 +48,7 @@ export interface TranscriptionListItem {
   language: string | null
   model: string | null
   created_at: string
+  file_size: number
 }
 
 export interface ChapterHint {

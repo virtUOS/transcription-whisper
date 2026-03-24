@@ -296,7 +296,7 @@ async def delete_transcription(transcription_id: str, user: UserInfo = Depends(g
 async def list_transcriptions(user: UserInfo = Depends(get_current_user)):
     async with get_db() as db:
         cursor = await db.execute(
-            """SELECT t.id, t.file_id, f.original_filename, t.status, t.language, t.model, t.created_at
+            """SELECT t.id, t.file_id, f.original_filename, t.status, t.language, t.model, t.created_at, f.file_size
                FROM transcriptions t
                JOIN files f ON t.file_id = f.id
                WHERE t.user_id = ?
@@ -309,7 +309,7 @@ async def list_transcriptions(user: UserInfo = Depends(get_current_user)):
         TranscriptionListItem(
             id=r["id"], file_id=r["file_id"], original_filename=r["original_filename"],
             status=r["status"], language=r["language"], model=r["model"],
-            created_at=r["created_at"],
+            created_at=r["created_at"], file_size=r["file_size"],
         ).model_dump()
         for r in rows
     ]

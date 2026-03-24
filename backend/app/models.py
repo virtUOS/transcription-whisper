@@ -58,6 +58,7 @@ class TranscriptionListItem(BaseModel):
     language: str | None = None
     model: str | None = None
     created_at: str
+    file_size: int = 0
 
 
 class SpeakerMappingRequest(BaseModel):

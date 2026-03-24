@@ -37,7 +37,7 @@ export function TranscriptionList() {
     setTranscriptionId(item.id)
     setTranscriptionStatus(item.status)
     const ext = item.original_filename.split('.').pop()?.toLowerCase() || ''
-    setFile({ id: item.file_id, original_filename: item.original_filename, media_type: ext, file_size: 0 })
+    setFile({ id: item.file_id, original_filename: item.original_filename, media_type: ext, file_size: item.file_size })
     if (item.status === 'completed') {
       const result = await api.getTranscription(item.id)
       setResult(result)
