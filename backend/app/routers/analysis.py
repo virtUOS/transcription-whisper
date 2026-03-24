@@ -1,0 +1,246 @@
+import json
+import time
+from fastapi import APIRouter, Depends, HTTPException
+from app.config import settings
+from app.dependencies import get_current_user
+from app.models import UserInfo, AnalysisRequest
+from app.database import get_db
+from app.services.llm import get_llm_provider
+from app.services.llm.prompt import (
+    format_transcript_for_llm,
+    build_analysis_system_prompt,
+    list_analysis_templates,
+    chunk_transcript,
+    build_consolidation_prompt,
+)
+from app.metrics import inc, observe, llm_requests_total, llm_duration_seconds, llm_errors_total, deletions_total, errors_total
+
+router = APIRouter()
+
+
+@router.get("/api/analysis/templates")
+async def get_templates():
+    """Return the list of available analysis templates."""
+    return list_analysis_templates()
+
+
+@router.post("/api/analysis/{transcription_id}")
+async def generate_analysis(
+    transcription_id: str,
+    body: AnalysisRequest | None = None,
+    user: UserInfo = Depends(get_current_user),
+):
+    provider = get_llm_provider()
+    if not provider:
+        raise HTTPException(status_code=503, detail="LLM provider not configured")
+
+    template_name = body.template if body else "summary"
+    custom_prompt = body.custom_prompt if body else None
+    request_language = body.language if body else None
+    chapter_hints = body.chapter_hints if body and body.chapter_hints else None
+    agenda = body.agenda if body else None
+
+    async with get_db() as db:
+        # Check for existing cached analysis
+        cursor = await db.execute(
+            "SELECT analysis_json, template, custom_prompt, language, llm_provider, llm_model FROM analyses WHERE transcription_id = ?",
+            (transcription_id,),
+        )
+        existing = await cursor.fetchone()
+
+        if existing and existing["analysis_json"]:
+            # Check if cache matches current request
+            cached_template = existing["template"]
+            cached_prompt = existing["custom_prompt"]
+            cached_language = existing["language"]
+            if cached_template == template_name and cached_prompt == custom_prompt and cached_language == request_language:
+                data = json.loads(existing["analysis_json"])
+                data["llm_provider"] = existing["llm_provider"]
+                data["llm_model"] = existing["llm_model"]
+                return data
+            # Parameters differ — delete cached result to regenerate
+            await db.execute("DELETE FROM analyses WHERE transcription_id = ?", (transcription_id,))
+            await db.commit()
+            existing = None
+
+        # Rate limit: reject if analysis is already in progress
+        if existing and not existing["analysis_json"]:
+            raise HTTPException(status_code=429, detail="Analysis generation already in progress")
+
+        # Get transcription
+        cursor = await db.execute(
+            "SELECT result_json, language FROM transcriptions WHERE id = ? AND user_id = ? AND status = 'completed'",
+            (transcription_id, user.id),
+        )
+        row = await cursor.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Transcription not found")
+
+        result_json = row["result_json"]
+        analysis_language = request_language or row["language"]
+
+        # Get speaker mappings
+        cursor = await db.execute(
+            "SELECT original_label, custom_name FROM speaker_mappings WHERE transcription_id = ?",
+            (transcription_id,),
+        )
+        mapping_rows = await cursor.fetchall()
+        speaker_map = {r["original_label"]: r["custom_name"] for r in mapping_rows} if mapping_rows else None
+
+        # Insert placeholder row to mark generation as in-progress
+        await db.execute(
+            """INSERT OR IGNORE INTO analyses (transcription_id, analysis_json, template, custom_prompt, language, llm_provider, llm_model)
+               VALUES (?, NULL, ?, ?, ?, ?, ?)""",
+            (transcription_id, template_name, custom_prompt, request_language, settings.LLM_PROVIDER, settings.LLM_MODEL),
+        )
+        await db.commit()
+
+    utterances = json.loads(result_json or "[]")
+    transcript = format_transcript_for_llm(utterances, speaker_map)
+
+    # For built-in templates (summary, protocol), delegate to existing provider methods
+    # which handle chunking and consolidation internally
+    start_time = time.monotonic()
+    try:
+        if not custom_prompt and template_name == "summary":
+            result_obj = await provider.generate_summary(transcript, chapter_hints, analysis_language)
+            result_data = result_obj.model_dump()
+            result_data["template"] = "summary"
+            result_data["language"] = analysis_language
+        elif not custom_prompt and template_name == "protocol":
+            # Optionally fetch existing summary as context
+            async with get_db() as db:
+                cursor = await db.execute(
+                    "SELECT summary_json FROM summaries WHERE transcription_id = ?",
+                    (transcription_id,),
+                )
+                summary_row = await cursor.fetchone()
+                summary_context = summary_row["summary_json"] if summary_row and summary_row["summary_json"] else None
+            result_obj = await provider.generate_protocol(transcript, summary_context, analysis_language)
+            result_data = result_obj.model_dump()
+            result_data["template"] = "protocol"
+            result_data["language"] = analysis_language
+        else:
+            # Custom prompt or other templates — call LLM directly
+            system_prompt, schema = build_analysis_system_prompt(
+                template_name=template_name,
+                custom_prompt=custom_prompt,
+                language=analysis_language,
+                chapter_hints=chapter_hints,
+                agenda=agenda,
+            )
+            result_data = await _generate_with_chunking(provider, transcript, system_prompt, schema, analysis_language)
+            result_data["template"] = template_name
+            result_data["custom_prompt"] = custom_prompt
+            result_data["language"] = analysis_language
+    except Exception:
+        inc(llm_errors_total, settings.LLM_PROVIDER, settings.LLM_MODEL, "analysis")
+        inc(errors_total, "llm_failed", "analysis")
+        # Remove placeholder on failure so user can retry
+        async with get_db() as db:
+            await db.execute("DELETE FROM analyses WHERE transcription_id = ? AND analysis_json IS NULL", (transcription_id,))
+            await db.commit()
+        raise
+
+    duration = time.monotonic() - start_time
+    inc(llm_requests_total, settings.LLM_PROVIDER, settings.LLM_MODEL, "analysis")
+    observe(llm_duration_seconds, duration, settings.LLM_PROVIDER, settings.LLM_MODEL, "analysis")
+
+    # Store completed analysis
+    async with get_db() as db:
+        await db.execute(
+            """UPDATE analyses SET analysis_json = ?, template = ?, custom_prompt = ?, language = ?, llm_provider = ?, llm_model = ?
+               WHERE transcription_id = ?""",
+            (json.dumps(result_data), template_name, custom_prompt, request_language, settings.LLM_PROVIDER, settings.LLM_MODEL, transcription_id),
+        )
+        await db.commit()
+
+    result_data["llm_provider"] = settings.LLM_PROVIDER
+    result_data["llm_model"] = settings.LLM_MODEL
+    return result_data
+
+
+async def _generate_with_chunking(provider, transcript: str, system_prompt: str, schema: dict, language: str | None) -> dict:
+    """Generate analysis using the LLM, with chunking for long transcripts."""
+    from app.services.llm.prompt import _language_name
+
+    chunks = chunk_transcript(transcript)
+
+    if len(chunks) == 1:
+        return await _call_llm(provider, chunks[0], system_prompt)
+
+    # Multi-chunk: generate for each chunk, then consolidate
+    chunk_results = []
+    for chunk in chunks:
+        result = await _call_llm(provider, chunk, system_prompt)
+        chunk_results.append(json.dumps(result))
+
+    # Consolidate
+    language_instruction = f"Respond in {_language_name(language)}. " if language else "Respond in the same language as the content above. "
+    consolidation_prompt = f"""You were given a long transcript split into chunks. Here are the analysis results of each chunk:
+
+{chr(10).join(chunk_results)}
+
+Consolidate these into a single unified result. {language_instruction}Respond ONLY with valid JSON."""
+
+    return await _call_llm(provider, consolidation_prompt, system_prompt)
+
+
+async def _call_llm(provider, user_content: str, system_prompt: str) -> dict:
+    """Make a raw LLM call through the provider's underlying client."""
+    # Access the provider's client directly for custom analysis calls
+    if hasattr(provider, "_client"):
+        # OpenAI-compatible provider
+        response = await provider._client.chat.completions.create(
+            model=provider._model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_content},
+            ],
+            temperature=0.3,
+            response_format={"type": "json_object"},
+        )
+        content = response.choices[0].message.content or "{}"
+        return json.loads(content)
+    elif hasattr(provider, "_base_url"):
+        # Ollama provider
+        import httpx
+        async with httpx.AsyncClient(timeout=300) as client:
+            resp = await client.post(
+                f"{provider._base_url}/api/chat",
+                json={
+                    "model": provider._model,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_content},
+                    ],
+                    "stream": False,
+                    "format": "json",
+                },
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            return json.loads(data["message"]["content"])
+    else:
+        raise HTTPException(status_code=503, detail="Unsupported LLM provider for analysis")
+
+
+@router.delete("/api/analysis/{transcription_id}")
+async def delete_analysis(
+    transcription_id: str,
+    user: UserInfo = Depends(get_current_user),
+):
+    async with get_db() as db:
+        cursor = await db.execute(
+            "SELECT id FROM transcriptions WHERE id = ? AND user_id = ?",
+            (transcription_id, user.id),
+        )
+        if not await cursor.fetchone():
+            raise HTTPException(status_code=404, detail="Transcription not found")
+
+        await db.execute("DELETE FROM analyses WHERE transcription_id = ?", (transcription_id,))
+        await db.commit()
+
+    inc(deletions_total, "analysis")
+
+    return {"status": "deleted"}

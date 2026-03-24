@@ -331,3 +331,94 @@ Individual summaries:
 {summaries}
 
 Return a single combined summary string (not JSON, just the text)."""
+
+
+ANALYSIS_TEMPLATES = {
+    "summary": {
+        "name": "Summary with chapters",
+        "description": "Overall summary with chapter breakdown",
+        "system_prompt": SYSTEM_PROMPT,
+        "schema": SUMMARY_SCHEMA,
+    },
+    "protocol": {
+        "name": "Meeting protocol",
+        "description": "Structured meeting notes with key points, decisions, and action items",
+        "system_prompt": PROTOCOL_SYSTEM_PROMPT,
+        "schema": PROTOCOL_SCHEMA,
+    },
+    "agenda": {
+        "name": "Agenda-based notes",
+        "description": "Notes structured around a provided agenda",
+        "system_prompt": """You are a meeting note generator. Given a timestamped transcript and an agenda, produce structured notes following the agenda items.
+
+For each agenda item, summarize what was discussed, any decisions made, and action items.
+
+{language_instruction}The agenda:
+{agenda}
+
+Respond ONLY with valid JSON matching this schema:
+{schema}
+
+Do not include any text outside the JSON object.""",
+        "schema": SUMMARY_SCHEMA,
+    },
+}
+
+
+def get_analysis_template(name: str) -> dict | None:
+    return ANALYSIS_TEMPLATES.get(name)
+
+
+def list_analysis_templates() -> list[dict]:
+    return [
+        {"id": k, "name": v["name"], "description": v["description"], "default_prompt": v["system_prompt"]}
+        for k, v in ANALYSIS_TEMPLATES.items()
+    ]
+
+
+def build_analysis_system_prompt(
+    template_name: str | None = None,
+    custom_prompt: str | None = None,
+    language: str | None = None,
+    chapter_hints: list | None = None,
+    agenda: str | None = None,
+) -> tuple[str, dict]:
+    """Build the system prompt and schema for an analysis request.
+    Returns (system_prompt, json_schema)."""
+    language_instruction = f"Respond in {_language_name(language)}.\n" if language else ""
+
+    if custom_prompt:
+        # User provided a custom prompt — use it with a flexible schema
+        prompt = custom_prompt
+        if language_instruction:
+            prompt = language_instruction + prompt
+        # For custom prompts, use a permissive schema
+        schema = {"type": "object"}
+        return prompt, schema
+
+    template = ANALYSIS_TEMPLATES.get(template_name or "summary")
+    if not template:
+        template = ANALYSIS_TEMPLATES["summary"]
+
+    system_prompt = template["system_prompt"]
+    schema = template["schema"]
+
+    # Handle template-specific formatting
+    if template_name == "agenda" and agenda:
+        system_prompt = system_prompt.format(
+            language_instruction=language_instruction,
+            agenda=agenda,
+            schema=json.dumps(schema, indent=2),
+        )
+    elif template_name == "summary":
+        # Reuse existing summary prompt builder logic
+        return build_system_prompt(chapter_hints, language), schema
+    elif template_name == "protocol":
+        return build_protocol_system_prompt(language), schema
+    else:
+        system_prompt = system_prompt.format(
+            language_instruction=language_instruction,
+            schema=json.dumps(schema, indent=2),
+        )
+
+    return system_prompt, schema

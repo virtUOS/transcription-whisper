@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import init_db, get_db
-from app.routers import config_router, upload, transcription, summary, protocol, refinement
+from app.routers import config_router, upload, transcription, summary, protocol, refinement, analysis
 from app.metrics import inc, cleanup_runs_total, cleanup_items_deleted_total
 
 
@@ -36,6 +36,8 @@ async def cleanup_old_files():
                 summaries_deleted = cursor.rowcount
                 cursor = await db.execute("DELETE FROM protocols WHERE transcription_id IN (SELECT id FROM transcriptions WHERE created_at < ?)", (cutoff.isoformat(),))
                 protocols_deleted = cursor.rowcount
+                cursor = await db.execute("DELETE FROM analyses WHERE transcription_id IN (SELECT id FROM transcriptions WHERE created_at < ?)", (cutoff.isoformat(),))
+                analyses_deleted = cursor.rowcount
                 cursor = await db.execute("DELETE FROM speaker_mappings WHERE transcription_id IN (SELECT id FROM transcriptions WHERE created_at < ?)", (cutoff.isoformat(),))
                 mappings_deleted = cursor.rowcount
                 cursor = await db.execute("DELETE FROM transcriptions WHERE created_at < ?", (cutoff.isoformat(),))
@@ -49,6 +51,7 @@ async def cleanup_old_files():
             inc(cleanup_items_deleted_total, "transcription", amount=transcriptions_deleted)
             inc(cleanup_items_deleted_total, "summary", amount=summaries_deleted)
             inc(cleanup_items_deleted_total, "protocol", amount=protocols_deleted)
+            inc(cleanup_items_deleted_total, "analysis", amount=analyses_deleted)
             inc(cleanup_items_deleted_total, "speaker_mapping", amount=mappings_deleted)
         except Exception as e:
             inc(cleanup_runs_total, "failed")
@@ -80,6 +83,7 @@ app.include_router(transcription.router)
 app.include_router(summary.router)
 app.include_router(protocol.router)
 app.include_router(refinement.router)
+app.include_router(analysis.router)
 
 # Serve frontend static files (only when built files exist, i.e., in Docker)
 from fastapi.staticfiles import StaticFiles
