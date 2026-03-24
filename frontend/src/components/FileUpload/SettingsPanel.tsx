@@ -49,29 +49,29 @@ export function SettingsPanel() {
   return (
     <div className="px-6 py-3 bg-gray-800 border-b border-gray-700 space-y-3">
       <div className="flex flex-wrap gap-4 items-end">
-        <div>
+        <div className="min-w-0">
           <label className="block text-xs text-gray-400 mb-1">{t('settings.language')}</label>
-          <select value={language} onChange={(e) => setLanguage(e.target.value)} className="bg-gray-700 text-white text-sm rounded px-3 py-1.5">
+          <select value={language} onChange={(e) => setLanguage(e.target.value)} className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5">
             {LANGUAGES_WITH_AUTO.map((code) => (
               <option key={code} value={code}>{t(`languages.${code}`, code)}</option>
             ))}
           </select>
         </div>
-        <div>
+        <div className="min-w-0">
           <label className="block text-xs text-gray-400 mb-1">{t('settings.model')}</label>
-          <select value={model} onChange={(e) => setModel(e.target.value)} className="bg-gray-700 text-white text-sm rounded px-3 py-1.5">
+          <select value={model} onChange={(e) => setModel(e.target.value)} className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5">
             {(config?.whisper_models || []).map((m) => (
               <option key={m} value={m}>{m}</option>
             ))}
           </select>
         </div>
-        <div className="flex items-center gap-2 py-1.5">
-          <input type="checkbox" checked={detectSpeakers} onChange={(e) => setDetectSpeakers(e.target.checked)} className="rounded" />
+        <div className="flex items-center gap-2 py-1.5 min-w-0">
+          <input type="checkbox" checked={detectSpeakers} onChange={(e) => setDetectSpeakers(e.target.checked)} className="rounded shrink-0" />
           <label className="text-sm text-gray-300">{t('settings.detectSpeakers')}</label>
         </div>
         {detectSpeakers && (
           <>
-            <div>
+            <div className="min-w-0">
               <label className="block text-xs text-gray-400 mb-1">{t('settings.minSpeakers')}</label>
               <input type="number" min={1} max={20} value={minSpeakers} onChange={(e) => {
                 const val = Math.max(1, Math.min(20, Number(e.target.value)))
@@ -79,7 +79,7 @@ export function SettingsPanel() {
                 if (val > maxSpeakers) setMaxSpeakers(val)
               }} className="bg-gray-700 text-white text-sm rounded px-3 py-1.5 w-16" />
             </div>
-            <div>
+            <div className="min-w-0">
               <label className="block text-xs text-gray-400 mb-1">{t('settings.maxSpeakers')}</label>
               <input type="number" min={1} max={20} value={maxSpeakers} onChange={(e) => {
                 const val = Math.max(1, Math.min(20, Number(e.target.value)))
@@ -89,10 +89,10 @@ export function SettingsPanel() {
             </div>
           </>
         )}
-        <button onClick={() => setShowAdvanced(!showAdvanced)} className="text-sm text-blue-400 hover:text-blue-300">
+        <button onClick={() => setShowAdvanced(!showAdvanced)} className="text-sm text-blue-400 hover:text-blue-300 shrink-0">
           {t('settings.advancedOptions')} {showAdvanced ? '▲' : '▼'}
         </button>
-        <button onClick={handleTranscribe} disabled={!file || submitting} className="ml-auto px-4 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-500 disabled:opacity-50">
+        <button onClick={handleTranscribe} disabled={!file || submitting} className="ml-auto px-4 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-500 disabled:opacity-50 shrink-0">
           {submitting ? t('common.loading') : t('transcription.transcribe')}
         </button>
       </div>
@@ -100,12 +100,12 @@ export function SettingsPanel() {
         <div className="text-red-400 text-sm px-1">{error}</div>
       )}
       {showAdvanced && (
-        <div className="flex gap-4">
-          <div className="flex-1">
+        <div className="flex flex-wrap gap-4">
+          <div className="flex-1 min-w-[200px]">
             <label className="block text-xs text-gray-400 mb-1">{t('settings.initialPrompt')}</label>
             <textarea value={initialPrompt} onChange={(e) => setInitialPrompt(e.target.value)} placeholder={t('settings.initialPromptHelp')} className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5 h-16 resize-none" />
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-[200px]">
             <label className="block text-xs text-gray-400 mb-1">{t('settings.hotwords')}</label>
             <input value={hotwords} onChange={(e) => setHotwords(e.target.value)} placeholder={t('settings.hotwordsHelp')} className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5" />
           </div>

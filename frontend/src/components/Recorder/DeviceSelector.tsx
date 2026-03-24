@@ -74,13 +74,13 @@ export function DeviceSelector({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-3">
-        <label className="text-sm text-gray-300 min-w-24">{t('recorder.selectMic')}</label>
+      <div className="flex items-center gap-3 min-w-0">
+        <label className="text-sm text-gray-300 min-w-24 shrink-0">{t('recorder.selectMic')}</label>
         <select
           value={audioDeviceId}
           onChange={(e) => onAudioDeviceChange(e.target.value)}
           disabled={disabled}
-          className="flex-1 bg-gray-700 text-white rounded-lg px-3 py-2 text-sm disabled:opacity-50"
+          className="flex-1 min-w-0 bg-gray-700 text-white rounded-lg px-3 py-2 text-sm disabled:opacity-50"
         >
           {audioDevices.map((d) => (
             <option key={d.deviceId} value={d.deviceId}>
@@ -142,13 +142,13 @@ export function DeviceSelector({
       )}
 
       {!captureSystemAudio && useCamera && (
-        <div className="flex items-center gap-3">
-          <label className="text-sm text-gray-300 min-w-24">{t('recorder.selectCamera')}</label>
+        <div className="flex items-center gap-3 min-w-0">
+          <label className="text-sm text-gray-300 min-w-24 shrink-0">{t('recorder.selectCamera')}</label>
           <select
             value={videoDeviceId}
             onChange={(e) => onVideoDeviceChange(e.target.value)}
             disabled={disabled}
-            className="flex-1 bg-gray-700 text-white rounded-lg px-3 py-2 text-sm disabled:opacity-50"
+            className="flex-1 min-w-0 bg-gray-700 text-white rounded-lg px-3 py-2 text-sm disabled:opacity-50"
           >
             {videoDevices.map((d) => (
               <option key={d.deviceId} value={d.deviceId}>

@@ -15,7 +15,7 @@ export function Header() {
         <img src={`${import.meta.env.BASE_URL}whisper-logo.svg`} alt="Transcription Service" className="h-8 w-8 shrink-0" />
         <h1 className="text-lg font-semibold text-white truncate">{t('title')}</h1>
       </div>
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-4">
         <button
           onClick={toggleLanguage}
           className="text-sm text-gray-300 hover:text-white"

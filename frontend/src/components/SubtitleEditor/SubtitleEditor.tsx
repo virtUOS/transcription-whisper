@@ -307,7 +307,7 @@ export function SubtitleEditor() {
 
       {/* Scrollable subtitle table */}
       <div ref={containerRef} className="overflow-auto max-h-[calc(100vh-22rem)]">
-        <table className="w-full border-collapse text-sm">
+        <table className="w-full border-collapse text-sm table-fixed">
           <thead>
             <tr className="bg-gray-800 text-gray-400 text-xs">
               <th className="px-3 py-2 text-left w-10">#</th>

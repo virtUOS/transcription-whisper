@@ -121,7 +121,7 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
               : undefined
           )}
         </td>
-        <td className="px-3 py-2 text-gray-200">
+        <td className="px-3 py-2 text-gray-200 break-words">
           {renderCell('text', utterance.text,
             highlightTerms && (highlightScope === 'text' || highlightScope === 'both')
               ? highlightText(utterance.text, highlightTerms)
