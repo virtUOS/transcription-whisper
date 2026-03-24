@@ -22,7 +22,7 @@ export function Header() {
           title={i18n.language === 'de' ? 'Switch to English' : 'Auf Deutsch wechseln'}
           aria-label={i18n.language === 'de' ? 'Switch to English' : 'Auf Deutsch wechseln'}
         >
-          {i18n.language.toUpperCase()}
+          {(i18n.language === 'de' ? 'en' : 'de').toUpperCase()}
         </button>
         {config?.logout_url && (
           <button
