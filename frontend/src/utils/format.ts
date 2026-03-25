@@ -21,3 +21,13 @@ export function downloadText(content: string, filename: string) {
   a.click()
   URL.revokeObjectURL(url)
 }
+
+export function downloadMarkdown(content: string, filename: string) {
+  const blob = new Blob([content], { type: 'text/markdown' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}

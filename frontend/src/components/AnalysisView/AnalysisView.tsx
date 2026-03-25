@@ -4,7 +4,7 @@ import { useStore } from '../../store'
 import { api } from '../../api/client'
 import { ChapterCard } from '../SummaryView/ChapterCard'
 import { ProtocolCard } from '../ProtocolView/ProtocolCard'
-import { formatTime, downloadText } from '../../utils/format'
+import { formatTime, downloadText, downloadMarkdown } from '../../utils/format'
 import { LANGUAGES } from '../../utils/languages'
 import type { AnalysisTemplate, ChapterHint, SummaryChapter } from '../../api/types'
 
@@ -74,6 +74,49 @@ function resultToText(result: unknown, t: (key: string) => string): string {
       })
     }
     return text.trimEnd()
+  }
+  if (typeof result === 'string') return result
+  return JSON.stringify(result, null, 2)
+}
+
+function resultToMarkdown(result: unknown, t: (key: string) => string): string {
+  if (isSummaryShape(result)) {
+    let md = result.summary + '\n'
+    if (result.chapters.length > 0) {
+      md += '\n'
+      result.chapters.forEach((ch, i) => {
+        md += `### ${i + 1}. ${ch.title}\n`
+        md += `*${formatTime(ch.start_time)} — ${formatTime(ch.end_time)}*\n\n`
+        md += `${ch.summary}\n\n`
+      })
+    }
+    return md.trimEnd()
+  }
+  if (isProtocolShape(result)) {
+    let md = `# ${t('editor.protocol')}: ${result.title}\n\n`
+    md += `**${t('editor.participants')}:** ${result.participants.join(', ')}\n`
+    if (result.key_points.length > 0) {
+      md += `\n## ${t('editor.keyPoints')}\n\n`
+      result.key_points.forEach((kp, i) => {
+        const ts = kp.timestamp !== null ? `[${formatTime(kp.timestamp)}] ` : ''
+        md += `${i + 1}. **${ts}${kp.speaker}** — ${kp.topic}\n   ${kp.content}\n\n`
+      })
+    }
+    if (result.decisions.length > 0) {
+      md += `## ${t('editor.decisions')}\n\n`
+      result.decisions.forEach((d, i) => {
+        const ts = d.timestamp !== null ? `**[${formatTime(d.timestamp)}]** ` : ''
+        md += `${i + 1}. ${ts}${d.decision}\n\n`
+      })
+    }
+    if (result.action_items.length > 0) {
+      md += `## ${t('editor.actionItems')}\n\n`
+      result.action_items.forEach((ai) => {
+        const ts = ai.timestamp !== null ? ` *(${formatTime(ai.timestamp)})*` : ''
+        md += `- [ ] **${ai.assignee}** — ${ai.task}${ts}\n`
+      })
+    }
+    return md.trimEnd()
   }
   if (typeof result === 'string') return result
   return JSON.stringify(result, null, 2)
@@ -255,6 +298,7 @@ export function AnalysisView() {
   // Result display
   if (analysisResult) {
     const fullText = resultToText(analysisResult, t)
+    const fullMarkdown = resultToMarkdown(analysisResult, t)
 
     return (
       <div className="p-4 space-y-4">
@@ -354,7 +398,11 @@ export function AnalysisView() {
           </button>
           <button onClick={() => downloadText(fullText, `${baseName}_analysis.txt`)} className={btnDownload}>
             {downloadIcon}
-            {t('analysis.downloadResult')}
+            TXT
+          </button>
+          <button onClick={() => downloadMarkdown(fullMarkdown, `${baseName}_analysis.md`)} className={btnDownload}>
+            {downloadIcon}
+            Markdown
           </button>
         </div>
 
