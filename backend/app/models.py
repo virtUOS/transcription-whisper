@@ -59,6 +59,8 @@ class TranscriptionListItem(BaseModel):
     model: str | None = None
     created_at: str
     file_size: int = 0
+    expires_at: str
+    archived: bool = False
 
 
 class SpeakerMappingRequest(BaseModel):

@@ -2,7 +2,7 @@ import asyncio
 import json
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
 from app.config import settings
 from app.dependencies import get_current_user
@@ -291,11 +291,32 @@ async def delete_transcription(transcription_id: str, user: UserInfo = Depends(g
     return {"status": "deleted"}
 
 
+@router.post("/api/transcription/{transcription_id}/archive")
+async def archive_transcription(transcription_id: str, user: UserInfo = Depends(get_current_user)):
+    async with get_db() as db:
+        cursor = await db.execute(
+            "SELECT file_id FROM transcriptions WHERE id = ? AND user_id = ?",
+            (transcription_id, user.id),
+        )
+        row = await cursor.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Transcription not found")
+
+        expires_at = (datetime.now(timezone.utc) + timedelta(hours=settings.ARCHIVE_EXPIRY_HOURS)).isoformat()
+        await db.execute(
+            "UPDATE files SET expires_at = ?, is_archived = 1 WHERE id = ?",
+            (expires_at, row["file_id"]),
+        )
+        await db.commit()
+
+    return {"status": "archived", "expires_at": expires_at}
+
+
 @router.get("/api/transcriptions")
 async def list_transcriptions(user: UserInfo = Depends(get_current_user)):
     async with get_db() as db:
         cursor = await db.execute(
-            """SELECT t.id, t.file_id, f.original_filename, t.status, t.language, t.model, t.created_at, f.file_size
+            """SELECT t.id, t.file_id, f.original_filename, t.status, t.language, t.model, t.created_at, f.file_size, f.expires_at, f.is_archived
                FROM transcriptions t
                JOIN files f ON t.file_id = f.id
                WHERE t.user_id = ?
@@ -309,6 +330,7 @@ async def list_transcriptions(user: UserInfo = Depends(get_current_user)):
             id=r["id"], file_id=r["file_id"], original_filename=r["original_filename"],
             status=r["status"], language=r["language"], model=r["model"],
             created_at=r["created_at"], file_size=r["file_size"],
+            expires_at=r["expires_at"], archived=bool(r["is_archived"]),
         ).model_dump()
         for r in rows
     ]
