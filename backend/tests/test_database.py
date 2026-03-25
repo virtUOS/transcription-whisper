@@ -14,7 +14,7 @@ async def test_init_db_creates_tables(tmp_db_path):
     assert "files" in tables
     assert "transcriptions" in tables
     assert "speaker_mappings" in tables
-    assert "summaries" in tables
+    assert "analyses" in tables
 
 
 @pytest.mark.asyncio
