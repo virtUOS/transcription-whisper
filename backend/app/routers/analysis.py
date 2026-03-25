@@ -244,3 +244,51 @@ async def delete_analysis(
     inc(deletions_total, "analysis")
 
     return {"status": "deleted"}
+
+
+@router.delete("/api/analysis/{transcription_id}/items/{field}/{item_index}")
+async def delete_analysis_item(
+    transcription_id: str,
+    field: str,
+    item_index: int,
+    user: UserInfo = Depends(get_current_user),
+):
+    ALLOWED_FIELDS = {"chapters", "key_points", "decisions", "action_items"}
+    if field not in ALLOWED_FIELDS:
+        raise HTTPException(status_code=400, detail=f"Field must be one of: {', '.join(sorted(ALLOWED_FIELDS))}")
+
+    async with get_db() as db:
+        cursor = await db.execute(
+            "SELECT id FROM transcriptions WHERE id = ? AND user_id = ?",
+            (transcription_id, user.id),
+        )
+        if not await cursor.fetchone():
+            raise HTTPException(status_code=404, detail="Transcription not found")
+
+        cursor = await db.execute(
+            "SELECT analysis_json, llm_provider, llm_model FROM analyses WHERE transcription_id = ?",
+            (transcription_id,),
+        )
+        row = await cursor.fetchone()
+        if not row or not row["analysis_json"]:
+            raise HTTPException(status_code=404, detail="Analysis not found")
+
+        data = json.loads(row["analysis_json"])
+        items = data.get(field)
+        if not isinstance(items, list):
+            raise HTTPException(status_code=400, detail=f"Field '{field}' is not a list in this analysis")
+        if item_index < 0 or item_index >= len(items):
+            raise HTTPException(status_code=404, detail="Item not found")
+
+        items.pop(item_index)
+        data[field] = items
+
+        await db.execute(
+            "UPDATE analyses SET analysis_json = ? WHERE transcription_id = ?",
+            (json.dumps(data), transcription_id),
+        )
+        await db.commit()
+
+    data["llm_provider"] = row["llm_provider"]
+    data["llm_model"] = row["llm_model"]
+    return data
