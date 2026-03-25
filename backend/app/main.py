@@ -16,7 +16,7 @@ async def cleanup_old_files():
     while True:
         await asyncio.sleep(3600)  # Check every hour
         try:
-            now = datetime.now(timezone.utc).isoformat()
+            now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
             async with get_db() as db:
                 # Subquery for expired file IDs, skipping files with in-flight transcriptions
                 expired_files_q = """

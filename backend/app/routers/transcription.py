@@ -272,6 +272,7 @@ async def delete_transcription(transcription_id: str, user: UserInfo = Depends(g
         )
         file_row = await file_cursor.fetchone()
 
+        await db.execute("DELETE FROM analyses WHERE transcription_id = ?", (transcription_id,))
         await db.execute("DELETE FROM speaker_mappings WHERE transcription_id = ?", (transcription_id,))
         await db.execute("DELETE FROM transcriptions WHERE id = ?", (transcription_id,))
         await db.execute("DELETE FROM files WHERE id = ?", (file_id,))
@@ -302,7 +303,7 @@ async def archive_transcription(transcription_id: str, user: UserInfo = Depends(
         if not row:
             raise HTTPException(status_code=404, detail="Transcription not found")
 
-        expires_at = (datetime.now(timezone.utc) + timedelta(hours=settings.ARCHIVE_EXPIRY_HOURS)).isoformat()
+        expires_at = (datetime.now(timezone.utc) + timedelta(hours=settings.ARCHIVE_EXPIRY_HOURS)).strftime("%Y-%m-%d %H:%M:%S")
         await db.execute(
             "UPDATE files SET expires_at = ?, is_archived = 1 WHERE id = ?",
             (expires_at, row["file_id"]),

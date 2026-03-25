@@ -93,6 +93,10 @@ async def init_db(db_path: str) -> None:
             "UPDATE files SET expires_at = datetime(created_at, '+' || ? || ' hours') WHERE expires_at IS NULL",
             (str(settings.DEFAULT_EXPIRY_HOURS),),
         )
+        # Normalize any ISO-format (T-separator) timestamps to SQLite format (space-separator)
+        await db.execute(
+            "UPDATE files SET expires_at = strftime('%Y-%m-%d %H:%M:%S', expires_at) WHERE expires_at LIKE '%T%'"
+        )
         await db.commit()
 
 

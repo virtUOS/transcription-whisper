@@ -57,7 +57,7 @@ async def upload_file(
     mp3_path = await convert_to_mp3(file_path)
 
     media_type = ext.lstrip(".")
-    expires_at = (datetime.now(timezone.utc) + timedelta(hours=settings.DEFAULT_EXPIRY_HOURS)).isoformat()
+    expires_at = (datetime.now(timezone.utc) + timedelta(hours=settings.DEFAULT_EXPIRY_HOURS)).strftime("%Y-%m-%d %H:%M:%S")
 
     async with get_db() as db:
         # Ensure user exists

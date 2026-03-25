@@ -116,7 +116,7 @@ export function TranscriptionList() {
   }
 
   const isExpiringSoon = (expiresAt: string) => {
-    const remaining = new Date(expiresAt).getTime() - Date.now()
+    const remaining = new Date(expiresAt + 'Z').getTime() - Date.now()
     return remaining < 24 * 60 * 60 * 1000 // < 24 hours
   }
 
@@ -247,7 +247,7 @@ export function TranscriptionList() {
               {item.status}
             </span>
             <span className="text-gray-500 text-xs">
-              {new Date(item.created_at).toLocaleDateString()}
+              {new Date(item.created_at + 'Z').toLocaleDateString('de-DE')}
             </span>
             {item.archived ? (
               <span className="text-xs text-blue-400" title={t('transcription.archived')}>
@@ -267,7 +267,7 @@ export function TranscriptionList() {
               </button>
             )}
             <span className={`text-xs ${isExpiringSoon(item.expires_at) ? 'text-red-400' : 'text-gray-500'}`}>
-              {t('transcription.expiresOn', { date: new Date(item.expires_at).toLocaleDateString() })}
+              {t('transcription.expiresOn', { date: new Date(item.expires_at + 'Z').toLocaleDateString('de-DE') })}
             </span>
             <button
               onClick={(e) => handleDelete(e, item.id)}
