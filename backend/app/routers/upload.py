@@ -1,5 +1,6 @@
 import os
 import uuid
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, UploadFile, HTTPException
 from fastapi.responses import FileResponse
 from app.config import settings
@@ -56,6 +57,7 @@ async def upload_file(
     mp3_path = await convert_to_mp3(file_path)
 
     media_type = ext.lstrip(".")
+    expires_at = (datetime.now(timezone.utc) + timedelta(hours=settings.DEFAULT_EXPIRY_HOURS)).isoformat()
 
     async with get_db() as db:
         # Ensure user exists
@@ -64,8 +66,8 @@ async def upload_file(
             (user.id, user.email),
         )
         await db.execute(
-            "INSERT INTO files (id, user_id, original_filename, file_path, mp3_path, media_type, file_size) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (file_id, user.id, file.filename, file_path, mp3_path, media_type, file_size),
+            "INSERT INTO files (id, user_id, original_filename, file_path, mp3_path, media_type, file_size, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (file_id, user.id, file.filename, file_path, mp3_path, media_type, file_size, expires_at),
         )
         await db.commit()
 

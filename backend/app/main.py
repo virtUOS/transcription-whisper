@@ -12,33 +12,59 @@ from app.metrics import inc, cleanup_runs_total, cleanup_items_deleted_total
 
 
 async def cleanup_old_files():
-    """Periodically delete files and DB records older than CLEANUP_TTL_HOURS."""
+    """Periodically delete files and DB records that have passed their expires_at."""
     while True:
         await asyncio.sleep(3600)  # Check every hour
         try:
-            cutoff = datetime.now(timezone.utc) - timedelta(hours=settings.CLEANUP_TTL_HOURS)
+            now = datetime.now(timezone.utc).isoformat()
             async with get_db() as db:
-                # Get old files to delete from disk
+                # Subquery for expired file IDs, skipping files with in-flight transcriptions
+                expired_files_q = """
+                    SELECT id FROM files
+                    WHERE expires_at < ?
+                    AND id NOT IN (
+                        SELECT file_id FROM transcriptions
+                        WHERE status IN ('pending', 'processing')
+                    )
+                """
+
+                # Get expired files to delete from disk
                 cursor = await db.execute(
-                    "SELECT file_path, mp3_path FROM files WHERE created_at < ?",
-                    (cutoff.isoformat(),),
+                    f"SELECT file_path, mp3_path FROM files WHERE id IN ({expired_files_q})",
+                    (now,),
                 )
                 rows = await cursor.fetchall()
                 files_deleted = 0
                 for row in rows:
                     for path in [row["file_path"], row["mp3_path"]]:
                         if path and os.path.exists(path):
-                            os.unlink(path)
-                            files_deleted += 1
+                            try:
+                                os.unlink(path)
+                                files_deleted += 1
+                            except OSError:
+                                pass
 
-                # Delete old DB records (cascade via foreign keys)
-                cursor = await db.execute("DELETE FROM analyses WHERE transcription_id IN (SELECT id FROM transcriptions WHERE created_at < ?)", (cutoff.isoformat(),))
+                # Delete related DB records
+                expired_transcriptions_q = f"SELECT id FROM transcriptions WHERE file_id IN ({expired_files_q})"
+                cursor = await db.execute(
+                    f"DELETE FROM analyses WHERE transcription_id IN ({expired_transcriptions_q})",
+                    (now,),
+                )
                 analyses_deleted = cursor.rowcount
-                cursor = await db.execute("DELETE FROM speaker_mappings WHERE transcription_id IN (SELECT id FROM transcriptions WHERE created_at < ?)", (cutoff.isoformat(),))
+                cursor = await db.execute(
+                    f"DELETE FROM speaker_mappings WHERE transcription_id IN ({expired_transcriptions_q})",
+                    (now,),
+                )
                 mappings_deleted = cursor.rowcount
-                cursor = await db.execute("DELETE FROM transcriptions WHERE created_at < ?", (cutoff.isoformat(),))
+                cursor = await db.execute(
+                    f"DELETE FROM transcriptions WHERE file_id IN ({expired_files_q})",
+                    (now,),
+                )
                 transcriptions_deleted = cursor.rowcount
-                cursor = await db.execute("DELETE FROM files WHERE created_at < ?", (cutoff.isoformat(),))
+                cursor = await db.execute(
+                    f"DELETE FROM files WHERE id IN ({expired_files_q})",
+                    (now,),
+                )
                 db_files_deleted = cursor.rowcount
                 await db.commit()
 

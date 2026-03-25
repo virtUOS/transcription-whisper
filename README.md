@@ -28,6 +28,7 @@
 - Copy, download, and delete generated analysis results.
 - LLM provider and model attribution display on generated content.
 - Transcription history as default landing page with persistent storage.
+- Per-item expiration with configurable retention — files expire after a default period (3 days), with an "archive" action to extend retention (180 days).
 - Real-time progress updates via WebSocket.
 - Responsive layout — mobile-friendly UI with no horizontal overflow on small screens.
 - System audio capture for recording online meetings (experimental; best on Chrome/Edge on Windows).
@@ -73,7 +74,8 @@ LLM_BASE_URL=                     # for custom endpoints (e.g., vLLM, Ollama: ht
 TEMP_PATH=tmp/transcription-files
 FFMPEG_PATH=ffmpeg
 LOGOUT_URL=/oauth2/sign_out
-CLEANUP_TTL_HOURS=168             # auto-delete files older than this (default 7 days)
+DEFAULT_EXPIRY_HOURS=72           # auto-delete files after this many hours (default 3 days)
+ARCHIVE_EXPIRY_HOURS=4320         # archived files kept for this many hours (default 180 days)
 DATABASE_PATH=                    # SQLite DB path, defaults to {TEMP_PATH}/transcription.db
 
 # Metrics

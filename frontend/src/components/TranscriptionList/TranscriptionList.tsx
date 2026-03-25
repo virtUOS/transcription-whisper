@@ -12,8 +12,6 @@ export function TranscriptionList() {
   const setTranscriptionStatus = useStore((s) => s.setTranscriptionStatus)
   const setResult = useStore((s) => s.setTranscriptionResult)
   const setSpeakerMappings = useStore((s) => s.setSpeakerMappings)
-  const setSummary = useStore((s) => s.setSummary)
-  const setProtocol = useStore((s) => s.setProtocol)
   const setFile = useStore((s) => s.setFile)
   const setRefinedUtterances = useStore((s) => s.setRefinedUtterances)
   const setRefinementMetadata = useStore((s) => s.setRefinementMetadata)
@@ -53,8 +51,6 @@ export function TranscriptionList() {
         const result = await api.getTranscription(item.id)
         setResult(result)
         setSpeakerMappings(result.speaker_mappings || {})
-        setSummary(result.summary || null)
-        setProtocol(result.protocol || null)
         try {
           const refinement = await api.getRefinement(item.id)
           setRefinedUtterances(refinement.utterances)
@@ -86,12 +82,42 @@ export function TranscriptionList() {
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation()
+    if (!confirm(t('transcription.confirmDelete'))) return
     try {
       await api.deleteTranscription(id)
       setHistory(history.filter((item) => item.id !== id))
     } catch (err) {
       console.error('Delete failed:', err)
     }
+  }
+
+  const handleArchive = async (e: React.MouseEvent, item: TranscriptionListItem) => {
+    e.stopPropagation()
+    // Optimistic update
+    const currentHistory = useStore.getState().transcriptionHistory
+    setHistory(currentHistory.map((h) =>
+      h.id === item.id ? { ...h, archived: true, expires_at: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString() } : h
+    ))
+    try {
+      const result = await api.archiveTranscription(item.id)
+      // Update with server-provided expires_at
+      const updatedHistory = useStore.getState().transcriptionHistory
+      setHistory(updatedHistory.map((h) =>
+        h.id === item.id ? { ...h, archived: true, expires_at: result.expires_at } : h
+      ))
+    } catch (err) {
+      console.error('Archive failed:', err)
+      // Revert on failure
+      const revertHistory = useStore.getState().transcriptionHistory
+      setHistory(revertHistory.map((h) =>
+        h.id === item.id ? { ...h, archived: item.archived, expires_at: item.expires_at } : h
+      ))
+    }
+  }
+
+  const isExpiringSoon = (expiresAt: string) => {
+    const remaining = new Date(expiresAt).getTime() - Date.now()
+    return remaining < 24 * 60 * 60 * 1000 // < 24 hours
   }
 
   const handleRenameStart = useCallback((e: React.MouseEvent, item: TranscriptionListItem) => {
@@ -222,6 +248,26 @@ export function TranscriptionList() {
             </span>
             <span className="text-gray-500 text-xs">
               {new Date(item.created_at).toLocaleDateString()}
+            </span>
+            {item.archived ? (
+              <span className="text-xs text-blue-400" title={t('transcription.archived')}>
+                <svg className="w-3.5 h-3.5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8" />
+                </svg>
+              </span>
+            ) : (
+              <button
+                onClick={(e) => handleArchive(e, item)}
+                className="text-gray-500 hover:text-blue-400 text-xs px-1"
+                title={t('transcription.archive')}
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8" />
+                </svg>
+              </button>
+            )}
+            <span className={`text-xs ${isExpiringSoon(item.expires_at) ? 'text-red-400' : 'text-gray-500'}`}>
+              {t('transcription.expiresOn', { date: new Date(item.expires_at).toLocaleDateString() })}
             </span>
             <button
               onClick={(e) => handleDelete(e, item.id)}

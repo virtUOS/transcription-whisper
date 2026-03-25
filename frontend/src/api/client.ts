@@ -74,6 +74,9 @@ export const api = {
   deleteTranscription: (id: string) =>
     request<{ status: string }>(`/api/transcription/${id}`, { method: 'DELETE' }),
 
+  archiveTranscription: (id: string) =>
+    request<{ status: string; expires_at: string }>(`/api/transcription/${id}/archive`, { method: 'POST' }),
+
   listTranscriptions: () => request<TranscriptionListItem[]>('/api/transcriptions'),
 
   renameFile: (fileId: string, filename: string) =>

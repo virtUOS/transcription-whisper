@@ -27,7 +27,11 @@
     "failed": "Transkription fehlgeschlagen",
     "delete": "Transkription löschen",
     "history": "Meine Transkriptionen",
-    "doubleClickToRename": "Doppelklick zum Umbenennen"
+    "doubleClickToRename": "Doppelklick zum Umbenennen",
+    "archive": "Archivieren",
+    "archived": "Archiviert",
+    "expiresOn": "Läuft ab: {{date}}",
+    "confirmDelete": "Sind Sie sicher, dass Sie diese Transkription löschen möchten? Dies kann nicht rückgängig gemacht werden."
   },
   "editor": {
     "subtitles": "Untertitel",
