@@ -1,4 +1,4 @@
-from fastapi import Request
+from fastapi import HTTPException, Request
 from app.models import UserInfo
 
 
@@ -11,4 +11,4 @@ async def get_current_user(request: Request) -> UserInfo:
     elif email:
         return UserInfo(id=email, email=email)
     else:
-        return UserInfo(id="anonymous")
+        raise HTTPException(status_code=401, detail="Missing authentication headers")

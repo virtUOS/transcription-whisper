@@ -1,11 +1,11 @@
 import pytest
 from unittest.mock import MagicMock
-from fastapi import Request
+from fastapi import HTTPException, Request
 from app.dependencies import get_current_user
 
 
 @pytest.mark.asyncio
-async def test_get_user_from_forwarded_header():
+async def test_get_user_from_auth_request_header():
     request = MagicMock(spec=Request)
     request.headers = {"X-Auth-Request-User": "jdoe"}
     user = await get_current_user(request)
@@ -22,8 +22,9 @@ async def test_get_user_from_email_header():
 
 
 @pytest.mark.asyncio
-async def test_get_user_anonymous_fallback():
+async def test_missing_auth_headers_raises_401():
     request = MagicMock(spec=Request)
     request.headers = {}
-    user = await get_current_user(request)
-    assert user.id == "anonymous"
+    with pytest.raises(HTTPException) as exc_info:
+        await get_current_user(request)
+    assert exc_info.value.status_code == 401

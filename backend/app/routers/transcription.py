@@ -353,7 +353,10 @@ async def websocket_status(websocket: WebSocket, transcription_id: str):
     gauge_inc(websocket_connections_active)
     try:
         # Extract user from headers (same as get_current_user dependency)
-        user_id = websocket.headers.get("x-auth-request-user", "anonymous")
+        user_id = websocket.headers.get("x-auth-request-user")
+        if not user_id:
+            await websocket.close(code=4001, reason="Missing authentication")
+            return
 
         # Verify user owns this transcription
         async with get_db() as db:
