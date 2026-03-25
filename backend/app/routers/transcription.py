@@ -353,7 +353,7 @@ async def websocket_status(websocket: WebSocket, transcription_id: str):
     gauge_inc(websocket_connections_active)
     try:
         # Extract user from headers (same as get_current_user dependency)
-        user_id = websocket.headers.get("x-forwarded-user", "anonymous")
+        user_id = websocket.headers.get("x-auth-request-user", "anonymous")
 
         # Verify user owns this transcription
         async with get_db() as db:
