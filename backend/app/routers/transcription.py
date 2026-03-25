@@ -157,20 +157,12 @@ async def get_transcription(transcription_id: str, user: UserInfo = Depends(get_
         mapping_rows = await cursor.fetchall()
         speaker_mappings = {r["original_label"]: r["custom_name"] for r in mapping_rows} if mapping_rows else {}
 
-        cursor = await db.execute(
-            "SELECT protocol_json FROM protocols WHERE transcription_id = ?",
-            (transcription_id,),
-        )
-        protocol_row = await cursor.fetchone()
-        protocol = json.loads(protocol_row["protocol_json"]) if protocol_row and protocol_row["protocol_json"] else None
-
     return {
         "id": row["id"], "status": row["status"],
         "utterances": [u.model_dump() for u in utterances],
         "text": " ".join(u.text for u in utterances),
         "language": row["language"],
         "speaker_mappings": speaker_mappings,
-        "protocol": protocol,
     }
 
 
@@ -280,7 +272,6 @@ async def delete_transcription(transcription_id: str, user: UserInfo = Depends(g
         )
         file_row = await file_cursor.fetchone()
 
-        await db.execute("DELETE FROM protocols WHERE transcription_id = ?", (transcription_id,))
         await db.execute("DELETE FROM speaker_mappings WHERE transcription_id = ?", (transcription_id,))
         await db.execute("DELETE FROM transcriptions WHERE id = ?", (transcription_id,))
         await db.execute("DELETE FROM files WHERE id = ?", (file_id,))

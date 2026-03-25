@@ -1,7 +1,7 @@
 import type {
   FileInfo, TranscriptionSettings, TranscriptionStatus,
   TranscriptionResult, TranscriptionListItem, ConfigResponse,
-  ProtocolResult, RefinementResult,
+  RefinementResult,
   AnalysisTemplate, AnalysisGenerateRequest, Utterance,
 } from './types'
 
@@ -81,17 +81,6 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify({ filename }),
     }),
-
-  generateProtocol: (id: string, language?: string) => {
-    const options: RequestInit = { method: 'POST' }
-    if (language) {
-      options.body = JSON.stringify({ language })
-    }
-    return request<ProtocolResult>(`/api/protocol/${id}`, options)
-  },
-
-  deleteProtocol: (id: string) =>
-    request<{ status: string }>(`/api/protocol/${id}`, { method: 'DELETE' }),
 
   generateRefinement: (id: string, context?: string) =>
     request<RefinementResult>(`/api/refine/${id}`, {
