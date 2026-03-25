@@ -48,14 +48,6 @@ CREATE TABLE IF NOT EXISTS speaker_mappings (
     PRIMARY KEY (transcription_id, original_label)
 );
 
-CREATE TABLE IF NOT EXISTS summaries (
-    transcription_id TEXT PRIMARY KEY REFERENCES transcriptions(id),
-    summary_json TEXT,
-    llm_provider TEXT,
-    llm_model TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE TABLE IF NOT EXISTS protocols (
     transcription_id TEXT PRIMARY KEY REFERENCES transcriptions(id),
     protocol_json TEXT,

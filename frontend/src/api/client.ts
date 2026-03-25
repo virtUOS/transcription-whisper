@@ -1,7 +1,7 @@
 import type {
   FileInfo, TranscriptionSettings, TranscriptionStatus,
   TranscriptionResult, TranscriptionListItem, ConfigResponse,
-  SummaryResult, ProtocolResult, ChapterHint, RefinementResult,
+  ProtocolResult, RefinementResult,
   AnalysisTemplate, AnalysisGenerateRequest, Utterance,
 } from './types'
 
@@ -81,23 +81,6 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify({ filename }),
     }),
-
-  generateSummary: (id: string, chapterHints?: ChapterHint[], language?: string) => {
-    const options: RequestInit = { method: 'POST' }
-    if (chapterHints?.length || language) {
-      options.body = JSON.stringify({
-        ...(chapterHints?.length ? { chapter_hints: chapterHints } : {}),
-        ...(language ? { language } : {}),
-      })
-    }
-    return request<SummaryResult>(`/api/summarize/${id}`, options)
-  },
-
-  deleteChapter: (id: string, chapterIndex: number) =>
-    request<SummaryResult>(`/api/summarize/${id}/chapters/${chapterIndex}`, { method: 'DELETE' }),
-
-  deleteSummary: (id: string) =>
-    request<{ status: string }>(`/api/summarize/${id}`, { method: 'DELETE' }),
 
   generateProtocol: (id: string, language?: string) => {
     const options: RequestInit = { method: 'POST' }

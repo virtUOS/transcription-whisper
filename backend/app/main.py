@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import init_db, get_db
-from app.routers import config_router, upload, transcription, summary, protocol, refinement, analysis, translation
+from app.routers import config_router, upload, transcription, protocol, refinement, analysis, translation
 from app.metrics import inc, cleanup_runs_total, cleanup_items_deleted_total
 
 
@@ -32,8 +32,6 @@ async def cleanup_old_files():
                             files_deleted += 1
 
                 # Delete old DB records (cascade via foreign keys)
-                cursor = await db.execute("DELETE FROM summaries WHERE transcription_id IN (SELECT id FROM transcriptions WHERE created_at < ?)", (cutoff.isoformat(),))
-                summaries_deleted = cursor.rowcount
                 cursor = await db.execute("DELETE FROM protocols WHERE transcription_id IN (SELECT id FROM transcriptions WHERE created_at < ?)", (cutoff.isoformat(),))
                 protocols_deleted = cursor.rowcount
                 cursor = await db.execute("DELETE FROM analyses WHERE transcription_id IN (SELECT id FROM transcriptions WHERE created_at < ?)", (cutoff.isoformat(),))
@@ -49,7 +47,6 @@ async def cleanup_old_files():
             inc(cleanup_runs_total, "success")
             inc(cleanup_items_deleted_total, "file", amount=files_deleted + db_files_deleted)
             inc(cleanup_items_deleted_total, "transcription", amount=transcriptions_deleted)
-            inc(cleanup_items_deleted_total, "summary", amount=summaries_deleted)
             inc(cleanup_items_deleted_total, "protocol", amount=protocols_deleted)
             inc(cleanup_items_deleted_total, "analysis", amount=analyses_deleted)
             inc(cleanup_items_deleted_total, "speaker_mapping", amount=mappings_deleted)
@@ -80,7 +77,6 @@ if settings.DEV_MODE:
 app.include_router(config_router.router)
 app.include_router(upload.router)
 app.include_router(transcription.router)
-app.include_router(summary.router)
 app.include_router(protocol.router)
 app.include_router(refinement.router)
 app.include_router(analysis.router)

@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { FileInfo, TranscriptionResult, TranscriptionListItem, ConfigResponse, SummaryResult, ProtocolResult, Utterance, RefinementMetadata } from '../api/types'
+import type { FileInfo, TranscriptionResult, TranscriptionListItem, ConfigResponse, ProtocolResult, Utterance, RefinementMetadata } from '../api/types'
 
 type AppView = 'archive' | 'upload' | 'record' | 'detail'
 
@@ -18,8 +18,6 @@ interface AppState {
   setTranscriptionResult: (result: TranscriptionResult | null) => void
   speakerMappings: Record<string, string>
   setSpeakerMappings: (mappings: Record<string, string>) => void
-  summary: SummaryResult | null
-  setSummary: (summary: SummaryResult | null) => void
   protocol: ProtocolResult | null
   setProtocol: (protocol: ProtocolResult | null) => void
   transcriptionHistory: TranscriptionListItem[]
@@ -68,8 +66,6 @@ export const useStore = create<AppState>((set) => ({
   setTranscriptionResult: (result) => set({ transcriptionResult: result }),
   speakerMappings: {},
   setSpeakerMappings: (mappings) => set({ speakerMappings: mappings }),
-  summary: null,
-  setSummary: (summary) => set({ summary }),
   protocol: null,
   setProtocol: (protocol) => set({ protocol }),
   transcriptionHistory: [],
@@ -103,7 +99,7 @@ export const useStore = create<AppState>((set) => ({
   reset: () => set({
     currentView: 'archive' as const,
     file: null, transcriptionId: null, transcriptionStatus: null,
-    transcriptionResult: null, speakerMappings: {}, summary: null, protocol: null,
+    transcriptionResult: null, speakerMappings: {}, protocol: null,
     currentTime: 0, seekTo: null, activeTab: 'subtitles', unsavedEdits: false,
     refinedUtterances: null, refinementMetadata: null, activeView: 'original' as const,
     translatedUtterances: null, translationLanguage: null,

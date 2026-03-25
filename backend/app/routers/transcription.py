@@ -158,13 +158,6 @@ async def get_transcription(transcription_id: str, user: UserInfo = Depends(get_
         speaker_mappings = {r["original_label"]: r["custom_name"] for r in mapping_rows} if mapping_rows else {}
 
         cursor = await db.execute(
-            "SELECT summary_json FROM summaries WHERE transcription_id = ?",
-            (transcription_id,),
-        )
-        summary_row = await cursor.fetchone()
-        summary = json.loads(summary_row["summary_json"]) if summary_row and summary_row["summary_json"] else None
-
-        cursor = await db.execute(
             "SELECT protocol_json FROM protocols WHERE transcription_id = ?",
             (transcription_id,),
         )
@@ -177,7 +170,6 @@ async def get_transcription(transcription_id: str, user: UserInfo = Depends(get_
         "text": " ".join(u.text for u in utterances),
         "language": row["language"],
         "speaker_mappings": speaker_mappings,
-        "summary": summary,
         "protocol": protocol,
     }
 
@@ -289,7 +281,6 @@ async def delete_transcription(transcription_id: str, user: UserInfo = Depends(g
         file_row = await file_cursor.fetchone()
 
         await db.execute("DELETE FROM protocols WHERE transcription_id = ?", (transcription_id,))
-        await db.execute("DELETE FROM summaries WHERE transcription_id = ?", (transcription_id,))
         await db.execute("DELETE FROM speaker_mappings WHERE transcription_id = ?", (transcription_id,))
         await db.execute("DELETE FROM transcriptions WHERE id = ?", (transcription_id,))
         await db.execute("DELETE FROM files WHERE id = ?", (file_id,))

@@ -108,15 +108,7 @@ async def generate_analysis(
             result_data["template"] = "summary"
             result_data["language"] = analysis_language
         elif not custom_prompt and template_name == "protocol":
-            # Optionally fetch existing summary as context
-            async with get_db() as db:
-                cursor = await db.execute(
-                    "SELECT summary_json FROM summaries WHERE transcription_id = ?",
-                    (transcription_id,),
-                )
-                summary_row = await cursor.fetchone()
-                summary_context = summary_row["summary_json"] if summary_row and summary_row["summary_json"] else None
-            result_obj = await provider.generate_protocol(transcript, summary_context, analysis_language)
+            result_obj = await provider.generate_protocol(transcript, None, analysis_language)
             result_data = result_obj.model_dump()
             result_data["template"] = "protocol"
             result_data["language"] = analysis_language
