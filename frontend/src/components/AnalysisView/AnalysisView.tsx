@@ -220,14 +220,18 @@ export function AnalysisView() {
     const r = analysisResult as Record<string, unknown> | null
     return r?.template as string | null ?? analysisTemplate
   })()
+  const translateTemplateName = (id: string) =>
+    t(`analysis.template${id.charAt(0).toUpperCase()}${id.slice(1)}`,
+      templates.find((tp) => tp.id === id)?.name ?? id)
+
   const templateLabel = resolvedTemplate
-    ? (templates.find((tp) => tp.id === resolvedTemplate)?.name ?? resolvedTemplate)
+    ? translateTemplateName(resolvedTemplate)
     : t('analysis.customPrompt')
 
   // Loading state
   if (loading) {
     const generatingLabel = selectedTemplate
-      ? (templates.find((tp) => tp.id === selectedTemplate)?.name ?? selectedTemplate)
+      ? translateTemplateName(selectedTemplate)
       : t('analysis.customPrompt')
 
     return (
@@ -378,7 +382,7 @@ export function AnalysisView() {
               }`}
               title={tpl.description}
             >
-              {t(`analysis.template${tpl.id.charAt(0).toUpperCase()}${tpl.id.slice(1)}`, tpl.name)}
+              {translateTemplateName(tpl.id)}
             </button>
           ))}
           <button
