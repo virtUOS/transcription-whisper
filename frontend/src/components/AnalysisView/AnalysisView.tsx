@@ -191,6 +191,16 @@ export function AnalysisView() {
     }
   }
 
+  const handleDeleteItem = useCallback(async (field: string, index: number) => {
+    if (!transcriptionId) return
+    try {
+      const updated = await api.deleteAnalysisItem(transcriptionId, field, index)
+      setAnalysisResult(updated)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Delete failed')
+    }
+  }, [transcriptionId, setAnalysisResult])
+
   const handleDelete = async () => {
     if (!transcriptionId || !confirm(t('analysis.confirmDelete'))) return
     try {
@@ -266,7 +276,7 @@ export function AnalysisView() {
                 <h2 className="text-sm font-medium text-gray-400 mb-2">{t('editor.chapters')}</h2>
                 <div className="space-y-2">
                   {analysisResult.chapters.map((ch, i) => (
-                    <ChapterCard key={i} chapter={ch} index={i} />
+                    <ChapterCard key={i} chapter={ch} index={i} onDelete={() => handleDeleteItem('chapters', i)} />
                   ))}
                 </div>
               </div>
@@ -287,7 +297,7 @@ export function AnalysisView() {
                 <h2 className="text-sm font-medium text-gray-400 mb-2">{t('editor.keyPoints')}</h2>
                 <div className="space-y-2">
                   {analysisResult.key_points.map((kp, i) => (
-                    <ProtocolCard key={i} timestamp={kp.timestamp} label={`${kp.speaker} — ${kp.topic}`} description={kp.content} />
+                    <ProtocolCard key={i} timestamp={kp.timestamp} label={`${kp.speaker} — ${kp.topic}`} description={kp.content} onDelete={() => handleDeleteItem('key_points', i)} />
                   ))}
                 </div>
               </div>
@@ -297,7 +307,7 @@ export function AnalysisView() {
                 <h2 className="text-sm font-medium text-gray-400 mb-2">{t('editor.decisions')}</h2>
                 <div className="space-y-2">
                   {analysisResult.decisions.map((d, i) => (
-                    <ProtocolCard key={i} timestamp={d.timestamp} label={d.decision} description="" />
+                    <ProtocolCard key={i} timestamp={d.timestamp} label={d.decision} description="" onDelete={() => handleDeleteItem('decisions', i)} />
                   ))}
                 </div>
               </div>
@@ -307,7 +317,7 @@ export function AnalysisView() {
                 <h2 className="text-sm font-medium text-gray-400 mb-2">{t('editor.actionItems')}</h2>
                 <div className="space-y-2">
                   {analysisResult.action_items.map((ai, i) => (
-                    <ProtocolCard key={i} timestamp={ai.timestamp} label={ai.assignee} description={ai.task} />
+                    <ProtocolCard key={i} timestamp={ai.timestamp} label={ai.assignee} description={ai.task} onDelete={() => handleDeleteItem('action_items', i)} />
                   ))}
                 </div>
               </div>

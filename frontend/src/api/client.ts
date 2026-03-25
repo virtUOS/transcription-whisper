@@ -133,6 +133,9 @@ export const api = {
   deleteAnalysis: (id: string) =>
     request<void>(`/api/analysis/${id}`, { method: 'DELETE' }),
 
+  deleteAnalysisItem: (id: string, field: string, index: number) =>
+    request<unknown>(`/api/analysis/${id}/items/${field}/${index}`, { method: 'DELETE' }),
+
   translateTranscription: (id: string, targetLanguage: string) =>
     request<{ utterances: Utterance[], language: string }>(`/api/translate/${id}`, {
       method: 'POST',
