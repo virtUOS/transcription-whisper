@@ -129,4 +129,12 @@ export const api = {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
     return new WebSocket(`${protocol}//${window.location.host}${BASE}/api/ws/status/${transcriptionId}`)
   },
+
+  connectLiveWebSocket: (language?: string): WebSocket => {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+    const params = new URLSearchParams()
+    if (language) params.set('language', language)
+    const query = params.toString() ? `?${params.toString()}` : ''
+    return new WebSocket(`${protocol}//${window.location.host}${BASE}/api/ws/live${query}`)
+  },
 }

@@ -187,3 +187,4 @@ class ConfigResponse(BaseModel):
     default_model: str
     llm_available: bool
     logout_url: str
+    live_transcription_available: bool = False

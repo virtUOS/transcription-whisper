@@ -1,7 +1,7 @@
 import { create } from 'zustand'
-import type { FileInfo, TranscriptionResult, TranscriptionListItem, ConfigResponse, Utterance, RefinementMetadata } from '../api/types'
+import type { FileInfo, TranscriptionResult, TranscriptionListItem, ConfigResponse, Utterance, RefinementMetadata, LiveTranscriptionLine } from '../api/types'
 
-type AppView = 'archive' | 'upload' | 'record' | 'detail'
+type AppView = 'archive' | 'upload' | 'record' | 'detail' | 'live'
 
 interface AppState {
   currentView: AppView
@@ -46,6 +46,14 @@ interface AppState {
   setAnalysisTemplate: (template: string | null) => void
   setAnalysisPrompt: (prompt: string | null) => void
   clearRefinement: () => void
+  liveSessionActive: boolean
+  liveTranscriptionId: string | null
+  liveLines: LiveTranscriptionLine[]
+  liveBufferText: string
+  setLiveSessionActive: (active: boolean) => void
+  setLiveTranscriptionId: (id: string | null) => void
+  setLiveLines: (lines: LiveTranscriptionLine[]) => void
+  setLiveBufferText: (text: string) => void
   reset: () => void
 }
 
@@ -92,6 +100,14 @@ export const useStore = create<AppState>((set) => ({
   setAnalysisTemplate: (template) => set({ analysisTemplate: template }),
   setAnalysisPrompt: (prompt) => set({ analysisPrompt: prompt }),
   clearRefinement: () => set({ refinedUtterances: null, refinementMetadata: null, activeView: 'original' as const }),
+  liveSessionActive: false,
+  liveTranscriptionId: null,
+  liveLines: [],
+  liveBufferText: '',
+  setLiveSessionActive: (active) => set({ liveSessionActive: active }),
+  setLiveTranscriptionId: (id) => set({ liveTranscriptionId: id }),
+  setLiveLines: (lines) => set({ liveLines: lines }),
+  setLiveBufferText: (text) => set({ liveBufferText: text }),
   reset: () => set({
     currentView: 'archive' as const,
     file: null, transcriptionId: null, transcriptionStatus: null,
@@ -100,5 +116,6 @@ export const useStore = create<AppState>((set) => ({
     refinedUtterances: null, refinementMetadata: null, activeView: 'original' as const,
     translatedUtterances: null, translationLanguage: null,
     analysisResult: null, analysisTemplate: null, analysisPrompt: null,
+    liveSessionActive: false, liveTranscriptionId: null, liveLines: [], liveBufferText: '',
   }),
 }))

@@ -280,6 +280,20 @@
     "newUpload": "Upload",
     "newRecording": "Record"
   },
+  "live": {
+    "title": "Live Transcription",
+    "language": "Language",
+    "autoDetect": "Auto-detect",
+    "start": "Start Live Transcription",
+    "stop": "Stop",
+    "finishing": "Finishing...",
+    "recording": "Recording",
+    "waitingForSpeech": "Waiting for speech...",
+    "sessionComplete": "Session complete! Your transcription has been saved.",
+    "viewResult": "View Transcription",
+    "errorStarting": "Failed to start live transcription",
+    "live": "Live"
+  },
   "common": {
     "loading": "Loading...",
     "error": "Error",

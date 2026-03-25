@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import init_db, get_db
-from app.routers import config_router, upload, transcription, refinement, analysis, translation
+from app.routers import config_router, upload, transcription, refinement, analysis, translation, live
 from app.metrics import inc, cleanup_runs_total, cleanup_items_deleted_total
 
 
@@ -24,7 +24,7 @@ async def cleanup_old_files():
                     WHERE expires_at < ?
                     AND id NOT IN (
                         SELECT file_id FROM transcriptions
-                        WHERE status IN ('pending', 'processing')
+                        WHERE status IN ('pending', 'processing', 'live')
                     )
                 """
 
@@ -103,6 +103,7 @@ app.include_router(transcription.router)
 app.include_router(refinement.router)
 app.include_router(analysis.router)
 app.include_router(translation.router)
+app.include_router(live.router)
 
 # Serve frontend static files (only when built files exist, i.e., in Docker)
 from fastapi.staticfiles import StaticFiles

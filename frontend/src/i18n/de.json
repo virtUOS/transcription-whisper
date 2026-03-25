@@ -280,6 +280,20 @@
     "newUpload": "Hochladen",
     "newRecording": "Aufnehmen"
   },
+  "live": {
+    "title": "Live-Transkription",
+    "language": "Sprache",
+    "autoDetect": "Automatisch erkennen",
+    "start": "Live-Transkription starten",
+    "stop": "Stopp",
+    "finishing": "Wird abgeschlossen...",
+    "recording": "Aufnahme",
+    "waitingForSpeech": "Warte auf Sprache...",
+    "sessionComplete": "Sitzung abgeschlossen! Ihre Transkription wurde gespeichert.",
+    "viewResult": "Transkription anzeigen",
+    "errorStarting": "Live-Transkription konnte nicht gestartet werden",
+    "live": "Live"
+  },
   "common": {
     "loading": "Laden...",
     "error": "Fehler",

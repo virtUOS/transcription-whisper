@@ -123,6 +123,7 @@ export interface ConfigResponse {
   default_model: string
   llm_available: boolean
   logout_url: string
+  live_transcription_available: boolean
 }
 
 export interface AnalysisTemplate {
@@ -144,3 +145,38 @@ export interface ErrorResponse {
   error: string
   detail: string
 }
+
+export interface LiveTranscriptionLine {
+  speaker: string | null
+  text: string
+  start: number
+  end: number
+}
+
+export interface LiveTranscriptionUpdate {
+  type: 'transcription_update'
+  lines: LiveTranscriptionLine[]
+  buffer_text: string
+}
+
+export interface LiveSessionStarted {
+  type: 'session_started'
+  transcription_id: string
+}
+
+export interface LiveSessionComplete {
+  type: 'session_complete'
+  transcription_id: string
+}
+
+export interface LiveSessionError {
+  type: 'error'
+  detail: string
+}
+
+export interface LiveConfig {
+  type: 'config'
+  pcm_required: boolean
+}
+
+export type LiveMessage = LiveTranscriptionUpdate | LiveSessionStarted | LiveSessionComplete | LiveSessionError | LiveConfig

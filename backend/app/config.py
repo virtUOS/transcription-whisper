@@ -25,6 +25,9 @@ class Settings:
     ARCHIVE_EXPIRY_HOURS: int = int(os.getenv("ARCHIVE_EXPIRY_HOURS", "4320"))
     DATABASE_PATH: str = os.getenv("DATABASE_PATH", "")
 
+    WLK_WS_URL: str = os.getenv("WLK_WS_URL", "")
+    LIVE_TRANSCRIPTION_ENABLED: bool = os.getenv("LIVE_TRANSCRIPTION_ENABLED", "false").lower() in ("true", "1", "yes")
+
     ENABLE_METRICS: bool = os.getenv("ENABLE_METRICS", "true").lower() in ("true", "1", "yes")
     DEV_MODE: bool = os.getenv("DEV_MODE", "false").lower() in ("true", "1", "yes")
 

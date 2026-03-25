@@ -185,6 +185,7 @@ export function TranscriptionList() {
     }
   }, [handleRenameSave])
 
+  const config = useStore((s) => s.config)
   const supportsRecording = typeof MediaRecorder !== 'undefined'
 
   return (
@@ -202,6 +203,14 @@ export function TranscriptionList() {
             className="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
           >
             + {t('nav.newRecording')}
+          </button>
+        )}
+        {config?.live_transcription_available && (
+          <button
+            onClick={() => { reset(); setCurrentView('live') }}
+            className="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-500 text-white rounded-lg transition-colors"
+          >
+            + {t('live.live')}
           </button>
         )}
       </div>

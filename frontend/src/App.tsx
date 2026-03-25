@@ -4,6 +4,7 @@ import { Header } from './components/Header'
 import { SettingsPanel } from './components/FileUpload'
 import { FileUpload } from './components/FileUpload'
 import { RecorderPanel } from './components/Recorder'
+import { LiveTranscriptionPanel } from './components/LiveTranscription'
 import { ProgressBar } from './components/ProgressBar'
 import { TranscriptionList } from './components/TranscriptionList'
 import { MediaPlayer } from './components/MediaPlayer'
@@ -87,13 +88,24 @@ function App() {
         </>
       )}
 
+      {currentView === 'live' && (
+        <>
+          <BackButton />
+          <div className="mx-6 my-4">
+            <LiveTranscriptionPanel />
+          </div>
+        </>
+      )}
+
       {currentView === 'detail' && (
         <>
           <BackButton />
           <ProgressBar />
           {showEditor && file && (
             <>
-              <MediaPlayer fileId={file.id} mediaType={file.media_type} />
+              {!['pcm', 'audio/pcm'].includes(file.media_type) && (
+                <MediaPlayer fileId={file.id} mediaType={file.media_type} />
+              )}
               <TabBar onSpeakerNamesClick={() => handleOpenSpeakerModal()} />
 
               <div className="mx-6 my-2">
