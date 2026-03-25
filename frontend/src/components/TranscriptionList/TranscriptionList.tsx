@@ -12,8 +12,6 @@ export function TranscriptionList() {
   const setTranscriptionStatus = useStore((s) => s.setTranscriptionStatus)
   const setResult = useStore((s) => s.setTranscriptionResult)
   const setSpeakerMappings = useStore((s) => s.setSpeakerMappings)
-  const setSummary = useStore((s) => s.setSummary)
-  const setProtocol = useStore((s) => s.setProtocol)
   const setFile = useStore((s) => s.setFile)
   const setRefinedUtterances = useStore((s) => s.setRefinedUtterances)
   const setRefinementMetadata = useStore((s) => s.setRefinementMetadata)
@@ -53,8 +51,6 @@ export function TranscriptionList() {
         const result = await api.getTranscription(item.id)
         setResult(result)
         setSpeakerMappings(result.speaker_mappings || {})
-        setSummary(result.summary || null)
-        setProtocol(result.protocol || null)
         try {
           const refinement = await api.getRefinement(item.id)
           setRefinedUtterances(refinement.utterances)
