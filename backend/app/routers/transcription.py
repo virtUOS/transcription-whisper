@@ -275,11 +275,20 @@ async def delete_transcription(transcription_id: str, user: UserInfo = Depends(g
         await db.execute("DELETE FROM analyses WHERE transcription_id = ?", (transcription_id,))
         await db.execute("DELETE FROM speaker_mappings WHERE transcription_id = ?", (transcription_id,))
         await db.execute("DELETE FROM transcriptions WHERE id = ?", (transcription_id,))
-        await db.execute("DELETE FROM files WHERE id = ?", (file_id,))
+
+        # Only delete the file if no other transcriptions reference it
+        other = await db.execute(
+            "SELECT 1 FROM transcriptions WHERE file_id = ? LIMIT 1", (file_id,),
+        )
+        if not await other.fetchone():
+            await db.execute("DELETE FROM files WHERE id = ?", (file_id,))
+            should_delete_files = True
+        else:
+            should_delete_files = False
         await db.commit()
 
-    # Remove files from disk
-    if file_row:
+    # Remove files from disk only if the file record was deleted
+    if file_row and should_delete_files:
         for path in (file_row["file_path"], file_row["mp3_path"]):
             if path:
                 try:
