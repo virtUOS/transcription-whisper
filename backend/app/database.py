@@ -1,5 +1,6 @@
 import aiosqlite
 from contextlib import asynccontextmanager
+from app.config import settings
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (
@@ -17,7 +18,9 @@ CREATE TABLE IF NOT EXISTS files (
     mp3_path TEXT,
     media_type TEXT,
     file_size INTEGER,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP,
+    is_archived INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS transcriptions (
@@ -69,6 +72,8 @@ MIGRATIONS = [
     ("refinement_metadata_json", "transcriptions", "refinement_metadata_json TEXT"),
     ("translated_utterances_json", "transcriptions", "translated_utterances_json TEXT"),
     ("translation_language", "transcriptions", "translation_language TEXT"),
+    ("expires_at", "files", "expires_at TIMESTAMP"),
+    ("is_archived", "files", "is_archived INTEGER DEFAULT 0"),
 ]
 
 
@@ -83,6 +88,11 @@ async def init_db(db_path: str) -> None:
             columns = {row[1] for row in await cursor.fetchall()}
             if col_name not in columns:
                 await db.execute(f"ALTER TABLE {table} ADD COLUMN {col_def}")
+        # Backfill expires_at for existing files
+        await db.execute(
+            "UPDATE files SET expires_at = datetime(created_at, '+' || ? || ' hours') WHERE expires_at IS NULL",
+            (str(settings.DEFAULT_EXPIRY_HOURS),),
+        )
         await db.commit()
 
 
