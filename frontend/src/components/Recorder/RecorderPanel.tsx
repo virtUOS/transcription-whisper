@@ -13,6 +13,7 @@ export function RecorderPanel() {
   const file = useStore((s) => s.file)
   const setFile = useStore((s) => s.setFile)
   const transcriptionId = useStore((s) => s.transcriptionId)
+  const transcriptionTitle = useStore((s) => s.transcriptionTitle)
   const reset = useStore((s) => s.reset)
 
   const handleDelete = useCallback(async () => {
@@ -83,12 +84,35 @@ export function RecorderPanel() {
     }
   }, [blob, useCamera, setFile, t])
 
+  const handleStart = useCallback(async () => {
+    // Play a short beep tone to signal recording start
+    try {
+      const ctx = new AudioContext()
+      await ctx.resume()
+      const oscillator = ctx.createOscillator()
+      const gain = ctx.createGain()
+      oscillator.connect(gain)
+      gain.connect(ctx.destination)
+      oscillator.frequency.value = 880
+      gain.gain.value = 0.3
+      oscillator.start()
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3)
+      oscillator.stop(ctx.currentTime + 0.3)
+      setTimeout(() => ctx.close(), 500)
+    } catch {
+      // Audio cue is best-effort
+    }
+    await start()
+  }, [start])
+
   const isActive = state === 'recording' || state === 'paused'
 
   if (file) {
     return (
       <div className="flex items-center gap-4 px-6 py-2 bg-gray-800 border-b border-gray-700 text-sm text-gray-300">
-        <span>{file.original_filename}</span>
+        <span>
+          {transcriptionTitle ? <>{transcriptionTitle} <span className="text-gray-500">[{file.original_filename}]</span></> : file.original_filename}
+        </span>
         <span className="text-gray-500">({formatFileSize(file.file_size)})</span>
         <button onClick={handleDelete} className="text-red-400 hover:text-red-300">
           {t('upload.deleteFile')}
@@ -134,11 +158,18 @@ export function RecorderPanel() {
         </div>
       )}
 
+      {/* Consent reminder */}
+      {state === 'idle' && (
+        <p className="text-xs text-gray-400 text-center">
+          {t('recorder.consentReminder')}
+        </p>
+      )}
+
       {/* Controls */}
       <RecorderControls
         state={state}
         duration={duration}
-        onStart={start}
+        onStart={handleStart}
         onPause={pause}
         onResume={resume}
         onStop={stop}

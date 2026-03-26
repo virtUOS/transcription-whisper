@@ -51,6 +51,7 @@ export interface TranscriptionListItem {
   file_size: number
   expires_at: string
   archived: boolean
+  title: string | null
 }
 
 export interface ChapterHint {

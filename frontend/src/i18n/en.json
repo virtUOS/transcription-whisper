@@ -35,7 +35,9 @@
     "confirmDelete": "Are you sure you want to delete this transcription? This cannot be undone.",
     "statusPending": "Waiting in queue — please wait...",
     "statusProcessing": "Transcribing audio — please wait, this may take a few minutes.",
-    "statusUploading": "Uploading file — please wait..."
+    "statusUploading": "Uploading file — please wait...",
+    "editTitle": "Edit title",
+    "editFilename": "Edit filename"
   },
   "editor": {
     "subtitles": "Subtitles",
@@ -275,7 +277,8 @@
     "unsavedSwitchTab": "You have unsaved changes. Are you sure you want to switch? Your current transcription will be closed.",
     "systemAudio": "System audio",
     "systemAudioWarning": "Experimental feature. Your browser will ask you to select a tab or screen to capture audio from. This works best on Chrome/Edge on Windows. macOS and other browsers have limited or no support for system audio capture. For best results, run the meeting in a browser tab and select that tab when prompted.",
-    "systemAudioFailed": "Could not capture system audio. You may have cancelled the prompt or your browser does not support this feature."
+    "systemAudioFailed": "Could not capture system audio. You may have cancelled the prompt or your browser does not support this feature.",
+    "consentReminder": "Don't record people without their permission. Ask first!"
   },
   "player": {
     "subtitles": "Subtitles",

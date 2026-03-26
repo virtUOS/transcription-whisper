@@ -11,9 +11,11 @@ interface AppState {
   file: FileInfo | null
   setFile: (file: FileInfo | null) => void
   transcriptionId: string | null
+  transcriptionTitle: string | null
   transcriptionStatus: string | null
   transcriptionResult: TranscriptionResult | null
   setTranscriptionId: (id: string | null) => void
+  setTranscriptionTitle: (title: string | null) => void
   setTranscriptionStatus: (status: string | null) => void
   setTranscriptionResult: (result: TranscriptionResult | null) => void
   speakerMappings: Record<string, string>
@@ -69,9 +71,11 @@ export const useStore = create<AppState>((set) => ({
   file: null,
   setFile: (file) => set({ file }),
   transcriptionId: null,
+  transcriptionTitle: null,
   transcriptionStatus: null,
   transcriptionResult: null,
   setTranscriptionId: (id) => set({ transcriptionId: id }),
+  setTranscriptionTitle: (title) => set({ transcriptionTitle: title }),
   setTranscriptionStatus: (status) => set({ transcriptionStatus: status }),
   setTranscriptionResult: (result) => set({ transcriptionResult: result }),
   speakerMappings: {},
@@ -106,7 +110,7 @@ export const useStore = create<AppState>((set) => ({
   clearRefinement: () => set({ refinedUtterances: null, refinementMetadata: null, activeView: 'original' as const }),
   reset: () => set({
     currentView: 'archive' as const,
-    file: null, transcriptionId: null, transcriptionStatus: null,
+    file: null, transcriptionId: null, transcriptionTitle: null, transcriptionStatus: null,
     transcriptionResult: null, speakerMappings: {},
     currentTime: 0, seekTo: null, activeTab: 'subtitles', unsavedEdits: false,
     refinedUtterances: null, refinementMetadata: null, activeView: 'original' as const,

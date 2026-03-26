@@ -115,6 +115,7 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
 
   const start = useCallback(async () => {
     if (recorderRef.current && recorderRef.current.state !== 'inactive') return
+    discardingRef.current = false
     setError(null)
     setBlob(null)
     chunksRef.current = []

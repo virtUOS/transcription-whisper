@@ -124,6 +124,7 @@ function App() {
   const currentView = useStore((s) => s.currentView)
   const setCurrentView = useStore((s) => s.setCurrentView)
   const transcriptionStatus = useStore((s) => s.transcriptionStatus)
+  const transcriptionTitle = useStore((s) => s.transcriptionTitle)
   const transcriptionResult = useStore((s) => s.transcriptionResult)
   const activeTab = useStore((s) => s.activeTab)
   const [speakerModalOpen, setSpeakerModalOpen] = useState(false)
@@ -156,7 +157,7 @@ function App() {
   // Update browser tab title based on current view
   useEffect(() => {
     if (currentView === 'detail' && file) {
-      document.title = `${file.original_filename} — ${t('title')}`
+      document.title = `${transcriptionTitle || file.original_filename} — ${t('title')}`
     } else {
       document.title = t('title')
     }
@@ -198,6 +199,7 @@ function App() {
         <>
           <BackButton />
           <RecorderPanel />
+          {file && !showEditor && <SettingsPanel />}
           <ProgressBar />
         </>
       )}
@@ -207,7 +209,10 @@ function App() {
           <BackButton />
           {file && (
             <h1 className="px-6 text-lg font-semibold text-white truncate">
-              {file.original_filename}
+              {transcriptionTitle || file.original_filename}
+              {transcriptionTitle && (
+                <span className="text-sm font-normal text-gray-500 ml-2">[{file.original_filename}]</span>
+              )}
             </h1>
           )}
           <DetailActions />

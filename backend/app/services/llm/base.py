@@ -14,3 +14,7 @@ class LLMProvider(ABC):
     @abstractmethod
     async def generate_refinement(self, transcript: str, context: str | None = None) -> LLMRefinementResponse:
         ...
+
+    @abstractmethod
+    async def generate_title(self, transcript: str) -> str:
+        """Generate a short title from transcript text."""

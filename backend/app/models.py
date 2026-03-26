@@ -61,6 +61,7 @@ class TranscriptionListItem(BaseModel):
     file_size: int = 0
     expires_at: str
     archived: bool = False
+    title: str | None = None
 
 
 class SpeakerMappingRequest(BaseModel):
@@ -69,6 +70,10 @@ class SpeakerMappingRequest(BaseModel):
 
 class RenameRequest(BaseModel):
     filename: str
+
+
+class TitleRequest(BaseModel):
+    title: str
 
 
 class ChapterHint(BaseModel):

@@ -136,3 +136,15 @@ class OllamaProvider(LLMProvider):
             utterances=[Utterance(**u) for u in all_refined],
             changes_summary=combined_summary,
         )
+
+    async def generate_title(self, transcript: str) -> str:
+        result = await self._chat(
+            "Generate a short descriptive title (max 8 words) for the following transcript. Return ONLY the title text, nothing else. No quotes, no punctuation at the end.",
+            transcript[:2000],
+        )
+        try:
+            data = json.loads(result)
+            return str(data.get("title", data.get("text", result))).strip().strip('"\'')
+        except (json.JSONDecodeError, AttributeError):
+            return result.strip().strip('"\'')
+

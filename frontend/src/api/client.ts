@@ -85,6 +85,12 @@ export const api = {
       body: JSON.stringify({ filename }),
     }),
 
+  renameTitle: (id: string, title: string) =>
+    request<{ status: string }>(`/api/transcription/${id}/title`, {
+      method: 'PATCH',
+      body: JSON.stringify({ title }),
+    }),
+
   generateRefinement: (id: string, context?: string) =>
     request<RefinementResult>(`/api/refine/${id}`, {
       method: 'POST',

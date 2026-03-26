@@ -11,6 +11,7 @@ from app.dependencies import get_current_user
 from app.models import (
     UserInfo, TranscriptionSettings as TranscriptionSettingsModel,
     TranscriptionStatus, TranscriptionListItem, Utterance, SpeakerMappingRequest,
+    TitleRequest,
 )
 from app.database import get_db
 from app.services.asr import get_asr_backend
@@ -108,6 +109,23 @@ async def _run_transcription(transcription_id: str, file_path: str, req: Transcr
                  datetime.now(timezone.utc).isoformat(), transcription_id),
             )
             await db.commit()
+
+        # Generate title if LLM is available
+        try:
+            from app.services.llm import get_llm_provider
+            provider = get_llm_provider()
+            if provider and result.utterances:
+                transcript_text = " ".join(u.text for u in result.utterances)
+                title = await provider.generate_title(transcript_text)
+                if title:
+                    async with get_db() as db:
+                        await db.execute(
+                            "UPDATE transcriptions SET title = ? WHERE id = ?",
+                            (title, transcription_id),
+                        )
+                        await db.commit()
+        except Exception as e:
+            logging.warning("Title generation failed for %s: %s", transcription_id, e)
 
     except Exception as e:
         logging.error("Transcription %s failed: %s: %s", transcription_id, type(e).__name__, e)
@@ -330,7 +348,7 @@ async def archive_transcription(transcription_id: str, user: UserInfo = Depends(
 async def list_transcriptions(user: UserInfo = Depends(get_current_user)):
     async with get_db() as db:
         cursor = await db.execute(
-            """SELECT t.id, t.file_id, f.original_filename, t.status, t.language, t.model, t.created_at, f.file_size, f.expires_at, f.is_archived
+            """SELECT t.id, t.file_id, f.original_filename, t.status, t.language, t.model, t.created_at, f.file_size, f.expires_at, f.is_archived, t.title
                FROM transcriptions t
                JOIN files f ON t.file_id = f.id
                WHERE t.user_id = ?
@@ -345,9 +363,27 @@ async def list_transcriptions(user: UserInfo = Depends(get_current_user)):
             status=r["status"], language=r["language"], model=r["model"],
             created_at=r["created_at"], file_size=r["file_size"],
             expires_at=r["expires_at"], archived=bool(r["is_archived"]),
+            title=r["title"],
         ).model_dump()
         for r in rows
     ]
+
+
+@router.patch("/api/transcription/{transcription_id}/title")
+async def update_title(transcription_id: str, body: TitleRequest, user: UserInfo = Depends(get_current_user)):
+    async with get_db() as db:
+        cursor = await db.execute(
+            "SELECT id FROM transcriptions WHERE id = ? AND user_id = ?",
+            (transcription_id, user.id),
+        )
+        if not await cursor.fetchone():
+            raise HTTPException(status_code=404, detail="Not found")
+        await db.execute(
+            "UPDATE transcriptions SET title = ? WHERE id = ?",
+            (body.title, transcription_id),
+        )
+        await db.commit()
+    return {"status": "ok"}
 
 
 @router.websocket("/api/ws/status/{transcription_id}")

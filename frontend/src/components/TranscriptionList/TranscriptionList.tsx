@@ -4,11 +4,26 @@ import { useStore } from '../../store'
 import { api } from '../../api/client'
 import type { TranscriptionListItem } from '../../api/types'
 
+function PencilButton({ onClick, title }: { onClick: (e: React.MouseEvent) => void; title: string }) {
+  return (
+    <button
+      onClick={onClick}
+      className="text-gray-500 hover:text-gray-300 p-0.5 flex-shrink-0"
+      title={title}
+    >
+      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+      </svg>
+    </button>
+  )
+}
+
 export function TranscriptionList() {
   const { t } = useTranslation()
   const history = useStore((s) => s.transcriptionHistory)
   const setHistory = useStore((s) => s.setTranscriptionHistory)
   const setTranscriptionId = useStore((s) => s.setTranscriptionId)
+  const setTranscriptionTitle = useStore((s) => s.setTranscriptionTitle)
   const setTranscriptionStatus = useStore((s) => s.setTranscriptionStatus)
   const setResult = useStore((s) => s.setTranscriptionResult)
   const setSpeakerMappings = useStore((s) => s.setSpeakerMappings)
@@ -23,6 +38,7 @@ export function TranscriptionList() {
 
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
+  const [editingField, setEditingField] = useState<'title' | 'filename' | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const savingRef = useRef(false)
   const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -42,6 +58,7 @@ export function TranscriptionList() {
 
   const doSelect = async (item: TranscriptionListItem) => {
     setTranscriptionId(item.id)
+    setTranscriptionTitle(item.title || null)
     setTranscriptionStatus(item.status)
     const ext = item.original_filename.split('.').pop()?.toLowerCase() || ''
     setFile({ id: item.file_id, original_filename: item.original_filename, media_type: ext, file_size: item.file_size })
@@ -80,70 +97,98 @@ export function TranscriptionList() {
     }, 250)
   }, [])
 
-  const handleRenameStart = useCallback((e: React.MouseEvent, item: TranscriptionListItem) => {
+  const handleEditStart = useCallback((e: React.MouseEvent, item: TranscriptionListItem, field: 'title' | 'filename') => {
     e.stopPropagation()
     if (clickTimerRef.current) {
       clearTimeout(clickTimerRef.current)
       clickTimerRef.current = null
     }
-    const baseName = item.original_filename.replace(/\.[^.]+$/, '')
+    if (field === 'filename') {
+      const baseName = item.original_filename.replace(/\.[^.]+$/, '')
+      setEditValue(baseName)
+    } else {
+      setEditValue(item.title || '')
+    }
     setEditingId(item.id)
-    setEditValue(baseName)
+    setEditingField(field)
   }, [])
 
-  const handleRenameSave = useCallback(async (item: TranscriptionListItem) => {
+  const handleEditSave = useCallback(async (item: TranscriptionListItem) => {
     if (savingRef.current) return
     if (editingId !== item.id) return
 
     const trimmed = editValue.trim()
+    const field = editingField
     setEditingId(null)
+    setEditingField(null)
 
     if (!trimmed) return
 
-    const ext = item.original_filename.includes('.')
-      ? '.' + item.original_filename.split('.').pop()
-      : ''
-    const oldFilename = item.original_filename
-    const newFilename = trimmed + ext
+    if (field === 'filename') {
+      const ext = item.original_filename.includes('.')
+        ? '.' + item.original_filename.split('.').pop()
+        : ''
+      const oldFilename = item.original_filename
+      const newFilename = trimmed + ext
 
-    if (newFilename === oldFilename) return
+      if (newFilename === oldFilename) return
 
-    // Optimistic update using current store state to avoid stale closure
-    const currentHistory = useStore.getState().transcriptionHistory
-    setHistory(currentHistory.map((h) =>
-      h.id === item.id ? { ...h, original_filename: newFilename } : h
-    ))
-    const currentFile = useStore.getState().file
-    if (currentFile && currentFile.id === item.file_id) {
-      setFile({ ...currentFile, original_filename: newFilename })
-    }
-
-    savingRef.current = true
-    try {
-      await api.renameFile(item.file_id, trimmed)
-    } catch {
-      // Revert on failure using current store state to avoid stale closure
       const currentHistory = useStore.getState().transcriptionHistory
       setHistory(currentHistory.map((h) =>
-        h.id === item.id ? { ...h, original_filename: oldFilename } : h
+        h.id === item.id ? { ...h, original_filename: newFilename } : h
       ))
       const currentFile = useStore.getState().file
       if (currentFile && currentFile.id === item.file_id) {
-        setFile({ ...currentFile, original_filename: oldFilename })
+        setFile({ ...currentFile, original_filename: newFilename })
       }
-    } finally {
-      savingRef.current = false
+
+      savingRef.current = true
+      try {
+        await api.renameFile(item.file_id, trimmed)
+      } catch {
+        const currentHistory = useStore.getState().transcriptionHistory
+        setHistory(currentHistory.map((h) =>
+          h.id === item.id ? { ...h, original_filename: oldFilename } : h
+        ))
+        const currentFile = useStore.getState().file
+        if (currentFile && currentFile.id === item.file_id) {
+          setFile({ ...currentFile, original_filename: oldFilename })
+        }
+      } finally {
+        savingRef.current = false
+      }
+    } else if (field === 'title') {
+      const oldTitle = item.title
+      if (trimmed === oldTitle) return
+
+      const currentHistory = useStore.getState().transcriptionHistory
+      setHistory(currentHistory.map((h) =>
+        h.id === item.id ? { ...h, title: trimmed } : h
+      ))
+
+      savingRef.current = true
+      try {
+        await api.renameTitle(item.id, trimmed)
+      } catch {
+        const currentHistory = useStore.getState().transcriptionHistory
+        setHistory(currentHistory.map((h) =>
+          h.id === item.id ? { ...h, title: oldTitle } : h
+        ))
+      } finally {
+        savingRef.current = false
+      }
     }
-  }, [editValue, editingId, setHistory, setFile])
+  }, [editValue, editingId, editingField, setHistory, setFile])
 
   const handleRenameKeyDown = useCallback((e: React.KeyboardEvent, item: TranscriptionListItem) => {
     if (e.key === 'Enter') {
       e.preventDefault()
-      handleRenameSave(item)
+      handleEditSave(item)
     } else if (e.key === 'Escape') {
       setEditingId(null)
+      setEditingField(null)
     }
-  }, [handleRenameSave])
+  }, [handleEditSave])
 
   const supportsRecording = typeof MediaRecorder !== 'undefined'
 
@@ -177,25 +222,39 @@ export function TranscriptionList() {
             className="w-full flex items-center gap-3 px-3 py-2 bg-gray-800 rounded hover:bg-gray-700 text-sm text-left cursor-pointer"
           >
             {editingId === item.id ? (
-              <span className="flex-1 flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+              <span className="flex-1 flex items-center gap-1 min-w-0" onClick={(e) => e.stopPropagation()}>
                 <input
                   ref={inputRef}
                   type="text"
                   value={editValue}
                   onChange={(e) => setEditValue(e.target.value)}
-                  onBlur={() => handleRenameSave(item)}
+                  onBlur={() => handleEditSave(item)}
                   onKeyDown={(e) => handleRenameKeyDown(e, item)}
                   className="bg-gray-700 text-gray-200 px-1 py-0 rounded text-sm flex-1 min-w-0 outline-none focus:ring-1 focus:ring-blue-500"
                 />
-                <span className="text-gray-500 text-xs">{item.original_filename.includes('.') ? '.' + item.original_filename.split('.').pop() : ''}</span>
+                {editingField === 'filename' && (
+                  <span className="text-gray-500 text-xs">{item.original_filename.includes('.') ? '.' + item.original_filename.split('.').pop() : ''}</span>
+                )}
               </span>
             ) : (
-              <span
-                className="text-gray-300 flex-1 truncate"
-                onDoubleClick={(e) => handleRenameStart(e, item)}
-                title={t('transcription.doubleClickToRename')}
-              >
-                {item.original_filename}
+              <span className="flex-1 min-w-0">
+                {item.title ? (
+                  <>
+                    <span className="flex items-center gap-1">
+                      <span className="text-gray-300 truncate">{item.title}</span>
+                      <PencilButton onClick={(e) => handleEditStart(e, item, 'title')} title={t('transcription.editTitle')} />
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="text-xs text-gray-500 truncate">{item.original_filename}</span>
+                      <PencilButton onClick={(e) => handleEditStart(e, item, 'filename')} title={t('transcription.editFilename')} />
+                    </span>
+                  </>
+                ) : (
+                  <span className="flex items-center gap-1">
+                    <span className="text-gray-300 truncate">{item.original_filename}</span>
+                    <PencilButton onClick={(e) => handleEditStart(e, item, 'filename')} title={t('transcription.editFilename')} />
+                  </span>
+                )}
               </span>
             )}
             <span className="text-gray-500 text-xs">{item.model}</span>
