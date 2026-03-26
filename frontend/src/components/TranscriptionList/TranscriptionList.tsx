@@ -219,10 +219,10 @@ export function TranscriptionList() {
           <div
             key={item.id}
             onClick={() => handleClick(item)}
-            className="w-full flex items-center gap-3 px-3 py-2 bg-gray-800 rounded hover:bg-gray-700 text-sm text-left cursor-pointer"
+            className="w-full flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 px-3 py-2 bg-gray-800 rounded hover:bg-gray-700 text-sm text-left cursor-pointer"
           >
             {editingId === item.id ? (
-              <span className="flex-1 flex items-center gap-1 min-w-0" onClick={(e) => e.stopPropagation()}>
+              <span className="flex items-center gap-1 min-w-0 sm:flex-1" onClick={(e) => e.stopPropagation()}>
                 <input
                   ref={inputRef}
                   type="text"
@@ -237,7 +237,7 @@ export function TranscriptionList() {
                 )}
               </span>
             ) : (
-              <span className="flex-1 min-w-0">
+              <span className="min-w-0 sm:flex-1">
                 {item.title ? (
                   <>
                     <span className="flex items-center gap-1">
@@ -257,24 +257,26 @@ export function TranscriptionList() {
                 )}
               </span>
             )}
-            <span className="text-gray-500 text-xs">{item.model}</span>
-            <span className={`text-xs px-2 py-0.5 rounded ${
-              item.status === 'completed' ? 'bg-green-900 text-green-300' :
-              item.status === 'failed' ? 'bg-red-900 text-red-300' :
-              'bg-yellow-900 text-yellow-300'
-            }`}>
-              {item.status}
-            </span>
-            <span className="text-gray-500 text-xs">
-              {new Date(item.created_at + 'Z').toLocaleDateString('de-DE')}
-            </span>
-            {item.archived && (
-              <span className="text-xs text-blue-400" title={t('transcription.archived')}>
-                <svg className="w-3.5 h-3.5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-gray-500 text-xs">{item.model}</span>
+              <span className={`text-xs px-2 py-0.5 rounded ${
+                item.status === 'completed' ? 'bg-green-900 text-green-300' :
+                item.status === 'failed' ? 'bg-red-900 text-red-300' :
+                'bg-yellow-900 text-yellow-300'
+              }`}>
+                {item.status}
               </span>
-            )}
+              <span className="text-gray-500 text-xs">
+                {new Date(item.created_at + 'Z').toLocaleDateString('de-DE')}
+              </span>
+              {item.archived && (
+                <span className="text-xs text-blue-400" title={t('transcription.archived')}>
+                  <svg className="w-3.5 h-3.5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                </span>
+              )}
+            </div>
           </div>
         ))}
       </div>
