@@ -12,7 +12,7 @@ import { SpeakerMapping } from './components/SpeakerMapping'
 import { FormatViewer } from './components/FormatViewer'
 import { TabBar } from './components/TabBar'
 import { AnalysisView } from './components/AnalysisView'
-import { useStore } from './store'
+import { useStore, setPopStateFlag } from './store'
 import { api } from './api/client'
 
 function BackButton() {
@@ -50,6 +50,17 @@ function App() {
   useEffect(() => {
     api.getConfig().then(setConfig).catch(console.error)
   }, [setConfig])
+
+  // Sync browser back/forward buttons with view state
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      setPopStateFlag(true)
+      setCurrentView(e.state?.view ?? 'archive')
+      setPopStateFlag(false)
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [setCurrentView])
 
   // Auto-navigate to detail view when transcription completes
   useEffect(() => {

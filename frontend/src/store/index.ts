@@ -49,9 +49,21 @@ interface AppState {
   reset: () => void
 }
 
+let isPopStateNavigation = false
+
+export function setPopStateFlag(value: boolean) {
+  isPopStateNavigation = value
+}
+
 export const useStore = create<AppState>((set) => ({
   currentView: 'archive' as const,
-  setCurrentView: (view) => set({ currentView: view }),
+  setCurrentView: (view) => {
+    const current = useStore.getState().currentView
+    if (view !== current && !isPopStateNavigation) {
+      history.pushState({ view }, '', '')
+    }
+    set({ currentView: view })
+  },
   config: null,
   setConfig: (config) => set({ config }),
   file: null,
@@ -102,3 +114,6 @@ export const useStore = create<AppState>((set) => ({
     analysisResult: null, analysisTemplate: null, analysisPrompt: null,
   }),
 }))
+
+// Set initial browser history state
+history.replaceState({ view: 'archive' }, '', '')
