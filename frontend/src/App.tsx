@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Header } from './components/Header'
 import { SettingsPanel } from './components/FileUpload'
@@ -51,10 +51,14 @@ function App() {
     api.getConfig().then(setConfig).catch(console.error)
   }, [setConfig])
 
+  // Track whether current navigation was triggered by browser back/forward
+  const isPopStateNav = useRef(false)
+
   // Sync browser back/forward buttons with view state
   useEffect(() => {
     const handlePopState = (e: PopStateEvent) => {
       setPopStateFlag(true)
+      isPopStateNav.current = true
       setCurrentView(e.state?.view ?? 'archive')
       setPopStateFlag(false)
     }
@@ -73,6 +77,10 @@ function App() {
 
   // Auto-navigate to detail view when transcription completes
   useEffect(() => {
+    if (isPopStateNav.current) {
+      isPopStateNav.current = false
+      return
+    }
     if (transcriptionStatus === 'completed' && transcriptionResult && (currentView === 'upload' || currentView === 'record')) {
       setCurrentView('detail')
     }
