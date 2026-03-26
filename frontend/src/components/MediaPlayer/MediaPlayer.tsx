@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo } from 'react'
+import { useEffect, useRef, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import videojs from 'video.js'
 import 'video.js/dist/video-js.css'
@@ -44,6 +44,7 @@ export function MediaPlayer({ fileId, mediaType }: Props) {
   const transcriptionResult = useStore((s) => s.transcriptionResult)
   const speakerMappings = useStore((s) => s.speakerMappings)
 
+  const [playbackError, setPlaybackError] = useState<string | null>(null)
   const isVideo = mediaType === 'mp4' || mediaType === 'webm'
   const mimeTypes: Record<string, string> = {
     mp4: 'video/mp4',
@@ -71,12 +72,20 @@ export function MediaPlayer({ fileId, mediaType }: Props) {
       setCurrentTime(Math.floor(player.currentTime()! * 1000))
     })
 
+    let triedFallback = false
     player.on('error', () => {
-      // Try fallback MP3 if original format fails
-      const fallbackUrl = api.getMediaFallbackUrl(fileId)
-      player.src({ src: fallbackUrl, type: 'audio/mpeg' })
-      if (isVideo) {
-        player.audioOnlyMode(true)
+      if (!triedFallback) {
+        // Try fallback MP3 if original format fails
+        triedFallback = true
+        player.src({ src: api.getMediaFallbackUrl(fileId), type: 'audio/mpeg' })
+        if (isVideo) {
+          player.audioOnlyMode(true)
+        }
+      } else {
+        // Fallback also failed — show a visible error
+        setPlaybackError(t('player.playbackFailed'))
+        player.dispose()
+        playerRef.current = null
       }
     })
 
@@ -137,6 +146,22 @@ export function MediaPlayer({ fileId, mediaType }: Props) {
     a.href = mediaUrl
     a.download = ''
     a.click()
+  }
+
+  if (playbackError) {
+    return (
+      <div className="mx-6 my-2">
+        <div className="p-4 bg-gray-800 rounded-lg border border-gray-700 text-center">
+          <p className="text-gray-400 text-sm">{playbackError}</p>
+          <button
+            onClick={handleDownload}
+            className="mt-2 px-3 py-1 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+          >
+            {t('player.download')}
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (

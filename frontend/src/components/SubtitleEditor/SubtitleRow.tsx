@@ -165,10 +165,7 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
       )
     }
     return (
-      <span
-        className={`cursor-pointer hover:text-blue-400 ${className || ''}`}
-        onDoubleClick={(e) => { e.stopPropagation(); cancelSeek(); startEdit(field, value) }}
-      >
+      <span className={className || ''}>
         {displayContent ?? value}
       </span>
     )
@@ -266,16 +263,7 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
               rows={1}
             />
           ) : (
-            <span
-              className="inline-flex items-start gap-1"
-              onDoubleClick={(e) => {
-                if (!readOnly && onStartEditing) {
-                  e.stopPropagation()
-                  cancelSeek()
-                  onStartEditing(index, 'text')
-                }
-              }}
-            >
+            <span className="inline-flex items-start gap-1">
               <span className="flex-1">
                 {highlightTerms && (highlightScope === 'text' || highlightScope === 'both')
                   ? highlightText(utterance.text, highlightTerms)

@@ -277,7 +277,8 @@
   },
   "player": {
     "subtitles": "Subtitles",
-    "download": "Download recording"
+    "download": "Download recording",
+    "playbackFailed": "This format cannot be played in the browser. You can download the file instead."
   },
   "nav": {
     "backToTranscriptions": "Transcriptions",
