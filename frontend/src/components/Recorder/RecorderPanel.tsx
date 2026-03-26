@@ -83,6 +83,27 @@ export function RecorderPanel() {
     }
   }, [blob, useCamera, setFile, t])
 
+  const handleStart = useCallback(async () => {
+    // Play a short beep tone to signal recording start
+    try {
+      const ctx = new AudioContext()
+      await ctx.resume()
+      const oscillator = ctx.createOscillator()
+      const gain = ctx.createGain()
+      oscillator.connect(gain)
+      gain.connect(ctx.destination)
+      oscillator.frequency.value = 880
+      gain.gain.value = 0.3
+      oscillator.start()
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3)
+      oscillator.stop(ctx.currentTime + 0.3)
+      setTimeout(() => ctx.close(), 500)
+    } catch {
+      // Audio cue is best-effort
+    }
+    await start()
+  }, [start])
+
   const isActive = state === 'recording' || state === 'paused'
 
   if (file) {
@@ -134,11 +155,18 @@ export function RecorderPanel() {
         </div>
       )}
 
+      {/* Consent reminder */}
+      {state === 'idle' && (
+        <p className="text-xs text-gray-400 text-center">
+          {t('recorder.consentReminder')}
+        </p>
+      )}
+
       {/* Controls */}
       <RecorderControls
         state={state}
         duration={duration}
-        onStart={start}
+        onStart={handleStart}
         onPause={pause}
         onResume={resume}
         onStop={stop}
