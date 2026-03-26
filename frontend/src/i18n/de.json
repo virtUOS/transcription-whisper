@@ -276,8 +276,14 @@
     "recordingNotSupported": "Aufnahme wird in diesem Browser nicht unterstützt.",
     "unsavedSwitchTab": "Sie haben ungespeicherte Änderungen. Möchten Sie wirklich wechseln? Die aktuelle Transkription wird geschlossen.",
     "systemAudio": "Systemaudio",
-    "systemAudioWarning": "Experimentelle Funktion. Ihr Browser wird Sie bitten, einen Tab oder Bildschirm auszuwählen, dessen Audio aufgenommen werden soll. Dies funktioniert am besten mit Chrome/Edge unter Windows. macOS und andere Browser haben eingeschränkte oder keine Unterstützung für System-Audioaufnahme. Führen Sie das Meeting am besten in einem Browser-Tab durch und wählen Sie diesen Tab aus, wenn Sie dazu aufgefordert werden.",
+    "systemAudioWarningFull": "Experimentelle Funktion. Ihr Browser wird Sie bitten, einen Bildschirm oder Tab auszuwählen. Wählen Sie einen gesamten Bildschirm, um das gesamte Systemaudio aufzunehmen, oder einen bestimmten Tab nur für dessen Audio.",
+    "systemAudioWarningTabOnly": "Experimentelle Funktion. Auf Ihrer Plattform ist die Systemaudio-Aufnahme auf Browser-Tab-Audio beschränkt. Führen Sie das Meeting in einem Browser-Tab durch und wählen Sie diesen Tab aus, wenn Sie dazu aufgefordert werden.",
+    "systemAudioWarningDualDevice": "Experimentelle Funktion. Wählen Sie unten ein zweites Audio-Eingabegerät aus (z. B. eine PulseAudio/PipeWire-Monitorquelle), um Systemaudio zusammen mit Ihrem Mikrofon aufzunehmen.",
+    "systemAudioWarningLimited": "Experimentelle Funktion. Die Systemaudio-Aufnahme wird in Firefox nur eingeschränkt unterstützt. Für beste Ergebnisse verwenden Sie einen Chromium-basierten Browser (Chrome, Edge, Brave).",
+    "systemAudioUnsupported": "Systemaudio-Aufnahme wird von Ihrem Browser oder Gerät nicht unterstützt.",
     "systemAudioFailed": "Systemaudio konnte nicht aufgenommen werden. Möglicherweise haben Sie die Eingabeaufforderung abgebrochen oder Ihr Browser unterstützt diese Funktion nicht.",
+    "selectSecondDevice": "Systemaudioquelle",
+    "secondDeviceFailed": "Das ausgewählte Systemaudio-Gerät konnte nicht geöffnet werden. Bitte überprüfen Sie, ob es verfügbar und nicht in Verwendung ist.",
     "consentReminder": "Nehmen Sie niemanden ohne Erlaubnis auf. Fragen Sie vorher!"
   },
   "player": {

@@ -1,5 +1,15 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { getSystemAudioSupport } from '../../utils/platformDetect'
+
+const systemAudioSupport = getSystemAudioSupport()
+
+const warningKey: Record<string, string> = {
+  full: 'recorder.systemAudioWarningFull',
+  'tab-only': 'recorder.systemAudioWarningTabOnly',
+  'dual-device': 'recorder.systemAudioWarningDualDevice',
+  limited: 'recorder.systemAudioWarningLimited',
+}
 
 interface DeviceSelectorProps {
   useCamera: boolean
@@ -10,6 +20,8 @@ interface DeviceSelectorProps {
   onVideoDeviceChange: (id: string) => void
   captureSystemAudio: boolean
   onCaptureSystemAudioChange: (capture: boolean) => void
+  secondAudioDeviceId: string
+  onSecondAudioDeviceChange: (id: string) => void
   disabled?: boolean
 }
 
@@ -22,13 +34,13 @@ export function DeviceSelector({
   onVideoDeviceChange,
   captureSystemAudio,
   onCaptureSystemAudioChange,
+  secondAudioDeviceId,
+  onSecondAudioDeviceChange,
   disabled = false,
 }: DeviceSelectorProps) {
   const { t } = useTranslation()
   const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([])
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([])
-
-  const supportsDisplayMedia = typeof navigator.mediaDevices?.getDisplayMedia === 'function'
 
   async function enumerateWithPermission(requestVideo: boolean) {
     try {
@@ -72,6 +84,16 @@ export function DeviceSelector({
     }
   }, [useCamera])
 
+  // Auto-select first available second device when dual-device dropdown appears
+  useEffect(() => {
+    if (systemAudioSupport !== 'dual-device' || !captureSystemAudio) return
+    if (secondAudioDeviceId) return // Already selected
+    const available = audioDevices.filter((d) => d.deviceId !== audioDeviceId)
+    if (available.length > 0) {
+      onSecondAudioDeviceChange(available[0].deviceId)
+    }
+  }, [captureSystemAudio, audioDevices, audioDeviceId, secondAudioDeviceId, onSecondAudioDeviceChange])
+
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-3 min-w-0">
@@ -91,7 +113,9 @@ export function DeviceSelector({
         </select>
       </div>
 
-      {supportsDisplayMedia && (
+      {systemAudioSupport === 'unsupported' ? (
+        <p className="text-xs text-gray-500">{t('recorder.systemAudioUnsupported')}</p>
+      ) : (
         <div className="flex items-center gap-3">
           <label className="text-sm text-gray-300 min-w-24">{t('recorder.systemAudio')}</label>
           <button
@@ -113,9 +137,28 @@ export function DeviceSelector({
         </div>
       )}
 
-      {captureSystemAudio && (
+      {captureSystemAudio && warningKey[systemAudioSupport] && (
         <div className="bg-amber-900/50 border border-amber-700 rounded-lg px-3 py-2 text-xs text-amber-200">
-          {t('recorder.systemAudioWarning')}
+          {t(warningKey[systemAudioSupport])}
+        </div>
+      )}
+
+      {captureSystemAudio && systemAudioSupport === 'dual-device' && (
+        <div className="flex items-center gap-3 min-w-0">
+          <label className="text-sm text-gray-300 min-w-24 shrink-0">{t('recorder.selectSecondDevice')}</label>
+          <select
+            value={secondAudioDeviceId}
+            onChange={(e) => onSecondAudioDeviceChange(e.target.value)}
+            disabled={disabled}
+            className="flex-1 min-w-0 bg-gray-700 text-white rounded-lg px-3 py-2 text-sm disabled:opacity-50"
+          >
+            {audioDevices.filter((d) => d.deviceId !== audioDeviceId).map((d) => (
+              <option key={d.deviceId} value={d.deviceId}>
+                {d.label || `Device ${d.deviceId.slice(0, 8)}`}
+              </option>
+            ))}
+            {audioDevices.length === 0 && <option value="">—</option>}
+          </select>
         </div>
       )}
 

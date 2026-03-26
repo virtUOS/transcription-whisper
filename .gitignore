@@ -12,3 +12,4 @@ docs/superpowers/
 CLAUDE.md
 examples/
 .playwright-mcp/
+.worktrees/

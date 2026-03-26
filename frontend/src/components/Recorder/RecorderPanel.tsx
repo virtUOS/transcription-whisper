@@ -33,14 +33,16 @@ export function RecorderPanel() {
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [captureSystemAudio, setCaptureSystemAudio] = useState(false)
+  const [secondAudioDeviceId, setSecondAudioDeviceId] = useState('')
 
   const handleCaptureSystemAudioChange = useCallback((capture: boolean) => {
     setCaptureSystemAudio(capture)
     if (capture) setUseCamera(false)
+    if (!capture) setSecondAudioDeviceId('')
   }, [])
 
   const { state, blob, stream, duration, error, start, pause, resume, stop, discard } =
-    useMediaRecorder({ audioDeviceId, videoDeviceId, useCamera, captureSystemAudio })
+    useMediaRecorder({ audioDeviceId, videoDeviceId, useCamera, captureSystemAudio, secondAudioDeviceId })
 
   const videoPreviewRef = useRef<HTMLVideoElement>(null)
 
@@ -134,6 +136,8 @@ export function RecorderPanel() {
           onVideoDeviceChange={setVideoDeviceId}
           captureSystemAudio={captureSystemAudio}
           onCaptureSystemAudioChange={handleCaptureSystemAudioChange}
+          secondAudioDeviceId={secondAudioDeviceId}
+          onSecondAudioDeviceChange={setSecondAudioDeviceId}
           disabled={isActive}
         />
       )}
