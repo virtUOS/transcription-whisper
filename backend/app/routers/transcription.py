@@ -109,6 +109,23 @@ async def _run_transcription(transcription_id: str, file_path: str, req: Transcr
             )
             await db.commit()
 
+        # Generate title if LLM is available
+        try:
+            from app.services.llm import get_llm_provider
+            provider = get_llm_provider()
+            if provider and result.utterances:
+                transcript_text = " ".join(u.text for u in result.utterances)
+                title = await provider.generate_title(transcript_text)
+                if title:
+                    async with get_db() as db:
+                        await db.execute(
+                            "UPDATE transcriptions SET title = ? WHERE id = ?",
+                            (title, transcription_id),
+                        )
+                        await db.commit()
+        except Exception as e:
+            logging.warning("Title generation failed for %s: %s", transcription_id, e)
+
     except Exception as e:
         logging.error("Transcription %s failed: %s: %s", transcription_id, type(e).__name__, e)
         logging.error("Traceback: %s", traceback.format_exc())
