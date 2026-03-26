@@ -31,7 +31,9 @@
     "archive": "Archivieren",
     "archived": "Archiviert",
     "expiresOn": "Läuft ab: {{date}}",
-    "confirmDelete": "Sind Sie sicher, dass Sie diese Transkription löschen möchten? Dies kann nicht rückgängig gemacht werden."
+    "confirmDelete": "Sind Sie sicher, dass Sie diese Transkription löschen möchten? Dies kann nicht rückgängig gemacht werden.",
+    "statusPending": "Wartet in der Warteschlange — bitte warten...",
+    "statusProcessing": "Audio wird transkribiert — bitte warten, dies kann einige Minuten dauern."
   },
   "editor": {
     "subtitles": "Untertitel",

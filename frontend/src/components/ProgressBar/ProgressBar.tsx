@@ -112,11 +112,18 @@ export function ProgressBar() {
     )
   }
 
+  const statusMessage = status === 'pending'
+    ? t('transcription.statusPending')
+    : t('transcription.statusProcessing')
+
   return (
-    <div className="mx-6 my-4 p-4 bg-gray-800 rounded-lg border border-gray-700">
+    <div className="mx-6 my-4 p-4 bg-gray-800 rounded-lg border border-gray-700 space-y-3">
       <div className="flex items-center gap-3">
         <div className="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full" />
-        <span className="text-gray-300 text-sm">{t('transcription.inProgress')}</span>
+        <span className="text-gray-300 text-sm">{statusMessage}</span>
+      </div>
+      <div className="w-full bg-gray-700 rounded-full h-1.5 overflow-hidden">
+        <div className="bg-blue-500 h-1.5 rounded-full animate-pulse" style={{ width: status === 'pending' ? '30%' : '70%' }} />
       </div>
     </div>
   )

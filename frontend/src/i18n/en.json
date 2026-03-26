@@ -31,7 +31,9 @@
     "archive": "Archive",
     "archived": "Archived",
     "expiresOn": "Expires: {{date}}",
-    "confirmDelete": "Are you sure you want to delete this transcription? This cannot be undone."
+    "confirmDelete": "Are you sure you want to delete this transcription? This cannot be undone.",
+    "statusPending": "Waiting in queue — please wait...",
+    "statusProcessing": "Transcribing audio — please wait, this may take a few minutes."
   },
   "editor": {
     "subtitles": "Subtitles",
