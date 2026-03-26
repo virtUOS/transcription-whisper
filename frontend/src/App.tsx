@@ -24,7 +24,7 @@ function BackButton() {
       onClick={() => setCurrentView('archive')}
       className="flex items-center gap-1 px-6 py-2 text-sm text-gray-400 hover:text-white"
     >
-      &larr; {t('nav.backToRecordings')}
+      &larr; {t('nav.backToTranscriptions')}
     </button>
   )
 }
