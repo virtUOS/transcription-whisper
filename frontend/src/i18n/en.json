@@ -33,7 +33,8 @@
     "expiresOn": "Expires: {{date}}",
     "confirmDelete": "Are you sure you want to delete this transcription? This cannot be undone.",
     "statusPending": "Waiting in queue — please wait...",
-    "statusProcessing": "Transcribing audio — please wait, this may take a few minutes."
+    "statusProcessing": "Transcribing audio — please wait, this may take a few minutes.",
+    "statusUploading": "Uploading file — please wait..."
   },
   "editor": {
     "subtitles": "Subtitles",
