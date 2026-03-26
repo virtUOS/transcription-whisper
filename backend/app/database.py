@@ -74,6 +74,7 @@ MIGRATIONS = [
     ("translation_language", "transcriptions", "translation_language TEXT"),
     ("expires_at", "files", "expires_at TIMESTAMP"),
     ("is_archived", "files", "is_archived INTEGER DEFAULT 0"),
+    ("title", "transcriptions", "title TEXT"),
 ]
 
 
