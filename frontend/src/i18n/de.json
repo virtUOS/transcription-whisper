@@ -58,7 +58,7 @@
     "end": "Ende",
     "speaker": "Sprecher",
     "text": "Text",
-    "editHint": "Doppelklick zum Bearbeiten. Auf Zeitstempel klicken zum Springen.",
+    "editHint": "Stiftsymbole klicken zum Bearbeiten. Auf Zeitstempel klicken zum Springen.",
     "noSpeakers": "Keine Sprecher erkannt.",
     "noUtterances": "In dieser Aufnahme wurde keine Sprache erkannt.",
     "protocol": "Protokoll",

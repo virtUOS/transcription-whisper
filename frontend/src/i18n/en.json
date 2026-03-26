@@ -58,7 +58,7 @@
     "end": "End",
     "speaker": "Speaker",
     "text": "Text",
-    "editHint": "Double-click cells to edit. Click timestamps to seek.",
+    "editHint": "Click pencil icons to edit. Click timestamps to seek.",
     "noSpeakers": "No speakers detected.",
     "noUtterances": "No speech was detected in this recording.",
     "protocol": "Protocol",
