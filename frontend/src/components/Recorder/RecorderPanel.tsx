@@ -100,35 +100,39 @@ export function RecorderPanel() {
   return (
     <div className="border-2 border-dashed border-gray-600 rounded-lg p-6 space-y-4">
       {/* Device selector */}
-      <DeviceSelector
-        useCamera={useCamera}
-        onUseCameraChange={setUseCamera}
-        audioDeviceId={audioDeviceId}
-        onAudioDeviceChange={setAudioDeviceId}
-        videoDeviceId={videoDeviceId}
-        onVideoDeviceChange={setVideoDeviceId}
-        captureSystemAudio={captureSystemAudio}
-        onCaptureSystemAudioChange={handleCaptureSystemAudioChange}
-        disabled={isActive}
-      />
+      {state !== 'stopped' && (
+        <DeviceSelector
+          useCamera={useCamera}
+          onUseCameraChange={setUseCamera}
+          audioDeviceId={audioDeviceId}
+          onAudioDeviceChange={setAudioDeviceId}
+          videoDeviceId={videoDeviceId}
+          onVideoDeviceChange={setVideoDeviceId}
+          captureSystemAudio={captureSystemAudio}
+          onCaptureSystemAudioChange={handleCaptureSystemAudioChange}
+          disabled={isActive}
+        />
+      )}
 
       {/* Video preview or audio level meter */}
-      <div className="flex justify-center">
-        {useCamera && stream ? (
-          <video
-            ref={videoPreviewRef}
-            autoPlay
-            muted
-            playsInline
-            className="w-full max-w-md rounded-lg bg-black"
-            style={{ maxHeight: '240px' }}
-          />
-        ) : (
-          <div className="w-full max-w-md">
-            <AudioLevelMeter stream={stream} />
-          </div>
-        )}
-      </div>
+      {state !== 'stopped' && (
+        <div className="flex justify-center">
+          {useCamera && stream ? (
+            <video
+              ref={videoPreviewRef}
+              autoPlay
+              muted
+              playsInline
+              className="w-full max-w-md rounded-lg bg-black"
+              style={{ maxHeight: '240px' }}
+            />
+          ) : (
+            <div className="w-full max-w-md">
+              <AudioLevelMeter stream={stream} />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Controls */}
       <RecorderControls

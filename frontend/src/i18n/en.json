@@ -256,7 +256,7 @@
     "resume": "Resume",
     "stop": "Stop",
     "discard": "Discard",
-    "useRecording": "Use Recording",
+    "useRecording": "Transcribe",
     "uploading": "Uploading recording...",
     "uploadFailed": "Upload failed. You can retry.",
     "micRequired": "Microphone access is required to record. Please allow access in your browser settings.",

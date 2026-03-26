@@ -256,7 +256,7 @@
     "resume": "Fortsetzen",
     "stop": "Stopp",
     "discard": "Verwerfen",
-    "useRecording": "Aufnahme verwenden",
+    "useRecording": "Transkribieren",
     "uploading": "Aufnahme wird hochgeladen...",
     "uploadFailed": "Upload fehlgeschlagen. Sie können es erneut versuchen.",
     "micRequired": "Mikrofonzugriff ist erforderlich. Bitte erlauben Sie den Zugriff in Ihren Browsereinstellungen.",
