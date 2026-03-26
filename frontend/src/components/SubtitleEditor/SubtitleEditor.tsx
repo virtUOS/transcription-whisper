@@ -333,8 +333,8 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
 
       {/* Edit hint + shortcuts + Refinement / Translation toolbar */}
       <div className="flex items-center gap-2 px-3 py-2 bg-gray-800 border-b border-gray-700 flex-wrap">
-        <span className="text-gray-500 text-xs">{t('editor.editHint')}</span>
-        <details className="text-xs">
+        <span className="hidden sm:inline text-gray-500 text-xs">{t('editor.editHint')}</span>
+        <details className="hidden sm:block text-xs">
           <summary className="text-gray-500 cursor-pointer hover:text-gray-400 select-none">
             {t('editor.hotkeyLegend')}
           </summary>
@@ -473,8 +473,8 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
 
       {/* Scrollable subtitle table */}
       <div ref={containerRef} className="overflow-auto max-h-[calc(100vh-22rem)]">
-        <table className="w-full border-collapse text-sm table-fixed">
-          <thead>
+        <table className="w-full border-collapse text-sm sm:table-fixed">
+          <thead className="hidden sm:table-header-group">
             <tr className="bg-gray-800 text-gray-400 text-xs">
               <th className="px-3 py-2 text-left w-10">#</th>
               <th className="px-2 py-2 text-left w-24">{t('editor.start')}</th>

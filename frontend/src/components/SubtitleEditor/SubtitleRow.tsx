@@ -180,15 +180,15 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
       <tr
         ref={ref}
         onClick={handleRowClick}
-        className={`border-b border-gray-700 text-xs ${isActive ? 'bg-blue-900/30' : 'hover:bg-gray-800'} ${isContext ? 'opacity-50' : ''} ${isChanged ? 'border-l-2 border-l-amber-500' : ''} ${isChanged ? 'cursor-pointer' : ''}`}
+        className={`block sm:table-row border-b border-gray-700 text-xs ${isActive ? 'bg-blue-900/30' : 'hover:bg-gray-800'} ${isContext ? 'opacity-50' : ''} ${isChanged ? 'border-l-2 border-l-amber-500' : ''} ${isChanged ? 'cursor-pointer' : ''}`}
       >
-        <td className="px-3 py-2 text-gray-500">
+        <td className="hidden sm:table-cell px-3 py-2 text-gray-500">
           {index + 1}
           {isChanged && (
             <span className="ml-1 inline-block w-1.5 h-1.5 rounded-full bg-amber-500 align-middle" title={t('editor.utteranceChanged')} />
           )}
         </td>
-        <td className="px-2 py-2 text-blue-400 cursor-pointer group" onClick={(e) => { e.stopPropagation(); delayedSeek(utterance.start) }}>
+        <td className="inline-block sm:table-cell px-2 py-2 sm:py-2 pt-2 pb-0 text-blue-400 cursor-pointer group" onClick={(e) => { e.stopPropagation(); delayedSeek(utterance.start) }}>
           <span className="inline-flex items-center gap-1">
             {renderCell('start', formatTimestamp(utterance.start))}
             {!readOnly && editingField !== 'start' && (
@@ -204,7 +204,7 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
             )}
           </span>
         </td>
-        <td className="px-2 py-2 text-blue-400 cursor-pointer group" onClick={(e) => { e.stopPropagation(); delayedSeek(utterance.end) }}>
+        <td className="inline-block sm:table-cell px-2 py-2 sm:py-2 pt-2 pb-0 text-blue-400 cursor-pointer group" onClick={(e) => { e.stopPropagation(); delayedSeek(utterance.end) }}>
           <span className="inline-flex items-center gap-1">
             {renderCell('end', formatTimestamp(utterance.end))}
             {!readOnly && editingField !== 'end' && (
@@ -220,7 +220,7 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
             )}
           </span>
         </td>
-        <td className="px-2 py-2 text-green-400 group cursor-pointer" onClick={(e) => { e.stopPropagation(); delayedSeek(utterance.start) }}>
+        <td className="inline-block sm:table-cell px-2 py-2 sm:py-2 pt-2 pb-0 text-green-400 group cursor-pointer" onClick={(e) => { e.stopPropagation(); delayedSeek(utterance.start) }}>
           <span className="inline-flex items-center gap-1.5">
             {colorClass && editingField !== 'speaker' && (
               <span className={`inline-block w-2 h-2 rounded-full ${colorClass} shrink-0`} />
@@ -257,7 +257,7 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
           </span>
         </td>
         <td
-          className="px-3 py-2 text-gray-200 break-words group cursor-pointer"
+          className="block sm:table-cell px-3 py-2 text-gray-200 break-words group cursor-pointer"
           onClick={(e) => { e.stopPropagation(); delayedSeek(utterance.start) }}
         >
           {editingField === 'text' && !readOnly ? (
