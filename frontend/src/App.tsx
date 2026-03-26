@@ -37,6 +37,13 @@ function DetailActions() {
   const setCurrentView = useStore((s) => s.setCurrentView)
   const reset = useStore((s) => s.reset)
 
+  // Ensure history is loaded (may not be if user navigated directly to detail)
+  useEffect(() => {
+    if (history.length === 0) {
+      api.listTranscriptions().then(setHistory).catch(console.error)
+    }
+  }, [history.length, setHistory])
+
   const item = history.find((h) => h.id === transcriptionId)
   if (!item) return null
 
@@ -102,6 +109,9 @@ function DetailActions() {
         </svg>
         {t('transcription.delete')}
       </button>
+      <span className={`text-xs ${new Date(item.expires_at + 'Z').getTime() - Date.now() < 24 * 60 * 60 * 1000 ? 'text-red-400' : 'text-gray-500'}`}>
+        {t('transcription.expiresOn', { date: new Date(item.expires_at + 'Z').toLocaleDateString('de-DE') })}
+      </span>
     </div>
   )
 }

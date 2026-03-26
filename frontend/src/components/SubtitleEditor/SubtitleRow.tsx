@@ -194,7 +194,7 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
             {!readOnly && editingField !== 'start' && (
               <button
                 onClick={(e) => { e.stopPropagation(); cancelSeek(); startEdit('start', formatTimestamp(utterance.start)) }}
-                className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-blue-400 shrink-0"
+                className="opacity-60 hover:opacity-100 transition-opacity text-gray-500 hover:text-blue-400 shrink-0"
                 title={t('editor.editTimestamp')}
               >
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -210,7 +210,7 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
             {!readOnly && editingField !== 'end' && (
               <button
                 onClick={(e) => { e.stopPropagation(); cancelSeek(); startEdit('end', formatTimestamp(utterance.end)) }}
-                className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-blue-400 shrink-0"
+                className="opacity-60 hover:opacity-100 transition-opacity text-gray-500 hover:text-blue-400 shrink-0"
                 title={t('editor.editTimestamp')}
               >
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -233,7 +233,7 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
             {utterance.speaker && onEditSpeaker && (
               <button
                 onClick={(e) => { e.stopPropagation(); cancelSeek(); onEditSpeaker(utterance.speaker!) }}
-                className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-blue-400 shrink-0"
+                className="opacity-60 hover:opacity-100 transition-opacity text-gray-500 hover:text-blue-400 shrink-0"
                 title={t('editor.editSpeaker')}
               >
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -276,7 +276,7 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
                     cancelSeek()
                     onStartEditing?.(index, 'text')
                   }}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-blue-400 shrink-0 mt-0.5"
+                  className="opacity-60 hover:opacity-100 transition-opacity text-gray-500 hover:text-blue-400 shrink-0 mt-0.5"
                   title={t('editor.editText')}
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
