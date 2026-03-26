@@ -23,6 +23,7 @@ export function TranscriptionList() {
   const history = useStore((s) => s.transcriptionHistory)
   const setHistory = useStore((s) => s.setTranscriptionHistory)
   const setTranscriptionId = useStore((s) => s.setTranscriptionId)
+  const setTranscriptionTitle = useStore((s) => s.setTranscriptionTitle)
   const setTranscriptionStatus = useStore((s) => s.setTranscriptionStatus)
   const setResult = useStore((s) => s.setTranscriptionResult)
   const setSpeakerMappings = useStore((s) => s.setSpeakerMappings)
@@ -57,6 +58,7 @@ export function TranscriptionList() {
 
   const doSelect = async (item: TranscriptionListItem) => {
     setTranscriptionId(item.id)
+    setTranscriptionTitle(item.title || null)
     setTranscriptionStatus(item.status)
     const ext = item.original_filename.split('.').pop()?.toLowerCase() || ''
     setFile({ id: item.file_id, original_filename: item.original_filename, media_type: ext, file_size: item.file_size })

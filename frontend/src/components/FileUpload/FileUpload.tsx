@@ -9,6 +9,7 @@ export function FileUpload() {
   const file = useStore((s) => s.file)
   const setFile = useStore((s) => s.setFile)
   const transcriptionId = useStore((s) => s.transcriptionId)
+  const transcriptionTitle = useStore((s) => s.transcriptionTitle)
   const reset = useStore((s) => s.reset)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -60,7 +61,9 @@ export function FileUpload() {
   if (file) {
     return (
       <div className="flex items-center gap-4 px-6 py-2 bg-gray-800 border-b border-gray-700 text-sm text-gray-300 min-w-0">
-        <span className="truncate min-w-0">{file.original_filename}</span>
+        <span className="truncate min-w-0">
+          {transcriptionTitle ? <>{transcriptionTitle} <span className="text-gray-500">[{file.original_filename}]</span></> : file.original_filename}
+        </span>
         <span className="text-gray-500 shrink-0">({formatFileSize(file.file_size)})</span>
         <button onClick={handleDelete} className="text-red-400 hover:text-red-300 shrink-0">
           {t('upload.deleteFile')}
