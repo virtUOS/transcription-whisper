@@ -105,6 +105,28 @@ async def get_media(
     return FileResponse(file_path, media_type=media_types.get(row["media_type"], "application/octet-stream"))
 
 
+@router.get("/api/media/{file_id}/fallback")
+async def get_media_fallback(
+    file_id: str,
+    user: UserInfo = Depends(get_current_user),
+):
+    async with get_db() as db:
+        cursor = await db.execute(
+            "SELECT mp3_path FROM files WHERE id = ? AND user_id = ?",
+            (file_id, user.id),
+        )
+        row = await cursor.fetchone()
+
+    if not row or not row["mp3_path"]:
+        raise HTTPException(status_code=404, detail="No fallback available")
+
+    mp3_path = row["mp3_path"]
+    if not os.path.exists(mp3_path):
+        raise HTTPException(status_code=404, detail="Fallback file not found on disk")
+
+    return FileResponse(mp3_path, media_type="audio/mpeg")
+
+
 @router.patch("/api/files/{file_id}/rename", response_model=FileInfo)
 async def rename_file(
     file_id: str,

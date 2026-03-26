@@ -124,6 +124,7 @@ export const api = {
     request<{ status: string }>(`/api/translate/${id}`, { method: 'DELETE' }),
 
   getMediaUrl: (fileId: string) => `${BASE}/api/media/${fileId}`,
+  getMediaFallbackUrl: (fileId: string) => `${BASE}/api/media/${fileId}/fallback`,
 
   connectWebSocket: (transcriptionId: string): WebSocket => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'

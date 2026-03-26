@@ -71,6 +71,15 @@ export function MediaPlayer({ fileId, mediaType }: Props) {
       setCurrentTime(Math.floor(player.currentTime()! * 1000))
     })
 
+    player.on('error', () => {
+      // Try fallback MP3 if original format fails
+      const fallbackUrl = api.getMediaFallbackUrl(fileId)
+      player.src({ src: fallbackUrl, type: 'audio/mpeg' })
+      if (isVideo) {
+        player.audioOnlyMode(true)
+      }
+    })
+
     playerRef.current = player
     return () => {
       player.dispose()
