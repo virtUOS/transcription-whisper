@@ -105,7 +105,7 @@ export function ProgressBar() {
           <span className="text-red-400 text-lg">!</span>
           <div>
             <span className="text-red-300 text-sm">{t('transcription.failed')}</span>
-            {errorMessage && <p className="text-red-400/80 text-xs mt-1">{errorMessage}</p>}
+            {errorMessage && <p className="text-red-400/80 text-xs mt-1">{t('transcription.failedDetail', { message: errorMessage })}</p>}
           </div>
         </div>
       </div>

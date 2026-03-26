@@ -25,6 +25,7 @@
     "inProgress": "Transcription in progress...",
     "success": "Transcription successful!",
     "failed": "Transcription failed",
+    "failedDetail": "Error message: {{message}}",
     "delete": "Delete transcription",
     "history": "My Transcriptions",
     "doubleClickToRename": "Double-click to rename",

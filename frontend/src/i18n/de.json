@@ -25,6 +25,7 @@
     "inProgress": "Transkription läuft...",
     "success": "Transkription erfolgreich!",
     "failed": "Transkription fehlgeschlagen",
+    "failedDetail": "Fehlermeldung: {{message}}",
     "delete": "Transkription löschen",
     "history": "Meine Transkriptionen",
     "doubleClickToRename": "Doppelklick zum Umbenennen",
