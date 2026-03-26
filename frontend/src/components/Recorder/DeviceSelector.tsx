@@ -4,6 +4,13 @@ import { getSystemAudioSupport } from '../../utils/platformDetect'
 
 const systemAudioSupport = getSystemAudioSupport()
 
+const warningKey: Record<string, string> = {
+  full: 'recorder.systemAudioWarningFull',
+  'tab-only': 'recorder.systemAudioWarningTabOnly',
+  'dual-device': 'recorder.systemAudioWarningDualDevice',
+  limited: 'recorder.systemAudioWarningLimited',
+}
+
 interface DeviceSelectorProps {
   useCamera: boolean
   onUseCameraChange: (useCamera: boolean) => void
@@ -34,13 +41,6 @@ export function DeviceSelector({
   const { t } = useTranslation()
   const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([])
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([])
-
-  const warningKey: Record<string, string> = {
-    full: 'recorder.systemAudioWarningFull',
-    'tab-only': 'recorder.systemAudioWarningTabOnly',
-    'dual-device': 'recorder.systemAudioWarningDualDevice',
-    limited: 'recorder.systemAudioWarningLimited',
-  }
 
   async function enumerateWithPermission(requestVideo: boolean) {
     try {
@@ -83,6 +83,16 @@ export function DeviceSelector({
       enumerateWithPermission(true)
     }
   }, [useCamera])
+
+  // Auto-select first available second device when dual-device dropdown appears
+  useEffect(() => {
+    if (systemAudioSupport !== 'dual-device' || !captureSystemAudio) return
+    if (secondAudioDeviceId) return // Already selected
+    const available = audioDevices.filter((d) => d.deviceId !== audioDeviceId)
+    if (available.length > 0) {
+      onSecondAudioDeviceChange(available[0].deviceId)
+    }
+  }, [captureSystemAudio, audioDevices, audioDeviceId, secondAudioDeviceId, onSecondAudioDeviceChange])
 
   return (
     <div className="flex flex-col gap-3">
@@ -142,7 +152,7 @@ export function DeviceSelector({
             disabled={disabled}
             className="flex-1 min-w-0 bg-gray-700 text-white rounded-lg px-3 py-2 text-sm disabled:opacity-50"
           >
-            {audioDevices.map((d) => (
+            {audioDevices.filter((d) => d.deviceId !== audioDeviceId).map((d) => (
               <option key={d.deviceId} value={d.deviceId}>
                 {d.label || `Device ${d.deviceId.slice(0, 8)}`}
               </option>

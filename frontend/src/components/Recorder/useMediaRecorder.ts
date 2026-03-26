@@ -58,8 +58,10 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
 
   const stopAllTracks = useCallback(() => {
     // Remove ended listener before stopping tracks
-    if (displayEndedHandlerRef.current && displayStreamRef.current) {
-      const track = displayStreamRef.current.getAudioTracks()[0]
+    if (displayEndedHandlerRef.current) {
+      const displayTrack = displayStreamRef.current?.getAudioTracks()[0]
+      const secondTrack = secondStreamRef.current?.getAudioTracks()[0]
+      const track = displayTrack ?? secondTrack
       if (track) track.removeEventListener('ended', displayEndedHandlerRef.current)
       displayEndedHandlerRef.current = null
     }
@@ -85,8 +87,10 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
       }
       if (timerRef.current) clearInterval(timerRef.current)
       streamRef.current?.getTracks().forEach((t) => t.stop())
-      if (displayEndedHandlerRef.current && displayStreamRef.current) {
-        const track = displayStreamRef.current.getAudioTracks()[0]
+      if (displayEndedHandlerRef.current) {
+        const displayTrack = displayStreamRef.current?.getAudioTracks()[0]
+        const secondTrack = secondStreamRef.current?.getAudioTracks()[0]
+        const track = displayTrack ?? secondTrack
         if (track) track.removeEventListener('ended', displayEndedHandlerRef.current)
       }
       displayStreamRef.current?.getTracks().forEach((t) => t.stop())
@@ -161,6 +165,16 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
           }
 
           secondStreamRef.current = secondStream
+
+          // Listen for second device disconnection
+          const secondAudioTrack = secondStream.getAudioTracks()[0]
+          const onSecondEnded = () => {
+            if (recorderRef.current && recorderRef.current.state !== 'inactive') {
+              recorderRef.current.stop()
+            }
+          }
+          secondAudioTrack.addEventListener('ended', onSecondEnded)
+          displayEndedHandlerRef.current = onSecondEnded
 
           const audioCtx = new AudioContext()
           const micSource = audioCtx.createMediaStreamSource(micStream)
