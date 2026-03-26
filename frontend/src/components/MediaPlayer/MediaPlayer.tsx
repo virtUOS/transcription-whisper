@@ -45,6 +45,7 @@ export function MediaPlayer({ fileId, mediaType }: Props) {
   const speakerMappings = useStore((s) => s.speakerMappings)
 
   const [playbackError, setPlaybackError] = useState<string | null>(null)
+  const [mediaNotFound, setMediaNotFound] = useState(false)
   const isVideo = mediaType === 'mp4' || mediaType === 'webm'
   const mimeTypes: Record<string, string> = {
     mp4: 'video/mp4',
@@ -74,17 +75,24 @@ export function MediaPlayer({ fileId, mediaType }: Props) {
 
     let triedFallback = false
     player.on('error', () => {
+      const error = player.error()
+      const isNotFound = error?.code === 4 // MEDIA_ERR_SRC_NOT_SUPPORTED (covers 404)
+
       if (!triedFallback) {
-        // Try fallback MP3 if original format fails
         triedFallback = true
         player.src({ src: api.getMediaFallbackUrl(fileId), type: 'audio/mpeg' })
         if (isVideo) {
           player.audioOnlyMode(true)
         }
       } else {
-        // Fallback also failed — show a visible error
-        setPlaybackError(t('player.playbackFailed'))
-        player.dispose()
+        // Both sources failed — check if file is missing vs unsupported
+        if (isNotFound) {
+          setMediaNotFound(true)
+          setPlaybackError(t('player.mediaNotFound'))
+        } else {
+          setPlaybackError(t('player.playbackFailed'))
+        }
+        try { player.dispose() } catch { /* ignore DOM cleanup errors */ }
         playerRef.current = null
       }
     })
@@ -153,12 +161,14 @@ export function MediaPlayer({ fileId, mediaType }: Props) {
       <div className="mx-6 my-2">
         <div className="p-4 bg-gray-800 rounded-lg border border-gray-700 text-center">
           <p className="text-gray-400 text-sm">{playbackError}</p>
-          <button
-            onClick={handleDownload}
-            className="mt-2 px-3 py-1 text-sm text-blue-400 hover:text-blue-300 transition-colors"
-          >
-            {t('player.download')}
-          </button>
+          {!mediaNotFound && (
+            <button
+              onClick={handleDownload}
+              className="mt-2 px-3 py-1 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              {t('player.download')}
+            </button>
+          )}
         </div>
       </div>
     )

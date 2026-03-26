@@ -289,7 +289,8 @@
   "player": {
     "subtitles": "Subtitles",
     "download": "Download recording",
-    "playbackFailed": "This format cannot be played in the browser. You can download the file instead."
+    "playbackFailed": "This format cannot be played in the browser. You can download the file instead.",
+    "mediaNotFound": "The audio file is no longer available. It may have been deleted or expired."
   },
   "nav": {
     "backToTranscriptions": "Transcriptions",

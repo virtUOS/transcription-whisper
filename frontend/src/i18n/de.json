@@ -289,7 +289,8 @@
   "player": {
     "subtitles": "Untertitel",
     "download": "Aufnahme herunterladen",
-    "playbackFailed": "Dieses Format kann im Browser nicht abgespielt werden. Sie können die Datei stattdessen herunterladen."
+    "playbackFailed": "Dieses Format kann im Browser nicht abgespielt werden. Sie können die Datei stattdessen herunterladen.",
+    "mediaNotFound": "Die Audiodatei ist nicht mehr verfügbar. Sie wurde möglicherweise gelöscht oder ist abgelaufen."
   },
   "nav": {
     "backToTranscriptions": "Transkriptionen",
