@@ -61,14 +61,17 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
       ? refinedUtterances
       : (result?.utterances || [])
 
-  const speakerColorMap = useMemo(() => {
+  const allSpeakers = useMemo(() => {
     const speakers = new Set<string>()
     ;(result?.utterances || []).forEach((u) => { if (u.speaker) speakers.add(u.speaker) })
-    const sorted = Array.from(speakers).sort()
-    const map: Record<string, number> = {}
-    sorted.forEach((s, i) => { map[s] = i })
-    return map
+    return Array.from(speakers).sort()
   }, [result])
+
+  const speakerColorMap = useMemo(() => {
+    const map: Record<string, number> = {}
+    allSpeakers.forEach((s, i) => { map[s] = i })
+    return map
+  }, [allSpeakers])
 
   const activeIndex = utterances.findIndex(
     (u) => currentTime >= u.start && currentTime < u.end

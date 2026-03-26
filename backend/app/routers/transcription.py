@@ -1,6 +1,8 @@
 import asyncio
 import json
+import logging
 import time
+import traceback
 import uuid
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
@@ -108,6 +110,8 @@ async def _run_transcription(transcription_id: str, file_path: str, req: Transcr
             await db.commit()
 
     except Exception as e:
+        logging.error("Transcription %s failed: %s: %s", transcription_id, type(e).__name__, e)
+        logging.error("Traceback: %s", traceback.format_exc())
         inc(transcriptions_total, req.language or "auto", req.model or "default", "failed")
         inc(errors_total, "transcription_failed", "asr")
 

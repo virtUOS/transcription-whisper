@@ -222,7 +222,7 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
         </td>
         <td className="px-2 py-2 text-green-400 group cursor-pointer" onClick={(e) => { e.stopPropagation(); delayedSeek(utterance.start) }}>
           <span className="inline-flex items-center gap-1.5">
-            {colorClass && (
+            {colorClass && editingField !== 'speaker' && (
               <span className={`inline-block w-2 h-2 rounded-full ${colorClass} shrink-0`} />
             )}
             {renderCell('speaker', speakerDisplay,
@@ -230,16 +230,29 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
                 ? highlightText(speakerDisplay, highlightTerms)
                 : undefined
             )}
-            {utterance.speaker && onEditSpeaker && (
-              <button
-                onClick={(e) => { e.stopPropagation(); cancelSeek(); onEditSpeaker(utterance.speaker!) }}
-                className="opacity-60 hover:opacity-100 transition-opacity text-gray-500 hover:text-blue-400 shrink-0"
-                title={t('editor.editSpeaker')}
-              >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                </svg>
-              </button>
+            {utterance.speaker && !readOnly && editingField !== 'speaker' && (
+              <>
+                <button
+                  onClick={(e) => { e.stopPropagation(); cancelSeek(); startEdit('speaker', speakerDisplay) }}
+                  className="opacity-60 hover:opacity-100 transition-opacity text-gray-500 hover:text-blue-400 shrink-0"
+                  title={t('editor.editSpeaker')}
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                </button>
+                {onEditSpeaker && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); cancelSeek(); onEditSpeaker(utterance.speaker!) }}
+                    className="opacity-60 hover:opacity-100 transition-opacity text-gray-500 hover:text-blue-400 shrink-0"
+                    title={t('editor.renameAllSpeaker')}
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </button>
+                )}
+              </>
             )}
           </span>
         </td>

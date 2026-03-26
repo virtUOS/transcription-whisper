@@ -103,6 +103,7 @@
     "originalText": "Original",
     "refinedText": "Verfeinert",
     "editSpeaker": "Sprechername bearbeiten",
+    "renameAllSpeaker": "Sprecher in allen Äußerungen umbenennen",
     "editTimestamp": "Zeitstempel bearbeiten",
     "editText": "Text bearbeiten",
     "utteranceChanged": "Vom LLM geändert",
