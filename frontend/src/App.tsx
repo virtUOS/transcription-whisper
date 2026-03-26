@@ -198,6 +198,7 @@ function App() {
         <>
           <BackButton />
           <RecorderPanel />
+          {file && !showEditor && <SettingsPanel />}
           <ProgressBar />
         </>
       )}
