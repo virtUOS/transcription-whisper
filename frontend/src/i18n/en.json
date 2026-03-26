@@ -276,8 +276,14 @@
     "recordingNotSupported": "Recording is not supported in this browser.",
     "unsavedSwitchTab": "You have unsaved changes. Are you sure you want to switch? Your current transcription will be closed.",
     "systemAudio": "System audio",
-    "systemAudioWarning": "Experimental feature. Your browser will ask you to select a tab or screen to capture audio from. This works best on Chrome/Edge on Windows. macOS and other browsers have limited or no support for system audio capture. For best results, run the meeting in a browser tab and select that tab when prompted.",
+    "systemAudioWarningFull": "Experimental feature. Your browser will ask you to select a screen or tab to capture audio from. Select an entire screen to capture all system audio, or a specific tab for that tab's audio only.",
+    "systemAudioWarningTabOnly": "Experimental feature. On your platform, system audio capture is limited to browser tab audio. Run the meeting in a browser tab and select that tab when prompted.",
+    "systemAudioWarningDualDevice": "Experimental feature. Select a second audio input device below (e.g., a PulseAudio/PipeWire monitor source) to capture system audio alongside your microphone.",
+    "systemAudioWarningLimited": "Experimental feature. System audio capture has limited support in Firefox. It may not work as expected. For best results, use a Chromium-based browser (Chrome, Edge, Brave).",
+    "systemAudioUnsupported": "System audio capture is not supported on your browser or device.",
     "systemAudioFailed": "Could not capture system audio. You may have cancelled the prompt or your browser does not support this feature.",
+    "selectSecondDevice": "System audio source",
+    "secondDeviceFailed": "Could not open the selected system audio device. Please check that it is available and not in use.",
     "consentReminder": "Don't record people without their permission. Ask first!"
   },
   "player": {

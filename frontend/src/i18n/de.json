@@ -276,8 +276,14 @@
     "recordingNotSupported": "Aufnahme wird in diesem Browser nicht unterstützt.",
     "unsavedSwitchTab": "Sie haben ungespeicherte Änderungen. Möchten Sie wirklich wechseln? Die aktuelle Transkription wird geschlossen.",
     "systemAudio": "Systemaudio",
-    "systemAudioWarning": "Experimentelle Funktion. Ihr Browser wird Sie bitten, einen Tab oder Bildschirm auszuwählen, dessen Audio aufgenommen werden soll. Dies funktioniert am besten mit Chrome/Edge unter Windows. macOS und andere Browser haben eingeschränkte oder keine Unterstützung für System-Audioaufnahme. Führen Sie das Meeting am besten in einem Browser-Tab durch und wählen Sie diesen Tab aus, wenn Sie dazu aufgefordert werden.",
+    "systemAudioWarningFull": "Experimental feature. Your browser will ask you to select a screen or tab to capture audio from. Select an entire screen to capture all system audio, or a specific tab for that tab's audio only.",
+    "systemAudioWarningTabOnly": "Experimental feature. On your platform, system audio capture is limited to browser tab audio. Run the meeting in a browser tab and select that tab when prompted.",
+    "systemAudioWarningDualDevice": "Experimental feature. Select a second audio input device below (e.g., a PulseAudio/PipeWire monitor source) to capture system audio alongside your microphone.",
+    "systemAudioWarningLimited": "Experimental feature. System audio capture has limited support in Firefox. It may not work as expected. For best results, use a Chromium-based browser (Chrome, Edge, Brave).",
+    "systemAudioUnsupported": "System audio capture is not supported on your browser or device.",
     "systemAudioFailed": "Systemaudio konnte nicht aufgenommen werden. Möglicherweise haben Sie die Eingabeaufforderung abgebrochen oder Ihr Browser unterstützt diese Funktion nicht.",
+    "selectSecondDevice": "System audio source",
+    "secondDeviceFailed": "Could not open the selected system audio device. Please check that it is available and not in use.",
     "consentReminder": "Nehmen Sie niemanden ohne Erlaubnis auf. Fragen Sie vorher!"
   },
   "player": {
