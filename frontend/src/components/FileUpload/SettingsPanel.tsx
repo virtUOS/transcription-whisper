@@ -97,7 +97,12 @@ export function SettingsPanel() {
         </button>
       </div>
       {error && (
-        <div className="text-red-400 text-sm px-1">{error}</div>
+        <div className="p-4 bg-red-900/30 rounded-lg border border-red-700">
+          <div className="flex items-center gap-3">
+            <span className="text-red-400 text-lg">!</span>
+            <span className="text-red-300 text-sm">{error}</span>
+          </div>
+        </div>
       )}
       {showAdvanced && (
         <div className="flex flex-wrap gap-4">

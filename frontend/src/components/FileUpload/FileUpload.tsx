@@ -90,7 +90,14 @@ export function FileUpload() {
           <p className="text-gray-500 text-sm mt-2">{t('upload.supportedFormats')}</p>
         </label>
       )}
-      {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
+      {error && (
+        <div className="mt-3 p-4 bg-red-900/30 rounded-lg border border-red-700">
+          <div className="flex items-center gap-3">
+            <span className="text-red-400 text-lg">!</span>
+            <span className="text-red-300 text-sm">{error}</span>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
