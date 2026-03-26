@@ -174,3 +174,15 @@ class OpenAIProvider(LLMProvider):
             utterances=[Utterance(**u) for u in all_refined],
             changes_summary=combined_summary,
         )
+
+    async def generate_title(self, transcript: str) -> str:
+        response = await self._client.chat.completions.create(
+            model=self._model,
+            messages=[
+                {"role": "system", "content": "Generate a short descriptive title (max 8 words) for the following transcript. Return ONLY the title text, nothing else. No quotes, no punctuation at the end."},
+                {"role": "user", "content": transcript[:2000]},
+            ],
+            temperature=0.3,
+        )
+        return (response.choices[0].message.content or "").strip().strip('"\'')
+
