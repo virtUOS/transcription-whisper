@@ -274,7 +274,11 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
 
   const baseUtterances = result?.utterances || []
 
-  if (!utterances.length && !baseUtterances.length) return null
+  if (!utterances.length && !baseUtterances.length) return (
+    <div className="flex items-center justify-center py-12 text-gray-400">
+      {t('editor.noUtterances')}
+    </div>
+  )
 
   return (
     <div>
