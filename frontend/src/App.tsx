@@ -62,6 +62,15 @@ function App() {
     return () => window.removeEventListener('popstate', handlePopState)
   }, [setCurrentView])
 
+  // Update browser tab title based on current view
+  useEffect(() => {
+    if (currentView === 'detail' && file) {
+      document.title = `${file.original_filename} — ${t('title')}`
+    } else {
+      document.title = t('title')
+    }
+  }, [currentView, file, t])
+
   // Auto-navigate to detail view when transcription completes
   useEffect(() => {
     if (transcriptionStatus === 'completed' && transcriptionResult && (currentView === 'upload' || currentView === 'record')) {
@@ -101,6 +110,11 @@ function App() {
       {currentView === 'detail' && (
         <>
           <BackButton />
+          {file && (
+            <h1 className="px-6 text-lg font-semibold text-white truncate">
+              {file.original_filename}
+            </h1>
+          )}
           <ProgressBar />
           {showEditor && file && (
             <>
