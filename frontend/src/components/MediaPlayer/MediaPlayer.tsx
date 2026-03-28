@@ -92,8 +92,9 @@ export function MediaPlayer({ fileId, mediaType }: Props) {
         } else {
           setPlaybackError(t('player.playbackFailed'))
         }
-        try { player.dispose() } catch { /* ignore DOM cleanup errors */ }
-        playerRef.current = null
+        // Don't dispose here — let useEffect cleanup handle it.
+        // Disposing removes the <video> DOM node, which causes React
+        // reconciliation to crash with removeChild errors.
       }
     })
 
@@ -156,9 +157,9 @@ export function MediaPlayer({ fileId, mediaType }: Props) {
     a.click()
   }
 
-  if (playbackError) {
-    return (
-      <div className="mx-6 my-2">
+  return (
+    <div className={`mx-6 my-2 ${isVideo ? 'flex flex-col items-center' : 'max-h-16'}`}>
+      {playbackError && (
         <div className="p-4 bg-gray-800 rounded-lg border border-gray-700 text-center">
           <p className="text-gray-400 text-sm">{playbackError}</p>
           {!mediaNotFound && (
@@ -170,21 +171,19 @@ export function MediaPlayer({ fileId, mediaType }: Props) {
             </button>
           )}
         </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className={`mx-6 my-2 ${isVideo ? 'flex flex-col items-center' : 'max-h-16'}`}>
-      <div data-vjs-player className={isVideo ? 'w-full overflow-hidden' : ''}>
+      )}
+      {/* Keep <video> in DOM always so video.js dispose doesn't race with React */}
+      <div data-vjs-player className={`${isVideo ? 'w-full overflow-hidden' : ''} ${playbackError ? 'hidden' : ''}`}>
         <video ref={videoRef} className="video-js vjs-theme-city" />
       </div>
-      <button
-        onClick={handleDownload}
-        className="mt-2 px-3 py-1 text-sm text-gray-400 hover:text-white transition-colors"
-      >
-        {t('player.download')}
-      </button>
+      {!playbackError && (
+        <button
+          onClick={handleDownload}
+          className="mt-2 px-3 py-1 text-sm text-gray-400 hover:text-white transition-colors"
+        >
+          {t('player.download')}
+        </button>
+      )}
     </div>
   )
 }
