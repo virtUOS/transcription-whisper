@@ -67,11 +67,28 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
     return Array.from(speakers).sort()
   }, [result])
 
+  // Color map based on display names so same-name speakers always share color
   const speakerColorMap = useMemo(() => {
+    const displayNames = new Set<string>()
+    ;(result?.utterances || []).forEach((u) => {
+      if (u.speaker) {
+        const display = speakerMappings[u.speaker] || u.speaker
+        displayNames.add(display)
+      }
+    })
+    const sorted = Array.from(displayNames).sort()
+    const nameToIndex: Record<string, number> = {}
+    sorted.forEach((name, i) => { nameToIndex[name] = i })
+    // Map original labels to index via their display name
     const map: Record<string, number> = {}
-    allSpeakers.forEach((s, i) => { map[s] = i })
+    ;(result?.utterances || []).forEach((u) => {
+      if (u.speaker && !(u.speaker in map)) {
+        const display = speakerMappings[u.speaker] || u.speaker
+        map[u.speaker] = nameToIndex[display]
+      }
+    })
     return map
-  }, [allSpeakers])
+  }, [result, speakerMappings])
 
   const activeIndex = utterances.findIndex(
     (u) => currentTime >= u.start && currentTime < u.end
