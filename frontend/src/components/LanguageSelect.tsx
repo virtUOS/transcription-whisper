@@ -14,8 +14,8 @@ export function LanguageSelect({ value, onChange, includeAuto, className, disabl
   const { t } = useTranslation()
   const popularLanguages = useStore((s) => s.config?.popular_languages) || []
 
-  const allCodes = includeAuto ? LANGUAGES_WITH_AUTO : LANGUAGES
-  const popular = popularLanguages.filter((code) => allCodes.includes(code as typeof allCodes[number]))
+  const allCodes: readonly string[] = includeAuto ? LANGUAGES_WITH_AUTO : LANGUAGES
+  const popular = popularLanguages.filter((code) => allCodes.includes(code))
   const rest = allCodes.filter((code) => code !== 'auto' && !popular.includes(code))
 
   return (

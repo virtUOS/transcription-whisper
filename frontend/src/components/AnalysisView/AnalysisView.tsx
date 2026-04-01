@@ -232,7 +232,7 @@ function AnalysisCard({ analysisId, transcriptionId, templates, baseName, onDele
             </div>
           )}
           {error && <p className="text-red-400 text-sm">{error}</p>}
-          {result && (
+          {!!result && (
             <>
               {/* Download buttons at top */}
               <div className="flex justify-end gap-2">
