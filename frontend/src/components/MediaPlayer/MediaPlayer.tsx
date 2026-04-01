@@ -166,7 +166,7 @@ export function MediaPlayer({ fileId, mediaType }: Props) {
   }
 
   return (
-    <div className={`mx-6 my-2 ${isVideo ? 'flex flex-col items-center' : ''}`}>
+    <div className={`mx-6 my-2 ${isVideo ? 'flex flex-col items-center' : 'max-h-16'}`}>
       {playbackError && (
         <div className="p-4 bg-gray-800 rounded-lg border border-gray-700 text-center">
           <p className="text-gray-400 text-sm">{playbackError}</p>
