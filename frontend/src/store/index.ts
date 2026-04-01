@@ -1,7 +1,7 @@
 import { create } from 'zustand'
-import type { FileInfo, TranscriptionResult, TranscriptionListItem, ConfigResponse, Utterance, RefinementMetadata, AnalysisListItem } from '../api/types'
+import type { FileInfo, TranscriptionResult, TranscriptionListItem, ConfigResponse, Utterance, RefinementMetadata, AnalysisListItem, TranscriptionPreset, AnalysisPreset, RefinementPreset, PresetBundle } from '../api/types'
 
-type AppView = 'archive' | 'upload' | 'record' | 'detail'
+type AppView = 'archive' | 'upload' | 'record' | 'detail' | 'presets'
 
 interface AppState {
   currentView: AppView
@@ -47,6 +47,17 @@ interface AppState {
   setAnalyses: (analyses: AnalysisListItem[]) => void
   addAnalysis: (item: AnalysisListItem) => void
   removeAnalysis: (id: string) => void
+  // Presets
+  transcriptionPresets: TranscriptionPreset[]
+  analysisPresets: AnalysisPreset[]
+  refinementPresets: RefinementPreset[]
+  bundles: PresetBundle[]
+  activeBundleId: string | null
+  setTranscriptionPresets: (presets: TranscriptionPreset[]) => void
+  setAnalysisPresets: (presets: AnalysisPreset[]) => void
+  setRefinementPresets: (presets: RefinementPreset[]) => void
+  setBundles: (bundles: PresetBundle[]) => void
+  setActiveBundleId: (id: string | null) => void
   clearRefinement: () => void
   reset: () => void
 }
@@ -107,6 +118,17 @@ export const useStore = create<AppState>((set) => ({
   setAnalyses: (analyses) => set({ analyses }),
   addAnalysis: (item) => set((s) => ({ analyses: [item, ...s.analyses] })),
   removeAnalysis: (id) => set((s) => ({ analyses: s.analyses.filter((a) => a.id !== id) })),
+  // Presets
+  transcriptionPresets: [],
+  analysisPresets: [],
+  refinementPresets: [],
+  bundles: [],
+  activeBundleId: null,
+  setTranscriptionPresets: (presets) => set({ transcriptionPresets: presets }),
+  setAnalysisPresets: (presets) => set({ analysisPresets: presets }),
+  setRefinementPresets: (presets) => set({ refinementPresets: presets }),
+  setBundles: (bundles) => set({ bundles }),
+  setActiveBundleId: (id) => set({ activeBundleId: id }),
   clearRefinement: () => set({ refinedUtterances: null, refinementMetadata: null, activeView: 'original' as const }),
   reset: () => set({
     currentView: 'archive' as const,

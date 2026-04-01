@@ -64,6 +64,55 @@ CREATE TABLE IF NOT EXISTS analyses (
     llm_model TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS transcription_presets (
+    id TEXT PRIMARY KEY,
+    user_id TEXT REFERENCES users(id),
+    name TEXT NOT NULL,
+    language TEXT,
+    model TEXT DEFAULT 'base',
+    min_speakers INTEGER DEFAULT 0,
+    max_speakers INTEGER DEFAULT 0,
+    initial_prompt TEXT,
+    hotwords TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS analysis_presets (
+    id TEXT PRIMARY KEY,
+    user_id TEXT REFERENCES users(id),
+    name TEXT NOT NULL,
+    template TEXT,
+    custom_prompt TEXT,
+    language TEXT,
+    chapter_hints TEXT,
+    agenda TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS refinement_presets (
+    id TEXT PRIMARY KEY,
+    user_id TEXT REFERENCES users(id),
+    name TEXT NOT NULL,
+    context TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS preset_bundles (
+    id TEXT PRIMARY KEY,
+    user_id TEXT REFERENCES users(id),
+    name TEXT NOT NULL,
+    transcription_preset_id TEXT REFERENCES transcription_presets(id) ON DELETE SET NULL,
+    analysis_preset_id TEXT REFERENCES analysis_presets(id) ON DELETE SET NULL,
+    refinement_preset_id TEXT REFERENCES refinement_presets(id) ON DELETE SET NULL,
+    translate_language TEXT,
+    is_default INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 """
 
 _db_path: str = ""
@@ -79,6 +128,7 @@ MIGRATIONS = [
     ("is_archived", "files", "is_archived INTEGER DEFAULT 0"),
     ("title", "transcriptions", "title TEXT"),
     ("has_video", "files", "has_video INTEGER"),
+    ("translate_language", "preset_bundles", "translate_language TEXT"),
 ]
 
 

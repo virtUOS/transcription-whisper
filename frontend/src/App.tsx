@@ -14,6 +14,7 @@ import { TabBar } from './components/TabBar'
 import { AnalysisView } from './components/AnalysisView'
 import { useStore, setPopStateFlag } from './store'
 import { api } from './api/client'
+import { PresetsPage } from './components/PresetsPage/PresetsPage'
 
 function BackButton() {
   const { t } = useTranslation()
@@ -141,9 +142,28 @@ function App() {
     setSpeakerModalOpen(true)
   }
 
+  const setTranscriptionPresets = useStore((s) => s.setTranscriptionPresets)
+  const setAnalysisPresets = useStore((s) => s.setAnalysisPresets)
+  const setRefinementPresets = useStore((s) => s.setRefinementPresets)
+  const setBundles = useStore((s) => s.setBundles)
+  const setActiveBundleId = useStore((s) => s.setActiveBundleId)
+
   useEffect(() => {
     api.getConfig().then(setConfig).catch(console.error)
-  }, [setConfig])
+    Promise.all([
+      api.getTranscriptionPresets(),
+      api.getAnalysisPresets(),
+      api.getRefinementPresets(),
+      api.getBundles(),
+      api.getDefaultBundle(),
+    ]).then(([tp, ap, rp, bundles, defaultBundle]) => {
+      setTranscriptionPresets(tp)
+      setAnalysisPresets(ap)
+      setRefinementPresets(rp)
+      setBundles(bundles)
+      if (defaultBundle) setActiveBundleId(defaultBundle.id)
+    }).catch(console.error)
+  }, [setConfig, setTranscriptionPresets, setAnalysisPresets, setRefinementPresets, setBundles, setActiveBundleId])
 
   // Track whether current navigation was triggered by browser back/forward
   const isPopStateNav = useRef(false)
@@ -169,6 +189,23 @@ function App() {
     }
   }, [currentView, file, t])
 
+  const setRefinedUtterances = useStore((s) => s.setRefinedUtterances)
+  const setRefinementMetadata = useStore((s) => s.setRefinementMetadata)
+  const setActiveView = useStore((s) => s.setActiveView)
+  const addAnalysis = useStore((s) => s.addAnalysis)
+  const setTranslatedUtterances = useStore((s) => s.setTranslatedUtterances)
+  const setTranslationLanguage = useStore((s) => s.setTranslationLanguage)
+  const autoPipelineRanRef = useRef(false)
+  const [pipelineStatus, setPipelineStatus] = useState<{ key: string; step: 'refine' | 'analyze' | 'translate'; params?: Record<string, string> } | null>(null)
+
+  // Reset auto-pipeline flag when a new transcription starts
+  useEffect(() => {
+    if (transcriptionStatus && transcriptionStatus !== 'completed') {
+      autoPipelineRanRef.current = false
+      setPipelineStatus(null)
+    }
+  }, [transcriptionStatus])
+
   // Auto-navigate to detail view when transcription completes
   useEffect(() => {
     if (isPopStateNav.current) {
@@ -180,6 +217,79 @@ function App() {
     }
   }, [transcriptionStatus, transcriptionResult, currentView, setCurrentView])
 
+  // Auto-run refinement & analysis when transcription completes with an active bundle
+  useEffect(() => {
+    if (transcriptionStatus !== 'completed' || !transcriptionResult || autoPipelineRanRef.current) return
+    const bundleId = useStore.getState().activeBundleId
+    if (!bundleId) return
+    const bundles = useStore.getState().bundles
+    const bundle = bundles.find((b) => b.id === bundleId)
+    if (!bundle) return
+
+    const transcriptionId = useStore.getState().transcriptionId
+    if (!transcriptionId) return
+
+    const refinementPresets = useStore.getState().refinementPresets
+    const analysisPresets = useStore.getState().analysisPresets
+    const hasRefinement = bundle.refinement_preset_id && refinementPresets.find((p) => p.id === bundle.refinement_preset_id)
+    const hasAnalysis = bundle.analysis_preset_id && analysisPresets.find((p) => p.id === bundle.analysis_preset_id)
+    const hasTranslation = bundle.translate_language
+
+    if (!hasRefinement && !hasAnalysis && !hasTranslation) return
+    autoPipelineRanRef.current = true
+
+    const run = async () => {
+      if (hasRefinement) {
+        setPipelineStatus({ key: 'editor.refining', step: 'refine' })
+        try {
+          const result = await api.generateRefinement(transcriptionId, hasRefinement.context || undefined)
+          setRefinedUtterances(result.utterances)
+          setRefinementMetadata(result.metadata)
+          setActiveView('refined')
+        } catch (e) {
+          console.error('Auto-refinement failed:', e)
+        }
+      }
+
+      if (hasAnalysis) {
+        setPipelineStatus({ key: 'analysis.generating', step: 'analyze' })
+        try {
+          const result = await api.generateAnalysis(transcriptionId, {
+            template: hasAnalysis.template,
+            custom_prompt: hasAnalysis.custom_prompt,
+            language: hasAnalysis.language,
+            chapter_hints: hasAnalysis.chapter_hints,
+            agenda: hasAnalysis.agenda,
+          })
+          const analysisResult = result as { id: string; template?: string; language?: string; llm_provider?: string; llm_model?: string; created_at?: string }
+          addAnalysis({
+            id: analysisResult.id,
+            template: analysisResult.template || null,
+            language: analysisResult.language || null,
+            llm_provider: analysisResult.llm_provider || null,
+            llm_model: analysisResult.llm_model || null,
+            created_at: analysisResult.created_at || null,
+          })
+        } catch (e) {
+          console.error('Auto-analysis failed:', e)
+        }
+      }
+      if (hasTranslation) {
+        setPipelineStatus({ key: 'pipeline.translating', step: 'translate', params: { language: t(`languages.${hasTranslation}`) } })
+        try {
+          const result = await api.translateTranscription(transcriptionId, hasTranslation)
+          setTranslatedUtterances(result.utterances)
+          setTranslationLanguage(result.language)
+        } catch (e) {
+          console.error('Auto-translation failed:', e)
+        }
+      }
+      setPipelineStatus(null)
+    }
+
+    run()
+  }, [transcriptionStatus, transcriptionResult, setRefinedUtterances, setRefinementMetadata, setActiveView, addAnalysis, setTranslatedUtterances, setTranslationLanguage])
+
   if (!config) return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-gray-400">{t('common.loading')}</div>
 
   const showEditor = transcriptionStatus === 'completed' && transcriptionResult
@@ -190,6 +300,13 @@ function App() {
 
       {currentView === 'archive' && (
         <TranscriptionList />
+      )}
+
+      {currentView === 'presets' && (
+        <>
+          <BackButton />
+          <PresetsPage />
+        </>
       )}
 
       {currentView === 'upload' && (
@@ -223,6 +340,24 @@ function App() {
           )}
           <DetailActions />
           <ProgressBar />
+          {pipelineStatus && (
+            <div className={`mx-6 my-2 px-4 py-2 rounded-lg flex items-center gap-3 ${
+              pipelineStatus.step === 'refine' ? 'bg-amber-900/30 border border-amber-700/50' :
+              pipelineStatus.step === 'translate' ? 'bg-purple-900/30 border border-purple-700/50' :
+              'bg-blue-900/30 border border-blue-700/50'
+            }`}>
+              <div className={`animate-spin h-4 w-4 border-2 border-t-transparent rounded-full shrink-0 ${
+                pipelineStatus.step === 'refine' ? 'border-amber-400' :
+                pipelineStatus.step === 'translate' ? 'border-purple-400' :
+                'border-blue-400'
+              }`} />
+              <span className={`text-sm ${
+                pipelineStatus.step === 'refine' ? 'text-amber-200' :
+                pipelineStatus.step === 'translate' ? 'text-purple-200' :
+                'text-blue-200'
+              }`}>{t(pipelineStatus.key, pipelineStatus.params)}</span>
+            </div>
+          )}
           {showEditor && file && (
             <>
               <MediaPlayer

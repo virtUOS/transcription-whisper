@@ -17,6 +17,12 @@ export function Header() {
       </div>
       <div className="flex flex-wrap items-center gap-4">
         <button
+          onClick={() => useStore.getState().setCurrentView('presets')}
+          className="text-sm text-gray-300 hover:text-white"
+        >
+          {t('nav.presets')}
+        </button>
+        <button
           onClick={toggleLanguage}
           className="text-sm text-gray-300 hover:text-white"
           title={i18n.language === 'de' ? 'Switch to English' : 'Auf Deutsch wechseln'}

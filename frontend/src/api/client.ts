@@ -3,6 +3,10 @@ import type {
   TranscriptionResult, TranscriptionListItem, ConfigResponse,
   RefinementResult,
   AnalysisTemplate, AnalysisGenerateRequest, AnalysisListItem, Utterance,
+  TranscriptionPreset, TranscriptionPresetCreate,
+  AnalysisPreset, AnalysisPresetCreate,
+  RefinementPreset, RefinementPresetCreate,
+  PresetBundle, PresetBundleCreate, PresetBundleExpanded,
 } from './types'
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '')
@@ -153,4 +157,43 @@ export const api = {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
     return new WebSocket(`${protocol}//${window.location.host}${BASE}/api/ws/status/${transcriptionId}`)
   },
+
+  // --- Presets ---
+
+  getTranscriptionPresets: () => request<TranscriptionPreset[]>('/api/presets/transcription'),
+  createTranscriptionPreset: (data: TranscriptionPresetCreate) =>
+    request<TranscriptionPreset>('/api/presets/transcription', { method: 'POST', body: JSON.stringify(data) }),
+  updateTranscriptionPreset: (id: string, data: TranscriptionPresetCreate) =>
+    request<TranscriptionPreset>(`/api/presets/transcription/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteTranscriptionPreset: (id: string) =>
+    request<{ status: string }>(`/api/presets/transcription/${id}`, { method: 'DELETE' }),
+
+  getAnalysisPresets: () => request<AnalysisPreset[]>('/api/presets/analysis'),
+  createAnalysisPreset: (data: AnalysisPresetCreate) =>
+    request<AnalysisPreset>('/api/presets/analysis', { method: 'POST', body: JSON.stringify(data) }),
+  updateAnalysisPreset: (id: string, data: AnalysisPresetCreate) =>
+    request<AnalysisPreset>(`/api/presets/analysis/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteAnalysisPreset: (id: string) =>
+    request<{ status: string }>(`/api/presets/analysis/${id}`, { method: 'DELETE' }),
+
+  getRefinementPresets: () => request<RefinementPreset[]>('/api/presets/refinement'),
+  createRefinementPreset: (data: RefinementPresetCreate) =>
+    request<RefinementPreset>('/api/presets/refinement', { method: 'POST', body: JSON.stringify(data) }),
+  updateRefinementPreset: (id: string, data: RefinementPresetCreate) =>
+    request<RefinementPreset>(`/api/presets/refinement/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteRefinementPreset: (id: string) =>
+    request<{ status: string }>(`/api/presets/refinement/${id}`, { method: 'DELETE' }),
+
+  getBundles: () => request<PresetBundle[]>('/api/presets/bundles'),
+  createBundle: (data: PresetBundleCreate) =>
+    request<PresetBundle>('/api/presets/bundles', { method: 'POST', body: JSON.stringify(data) }),
+  updateBundle: (id: string, data: PresetBundleCreate) =>
+    request<PresetBundle>(`/api/presets/bundles/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteBundle: (id: string) =>
+    request<{ status: string }>(`/api/presets/bundles/${id}`, { method: 'DELETE' }),
+  setDefaultBundle: (id: string) =>
+    request<{ status: string }>(`/api/presets/bundles/${id}/default`, { method: 'PUT' }),
+  clearDefaultBundle: () =>
+    request<{ status: string }>('/api/presets/default', { method: 'DELETE' }),
+  getDefaultBundle: () => request<PresetBundleExpanded | null>('/api/presets/default'),
 }

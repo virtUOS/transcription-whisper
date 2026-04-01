@@ -157,3 +157,88 @@ export interface ErrorResponse {
   error: string
   detail: string
 }
+
+// --- Presets ---
+
+export interface TranscriptionPreset {
+  id: string
+  name: string
+  language: string | null
+  model: string
+  min_speakers: number
+  max_speakers: number
+  initial_prompt: string | null
+  hotwords: string | null
+  created_at: string | null
+  updated_at: string | null
+}
+
+export interface TranscriptionPresetCreate {
+  name: string
+  language?: string | null
+  model?: string
+  min_speakers?: number
+  max_speakers?: number
+  initial_prompt?: string | null
+  hotwords?: string | null
+}
+
+export interface AnalysisPreset {
+  id: string
+  name: string
+  template: string | null
+  custom_prompt: string | null
+  language: string | null
+  chapter_hints: ChapterHint[] | null
+  agenda: string | null
+  created_at: string | null
+  updated_at: string | null
+}
+
+export interface AnalysisPresetCreate {
+  name: string
+  template?: string | null
+  custom_prompt?: string | null
+  language?: string | null
+  chapter_hints?: ChapterHint[] | null
+  agenda?: string | null
+}
+
+export interface RefinementPreset {
+  id: string
+  name: string
+  context: string | null
+  created_at: string | null
+  updated_at: string | null
+}
+
+export interface RefinementPresetCreate {
+  name: string
+  context?: string | null
+}
+
+export interface PresetBundle {
+  id: string
+  name: string
+  transcription_preset_id: string | null
+  analysis_preset_id: string | null
+  refinement_preset_id: string | null
+  translate_language: string | null
+  is_default: boolean
+  created_at: string | null
+  updated_at: string | null
+}
+
+export interface PresetBundleCreate {
+  name: string
+  transcription_preset_id?: string | null
+  analysis_preset_id?: string | null
+  refinement_preset_id?: string | null
+  translate_language?: string | null
+}
+
+export interface PresetBundleExpanded extends PresetBundle {
+  transcription_preset: TranscriptionPreset | null
+  analysis_preset: AnalysisPreset | null
+  refinement_preset: RefinementPreset | null
+}

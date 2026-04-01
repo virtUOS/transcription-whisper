@@ -31,6 +31,7 @@
   },
   "transcription": {
     "transcribe": "Transkribieren",
+    "runPipeline": "Pipeline starten",
     "transcribeWhenReady": "Transkribieren wenn bereit",
     "inProgress": "Transkription läuft...",
     "success": "Transkription erfolgreich!",
@@ -172,6 +173,45 @@
     "previousAnalyses": "Vorherige Analysen",
     "confirmDeleteAnalysis": "Diese Analyse löschen? Dies kann nicht rückgängig gemacht werden.",
     "collapseForm": "Abbrechen"
+  },
+  "presets": {
+    "title": "Meine Voreinstellungen",
+    "transcription": "Transkription",
+    "analysis": "Analyse",
+    "refinement": "Verfeinerung",
+    "bundles": "Pakete",
+    "create": "Neue Voreinstellung",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "confirmDelete": "Voreinstellung löschen? Pakete, die sie verwenden, verlieren die Referenz.",
+    "saveAs": "Als Voreinstellung speichern",
+    "loadPreset": "Voreinstellung laden",
+    "selectPreset": "Voreinstellung wählen...",
+    "selectBundle": "Paket wählen...",
+    "name": "Name",
+    "namePlaceholder": "Name der Voreinstellung",
+    "noPresets": "Noch keine Voreinstellungen",
+    "noBundles": "Noch keine Pakete",
+    "bundle": {
+      "setDefault": "Als Standard setzen",
+      "clearDefault": "Standard entfernen",
+      "isDefault": "Standard",
+      "create": "Neues Paket",
+      "confirmDelete": "Dieses Paket löschen?",
+      "linkedPresets": "Verknüpfte Voreinstellungen",
+      "selectTranscription": "Transkriptions-Voreinstellung...",
+      "selectAnalysis": "Analyse-Voreinstellung...",
+      "selectRefinement": "Verfeinerungs-Voreinstellung...",
+      "none": "Keine",
+      "translateLanguage": "Übersetzen nach",
+      "translatePlaceholder": "z.B. en, de, fr (leer lassen zum Überspringen)"
+    },
+    "save": "Speichern",
+    "saved": "Voreinstellung gespeichert",
+    "deleted": "Voreinstellung gelöscht"
+  },
+  "pipeline": {
+    "translating": "Übersetze nach {{language}}..."
   },
   "languages": {
     "auto": "Automatisch erkennen",
@@ -319,7 +359,8 @@
   "nav": {
     "backToTranscriptions": "Transkriptionen",
     "newUpload": "Hochladen",
-    "newRecording": "Aufnehmen"
+    "newRecording": "Aufnehmen",
+    "presets": "Voreinstellungen"
   },
   "common": {
     "loading": "Laden...",

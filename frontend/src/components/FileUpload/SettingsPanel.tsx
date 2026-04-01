@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useStore } from '../../store'
 import { api } from '../../api/client'
 import { LanguageSelect } from '../LanguageSelect'
+import { PresetSelect } from '../PresetSelect/PresetSelect'
 
 export function SettingsPanel() {
   const { t } = useTranslation()
@@ -11,7 +12,13 @@ export function SettingsPanel() {
   const uploading = useStore((s) => s.uploading)
   const setTranscriptionId = useStore((s) => s.setTranscriptionId)
   const setTranscriptionStatus = useStore((s) => s.setTranscriptionStatus)
+  const transcriptionPresets = useStore((s) => s.transcriptionPresets)
+  const setTranscriptionPresets = useStore((s) => s.setTranscriptionPresets)
+  const bundles = useStore((s) => s.bundles)
+  const activeBundleId = useStore((s) => s.activeBundleId)
+  const setActiveBundleId = useStore((s) => s.setActiveBundleId)
 
+  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null)
   const [language, setLanguage] = useState<string>('auto')
   const [model, setModel] = useState(config?.default_model || 'base')
   const [detectSpeakers, setDetectSpeakers] = useState(true)
@@ -23,6 +30,44 @@ export function SettingsPanel() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pendingTranscription, setPendingTranscription] = useState(false)
+
+  const handleLoadPreset = (presetId: string | null) => {
+    setSelectedPresetId(presetId)
+    if (!presetId) return
+    const preset = transcriptionPresets.find((p) => p.id === presetId)
+    if (!preset) return
+    setLanguage(preset.language || 'auto')
+    setModel(preset.model)
+    setDetectSpeakers(preset.min_speakers > 0 || preset.max_speakers > 0)
+    setMinSpeakers(preset.min_speakers || 1)
+    setMaxSpeakers(preset.max_speakers || 2)
+    setInitialPrompt(preset.initial_prompt || '')
+    setHotwords(preset.hotwords || '')
+  }
+
+  const handleSavePreset = async (name: string) => {
+    const preset = await api.createTranscriptionPreset({
+      name,
+      language: language === 'auto' ? null : language,
+      model,
+      min_speakers: detectSpeakers ? minSpeakers : 0,
+      max_speakers: detectSpeakers ? maxSpeakers : 0,
+      initial_prompt: initialPrompt || null,
+      hotwords: hotwords || null,
+    })
+    setTranscriptionPresets([...transcriptionPresets, preset])
+    setSelectedPresetId(preset.id)
+  }
+
+  const handleLoadBundle = (bundleId: string | null) => {
+    setActiveBundleId(bundleId)
+    if (!bundleId) return
+    const bundle = bundles.find((b) => b.id === bundleId)
+    if (!bundle) return
+    if (bundle.transcription_preset_id) {
+      handleLoadPreset(bundle.transcription_preset_id)
+    }
+  }
 
   const handleTranscribe = useCallback(async () => {
     if (!file && uploading) {
@@ -67,6 +112,46 @@ export function SettingsPanel() {
 
   return (
     <div className="px-6 py-3 bg-gray-800 border-b border-gray-700 space-y-3">
+      {(transcriptionPresets.length > 0 || bundles.length > 0) && (
+        <div className="flex flex-wrap gap-4 items-center mb-2">
+          {bundles.length > 0 && (
+            <div className="min-w-0">
+              <label className="block text-xs text-gray-400 mb-1">{t('presets.bundles')}</label>
+              <select
+                value={activeBundleId || ''}
+                onChange={(e) => handleLoadBundle(e.target.value || null)}
+                className="bg-gray-700 text-white text-sm rounded px-3 py-1.5"
+              >
+                <option value="">{t('presets.selectBundle')}</option>
+                {bundles.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}{b.is_default ? ` (${t('presets.bundle.isDefault')})` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          <div className="min-w-0">
+            <label className="block text-xs text-gray-400 mb-1">{t('presets.transcription')}</label>
+            <PresetSelect
+              presets={transcriptionPresets}
+              selectedId={selectedPresetId}
+              onSelect={handleLoadPreset}
+              onSave={handleSavePreset}
+            />
+          </div>
+        </div>
+      )}
+      {transcriptionPresets.length === 0 && bundles.length === 0 && (
+        <div className="flex justify-end mb-1">
+          <PresetSelect
+            presets={[]}
+            selectedId={null}
+            onSelect={() => {}}
+            onSave={handleSavePreset}
+          />
+        </div>
+      )}
       <div className="flex flex-wrap gap-4 items-end">
         <div className="min-w-0">
           <label className="block text-xs text-gray-400 mb-1">{t('settings.language')}</label>
@@ -121,7 +206,9 @@ export function SettingsPanel() {
               ? t('transcription.transcribeWhenReady')
               : uploading && !file
                 ? t('transcription.transcribeWhenReady')
-                : t('transcription.transcribe')}
+                : activeBundleId && bundles.find((b) => b.id === activeBundleId && (b.analysis_preset_id || b.refinement_preset_id || b.translate_language))
+                  ? t('transcription.runPipeline')
+                  : t('transcription.transcribe')}
         </button>
       </div>
       {error && (
