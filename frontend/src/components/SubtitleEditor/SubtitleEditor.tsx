@@ -226,18 +226,28 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
         updated[index] = { ...updated[index], start: value }
       }
 
-      // Count how many rows would be affected by cascade
+      // Count how many rows would be affected by cascade (simulate it)
       let affectedCount = 0
       if (field === 'start') {
+        let curStart = updated[index].start
         for (let i = index; i > 0; i--) {
-          if (updated[i].start < updated[i - 1].end) affectedCount++
-          else break
+          if (curStart < updated[i - 1].end) {
+            affectedCount++
+            curStart = Math.min(curStart, updated[i - 1].start)
+          } else {
+            break
+          }
         }
       }
       if (field === 'end') {
+        let curEnd = updated[index].end
         for (let i = index; i < updated.length - 1; i++) {
-          if (updated[i].end > updated[i + 1].start) affectedCount++
-          else break
+          if (curEnd > updated[i + 1].start) {
+            affectedCount++
+            curEnd = Math.max(curEnd, updated[i + 1].end)
+          } else {
+            break
+          }
         }
       }
 
