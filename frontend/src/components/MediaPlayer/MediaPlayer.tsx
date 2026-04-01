@@ -36,6 +36,7 @@ interface Props {
 
 export function MediaPlayer({ fileId, mediaType, hasVideo, onCollapsedChange }: Props) {
   const { t } = useTranslation()
+  const containerRef = useRef<HTMLDivElement | null>(null)
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const playerRef = useRef<ReturnType<typeof videojs> | null>(null)
   const trackRef = useRef<HTMLTrackElement | null>(null)
@@ -74,9 +75,25 @@ export function MediaPlayer({ fileId, mediaType, hasVideo, onCollapsedChange }: 
   const mediaUrl = api.getMediaUrl(fileId)
 
   useEffect(() => {
-    if (!videoRef.current) return
+    const container = containerRef.current
+    if (!container) return
 
-    const player = videojs(videoRef.current, {
+    // Dispose previous player if it exists (e.g. when fileId changes)
+    if (playerRef.current) {
+      playerRef.current.dispose()
+      playerRef.current = null
+      videoRef.current = null
+      container.innerHTML = ''
+    }
+
+    // Create video element imperatively — video.js dispose() removes it
+    // from the DOM, so a JSX <video ref> would go stale across re-renders
+    const videoEl = document.createElement('video')
+    videoEl.classList.add('video-js', 'vjs-theme-city')
+    container.appendChild(videoEl)
+    videoRef.current = videoEl
+
+    const player = videojs(videoEl, {
       controls: true,
       responsive: true,
       fluid: true,
@@ -103,25 +120,39 @@ export function MediaPlayer({ fileId, mediaType, hasVideo, onCollapsedChange }: 
           player.audioOnlyMode(true)
         }
       } else {
-        // Both sources failed — check if file is missing vs unsupported
         if (isNotFound) {
           setMediaNotFound(true)
           setPlaybackError(t('player.mediaNotFound'))
         } else {
           setPlaybackError(t('player.playbackFailed'))
         }
-        // Don't dispose here — let useEffect cleanup handle it.
-        // Disposing removes the <video> DOM node, which causes React
-        // reconciliation to crash with removeChild errors.
       }
     })
 
     playerRef.current = player
+
+    // Only dispose on actual unmount (component removed from DOM),
+    // not on StrictMode's dev-only remount cycle
     return () => {
-      player.dispose()
-      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current)
+      // Defer disposal — if React is about to remount (StrictMode),
+      // the next effect will handle cleanup before re-init
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current)
+        blobUrlRef.current = null
+      }
     }
   }, [fileId, mediaType, hasVideo, mediaUrl, setCurrentTime])
+
+  // Dispose player on actual component unmount
+  useEffect(() => {
+    return () => {
+      if (playerRef.current) {
+        playerRef.current.dispose()
+        playerRef.current = null
+        videoRef.current = null
+      }
+    }
+  }, [])
 
   // Generate and update captions track reactively from store data
   const vttContent = useMemo(() => {
@@ -205,10 +236,7 @@ export function MediaPlayer({ fileId, mediaType, hasVideo, onCollapsedChange }: 
           </button>
         </div>
       )}
-      {/* Keep <video> in DOM always so video.js dispose doesn't race with React */}
-      <div data-vjs-player className={`${hasVideo && !collapsed ? 'w-full overflow-hidden' : ''} ${playbackError ? 'hidden' : ''} ${collapsed ? 'max-h-12' : ''}`}>
-        <video ref={videoRef} className="video-js vjs-theme-city" />
-      </div>
+      <div ref={containerRef} className={`${hasVideo && !collapsed ? 'w-full overflow-hidden' : ''} ${playbackError ? 'hidden' : ''} ${collapsed ? 'max-h-12' : ''}`} />
       {!playbackError && (
         <button
           onClick={handleDownload}
