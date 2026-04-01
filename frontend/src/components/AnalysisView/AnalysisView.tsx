@@ -6,6 +6,7 @@ import { ChapterCard } from '../SummaryView/ChapterCard'
 import { ProtocolCard } from '../ProtocolView/ProtocolCard'
 import { formatTime, downloadText, downloadMarkdown } from '../../utils/format'
 import { LanguageSelect } from '../LanguageSelect'
+import { PresetSelect } from '../PresetSelect/PresetSelect'
 import type { AnalysisTemplate, ChapterHint, SummaryChapter } from '../../api/types'
 
 // Type guards for smart result detection
@@ -361,6 +362,12 @@ export function AnalysisView() {
   const file = useStore((s) => s.file)
   const detectedLanguage = useStore((s) => s.transcriptionResult?.language)
 
+  const analysisPresets = useStore((s) => s.analysisPresets)
+  const setAnalysisPresets = useStore((s) => s.setAnalysisPresets)
+  const bundles = useStore((s) => s.bundles)
+  const activeBundleId = useStore((s) => s.activeBundleId)
+
+  const [selectedAnalysisPresetId, setSelectedAnalysisPresetId] = useState<string | null>(null)
   const [templates, setTemplates] = useState<AnalysisTemplate[]>([])
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
   const [customPrompt, setCustomPrompt] = useState('')
@@ -411,6 +418,38 @@ export function AnalysisView() {
       if (tpl) setCustomPrompt(tpl.default_prompt)
     }
   }, [templates])
+
+  const handleLoadAnalysisPreset = useCallback((presetId: string | null) => {
+    setSelectedAnalysisPresetId(presetId)
+    if (!presetId) return
+    const preset = analysisPresets.find((p) => p.id === presetId)
+    if (!preset) return
+    setSelectedTemplate(preset.template)
+    setCustomPrompt(preset.custom_prompt || '')
+    setLanguage(preset.language || 'en')
+    setHints(preset.chapter_hints || [])
+    setAgenda(preset.agenda || '')
+  }, [analysisPresets])
+
+  const handleSaveAnalysisPreset = async (name: string) => {
+    const preset = await api.createAnalysisPreset({
+      name,
+      template: selectedTemplate,
+      custom_prompt: customPrompt || null,
+      language,
+      chapter_hints: hints.length > 0 ? hints : null,
+      agenda: agenda || null,
+    })
+    setAnalysisPresets([...analysisPresets, preset])
+    setSelectedAnalysisPresetId(preset.id)
+  }
+
+  useEffect(() => {
+    if (!activeBundleId) return
+    const bundle = bundles.find((b) => b.id === activeBundleId)
+    if (!bundle?.analysis_preset_id) return
+    handleLoadAnalysisPreset(bundle.analysis_preset_id)
+  }, [activeBundleId, bundles, handleLoadAnalysisPreset])
 
   const handleResetPrompt = useCallback(() => {
     if (selectedTemplate) {
@@ -542,6 +581,17 @@ export function AnalysisView() {
               </button>
             </div>
           )}
+
+          {/* Preset selector */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">{t('presets.analysis')}</label>
+            <PresetSelect
+              presets={analysisPresets}
+              selectedId={selectedAnalysisPresetId}
+              onSelect={handleLoadAnalysisPreset}
+              onSave={handleSaveAnalysisPreset}
+            />
+          </div>
 
           {/* Template selector */}
           <div>
