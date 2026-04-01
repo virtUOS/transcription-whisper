@@ -12,7 +12,7 @@ from app.metrics import inc, observe, file_uploads_total, file_upload_size_bytes
 
 router = APIRouter()
 
-ALLOWED_EXTENSIONS = {".mp3", ".wav", ".mp4", ".webm"}
+ALLOWED_EXTENSIONS = {".mp3", ".wav", ".mp4", ".webm", ".m4a", ".mov", ".aac", ".opus", ".ogg"}
 MAX_FILE_SIZE = 1 * 1024 * 1024 * 1024  # 1GB
 
 
@@ -101,7 +101,7 @@ async def get_media(
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="File not found on disk")
 
-    media_types = {"mp3": "audio/mpeg", "wav": "audio/wav", "mp4": "video/mp4", "webm": "video/webm"}
+    media_types = {"mp3": "audio/mpeg", "wav": "audio/wav", "mp4": "video/mp4", "webm": "video/webm", "m4a": "audio/mp4", "mov": "video/quicktime", "aac": "audio/aac", "opus": "audio/opus", "ogg": "audio/ogg"}
     return FileResponse(file_path, media_type=media_types.get(row["media_type"], "application/octet-stream"))
 
 

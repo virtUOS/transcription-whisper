@@ -46,12 +46,17 @@ export function MediaPlayer({ fileId, mediaType }: Props) {
 
   const [playbackError, setPlaybackError] = useState<string | null>(null)
   const [mediaNotFound, setMediaNotFound] = useState(false)
-  const isVideo = mediaType === 'mp4' || mediaType === 'webm'
+  const isVideo = mediaType === 'mp4' || mediaType === 'webm' || mediaType === 'mov'
   const mimeTypes: Record<string, string> = {
     mp4: 'video/mp4',
     webm: 'video/webm',
+    mov: 'video/quicktime',
     mp3: 'audio/mpeg',
     wav: 'audio/wav',
+    m4a: 'audio/mp4',
+    aac: 'audio/aac',
+    opus: 'audio/opus',
+    ogg: 'audio/ogg',
   }
   const mediaUrl = api.getMediaUrl(fileId)
 

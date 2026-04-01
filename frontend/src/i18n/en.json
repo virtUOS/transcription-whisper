@@ -5,7 +5,7 @@
     "dragDrop": "Drag and drop a file or click to upload",
     "uploadedFile": "Uploaded file",
     "deleteFile": "Delete file",
-    "supportedFormats": "Supported formats: MP3, WAV, MP4, WebM (max 1GB)",
+    "supportedFormats": "Supported formats: MP3, WAV, MP4, WebM, M4A, MOV, AAC, Opus, OGG (max 1GB)",
     "fileTooLarge": "File is too large. Maximum size is 1 GB."
   },
   "settings": {
