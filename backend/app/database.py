@@ -78,6 +78,7 @@ MIGRATIONS = [
     ("expires_at", "files", "expires_at TIMESTAMP"),
     ("is_archived", "files", "is_archived INTEGER DEFAULT 0"),
     ("title", "transcriptions", "title TEXT"),
+    ("has_video", "files", "has_video INTEGER"),
 ]
 
 

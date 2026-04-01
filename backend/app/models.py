@@ -16,6 +16,7 @@ class FileInfo(BaseModel):
     original_filename: str
     media_type: str
     file_size: int
+    has_video: bool = False
 
 
 class TranscriptionSettings(BaseModel):
