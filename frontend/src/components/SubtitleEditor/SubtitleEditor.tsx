@@ -225,16 +225,13 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
     // Link timestamps: editing start adjusts previous utterance's end
     if (field === 'start' && typeof value === 'number' && index > 0) {
       const prev = updated[index - 1]
-      if (value > prev.start) {
-        updated[index - 1] = { ...prev, end: value }
-      }
+      const newEnd = Math.max(value, prev.start) // don't push end below prev's start
+      updated[index - 1] = { ...prev, end: newEnd }
     }
-    // Link timestamps: editing end adjusts next utterance's start
+    // Link timestamps: editing end adjusts next utterance's start (and end if needed)
     if (field === 'end' && typeof value === 'number' && index < updated.length - 1) {
       const next = updated[index + 1]
-      if (value < next.end) {
-        updated[index + 1] = { ...next, start: value }
-      }
+      updated[index + 1] = { ...next, start: value, end: Math.max(value, next.end) }
     }
     setResult({ ...result, utterances: updated })
     setDirty(true)
