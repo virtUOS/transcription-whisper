@@ -4,6 +4,7 @@ import { useStore } from '../../store'
 import { api } from '../../api/client'
 import { SubtitleRow } from './SubtitleRow'
 import { LanguageSelect } from '../LanguageSelect'
+import { PresetSelect } from '../PresetSelect/PresetSelect'
 import type { Utterance } from '../../api/types'
 
 interface SubtitleEditorProps {
@@ -38,6 +39,10 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
   const setTranslationLanguage = useStore((s) => s.setTranslationLanguage)
   const clearTranslation = useStore((s) => s.clearTranslation)
   const config = useStore((s) => s.config)
+  const refinementPresets = useStore((s) => s.refinementPresets)
+  const setRefinementPresets = useStore((s) => s.setRefinementPresets)
+  const activeBundleId = useStore((s) => s.activeBundleId)
+  const bundles = useStore((s) => s.bundles)
   const llmAvailable = config?.llm_available ?? false
   const activeRef = useRef<HTMLTableRowElement | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -48,6 +53,30 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
   const [showRefineModal, setShowRefineModal] = useState(false)
   const [refineContext, setRefineContext] = useState('')
   const [refining, setRefining] = useState(false)
+  const [selectedRefinementPresetId, setSelectedRefinementPresetId] = useState<string | null>(null)
+
+  const handleLoadRefinementPreset = (presetId: string | null) => {
+    setSelectedRefinementPresetId(presetId)
+    if (!presetId) return
+    const preset = refinementPresets.find((p) => p.id === presetId)
+    if (preset) setRefineContext(preset.context || '')
+  }
+
+  const handleSaveRefinementPreset = async (name: string) => {
+    const preset = await api.createRefinementPreset({ name, context: refineContext || null })
+    setRefinementPresets([...refinementPresets, preset])
+    setSelectedRefinementPresetId(preset.id)
+  }
+
+  // Auto-load refinement preset from active bundle
+  useEffect(() => {
+    if (activeBundleId && showRefineModal && !selectedRefinementPresetId) {
+      const bundle = bundles.find((b) => b.id === activeBundleId)
+      if (bundle?.refinement_preset_id) {
+        handleLoadRefinementPreset(bundle.refinement_preset_id)
+      }
+    }
+  }, [activeBundleId, bundles, showRefineModal]) // eslint-disable-line react-hooks/exhaustive-deps
   const [showTranslateModal, setShowTranslateModal] = useState(false)
   const [translateLanguage, setTranslateLanguage] = useState('en')
   const [translating, setTranslating] = useState(false)
@@ -675,6 +704,14 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-xl w-full max-w-md mx-4 p-5">
             <h3 className="text-sm font-medium text-gray-200 mb-3">{t('editor.refineTranscription')}</h3>
+            <div className="mb-3">
+              <PresetSelect
+                presets={refinementPresets}
+                selectedId={selectedRefinementPresetId}
+                onSelect={handleLoadRefinementPreset}
+                onSave={handleSaveRefinementPreset}
+              />
+            </div>
             <label className="block text-xs text-gray-400 mb-1">{t('editor.refinementContext')}</label>
             <textarea
               value={refineContext}
