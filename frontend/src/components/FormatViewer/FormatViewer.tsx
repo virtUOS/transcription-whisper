@@ -108,8 +108,17 @@ export function FormatViewer({ format }: Props) {
     URL.revokeObjectURL(url)
   }
 
+  const downloadBtn = (
+    <button onClick={handleDownload} className="px-4 py-1.5 bg-green-700 text-white text-sm rounded hover:bg-green-600">
+      {t('editor.download')} {format.toUpperCase()}
+    </button>
+  )
+
   return (
     <div>
+      <div className="flex justify-end mb-2">
+        {downloadBtn}
+      </div>
       <div className="overflow-auto max-h-96 bg-gray-900 rounded border border-gray-700">
         <textarea
           value={content}
@@ -120,9 +129,7 @@ export function FormatViewer({ format }: Props) {
         />
       </div>
       <div className="flex justify-end mt-2">
-        <button onClick={handleDownload} className="px-4 py-1.5 bg-green-700 text-white text-sm rounded hover:bg-green-600">
-          {t('editor.download')} {format.toUpperCase()}
-        </button>
+        {downloadBtn}
       </div>
     </div>
   )
