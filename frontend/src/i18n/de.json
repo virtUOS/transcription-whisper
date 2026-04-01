@@ -31,6 +31,7 @@
   },
   "transcription": {
     "transcribe": "Transkribieren",
+    "transcribeWhenReady": "Transkribieren wenn bereit",
     "inProgress": "Transkription läuft...",
     "success": "Transkription erfolgreich!",
     "failed": "Transkription fehlgeschlagen",
@@ -291,6 +292,7 @@
     "deviceDisconnected": "Aufnahmegerät getrennt. Ihre bisherige Aufnahme wurde gespeichert.",
     "unsavedRecording": "Sie haben eine nicht gespeicherte Aufnahme. Möchten Sie die Seite wirklich verlassen?",
     "useCamera": "Kamera verwenden",
+    "useMicrophone": "Mikrofon aufnehmen",
     "selectMic": "Mikrofon",
     "selectCamera": "Kamera",
     "recordingNotSupported": "Aufnahme wird in diesem Browser nicht unterstützt.",
