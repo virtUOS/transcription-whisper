@@ -77,7 +77,7 @@ export function RecorderPanel() {
       const filename = `recording-${timestamp}.${ext}`
       const file = new File([blob], filename, { type: mimeType })
 
-      const fileInfo = await api.uploadFile(file)
+      const fileInfo = await api.uploadRecording(file, useCamera)
       setFile(fileInfo)
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : t('recorder.uploadFailed'))
