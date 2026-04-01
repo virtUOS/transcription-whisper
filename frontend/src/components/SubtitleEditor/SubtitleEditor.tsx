@@ -226,10 +226,17 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
         updated[index] = { ...updated[index], start: value }
       }
 
-      // Link timestamps: editing start adjusts previous utterance's end
-      if (field === 'start' && index > 0) {
-        const prev = updated[index - 1]
-        updated[index - 1] = { ...prev, end: Math.max(value, prev.start) }
+      // Link timestamps: editing start cascades backward through previous rows
+      if (field === 'start') {
+        for (let i = index; i > 0; i--) {
+          const curStart = updated[i].start
+          const prev = updated[i - 1]
+          if (curStart < prev.end) {
+            updated[i - 1] = { ...prev, end: curStart, start: Math.min(curStart, prev.start) }
+          } else {
+            break
+          }
+        }
       }
 
       // Link timestamps: editing end cascades forward through all subsequent rows
