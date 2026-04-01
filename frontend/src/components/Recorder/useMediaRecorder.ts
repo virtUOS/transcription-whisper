@@ -8,6 +8,7 @@ interface UseMediaRecorderOptions {
   useCamera?: boolean
   captureSystemAudio?: boolean
   secondAudioDeviceId?: string
+  useMicrophone?: boolean
 }
 
 interface UseMediaRecorderReturn {
@@ -131,42 +132,24 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
     resetTimer()
 
     try {
-      // Step 1: Get microphone stream
-      const constraints: MediaStreamConstraints = {
-        audio: options.audioDeviceId
-          ? { deviceId: { exact: options.audioDeviceId } }
-          : true,
-      }
-      if (options.useCamera && !options.captureSystemAudio) {
-        constraints.video = options.videoDeviceId
-          ? { deviceId: { exact: options.videoDeviceId } }
-          : true
-      }
+      let recordingStream: MediaStream
 
-      const micStream = await navigator.mediaDevices.getUserMedia(constraints)
-      streamRef.current = micStream
-
-      let recordingStream: MediaStream = micStream
-
-      // Step 2: If system audio, either mix two devices or use getDisplayMedia
-      if (options.captureSystemAudio) {
+      if (options.captureSystemAudio && options.useMicrophone === false) {
+        // System audio only — no microphone
         if (options.secondAudioDeviceId) {
-          // Dual-device mode: mix mic + second audio input (no getDisplayMedia)
+          // Dual-device mode: use second device directly as the only audio source
           let secondStream: MediaStream
           try {
             secondStream = await navigator.mediaDevices.getUserMedia({
               audio: { deviceId: { exact: options.secondAudioDeviceId } },
             })
           } catch {
-            micStream.getTracks().forEach((t) => t.stop())
-            streamRef.current = null
             setError('secondDeviceFailed')
             return
           }
 
           secondStreamRef.current = secondStream
 
-          // Listen for second device disconnection
           const secondAudioTrack = secondStream.getAudioTracks()[0]
           const onSecondEnded = () => {
             if (recorderRef.current && recorderRef.current.state !== 'inactive') {
@@ -176,17 +159,9 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
           secondAudioTrack.addEventListener('ended', onSecondEnded)
           displayEndedHandlerRef.current = onSecondEnded
 
-          const audioCtx = new AudioContext()
-          const micSource = audioCtx.createMediaStreamSource(micStream)
-          const secondSource = audioCtx.createMediaStreamSource(secondStream)
-          const destination = audioCtx.createMediaStreamDestination()
-          micSource.connect(destination)
-          secondSource.connect(destination)
-
-          mixAudioContextRef.current = audioCtx
-          recordingStream = destination.stream
+          recordingStream = secondStream
         } else {
-          // Existing getDisplayMedia path (unchanged)
+          // getDisplayMedia mode: use display audio directly
           let displayStream: MediaStream
           try {
             displayStream = await navigator.mediaDevices.getDisplayMedia({
@@ -194,8 +169,6 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
               video: true,
             })
           } catch {
-            micStream.getTracks().forEach((t) => t.stop())
-            streamRef.current = null
             setError('systemAudioFailed')
             return
           }
@@ -204,8 +177,6 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
 
           if (displayStream.getAudioTracks().length === 0) {
             displayStream.getTracks().forEach((t) => t.stop())
-            micStream.getTracks().forEach((t) => t.stop())
-            streamRef.current = null
             setError('systemAudioFailed')
             return
           }
@@ -221,21 +192,114 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
           displayAudioTrack.addEventListener('ended', onDisplayEnded)
           displayEndedHandlerRef.current = onDisplayEnded
 
-          const audioCtx = new AudioContext()
-          const micSource = audioCtx.createMediaStreamSource(micStream)
-          const displaySource = audioCtx.createMediaStreamSource(displayStream)
-          const destination = audioCtx.createMediaStreamDestination()
-          micSource.connect(destination)
-          displaySource.connect(destination)
+          recordingStream = displayStream
+        }
+      } else {
+        // Standard path: microphone (with optional system audio mixing)
+        const constraints: MediaStreamConstraints = {
+          audio: options.audioDeviceId
+            ? { deviceId: { exact: options.audioDeviceId } }
+            : true,
+        }
+        if (options.useCamera && !options.captureSystemAudio) {
+          constraints.video = options.videoDeviceId
+            ? { deviceId: { exact: options.videoDeviceId } }
+            : true
+        }
 
-          mixAudioContextRef.current = audioCtx
-          recordingStream = destination.stream
+        const micStream = await navigator.mediaDevices.getUserMedia(constraints)
+        streamRef.current = micStream
+
+        recordingStream = micStream
+
+        if (options.captureSystemAudio) {
+          if (options.secondAudioDeviceId) {
+            // Dual-device mode: mix mic + second audio input
+            let secondStream: MediaStream
+            try {
+              secondStream = await navigator.mediaDevices.getUserMedia({
+                audio: { deviceId: { exact: options.secondAudioDeviceId } },
+              })
+            } catch {
+              micStream.getTracks().forEach((t) => t.stop())
+              streamRef.current = null
+              setError('secondDeviceFailed')
+              return
+            }
+
+            secondStreamRef.current = secondStream
+
+            const secondAudioTrack = secondStream.getAudioTracks()[0]
+            const onSecondEnded = () => {
+              if (recorderRef.current && recorderRef.current.state !== 'inactive') {
+                recorderRef.current.stop()
+              }
+            }
+            secondAudioTrack.addEventListener('ended', onSecondEnded)
+            displayEndedHandlerRef.current = onSecondEnded
+
+            const audioCtx = new AudioContext()
+            const micSource = audioCtx.createMediaStreamSource(micStream)
+            const secondSource = audioCtx.createMediaStreamSource(secondStream)
+            const destination = audioCtx.createMediaStreamDestination()
+            micSource.connect(destination)
+            secondSource.connect(destination)
+
+            mixAudioContextRef.current = audioCtx
+            recordingStream = destination.stream
+          } else {
+            // getDisplayMedia path: mix mic + display audio
+            let displayStream: MediaStream
+            try {
+              displayStream = await navigator.mediaDevices.getDisplayMedia({
+                audio: true,
+                video: true,
+              })
+            } catch {
+              micStream.getTracks().forEach((t) => t.stop())
+              streamRef.current = null
+              setError('systemAudioFailed')
+              return
+            }
+
+            displayStream.getVideoTracks().forEach((t) => t.stop())
+
+            if (displayStream.getAudioTracks().length === 0) {
+              displayStream.getTracks().forEach((t) => t.stop())
+              micStream.getTracks().forEach((t) => t.stop())
+              streamRef.current = null
+              setError('systemAudioFailed')
+              return
+            }
+
+            displayStreamRef.current = displayStream
+
+            const displayAudioTrack = displayStream.getAudioTracks()[0]
+            const onDisplayEnded = () => {
+              if (recorderRef.current && recorderRef.current.state !== 'inactive') {
+                recorderRef.current.stop()
+              }
+            }
+            displayAudioTrack.addEventListener('ended', onDisplayEnded)
+            displayEndedHandlerRef.current = onDisplayEnded
+
+            const audioCtx = new AudioContext()
+            const micSource = audioCtx.createMediaStreamSource(micStream)
+            const displaySource = audioCtx.createMediaStreamSource(displayStream)
+            const destination = audioCtx.createMediaStreamDestination()
+            micSource.connect(destination)
+            displaySource.connect(destination)
+
+            mixAudioContextRef.current = audioCtx
+            recordingStream = destination.stream
+          }
         }
       }
 
       setStream(recordingStream)
 
-      const mimeType = getPreferredMimeType(!!options.useCamera && !options.captureSystemAudio)
+      const hasVideo = !!options.useCamera && !options.captureSystemAudio
+      const mimeType = getPreferredMimeType(hasVideo)
       const recorder = new MediaRecorder(recordingStream, mimeType ? { mimeType } : undefined)
 
       recorder.ondataavailable = (e) => {
@@ -243,7 +307,6 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
       }
 
       recorder.onstop = () => {
-        // Skip blob creation if we're discarding
         if (discardingRef.current) {
           discardingRef.current = false
           return
@@ -253,19 +316,17 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
         setBlob(recordedBlob)
         setState('stopped')
         if (timerRef.current) pauseTimer()
-        // Stop tracks after blob is created so MediaRecorder gets all data
         stopAllTracks()
       }
 
       recorder.onerror = () => {
-        // Let onstop create blob from partial chunks so user can save their recording
         setError('deviceDisconnected')
         if (recorderRef.current?.state !== 'inactive') recorderRef.current?.stop()
         stopAllTracks()
       }
 
       recorderRef.current = recorder
-      recorder.start(1000) // collect chunks every second
+      recorder.start(1000)
       setState('recording')
       startTimer()
     } catch (err) {
@@ -275,7 +336,7 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
         setError('micRequired')
       }
     }
-  }, [options.audioDeviceId, options.videoDeviceId, options.useCamera, options.captureSystemAudio, options.secondAudioDeviceId, resetTimer, startTimer, pauseTimer, stopAllTracks])
+  }, [options.audioDeviceId, options.videoDeviceId, options.useCamera, options.captureSystemAudio, options.secondAudioDeviceId, options.useMicrophone, resetTimer, startTimer, pauseTimer, stopAllTracks])
 
   const pause = useCallback(() => {
     if (recorderRef.current?.state === 'recording') {
