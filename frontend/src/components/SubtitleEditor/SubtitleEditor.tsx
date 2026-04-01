@@ -226,6 +226,26 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
         updated[index] = { ...updated[index], start: value }
       }
 
+      // Count how many rows would be affected by cascade
+      let affectedCount = 0
+      if (field === 'start') {
+        for (let i = index; i > 0; i--) {
+          if (updated[i].start < updated[i - 1].end) affectedCount++
+          else break
+        }
+      }
+      if (field === 'end') {
+        for (let i = index; i < updated.length - 1; i++) {
+          if (updated[i].end > updated[i + 1].start) affectedCount++
+          else break
+        }
+      }
+
+      // Warn user if cascade will affect other rows
+      if (affectedCount > 0 && !confirm(t('editor.confirmTimestampCascade', { count: affectedCount }))) {
+        return // user cancelled — don't apply the edit
+      }
+
       // Link timestamps: editing start cascades backward through previous rows
       if (field === 'start') {
         for (let i = index; i > 0; i--) {
@@ -296,6 +316,17 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
     setResult({ ...result, utterances: updated })
     setDirty(true)
   }, [result, setResult, setDirty])
+
+  const handleRestore = useCallback(async () => {
+    if (!transcriptionId || !confirm(t('editor.confirmRestore'))) return
+    try {
+      const original = await api.getTranscription(transcriptionId)
+      setResult(original)
+      setDirty(false)
+    } catch (e) {
+      console.error('Restore failed:', e)
+    }
+  }, [transcriptionId, setResult, setDirty, t])
 
   const handleSave = async () => {
     if (!transcriptionId || !result) return
@@ -436,13 +467,21 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
           </div>
         </details>
         {dirty && (
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="ml-auto px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-500 disabled:opacity-50"
-          >
-            {saving ? t('common.loading') : t('editor.saveChanges')}
-          </button>
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              onClick={handleRestore}
+              className="px-3 py-1 text-gray-400 text-xs rounded border border-gray-600 hover:text-white hover:border-gray-400"
+            >
+              {t('editor.restoreOriginal')}
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-500 disabled:opacity-50"
+            >
+              {saving ? t('common.loading') : t('editor.saveChanges')}
+            </button>
+          </div>
         )}
       </div>
       {(llmAvailable || refinementMetadata || translatedUtterances) && (
