@@ -10,6 +10,8 @@ interface AppState {
   setConfig: (config: ConfigResponse) => void
   file: FileInfo | null
   setFile: (file: FileInfo | null) => void
+  uploading: boolean
+  setUploading: (uploading: boolean) => void
   transcriptionId: string | null
   transcriptionTitle: string | null
   transcriptionStatus: string | null
@@ -68,6 +70,8 @@ export const useStore = create<AppState>((set) => ({
   setConfig: (config) => set({ config }),
   file: null,
   setFile: (file) => set({ file }),
+  uploading: false,
+  setUploading: (uploading) => set({ uploading }),
   transcriptionId: null,
   transcriptionTitle: null,
   transcriptionStatus: null,
@@ -106,7 +110,7 @@ export const useStore = create<AppState>((set) => ({
   clearRefinement: () => set({ refinedUtterances: null, refinementMetadata: null, activeView: 'original' as const }),
   reset: () => set({
     currentView: 'archive' as const,
-    file: null, transcriptionId: null, transcriptionTitle: null, transcriptionStatus: null,
+    file: null, uploading: false, transcriptionId: null, transcriptionTitle: null, transcriptionStatus: null,
     transcriptionResult: null, speakerMappings: {},
     currentTime: 0, seekTo: null, activeTab: 'subtitles', unsavedEdits: false,
     refinedUtterances: null, refinementMetadata: null, activeView: 'original' as const,

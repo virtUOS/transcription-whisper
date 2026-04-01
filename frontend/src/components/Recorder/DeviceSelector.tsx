@@ -14,6 +14,8 @@ const warningKey: Record<string, string> = {
 interface DeviceSelectorProps {
   useCamera: boolean
   onUseCameraChange: (useCamera: boolean) => void
+  useMicrophone: boolean
+  onUseMicrophoneChange: (use: boolean) => void
   audioDeviceId: string
   onAudioDeviceChange: (id: string) => void
   videoDeviceId: string
@@ -28,6 +30,8 @@ interface DeviceSelectorProps {
 export function DeviceSelector({
   useCamera,
   onUseCameraChange,
+  useMicrophone,
+  onUseMicrophoneChange,
   audioDeviceId,
   onAudioDeviceChange,
   videoDeviceId,
@@ -96,22 +100,24 @@ export function DeviceSelector({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-3 min-w-0">
-        <label className="text-sm text-gray-300 min-w-24 shrink-0">{t('recorder.selectMic')}</label>
-        <select
-          value={audioDeviceId}
-          onChange={(e) => onAudioDeviceChange(e.target.value)}
-          disabled={disabled}
-          className="flex-1 min-w-0 bg-gray-700 text-white rounded-lg px-3 py-2 text-sm disabled:opacity-50"
-        >
-          {audioDevices.map((d) => (
-            <option key={d.deviceId} value={d.deviceId}>
-              {d.label || `Microphone ${d.deviceId.slice(0, 8)}`}
-            </option>
-          ))}
-          {audioDevices.length === 0 && <option value="">—</option>}
-        </select>
-      </div>
+      {useMicrophone && (
+        <div className="flex items-center gap-3 min-w-0">
+          <label className="text-sm text-gray-300 min-w-24 shrink-0">{t('recorder.selectMic')}</label>
+          <select
+            value={audioDeviceId}
+            onChange={(e) => onAudioDeviceChange(e.target.value)}
+            disabled={disabled}
+            className="flex-1 min-w-0 bg-gray-700 text-white rounded-lg px-3 py-2 text-sm disabled:opacity-50"
+          >
+            {audioDevices.map((d) => (
+              <option key={d.deviceId} value={d.deviceId}>
+                {d.label || `Microphone ${d.deviceId.slice(0, 8)}`}
+              </option>
+            ))}
+            {audioDevices.length === 0 && <option value="">—</option>}
+          </select>
+        </div>
+      )}
 
       {systemAudioSupport === 'unsupported' ? (
         <p className="text-xs text-gray-500">{t('recorder.systemAudioUnsupported')}</p>
@@ -143,7 +149,29 @@ export function DeviceSelector({
         </div>
       )}
 
-      {captureSystemAudio && systemAudioSupport === 'dual-device' && (
+      {captureSystemAudio && (
+        <div className="flex items-center gap-3">
+          <label className="text-sm text-gray-300 min-w-24">{t('recorder.useMicrophone')}</label>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={useMicrophone}
+            onClick={() => onUseMicrophoneChange(!useMicrophone)}
+            disabled={disabled}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50 ${
+              useMicrophone ? 'bg-blue-600' : 'bg-gray-600'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
+                useMicrophone ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+      )}
+
+      {captureSystemAudio && useMicrophone && systemAudioSupport === 'dual-device' && (
         <div className="flex items-center gap-3 min-w-0">
           <label className="text-sm text-gray-300 min-w-24 shrink-0">{t('recorder.selectSecondDevice')}</label>
           <select

@@ -31,6 +31,7 @@
   },
   "transcription": {
     "transcribe": "Transcribe",
+    "transcribeWhenReady": "Transcribe when ready",
     "inProgress": "Transcription in progress...",
     "success": "Transcription successful!",
     "failed": "Transcription failed",
@@ -291,6 +292,7 @@
     "deviceDisconnected": "Recording device disconnected. Your recording up to this point has been saved.",
     "unsavedRecording": "You have an unsaved recording. Are you sure you want to leave?",
     "useCamera": "Use camera",
+    "useMicrophone": "Record microphone",
     "selectMic": "Microphone",
     "selectCamera": "Camera",
     "recordingNotSupported": "Recording is not supported in this browser.",

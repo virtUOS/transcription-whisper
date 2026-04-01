@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useStore } from '../../store'
 import { api } from '../../api/client'
@@ -8,6 +8,7 @@ export function SettingsPanel() {
   const { t } = useTranslation()
   const config = useStore((s) => s.config)
   const file = useStore((s) => s.file)
+  const uploading = useStore((s) => s.uploading)
   const setTranscriptionId = useStore((s) => s.setTranscriptionId)
   const setTranscriptionStatus = useStore((s) => s.setTranscriptionStatus)
 
@@ -21,8 +22,13 @@ export function SettingsPanel() {
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [pendingTranscription, setPendingTranscription] = useState(false)
 
-  const handleTranscribe = async () => {
+  const handleTranscribe = useCallback(async () => {
+    if (!file && uploading) {
+      setPendingTranscription(true)
+      return
+    }
     if (!file) return
     setSubmitting(true)
     setError(null)
@@ -44,7 +50,20 @@ export function SettingsPanel() {
     } finally {
       setSubmitting(false)
     }
-  }
+  }, [file, uploading, language, model, detectSpeakers, minSpeakers, maxSpeakers, initialPrompt, hotwords, setTranscriptionId, setTranscriptionStatus])
+
+  useEffect(() => {
+    if (pendingTranscription && file) {
+      setPendingTranscription(false)
+      handleTranscribe()
+    }
+  }, [file, pendingTranscription, handleTranscribe])
+
+  useEffect(() => {
+    if (pendingTranscription && !uploading && !file) {
+      setPendingTranscription(false)
+    }
+  }, [uploading, file, pendingTranscription])
 
   return (
     <div className="px-6 py-3 bg-gray-800 border-b border-gray-700 space-y-3">
@@ -89,8 +108,20 @@ export function SettingsPanel() {
         <button onClick={() => setShowAdvanced(!showAdvanced)} className="text-sm text-blue-400 hover:text-blue-300 shrink-0">
           {t('settings.advancedOptions')} {showAdvanced ? '▲' : '▼'}
         </button>
-        <button onClick={handleTranscribe} disabled={!file || submitting} className="ml-auto px-4 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-500 disabled:opacity-50 shrink-0">
-          {submitting ? t('common.loading') : t('transcription.transcribe')}
+        <button
+          onClick={handleTranscribe}
+          disabled={(!file && !uploading) || submitting}
+          className={`ml-auto px-4 py-1.5 text-white text-sm rounded disabled:opacity-50 shrink-0 ${
+            pendingTranscription ? 'bg-amber-600 hover:bg-amber-500' : 'bg-blue-600 hover:bg-blue-500'
+          }`}
+        >
+          {submitting
+            ? t('common.loading')
+            : pendingTranscription
+              ? t('transcription.transcribeWhenReady')
+              : uploading && !file
+                ? t('transcription.transcribeWhenReady')
+                : t('transcription.transcribe')}
         </button>
       </div>
       {error && (
