@@ -32,7 +32,7 @@
 - Real-time progress updates via WebSocket.
 - Responsive layout — mobile-friendly UI with no horizontal overflow on small screens.
 - System audio capture for recording online meetings (experimental; best on Chrome/Edge on Windows).
-- Internationalization support (English and German).
+- Transcription in ~99 languages; UI localized in English and German.
 
 ## Architecture
 
@@ -76,6 +76,7 @@ POPULAR_LANGUAGES=de,en,es,fr       # languages pinned at top of dropdowns (comm
 # Application
 TEMP_PATH=tmp/transcription-files
 FFMPEG_PATH=ffmpeg
+FFPROBE_PATH=ffprobe
 LOGOUT_URL=/oauth2/sign_out
 DEFAULT_EXPIRY_HOURS=72           # auto-delete files after this many hours (default 3 days)
 ARCHIVE_EXPIRY_HOURS=4320         # archived files kept for this many hours (default 180 days)
@@ -98,6 +99,12 @@ docker run -p 8000:8000 --env-file .env transcription-app
 ```
 
 The app will be available at `http://localhost:8000`.
+
+For subpath deployments behind a reverse proxy (e.g., serving at `/transcription/`):
+
+```bash
+docker build --build-arg VITE_BASE_PATH=/transcription -t transcription-app .
+```
 
 ## Development
 
