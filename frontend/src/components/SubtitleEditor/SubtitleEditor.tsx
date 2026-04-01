@@ -222,6 +222,60 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
     if (!result) return
     const updated = [...result.utterances]
     updated[index] = { ...updated[index], [field]: value }
+    // Link timestamps: editing start adjusts previous utterance's end
+    if (field === 'start' && typeof value === 'number' && index > 0) {
+      const prev = updated[index - 1]
+      if (value > prev.start) {
+        updated[index - 1] = { ...prev, end: value }
+      }
+    }
+    // Link timestamps: editing end adjusts next utterance's start
+    if (field === 'end' && typeof value === 'number' && index < updated.length - 1) {
+      const next = updated[index + 1]
+      if (value < next.end) {
+        updated[index + 1] = { ...next, start: value }
+      }
+    }
+    setResult({ ...result, utterances: updated })
+    setDirty(true)
+  }, [result, setResult, setDirty])
+
+  const handleAddRow = useCallback((afterIndex: number) => {
+    if (!result) return
+    const updated = [...result.utterances]
+    const current = updated[afterIndex]
+    const next = updated[afterIndex + 1]
+    const newStart = current.end
+    const newEnd = next ? next.start : current.end + 1000
+    updated.splice(afterIndex + 1, 0, {
+      start: newStart,
+      end: newEnd,
+      text: '',
+      speaker: current.speaker,
+    })
+    setResult({ ...result, utterances: updated })
+    setDirty(true)
+  }, [result, setResult, setDirty])
+
+  const handleDeleteRow = useCallback((index: number) => {
+    if (!result) return
+    const updated = [...result.utterances]
+    updated.splice(index, 1)
+    setResult({ ...result, utterances: updated })
+    setDirty(true)
+  }, [result, setResult, setDirty])
+
+  const handleMergeWithNext = useCallback((index: number) => {
+    if (!result || index >= result.utterances.length - 1) return
+    const updated = [...result.utterances]
+    const current = updated[index]
+    const next = updated[index + 1]
+    updated[index] = {
+      ...current,
+      end: next.end,
+      text: current.text + ' ' + next.text,
+    }
+    updated.splice(index + 1, 1)
     setResult({ ...result, utterances: updated })
     setDirty(true)
   }, [result, setResult, setDirty])
@@ -538,6 +592,10 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
                     editingField={editingCell?.index === entry.originalIndex ? editingCell.field : undefined}
                     onStartEditing={handleStartEditing}
                     onStopEditing={handleStopEditing}
+                    onMergeWithNext={handleMergeWithNext}
+                    onAddRow={handleAddRow}
+                    onDeleteRow={handleDeleteRow}
+                    isLast={entry.originalIndex === utterances.length - 1}
                   />
                 )
               })

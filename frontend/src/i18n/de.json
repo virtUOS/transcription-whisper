@@ -117,6 +117,10 @@
     "renameAllSpeaker": "Sprecher in allen Äußerungen umbenennen",
     "editTimestamp": "Zeitstempel bearbeiten",
     "editText": "Text bearbeiten",
+    "mergeWithNext": "Mit nächstem Abschnitt zusammenführen",
+    "addRow": "Neue Zeile nach dieser einfügen",
+    "deleteRow": "Diese Zeile löschen",
+    "confirmDeleteRow": "Diese Untertitelzeile löschen?",
     "utteranceChanged": "Vom LLM geändert",
     "search": {
       "placeholder": "Untertitel durchsuchen...",

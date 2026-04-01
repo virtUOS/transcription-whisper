@@ -117,6 +117,10 @@
     "renameAllSpeaker": "Rename speaker in all utterances",
     "editTimestamp": "Edit timestamp",
     "editText": "Edit text",
+    "mergeWithNext": "Merge with next section",
+    "addRow": "Add new row after this one",
+    "deleteRow": "Delete this row",
+    "confirmDeleteRow": "Delete this caption row?",
     "utteranceChanged": "Modified by LLM",
     "search": {
       "placeholder": "Search subtitles...",
