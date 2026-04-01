@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from fastapi import HTTPException, Request
 from app.dependencies import get_current_user
 
@@ -25,6 +25,8 @@ async def test_get_user_from_email_header():
 async def test_missing_auth_headers_raises_401():
     request = MagicMock(spec=Request)
     request.headers = {}
-    with pytest.raises(HTTPException) as exc_info:
-        await get_current_user(request)
+    with patch("app.dependencies.settings") as mock_settings:
+        mock_settings.DEV_MODE = False
+        with pytest.raises(HTTPException) as exc_info:
+            await get_current_user(request)
     assert exc_info.value.status_code == 401

@@ -23,10 +23,14 @@ async def _setup_transcription(client, txn_id="test-refine"):
     file_id = upload_resp.json()["id"]
     from app.database import get_db
     async with get_db() as db:
+        # Look up the user_id that was created by the upload
+        cursor = await db.execute("SELECT user_id FROM files WHERE id = ?", (file_id,))
+        row = await cursor.fetchone()
+        user_id = row[0]
         await db.execute(
             """INSERT INTO transcriptions (id, user_id, file_id, asr_backend, status, result_json)
                VALUES (?, ?, ?, ?, ?, ?)""",
-            (txn_id, "anonymous", file_id, "murmurai", "completed",
+            (txn_id, user_id, file_id, "murmurai", "completed",
              json.dumps([
                  {"start": 0, "end": 5000, "text": "Hello world", "speaker": "Speaker 1"},
                  {"start": 5000, "end": 10000, "text": "um how are you", "speaker": "Speaker 2"},
