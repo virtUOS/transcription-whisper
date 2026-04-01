@@ -70,6 +70,9 @@ LLM_MODEL=gpt-4o
 LLM_API_KEY=                      # required for OpenAI / OpenAI-compatible APIs
 LLM_BASE_URL=                     # for custom endpoints (e.g., vLLM, Ollama: http://localhost:11434)
 
+# UI Configuration
+POPULAR_LANGUAGES=de,en,es,fr       # languages pinned at top of dropdowns (comma-separated codes)
+
 # Application
 TEMP_PATH=tmp/transcription-files
 FFMPEG_PATH=ffmpeg

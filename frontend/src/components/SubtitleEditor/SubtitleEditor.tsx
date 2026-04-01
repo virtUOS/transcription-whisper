@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useStore } from '../../store'
 import { api } from '../../api/client'
 import { SubtitleRow } from './SubtitleRow'
-import { LANGUAGES } from '../../utils/languages'
+import { LanguageSelect } from '../LanguageSelect'
 import type { Utterance } from '../../api/types'
 
 interface SubtitleEditorProps {
@@ -61,17 +61,28 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
       ? refinedUtterances
       : (result?.utterances || [])
 
-  const allSpeakers = useMemo(() => {
-    const speakers = new Set<string>()
-    ;(result?.utterances || []).forEach((u) => { if (u.speaker) speakers.add(u.speaker) })
-    return Array.from(speakers).sort()
-  }, [result])
-
+  // Color map based on display names so same-name speakers always share color
   const speakerColorMap = useMemo(() => {
+    const displayNames = new Set<string>()
+    ;(result?.utterances || []).forEach((u) => {
+      if (u.speaker) {
+        const display = speakerMappings[u.speaker] || u.speaker
+        displayNames.add(display)
+      }
+    })
+    const sorted = Array.from(displayNames).sort()
+    const nameToIndex: Record<string, number> = {}
+    sorted.forEach((name, i) => { nameToIndex[name] = i })
+    // Map original labels to index via their display name
     const map: Record<string, number> = {}
-    allSpeakers.forEach((s, i) => { map[s] = i })
+    ;(result?.utterances || []).forEach((u) => {
+      if (u.speaker && !(u.speaker in map)) {
+        const display = speakerMappings[u.speaker] || u.speaker
+        map[u.speaker] = nameToIndex[display]
+      }
+    })
     return map
-  }, [allSpeakers])
+  }, [result, speakerMappings])
 
   const activeIndex = utterances.findIndex(
     (u) => currentTime >= u.start && currentTime < u.end
@@ -205,9 +216,127 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
     if (!result) return
     const updated = [...result.utterances]
     updated[index] = { ...updated[index], [field]: value }
+
+    if (typeof value === 'number') {
+      // Ensure current row stays valid: start <= end
+      if (field === 'start' && value > updated[index].end) {
+        updated[index] = { ...updated[index], end: value }
+      }
+      if (field === 'end' && value < updated[index].start) {
+        updated[index] = { ...updated[index], start: value }
+      }
+
+      // Count how many rows would be affected by cascade (simulate it)
+      let affectedCount = 0
+      if (field === 'start') {
+        let curStart = updated[index].start
+        for (let i = index; i > 0; i--) {
+          if (curStart < updated[i - 1].end) {
+            affectedCount++
+            curStart = Math.min(curStart, updated[i - 1].start)
+          } else {
+            break
+          }
+        }
+      }
+      if (field === 'end') {
+        let curEnd = updated[index].end
+        for (let i = index; i < updated.length - 1; i++) {
+          if (curEnd > updated[i + 1].start) {
+            affectedCount++
+            curEnd = Math.max(curEnd, updated[i + 1].end)
+          } else {
+            break
+          }
+        }
+      }
+
+      // Warn user if cascade will affect other rows
+      if (affectedCount > 0 && !confirm(t('editor.confirmTimestampCascade', { count: affectedCount }))) {
+        return // user cancelled — don't apply the edit
+      }
+
+      // Link timestamps: editing start cascades backward through previous rows
+      if (field === 'start') {
+        for (let i = index; i > 0; i--) {
+          const curStart = updated[i].start
+          const prev = updated[i - 1]
+          if (curStart < prev.end) {
+            updated[i - 1] = { ...prev, end: curStart, start: Math.min(curStart, prev.start) }
+          } else {
+            break
+          }
+        }
+      }
+
+      // Link timestamps: editing end cascades forward through all subsequent rows
+      if (field === 'end') {
+        for (let i = index; i < updated.length - 1; i++) {
+          const curEnd = updated[i].end
+          const next = updated[i + 1]
+          if (curEnd > next.start) {
+            updated[i + 1] = { ...next, start: curEnd, end: Math.max(curEnd, next.end) }
+          } else {
+            break
+          }
+        }
+      }
+    }
+
     setResult({ ...result, utterances: updated })
     setDirty(true)
   }, [result, setResult, setDirty])
+
+  const handleAddRow = useCallback((afterIndex: number) => {
+    if (!result) return
+    const updated = [...result.utterances]
+    const current = updated[afterIndex]
+    const next = updated[afterIndex + 1]
+    const newStart = current.end
+    const newEnd = next ? next.start : current.end + 1000
+    updated.splice(afterIndex + 1, 0, {
+      start: newStart,
+      end: newEnd,
+      text: '',
+      speaker: current.speaker,
+    })
+    setResult({ ...result, utterances: updated })
+    setDirty(true)
+  }, [result, setResult, setDirty])
+
+  const handleDeleteRow = useCallback((index: number) => {
+    if (!result) return
+    const updated = [...result.utterances]
+    updated.splice(index, 1)
+    setResult({ ...result, utterances: updated })
+    setDirty(true)
+  }, [result, setResult, setDirty])
+
+  const handleMergeWithNext = useCallback((index: number) => {
+    if (!result || index >= result.utterances.length - 1) return
+    const updated = [...result.utterances]
+    const current = updated[index]
+    const next = updated[index + 1]
+    updated[index] = {
+      ...current,
+      end: next.end,
+      text: current.text + ' ' + next.text,
+    }
+    updated.splice(index + 1, 1)
+    setResult({ ...result, utterances: updated })
+    setDirty(true)
+  }, [result, setResult, setDirty])
+
+  const handleRestore = useCallback(async () => {
+    if (!transcriptionId || !confirm(t('editor.confirmRestore'))) return
+    try {
+      const original = await api.getTranscription(transcriptionId)
+      setResult(original)
+      setDirty(false)
+    } catch (e) {
+      console.error('Restore failed:', e)
+    }
+  }, [transcriptionId, setResult, setDirty, t])
 
   const handleSave = async () => {
     if (!transcriptionId || !result) return
@@ -348,13 +477,21 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
           </div>
         </details>
         {dirty && (
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="ml-auto px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-500 disabled:opacity-50"
-          >
-            {saving ? t('common.loading') : t('editor.saveChanges')}
-          </button>
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              onClick={handleRestore}
+              className="px-3 py-1 text-gray-400 text-xs rounded border border-gray-600 hover:text-white hover:border-gray-400"
+            >
+              {t('editor.restoreOriginal')}
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-500 disabled:opacity-50"
+            >
+              {saving ? t('common.loading') : t('editor.saveChanges')}
+            </button>
+          </div>
         )}
       </div>
       {(llmAvailable || refinementMetadata || translatedUtterances) && (
@@ -521,6 +658,10 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
                     editingField={editingCell?.index === entry.originalIndex ? editingCell.field : undefined}
                     onStartEditing={handleStartEditing}
                     onStopEditing={handleStopEditing}
+                    onMergeWithNext={handleMergeWithNext}
+                    onAddRow={handleAddRow}
+                    onDeleteRow={handleDeleteRow}
+                    isLast={entry.originalIndex === utterances.length - 1}
                   />
                 )
               })
@@ -580,18 +721,12 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
           <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-xl w-full max-w-sm mx-4 p-5">
             <h3 className="text-sm font-medium text-gray-200 mb-3">{t('editor.translateTo')}</h3>
             <label className="block text-xs text-gray-400 mb-1">{t('editor.translationLanguage')}</label>
-            <select
+            <LanguageSelect
               value={translateLanguage}
-              onChange={(e) => setTranslateLanguage(e.target.value)}
+              onChange={setTranslateLanguage}
               disabled={translating}
               className="w-full bg-gray-700 text-gray-200 text-xs px-3 py-2 rounded border border-gray-600 focus:border-indigo-500 focus:outline-none disabled:opacity-50"
-            >
-              {LANGUAGES.map((lang) => (
-                <option key={lang} value={lang}>
-                  {t(`languages.${lang}`)}
-                </option>
-              ))}
-            </select>
+            />
             {baseUtterances.length > 50 && (
               <p className="text-xs text-indigo-400/80 mt-2">
                 {t('editor.translationWarningLong', { count: baseUtterances.length })}

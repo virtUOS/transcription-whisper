@@ -2,7 +2,7 @@ import type {
   FileInfo, TranscriptionSettings, TranscriptionStatus,
   TranscriptionResult, TranscriptionListItem, ConfigResponse,
   RefinementResult,
-  AnalysisTemplate, AnalysisGenerateRequest, Utterance,
+  AnalysisTemplate, AnalysisGenerateRequest, AnalysisListItem, Utterance,
 } from './types'
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '')
@@ -105,17 +105,23 @@ export const api = {
 
   getAnalysisTemplates: () => request<AnalysisTemplate[]>('/api/analysis/templates'),
 
-  generateAnalysis: (id: string, req: AnalysisGenerateRequest) =>
-    request<unknown>(`/api/analysis/${id}`, {
+  listAnalyses: (transcriptionId: string) =>
+    request<AnalysisListItem[]>(`/api/analysis/${transcriptionId}`),
+
+  getAnalysis: (transcriptionId: string, analysisId: string) =>
+    request<unknown>(`/api/analysis/${transcriptionId}/${analysisId}`),
+
+  generateAnalysis: (transcriptionId: string, req: AnalysisGenerateRequest) =>
+    request<unknown>(`/api/analysis/${transcriptionId}`, {
       method: 'POST',
       body: JSON.stringify(req),
     }),
 
-  deleteAnalysis: (id: string) =>
-    request<void>(`/api/analysis/${id}`, { method: 'DELETE' }),
+  deleteAnalysis: (transcriptionId: string, analysisId: string) =>
+    request<void>(`/api/analysis/${transcriptionId}/${analysisId}`, { method: 'DELETE' }),
 
-  deleteAnalysisItem: (id: string, field: string, index: number) =>
-    request<unknown>(`/api/analysis/${id}/items/${field}/${index}`, { method: 'DELETE' }),
+  deleteAnalysisItem: (transcriptionId: string, analysisId: string, field: string, index: number) =>
+    request<unknown>(`/api/analysis/${transcriptionId}/${analysisId}/items/${field}/${index}`, { method: 'DELETE' }),
 
   translateTranscription: (id: string, targetLanguage: string) =>
     request<{ utterances: Utterance[], language: string }>(`/api/translate/${id}`, {

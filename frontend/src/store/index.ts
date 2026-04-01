@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { FileInfo, TranscriptionResult, TranscriptionListItem, ConfigResponse, Utterance, RefinementMetadata } from '../api/types'
+import type { FileInfo, TranscriptionResult, TranscriptionListItem, ConfigResponse, Utterance, RefinementMetadata, AnalysisListItem } from '../api/types'
 
 type AppView = 'archive' | 'upload' | 'record' | 'detail'
 
@@ -41,12 +41,10 @@ interface AppState {
   setTranslatedUtterances: (utterances: Utterance[] | null) => void
   setTranslationLanguage: (language: string | null) => void
   clearTranslation: () => void
-  analysisResult: unknown | null
-  analysisTemplate: string | null
-  analysisPrompt: string | null
-  setAnalysisResult: (result: unknown | null) => void
-  setAnalysisTemplate: (template: string | null) => void
-  setAnalysisPrompt: (prompt: string | null) => void
+  analyses: AnalysisListItem[]
+  setAnalyses: (analyses: AnalysisListItem[]) => void
+  addAnalysis: (item: AnalysisListItem) => void
+  removeAnalysis: (id: string) => void
   clearRefinement: () => void
   reset: () => void
 }
@@ -101,12 +99,10 @@ export const useStore = create<AppState>((set) => ({
   setTranslatedUtterances: (utterances) => set({ translatedUtterances: utterances }),
   setTranslationLanguage: (language) => set({ translationLanguage: language }),
   clearTranslation: () => set({ translatedUtterances: null, translationLanguage: null, activeView: 'original' as const }),
-  analysisResult: null,
-  analysisTemplate: null,
-  analysisPrompt: null,
-  setAnalysisResult: (result) => set({ analysisResult: result }),
-  setAnalysisTemplate: (template) => set({ analysisTemplate: template }),
-  setAnalysisPrompt: (prompt) => set({ analysisPrompt: prompt }),
+  analyses: [],
+  setAnalyses: (analyses) => set({ analyses }),
+  addAnalysis: (item) => set((s) => ({ analyses: [item, ...s.analyses] })),
+  removeAnalysis: (id) => set((s) => ({ analyses: s.analyses.filter((a) => a.id !== id) })),
   clearRefinement: () => set({ refinedUtterances: null, refinementMetadata: null, activeView: 'original' as const }),
   reset: () => set({
     currentView: 'archive' as const,
@@ -115,7 +111,7 @@ export const useStore = create<AppState>((set) => ({
     currentTime: 0, seekTo: null, activeTab: 'subtitles', unsavedEdits: false,
     refinedUtterances: null, refinementMetadata: null, activeView: 'original' as const,
     translatedUtterances: null, translationLanguage: null,
-    analysisResult: null, analysisTemplate: null, analysisPrompt: null,
+    analyses: [],
   }),
 }))
 

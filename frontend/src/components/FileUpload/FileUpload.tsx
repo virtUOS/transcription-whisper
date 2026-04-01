@@ -78,7 +78,7 @@ export function FileUpload() {
       onDragOver={uploading ? undefined : (e) => e.preventDefault()}
       className={`mx-6 my-4 p-8 border-2 border-dashed rounded-lg text-center transition-colors ${uploading ? 'border-gray-700 cursor-default' : 'border-gray-600 hover:border-blue-500 cursor-pointer'}`}
     >
-      <input type="file" accept=".mp3,.wav,.mp4,.webm" onChange={handleFileInput} className="hidden" id="file-upload" disabled={uploading} />
+      <input type="file" accept=".mp3,.wav,.mp4,.webm,.m4a,.mov,.aac,.opus,.ogg" onChange={handleFileInput} className="hidden" id="file-upload" disabled={uploading} />
       {uploading ? (
         <div className="flex flex-col items-center gap-3">
           <div className="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full" />

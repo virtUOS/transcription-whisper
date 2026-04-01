@@ -1,3 +1,5 @@
+import uuid
+
 import aiosqlite
 from contextlib import asynccontextmanager
 from app.config import settings
@@ -52,7 +54,8 @@ CREATE TABLE IF NOT EXISTS speaker_mappings (
 );
 
 CREATE TABLE IF NOT EXISTS analyses (
-    transcription_id TEXT PRIMARY KEY REFERENCES transcriptions(id),
+    id TEXT PRIMARY KEY,
+    transcription_id TEXT REFERENCES transcriptions(id),
     analysis_json TEXT,
     template TEXT,
     custom_prompt TEXT,
@@ -89,6 +92,41 @@ async def init_db(db_path: str) -> None:
             columns = {row[1] for row in await cursor.fetchall()}
             if col_name not in columns:
                 await db.execute(f"ALTER TABLE {table} ADD COLUMN {col_def}")
+        # Migrate analyses table: add `id` column as primary key
+        cursor = await db.execute("PRAGMA table_info(analyses)")
+        analysis_columns = {row[1] for row in await cursor.fetchall()}
+        if "id" not in analysis_columns:
+            await db.execute("ALTER TABLE analyses RENAME TO _analyses_old")
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS analyses (
+                    id TEXT PRIMARY KEY,
+                    transcription_id TEXT REFERENCES transcriptions(id),
+                    analysis_json TEXT,
+                    template TEXT,
+                    custom_prompt TEXT,
+                    language TEXT,
+                    llm_provider TEXT,
+                    llm_model TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            # Clean up orphaned in-progress placeholders
+            await db.execute("DELETE FROM _analyses_old WHERE analysis_json IS NULL")
+            # Copy existing rows, generating UUIDs in Python
+            cursor = await db.execute(
+                "SELECT transcription_id, analysis_json, template, custom_prompt, language, llm_provider, llm_model, created_at FROM _analyses_old"
+            )
+            rows = await cursor.fetchall()
+            for row in rows:
+                new_id = str(uuid.uuid4())
+                await db.execute(
+                    """INSERT INTO analyses (id, transcription_id, analysis_json, template, custom_prompt, language, llm_provider, llm_model, created_at)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (new_id, row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]),
+                )
+            await db.execute("DROP TABLE _analyses_old")
+            await db.commit()
+
         # Backfill expires_at for existing files
         await db.execute(
             "UPDATE files SET expires_at = datetime(created_at, '+' || ? || ' hours') WHERE expires_at IS NULL",

@@ -19,6 +19,7 @@ async def get_config():
         default_model=settings.DEFAULT_WHISPER_MODEL,
         llm_available=bool(settings.LLM_PROVIDER),
         logout_url=settings.LOGOUT_URL,
+        popular_languages=settings.POPULAR_LANGUAGES,
     )
 
 

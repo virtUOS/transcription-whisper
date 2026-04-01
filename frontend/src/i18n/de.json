@@ -5,12 +5,12 @@
     "dragDrop": "Datei hierher ziehen oder klicken zum Hochladen",
     "uploadedFile": "Hochgeladene Datei",
     "deleteFile": "Datei löschen",
-    "supportedFormats": "Unterstützte Formate: MP3, WAV, MP4, WebM (max 1GB)",
+    "supportedFormats": "Unterstützte Formate: MP3, WAV, MP4, WebM, M4A, MOV, AAC, Opus, OGG (max 1GB)",
     "fileTooLarge": "Datei ist zu groß. Maximale Größe ist 1 GB."
   },
   "settings": {
     "language": "Sprache für die Transkription",
-    "model": "Modell",
+    "model": "Qualität",
     "detectSpeakers": "Sprecher erkennen",
     "minSpeakers": "Minimale Sprecher",
     "maxSpeakers": "Maximale Sprecher",
@@ -18,7 +18,16 @@
     "initialPrompt": "Anfangs-Prompt",
     "initialPromptHelp": "Optionaler Kontext für die Transkription",
     "hotwords": "Schlüsselwörter",
-    "hotwordsHelp": "Kommagetrennte Fachbegriffe"
+    "hotwordsHelp": "Kommagetrennte Fachbegriffe",
+    "modelLabels": {
+      "tiny": "Entwurf",
+      "base": "Standard",
+      "small": "Gut",
+      "medium": "Besser",
+      "large-v3-turbo": "Beste (schnell)",
+      "large-v3": "Beste",
+      "large-v2": "Beste"
+    }
   },
   "transcription": {
     "transcribe": "Transkribieren",
@@ -46,6 +55,9 @@
     "export": "Exportieren",
     "download": "Herunterladen",
     "saveChanges": "Änderungen speichern",
+    "restoreOriginal": "Original wiederherstellen",
+    "confirmRestore": "Alle ungespeicherten Änderungen verwerfen und die ursprüngliche Transkription wiederherstellen?",
+    "confirmTimestampCascade": "Diese Änderung passt die Zeitstempel von {{count}} benachbarten Zeile(n) an. Fortfahren?",
     "apply": "Anwenden",
     "generatingSummary": "Zusammenfassung wird erstellt...",
     "chapters": "Kapitel",
@@ -108,6 +120,10 @@
     "renameAllSpeaker": "Sprecher in allen Äußerungen umbenennen",
     "editTimestamp": "Zeitstempel bearbeiten",
     "editText": "Text bearbeiten",
+    "mergeWithNext": "Mit nächstem Abschnitt zusammenführen",
+    "addRow": "Neue Zeile nach dieser einfügen",
+    "deleteRow": "Diese Zeile löschen",
+    "confirmDeleteRow": "Diese Untertitelzeile löschen?",
     "utteranceChanged": "Vom LLM geändert",
     "search": {
       "placeholder": "Untertitel durchsuchen...",
@@ -150,7 +166,11 @@
     "generatingType": "{{type}} wird erstellt...",
     "generationFailed": "Analyse-Erstellung fehlgeschlagen",
     "copyResult": "Ergebnis kopieren",
-    "downloadResult": "Ergebnis herunterladen"
+    "downloadResult": "Ergebnis herunterladen",
+    "newAnalysis": "+ Neue Analyse",
+    "previousAnalyses": "Vorherige Analysen",
+    "confirmDeleteAnalysis": "Diese Analyse löschen? Dies kann nicht rückgängig gemacht werden.",
+    "collapseForm": "Abbrechen"
   },
   "languages": {
     "auto": "Automatisch erkennen",

@@ -174,6 +174,15 @@ class RefinementResult(BaseModel):
     metadata: RefinementMetadata
 
 
+class AnalysisListItem(BaseModel):
+    id: str
+    template: str | None = None
+    language: str | None = None
+    llm_provider: str | None = None
+    llm_model: str | None = None
+    created_at: str | None = None
+
+
 class AnalysisRequest(BaseModel):
     template: str | None = "summary"
     custom_prompt: str | None = None
@@ -192,3 +201,4 @@ class ConfigResponse(BaseModel):
     default_model: str
     llm_available: bool
     logout_url: str
+    popular_languages: list[str] = []
