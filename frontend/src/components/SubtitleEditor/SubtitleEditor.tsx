@@ -61,12 +61,6 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
       ? refinedUtterances
       : (result?.utterances || [])
 
-  const allSpeakers = useMemo(() => {
-    const speakers = new Set<string>()
-    ;(result?.utterances || []).forEach((u) => { if (u.speaker) speakers.add(u.speaker) })
-    return Array.from(speakers).sort()
-  }, [result])
-
   // Color map based on display names so same-name speakers always share color
   const speakerColorMap = useMemo(() => {
     const displayNames = new Set<string>()
@@ -246,7 +240,7 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
           if (curEnd > next.start) {
             updated[i + 1] = { ...next, start: curEnd, end: Math.max(curEnd, next.end) }
           } else {
-            break // no more overlap, stop cascading
+            break
           }
         }
       }
