@@ -146,6 +146,9 @@ export function MediaPlayer({ fileId, mediaType }: Props) {
   useEffect(() => {
     if (seekTo !== null && playerRef.current) {
       playerRef.current.currentTime(seekTo / 1000)
+      if (playerRef.current.paused()) {
+        playerRef.current.play()
+      }
       setSeekTo(null)
     }
   }, [seekTo, setSeekTo])
