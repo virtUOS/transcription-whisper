@@ -173,6 +173,39 @@
     "confirmDeleteAnalysis": "Delete this analysis? This cannot be undone.",
     "collapseForm": "Cancel"
   },
+  "presets": {
+    "title": "My Presets",
+    "transcription": "Transcription",
+    "analysis": "Analysis",
+    "refinement": "Refinement",
+    "bundles": "Bundles",
+    "create": "New preset",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirmDelete": "Delete this preset? Bundles using it will lose the reference.",
+    "saveAs": "Save as preset",
+    "loadPreset": "Load preset",
+    "selectPreset": "Select a preset...",
+    "selectBundle": "Select a bundle...",
+    "name": "Name",
+    "namePlaceholder": "Preset name",
+    "noPresets": "No presets yet",
+    "noBundles": "No bundles yet",
+    "bundle": {
+      "setDefault": "Set as default",
+      "clearDefault": "Clear default",
+      "isDefault": "Default",
+      "create": "New bundle",
+      "confirmDelete": "Delete this bundle?",
+      "linkedPresets": "Linked presets",
+      "selectTranscription": "Transcription preset...",
+      "selectAnalysis": "Analysis preset...",
+      "selectRefinement": "Refinement preset...",
+      "none": "None"
+    },
+    "saved": "Preset saved",
+    "deleted": "Preset deleted"
+  },
   "languages": {
     "auto": "Auto-detect",
     "af": "Afrikaans",
@@ -319,7 +352,8 @@
   "nav": {
     "backToTranscriptions": "Transcriptions",
     "newUpload": "Upload",
-    "newRecording": "Record"
+    "newRecording": "Record",
+    "presets": "Presets"
   },
   "common": {
     "loading": "Loading...",
