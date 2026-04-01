@@ -74,6 +74,7 @@ def _row_to_bundle(row) -> BundleResponse:
         transcription_preset_id=row["transcription_preset_id"],
         analysis_preset_id=row["analysis_preset_id"],
         refinement_preset_id=row["refinement_preset_id"],
+        translate_language=row["translate_language"],
         is_default=bool(row["is_default"]),
         created_at=row["created_at"],
         updated_at=row["updated_at"],
@@ -341,10 +342,10 @@ async def create_bundle(body: BundleCreate, user: UserInfo = Depends(get_current
     async with get_db() as db:
         await db.execute(
             """INSERT INTO preset_bundles
-               (id, user_id, name, transcription_preset_id, analysis_preset_id, refinement_preset_id)
-               VALUES (?, ?, ?, ?, ?, ?)""",
+               (id, user_id, name, transcription_preset_id, analysis_preset_id, refinement_preset_id, translate_language)
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
             (bundle_id, user.id, body.name, body.transcription_preset_id,
-             body.analysis_preset_id, body.refinement_preset_id),
+             body.analysis_preset_id, body.refinement_preset_id, body.translate_language),
         )
         await db.commit()
         cursor = await db.execute("SELECT * FROM preset_bundles WHERE id = ?", (bundle_id,))
@@ -377,10 +378,10 @@ async def update_bundle(bundle_id: str, body: BundleCreate, user: UserInfo = Dep
         await db.execute(
             """UPDATE preset_bundles
                SET name = ?, transcription_preset_id = ?, analysis_preset_id = ?,
-                   refinement_preset_id = ?, updated_at = CURRENT_TIMESTAMP
+                   refinement_preset_id = ?, translate_language = ?, updated_at = CURRENT_TIMESTAMP
                WHERE id = ?""",
             (body.name, body.transcription_preset_id, body.analysis_preset_id,
-             body.refinement_preset_id, bundle_id),
+             body.refinement_preset_id, body.translate_language, bundle_id),
         )
         await db.commit()
         cursor = await db.execute("SELECT * FROM preset_bundles WHERE id = ?", (bundle_id,))
@@ -483,6 +484,7 @@ async def get_default_bundle(user: UserInfo = Depends(get_current_user)):
         transcription_preset_id=bundle_row["transcription_preset_id"],
         analysis_preset_id=bundle_row["analysis_preset_id"],
         refinement_preset_id=bundle_row["refinement_preset_id"],
+        translate_language=bundle_row["translate_language"],
         is_default=bool(bundle_row["is_default"]),
         created_at=bundle_row["created_at"],
         updated_at=bundle_row["updated_at"],

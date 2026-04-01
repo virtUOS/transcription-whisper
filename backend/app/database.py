@@ -108,6 +108,7 @@ CREATE TABLE IF NOT EXISTS preset_bundles (
     transcription_preset_id TEXT REFERENCES transcription_presets(id) ON DELETE SET NULL,
     analysis_preset_id TEXT REFERENCES analysis_presets(id) ON DELETE SET NULL,
     refinement_preset_id TEXT REFERENCES refinement_presets(id) ON DELETE SET NULL,
+    translate_language TEXT,
     is_default INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -127,6 +128,7 @@ MIGRATIONS = [
     ("is_archived", "files", "is_archived INTEGER DEFAULT 0"),
     ("title", "transcriptions", "title TEXT"),
     ("has_video", "files", "has_video INTEGER"),
+    ("translate_language", "preset_bundles", "translate_language TEXT"),
 ]
 
 

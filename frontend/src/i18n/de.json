@@ -31,6 +31,7 @@
   },
   "transcription": {
     "transcribe": "Transkribieren",
+    "runPipeline": "Pipeline starten",
     "transcribeWhenReady": "Transkribieren wenn bereit",
     "inProgress": "Transkription läuft...",
     "success": "Transkription erfolgreich!",
@@ -201,10 +202,16 @@
       "selectTranscription": "Transkriptions-Voreinstellung...",
       "selectAnalysis": "Analyse-Voreinstellung...",
       "selectRefinement": "Verfeinerungs-Voreinstellung...",
-      "none": "Keine"
+      "none": "Keine",
+      "translateLanguage": "Übersetzen nach",
+      "translatePlaceholder": "z.B. en, de, fr (leer lassen zum Überspringen)"
     },
+    "save": "Speichern",
     "saved": "Voreinstellung gespeichert",
     "deleted": "Voreinstellung gelöscht"
+  },
+  "pipeline": {
+    "translating": "Übersetze nach {{language}}..."
   },
   "languages": {
     "auto": "Automatisch erkennen",

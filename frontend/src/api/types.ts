@@ -223,6 +223,7 @@ export interface PresetBundle {
   transcription_preset_id: string | null
   analysis_preset_id: string | null
   refinement_preset_id: string | null
+  translate_language: string | null
   is_default: boolean
   created_at: string | null
   updated_at: string | null
@@ -233,6 +234,7 @@ export interface PresetBundleCreate {
   transcription_preset_id?: string | null
   analysis_preset_id?: string | null
   refinement_preset_id?: string | null
+  translate_language?: string | null
 }
 
 export interface PresetBundleExpanded extends PresetBundle {

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useStore } from '../../store'
 import { api } from '../../api/client'
+import { LANGUAGES } from '../../utils/languages'
 import type {
   TranscriptionPreset,
   TranscriptionPresetCreate,
@@ -118,13 +119,16 @@ function TranscriptionPresetsList() {
           </div>
           <div>
             <label className="block text-xs text-gray-400 mb-1">{t('settings.language')}</label>
-            <input
-              type="text"
+            <select
               value={form.language ?? ''}
               onChange={(e) => setForm({ ...form, language: e.target.value || null })}
-              placeholder="en, de, fr…"
               className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
-            />
+            >
+              <option value="">{t('languages.auto')}</option>
+              {LANGUAGES.map((code) => (
+                <option key={code} value={code}>{t(`languages.${code}`)}</option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block text-xs text-gray-400 mb-1">{t('settings.model')}</label>
@@ -167,7 +171,7 @@ function TranscriptionPresetsList() {
               disabled={saving || !form.name.trim()}
               className="text-sm bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded px-4 py-1.5"
             >
-              {saving ? '…' : t('presets.saved')}
+              {saving ? '…' : t('presets.save')}
             </button>
           </div>
         </div>
@@ -308,13 +312,16 @@ function AnalysisPresetsList() {
           </div>
           <div>
             <label className="block text-xs text-gray-400 mb-1">{t('settings.language')}</label>
-            <input
-              type="text"
+            <select
               value={form.language ?? ''}
               onChange={(e) => setForm({ ...form, language: e.target.value || null })}
-              placeholder="en, de, fr…"
               className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
-            />
+            >
+              <option value="">{t('languages.auto')}</option>
+              {LANGUAGES.map((code) => (
+                <option key={code} value={code}>{t(`languages.${code}`)}</option>
+              ))}
+            </select>
           </div>
           {(form.template === null || form.template === 'custom') && (
             <div>
@@ -336,7 +343,7 @@ function AnalysisPresetsList() {
               disabled={saving || !form.name.trim()}
               className="text-sm bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded px-4 py-1.5"
             >
-              {saving ? '…' : t('presets.saved')}
+              {saving ? '…' : t('presets.save')}
             </button>
           </div>
         </div>
@@ -467,7 +474,7 @@ function RefinementPresetsList() {
               disabled={saving || !form.name.trim()}
               className="text-sm bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded px-4 py-1.5"
             >
-              {saving ? '…' : t('presets.saved')}
+              {saving ? '…' : t('presets.save')}
             </button>
           </div>
         </div>
@@ -515,6 +522,7 @@ function BundlesList() {
       transcription_preset_id: b.transcription_preset_id,
       analysis_preset_id: b.analysis_preset_id,
       refinement_preset_id: b.refinement_preset_id,
+      translate_language: b.translate_language,
     })
     setShowForm(true)
   }
@@ -616,6 +624,11 @@ function BundlesList() {
                       {t('presets.refinement')}: {rpName}
                     </span>
                   )}
+                  {b.translate_language && (
+                    <span className="text-xs bg-gray-700 text-gray-300 rounded px-2 py-0.5">
+                      {t('editor.translate')}: {b.translate_language}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="flex gap-2 shrink-0 items-center">
@@ -689,6 +702,19 @@ function BundlesList() {
               ))}
             </select>
           </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">{t('presets.bundle.translateLanguage')}</label>
+            <select
+              value={form.translate_language ?? ''}
+              onChange={(e) => setForm({ ...form, translate_language: e.target.value || null })}
+              className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="">{t('presets.bundle.none')}</option>
+              {LANGUAGES.map((code) => (
+                <option key={code} value={code}>{t(`languages.${code}`)}</option>
+              ))}
+            </select>
+          </div>
           <div className="flex gap-2 justify-end">
             <button onClick={handleCancel} className="text-sm text-gray-400 hover:text-white px-3 py-1.5">
               {t('common.cancel')}
@@ -698,7 +724,7 @@ function BundlesList() {
               disabled={saving || !form.name.trim()}
               className="text-sm bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded px-4 py-1.5"
             >
-              {saving ? '…' : t('presets.saved')}
+              {saving ? '…' : t('presets.save')}
             </button>
           </div>
         </div>

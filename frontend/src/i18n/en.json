@@ -31,6 +31,7 @@
   },
   "transcription": {
     "transcribe": "Transcribe",
+    "runPipeline": "Run pipeline",
     "transcribeWhenReady": "Transcribe when ready",
     "inProgress": "Transcription in progress...",
     "success": "Transcription successful!",
@@ -201,10 +202,16 @@
       "selectTranscription": "Transcription preset...",
       "selectAnalysis": "Analysis preset...",
       "selectRefinement": "Refinement preset...",
-      "none": "None"
+      "none": "None",
+      "translateLanguage": "Translate to",
+      "translatePlaceholder": "e.g. en, de, fr (leave empty to skip)"
     },
+    "save": "Save",
     "saved": "Preset saved",
     "deleted": "Preset deleted"
+  },
+  "pipeline": {
+    "translating": "Translating to {{language}}..."
   },
   "languages": {
     "auto": "Auto-detect",

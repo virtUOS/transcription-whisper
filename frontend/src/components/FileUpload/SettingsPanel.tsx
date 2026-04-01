@@ -206,7 +206,9 @@ export function SettingsPanel() {
               ? t('transcription.transcribeWhenReady')
               : uploading && !file
                 ? t('transcription.transcribeWhenReady')
-                : t('transcription.transcribe')}
+                : activeBundleId && bundles.find((b) => b.id === activeBundleId && (b.analysis_preset_id || b.refinement_preset_id || b.translate_language))
+                  ? t('transcription.runPipeline')
+                  : t('transcription.transcribe')}
         </button>
       </div>
       {error && (

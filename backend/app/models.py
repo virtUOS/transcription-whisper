@@ -255,6 +255,7 @@ class BundleCreate(BaseModel):
     transcription_preset_id: str | None = None
     analysis_preset_id: str | None = None
     refinement_preset_id: str | None = None
+    translate_language: str | None = None
 
 
 class BundleResponse(BundleCreate):
