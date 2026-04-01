@@ -11,7 +11,8 @@ export function FileUpload() {
   const transcriptionId = useStore((s) => s.transcriptionId)
   const transcriptionTitle = useStore((s) => s.transcriptionTitle)
   const reset = useStore((s) => s.reset)
-  const [uploading, setUploading] = useState(false)
+  const uploading = useStore((s) => s.uploading)
+  const setUploading = useStore((s) => s.setUploading)
   const [error, setError] = useState<string | null>(null)
 
   const setCurrentView = useStore((s) => s.setCurrentView)
