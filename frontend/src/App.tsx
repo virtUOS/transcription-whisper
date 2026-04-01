@@ -129,6 +129,11 @@ function App() {
   const activeTab = useStore((s) => s.activeTab)
   const [speakerModalOpen, setSpeakerModalOpen] = useState(false)
   const [focusSpeaker, setFocusSpeaker] = useState<string | undefined>(undefined)
+  const [playerCollapsed, setPlayerCollapsed] = useState(false)
+
+  useEffect(() => {
+    setPlayerCollapsed(false)
+  }, [file?.id])
 
   const handleOpenSpeakerModal = (speakerId?: string) => {
     setFocusSpeaker(speakerId)
@@ -219,10 +224,15 @@ function App() {
           <ProgressBar />
           {showEditor && file && (
             <>
-              <MediaPlayer fileId={file.id} mediaType={file.media_type} />
+              <MediaPlayer
+                fileId={file.id}
+                mediaType={file.media_type}
+                hasVideo={file.has_video}
+                onCollapsedChange={setPlayerCollapsed}
+              />
               <TabBar onSpeakerNamesClick={() => handleOpenSpeakerModal()} />
 
-              <div className="mx-6 my-2">
+              <div className={`mx-6 my-2 ${!file.has_video || playerCollapsed ? 'max-h-[calc(100vh-14rem)]' : 'max-h-[calc(100vh-22rem)]'} overflow-auto`}>
                 {activeTab === 'subtitles' && <SubtitleEditor onOpenSpeakerModal={handleOpenSpeakerModal} />}
                 {activeTab === 'analysis' && <AnalysisView />}
                 {['srt', 'vtt', 'json', 'txt'].includes(activeTab) && (

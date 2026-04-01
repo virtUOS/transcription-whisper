@@ -61,7 +61,7 @@ export function TranscriptionList() {
     setTranscriptionTitle(item.title || null)
     setTranscriptionStatus(item.status)
     const ext = item.original_filename.split('.').pop()?.toLowerCase() || ''
-    setFile({ id: item.file_id, original_filename: item.original_filename, media_type: ext, file_size: item.file_size })
+    setFile({ id: item.file_id, original_filename: item.original_filename, media_type: ext, file_size: item.file_size, has_video: item.has_video })
     setCurrentView('detail')
     if (item.status === 'completed') {
       try {

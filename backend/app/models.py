@@ -16,6 +16,7 @@ class FileInfo(BaseModel):
     original_filename: str
     media_type: str
     file_size: int
+    has_video: bool = False
 
 
 class TranscriptionSettings(BaseModel):
@@ -62,6 +63,7 @@ class TranscriptionListItem(BaseModel):
     expires_at: str
     archived: bool = False
     title: str | None = None
+    has_video: bool = False
 
 
 class SpeakerMappingRequest(BaseModel):

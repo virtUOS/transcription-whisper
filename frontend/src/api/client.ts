@@ -44,6 +44,17 @@ export const api = {
     return response.json()
   },
 
+  uploadRecording: async (file: File, hasVideo: boolean): Promise<FileInfo> => {
+    const formData = new FormData()
+    formData.append('file', file)
+    const response = await fetch(`${BASE}/api/upload?has_video=${hasVideo}`, { method: 'POST', body: formData })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: response.statusText }))
+      throw new Error(error.detail || response.statusText)
+    }
+    return response.json()
+  },
+
   startTranscription: (settings: TranscriptionSettings) =>
     request<{ id: string; status: string }>('/api/transcribe', {
       method: 'POST',

@@ -25,3 +25,18 @@ async def convert_to_mp3(input_path: str) -> str:
         raise RuntimeError(f"Audio conversion failed: {error_msg}")
 
     return output_path
+
+
+async def has_video_stream(file_path: str) -> bool:
+    """Check if a media file contains a video stream using ffprobe."""
+    try:
+        process = await asyncio.create_subprocess_exec(
+            settings.FFPROBE_PATH, "-v", "error", "-select_streams", "v",
+            "-show_entries", "stream=codec_type", "-of", "csv=p=0", file_path,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, _ = await process.communicate()
+        return b"video" in stdout
+    except (FileNotFoundError, OSError):
+        return False
