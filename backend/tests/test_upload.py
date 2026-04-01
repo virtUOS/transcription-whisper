@@ -133,3 +133,51 @@ async def test_rename_preserves_extension():
     assert response.status_code == 200
     data = response.json()
     assert data["original_filename"] == "team-standup.webm"
+
+
+@pytest.mark.asyncio
+async def test_upload_mp3_has_video_false():
+    """Audio files should have has_video=False."""
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.post(
+            "/api/upload",
+            files={"file": ("test.mp3", b"fake mp3 content", "audio/mpeg")},
+        )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["has_video"] is False
+
+
+@pytest.mark.asyncio
+async def test_upload_with_has_video_param():
+    """Recorder can pass has_video query param to skip ffprobe."""
+    transport = ASGITransport(app=app)
+    with patch("app.routers.upload.convert_to_mp3", new_callable=AsyncMock) as mock_convert:
+        mock_convert.return_value = "/tmp/fake.mp3"
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            response = await client.post(
+                "/api/upload?has_video=false",
+                files={"file": ("recording.webm", b"\x1a\x45\xdf\xa3" + b"\x00" * 100, "audio/webm")},
+            )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["has_video"] is False
+
+
+@pytest.mark.asyncio
+async def test_upload_with_has_video_true():
+    """Recorder with camera passes has_video=true."""
+    transport = ASGITransport(app=app)
+    with patch("app.routers.upload.convert_to_mp3", new_callable=AsyncMock) as mock_convert, \
+         patch("app.routers.upload.has_video_stream", new_callable=AsyncMock) as mock_detect:
+        mock_convert.return_value = "/tmp/fake.mp3"
+        mock_detect.return_value = True
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            response = await client.post(
+                "/api/upload?has_video=true",
+                files={"file": ("recording.webm", b"\x1a\x45\xdf\xa3" + b"\x00" * 100, "audio/webm")},
+            )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["has_video"] is True

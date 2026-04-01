@@ -7,7 +7,7 @@ from app.config import settings
 from app.dependencies import get_current_user
 from app.models import UserInfo, FileInfo, RenameRequest
 from app.database import get_db
-from app.services.audio import convert_to_mp3
+from app.services.audio import convert_to_mp3, has_video_stream
 from app.metrics import inc, observe, file_uploads_total, file_upload_size_bytes, file_renames_total, errors_total
 
 router = APIRouter()
@@ -19,6 +19,7 @@ MAX_FILE_SIZE = 1 * 1024 * 1024 * 1024  # 1GB
 @router.post("/api/upload", response_model=FileInfo)
 async def upload_file(
     file: UploadFile,
+    has_video: bool | None = None,
     user: UserInfo = Depends(get_current_user),
 ):
     ext = os.path.splitext(file.filename or "")[1].lower()
@@ -56,6 +57,15 @@ async def upload_file(
     # Convert to MP3 if needed
     mp3_path = await convert_to_mp3(file_path)
 
+    # Detect video tracks
+    if has_video is None:
+        # Pure audio extensions never have video
+        audio_only_exts = {".mp3", ".wav", ".m4a", ".aac", ".opus", ".ogg"}
+        if ext in audio_only_exts:
+            has_video = False
+        else:
+            has_video = await has_video_stream(file_path)
+
     media_type = ext.lstrip(".")
     expires_at = (datetime.now(timezone.utc) + timedelta(hours=settings.DEFAULT_EXPIRY_HOURS)).strftime("%Y-%m-%d %H:%M:%S")
 
@@ -66,8 +76,8 @@ async def upload_file(
             (user.id, user.email),
         )
         await db.execute(
-            "INSERT INTO files (id, user_id, original_filename, file_path, mp3_path, media_type, file_size, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            (file_id, user.id, file.filename, file_path, mp3_path, media_type, file_size, expires_at),
+            "INSERT INTO files (id, user_id, original_filename, file_path, mp3_path, media_type, file_size, expires_at, has_video) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (file_id, user.id, file.filename, file_path, mp3_path, media_type, file_size, expires_at, int(has_video)),
         )
         await db.commit()
 
@@ -79,6 +89,7 @@ async def upload_file(
         original_filename=file.filename or "",
         media_type=media_type,
         file_size=file_size,
+        has_video=has_video,
     )
 
 
@@ -139,7 +150,7 @@ async def rename_file(
 
     async with get_db() as db:
         cursor = await db.execute(
-            "SELECT original_filename, media_type, file_size FROM files WHERE id = ? AND user_id = ?",
+            "SELECT original_filename, media_type, file_size, has_video FROM files WHERE id = ? AND user_id = ?",
             (file_id, user.id),
         )
         row = await cursor.fetchone()
@@ -166,4 +177,5 @@ async def rename_file(
         original_filename=new_filename,
         media_type=row["media_type"],
         file_size=row["file_size"],
+        has_video=bool(row["has_video"]),
     )
