@@ -47,7 +47,7 @@ export function MediaPlayer({ fileId, mediaType, hasVideo, onCollapsedChange }: 
   const transcriptionResult = useStore((s) => s.transcriptionResult)
   const speakerMappings = useStore((s) => s.speakerMappings)
 
-  const [playbackError, setPlaybackError] = useState<string | null>(null)
+  const [playbackErrorKey, setPlaybackErrorKey] = useState<string | null>(null)
   const [mediaNotFound, setMediaNotFound] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
 
@@ -122,9 +122,9 @@ export function MediaPlayer({ fileId, mediaType, hasVideo, onCollapsedChange }: 
       } else {
         if (isNotFound) {
           setMediaNotFound(true)
-          setPlaybackError(t('player.mediaNotFound'))
+          setPlaybackErrorKey('player.mediaNotFound')
         } else {
-          setPlaybackError(t('player.playbackFailed'))
+          setPlaybackErrorKey('player.playbackFailed')
         }
       }
     })
@@ -213,9 +213,9 @@ export function MediaPlayer({ fileId, mediaType, hasVideo, onCollapsedChange }: 
 
   return (
     <div className={`mx-6 my-2 ${hasVideo && !collapsed ? 'flex flex-col items-center' : hasVideo ? '' : 'max-h-16'}`}>
-      {playbackError && (
+      {playbackErrorKey && (
         <div className="p-4 bg-gray-800 rounded-lg border border-gray-700 text-center">
-          <p className="text-gray-400 text-sm">{playbackError}</p>
+          <p className="text-gray-400 text-sm">{t(playbackErrorKey)}</p>
           {!mediaNotFound && (
             <button
               onClick={handleDownload}
@@ -226,7 +226,7 @@ export function MediaPlayer({ fileId, mediaType, hasVideo, onCollapsedChange }: 
           )}
         </div>
       )}
-      {hasVideo && !playbackError && (
+      {hasVideo && !playbackErrorKey && (
         <div className="flex justify-end w-full px-1">
           <button
             onClick={toggleCollapsed}
@@ -236,8 +236,8 @@ export function MediaPlayer({ fileId, mediaType, hasVideo, onCollapsedChange }: 
           </button>
         </div>
       )}
-      <div ref={containerRef} className={`${hasVideo && !collapsed ? 'w-full overflow-hidden' : ''} ${playbackError ? 'hidden' : ''} ${collapsed ? 'max-h-12' : ''}`} />
-      {!playbackError && (
+      <div ref={containerRef} className={`${hasVideo && !collapsed ? 'w-full overflow-hidden' : ''} ${playbackErrorKey ? 'hidden' : ''} ${collapsed ? 'max-h-12' : ''}`} />
+      {!playbackErrorKey && (
         <button
           onClick={handleDownload}
           className="mt-2 px-3 py-1 text-sm text-gray-400 hover:text-white transition-colors"
