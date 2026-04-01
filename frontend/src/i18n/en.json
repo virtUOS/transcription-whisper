@@ -211,7 +211,8 @@
     "deleted": "Preset deleted"
   },
   "pipeline": {
-    "translating": "Translating to {{language}}..."
+    "translating": "Translating to {{language}}...",
+    "errors": "Some pipeline steps failed:"
   },
   "languages": {
     "auto": "Auto-detect",

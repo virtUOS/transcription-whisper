@@ -211,7 +211,8 @@
     "deleted": "Voreinstellung gelöscht"
   },
   "pipeline": {
-    "translating": "Übersetze nach {{language}}..."
+    "translating": "Übersetze nach {{language}}...",
+    "errors": "Einige Pipeline-Schritte sind fehlgeschlagen:"
   },
   "languages": {
     "auto": "Automatisch erkennen",

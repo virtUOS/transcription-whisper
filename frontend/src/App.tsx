@@ -197,12 +197,14 @@ function App() {
   const setTranslationLanguage = useStore((s) => s.setTranslationLanguage)
   const autoPipelineRanRef = useRef(false)
   const [pipelineStatus, setPipelineStatus] = useState<{ key: string; step: 'refine' | 'analyze' | 'translate'; params?: Record<string, string> } | null>(null)
+  const [pipelineErrors, setPipelineErrors] = useState<string[]>([])
 
   // Reset auto-pipeline flag when a new transcription starts
   useEffect(() => {
     if (transcriptionStatus && transcriptionStatus !== 'completed') {
       autoPipelineRanRef.current = false
       setPipelineStatus(null)
+      setPipelineErrors([])
     }
   }, [transcriptionStatus])
 
@@ -239,6 +241,8 @@ function App() {
     autoPipelineRanRef.current = true
 
     const run = async () => {
+      const errors: string[] = []
+
       if (hasRefinement) {
         setPipelineStatus({ key: 'editor.refining', step: 'refine' })
         try {
@@ -247,7 +251,7 @@ function App() {
           setRefinementMetadata(result.metadata)
           setActiveView('refined')
         } catch (e) {
-          console.error('Auto-refinement failed:', e)
+          errors.push(`${t('editor.refineTranscription')}: ${e instanceof Error ? e.message : String(e)}`)
         }
       }
 
@@ -271,9 +275,10 @@ function App() {
             created_at: analysisResult.created_at || null,
           })
         } catch (e) {
-          console.error('Auto-analysis failed:', e)
+          errors.push(`${t('editor.analysis')}: ${e instanceof Error ? e.message : String(e)}`)
         }
       }
+
       if (hasTranslation) {
         setPipelineStatus({ key: 'pipeline.translating', step: 'translate', params: { language: t(`languages.${hasTranslation}`) } })
         try {
@@ -281,10 +286,12 @@ function App() {
           setTranslatedUtterances(result.utterances)
           setTranslationLanguage(result.language)
         } catch (e) {
-          console.error('Auto-translation failed:', e)
+          errors.push(`${t('editor.translate')}: ${e instanceof Error ? e.message : String(e)}`)
         }
       }
+
       setPipelineStatus(null)
+      if (errors.length > 0) setPipelineErrors(errors)
     }
 
     run()
@@ -356,6 +363,24 @@ function App() {
                 pipelineStatus.step === 'translate' ? 'text-purple-200' :
                 'text-blue-200'
               }`}>{t(pipelineStatus.key, pipelineStatus.params)}</span>
+            </div>
+          )}
+          {pipelineErrors.length > 0 && (
+            <div className="mx-6 my-2 px-4 py-2 bg-red-900/30 rounded-lg border border-red-700/50">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-red-300 text-sm font-medium mb-1">{t('pipeline.errors')}</p>
+                  {pipelineErrors.map((err, i) => (
+                    <p key={i} className="text-red-400/80 text-xs">{err}</p>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setPipelineErrors([])}
+                  className="text-red-400 hover:text-red-300 text-sm shrink-0 mt-0.5"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
           )}
           {showEditor && file && (
