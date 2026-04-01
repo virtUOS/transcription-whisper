@@ -10,7 +10,7 @@
   },
   "settings": {
     "language": "Sprache für die Transkription",
-    "model": "Modell",
+    "model": "Qualität",
     "detectSpeakers": "Sprecher erkennen",
     "minSpeakers": "Minimale Sprecher",
     "maxSpeakers": "Maximale Sprecher",
@@ -18,7 +18,16 @@
     "initialPrompt": "Anfangs-Prompt",
     "initialPromptHelp": "Optionaler Kontext für die Transkription",
     "hotwords": "Schlüsselwörter",
-    "hotwordsHelp": "Kommagetrennte Fachbegriffe"
+    "hotwordsHelp": "Kommagetrennte Fachbegriffe",
+    "modelLabels": {
+      "tiny": "Entwurf",
+      "base": "Standard",
+      "small": "Gut",
+      "medium": "Besser",
+      "large-v3-turbo": "Beste (schnell)",
+      "large-v3": "Beste",
+      "large-v2": "Beste"
+    }
   },
   "transcription": {
     "transcribe": "Transkribieren",
