@@ -150,7 +150,11 @@
     "generatingType": "Generating {{type}}...",
     "generationFailed": "Analysis generation failed",
     "copyResult": "Copy result",
-    "downloadResult": "Download result"
+    "downloadResult": "Download result",
+    "newAnalysis": "+ New Analysis",
+    "previousAnalyses": "Previous analyses",
+    "confirmDeleteAnalysis": "Delete this analysis? This cannot be undone.",
+    "collapseForm": "Cancel"
   },
   "languages": {
     "auto": "Auto-detect",

@@ -122,15 +122,226 @@ function resultToMarkdown(result: unknown, t: (key: string) => string): string {
   return JSON.stringify(result, null, 2)
 }
 
+// Individual analysis card that loads its own data on expand
+function AnalysisCard({ analysisId, transcriptionId, templates, baseName, onDelete }: {
+  analysisId: string
+  transcriptionId: string
+  templates: AnalysisTemplate[]
+  baseName: string
+  onDelete: (id: string) => void
+}) {
+  const { t } = useTranslation()
+  const analyses = useStore((s) => s.analyses)
+  const meta = analyses.find((a) => a.id === analysisId)
+  const [expanded, setExpanded] = useState(false)
+  const [result, setResult] = useState<unknown>(null)
+  const [loadingResult, setLoadingResult] = useState(false)
+  const [copied, setCopied] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  const translateTemplateName = (id: string) =>
+    t(`analysis.template${id.charAt(0).toUpperCase()}${id.slice(1)}`,
+      templates.find((tp) => tp.id === id)?.name ?? id)
+
+  const templateLabel = meta?.template
+    ? translateTemplateName(meta.template)
+    : t('analysis.customPrompt')
+
+  const handleToggle = async () => {
+    if (!expanded && !result) {
+      setLoadingResult(true)
+      setError(null)
+      try {
+        const data = await api.getAnalysis(transcriptionId, analysisId)
+        setResult(data)
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Failed to load analysis')
+      } finally {
+        setLoadingResult(false)
+      }
+    }
+    setExpanded((e) => !e)
+  }
+
+  const handleDelete = () => {
+    if (!confirm(t('analysis.confirmDeleteAnalysis'))) return
+    onDelete(analysisId)
+  }
+
+  const handleDeleteItem = async (field: string, index: number) => {
+    try {
+      const updated = await api.deleteAnalysisItem(transcriptionId, analysisId, field, index)
+      setResult(updated)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Delete failed')
+    }
+  }
+
+  const handleCopy = async (text: string, key: string) => {
+    await navigator.clipboard.writeText(text)
+    setCopied(key)
+    setTimeout(() => setCopied(null), 2000)
+  }
+
+  const copyIcon = (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+  )
+  const checkIcon = (
+    <svg className="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+  )
+  const downloadIcon = (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+  )
+
+  const btnCopy = "px-4 py-1.5 text-sm rounded flex items-center gap-2 text-gray-300 bg-gray-700 hover:bg-gray-600"
+  const btnDownload = "px-4 py-1.5 text-sm rounded flex items-center gap-2 text-white bg-green-700 hover:bg-green-600"
+
+  return (
+    <div className="border border-gray-700 rounded-lg overflow-hidden">
+      {/* Header — always visible */}
+      <div className="flex items-center gap-2 px-4 py-3 bg-gray-800/50 cursor-pointer hover:bg-gray-800" onClick={handleToggle}>
+        <svg className={`w-4 h-4 text-gray-400 transition-transform shrink-0 ${expanded ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+        <span className="px-2.5 py-0.5 text-xs font-medium rounded-full bg-purple-900/40 text-purple-300 border border-purple-700/50">
+          {templateLabel}
+        </span>
+        {meta?.created_at && (
+          <span className="text-xs text-gray-500">{new Date(meta.created_at).toLocaleDateString()}</span>
+        )}
+        {meta?.llm_model && (
+          <span className="text-xs text-gray-600 ml-auto mr-2">{meta.llm_model}</span>
+        )}
+        <button
+          onClick={(e) => { e.stopPropagation(); handleDelete() }}
+          className="text-gray-500 hover:text-red-400 transition-colors shrink-0"
+          title={t('analysis.delete')}
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Expanded content */}
+      {expanded && (
+        <div className="p-4 space-y-4">
+          {loadingResult && (
+            <div className="text-center text-gray-400 py-4">
+              <div className="animate-spin h-5 w-5 border-2 border-purple-500 border-t-transparent rounded-full mx-auto mb-2" />
+            </div>
+          )}
+          {error && <p className="text-red-400 text-sm">{error}</p>}
+          {result && (
+            <>
+              {isSummaryShape(result) && (
+                <>
+                  <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                    <p className="text-sm text-gray-300 whitespace-pre-wrap">{result.summary}</p>
+                  </div>
+                  {result.chapters.length > 0 && (
+                    <div>
+                      <h2 className="text-sm font-medium text-gray-400 mb-2">{t('editor.chapters')}</h2>
+                      <div className="space-y-2">
+                        {result.chapters.map((ch, i) => (
+                          <ChapterCard key={i} chapter={ch} index={i} onDelete={() => handleDeleteItem('chapters', i)} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {isProtocolShape(result) && (
+                <>
+                  <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                    <h2 className="text-base font-medium text-white mb-1">{result.title}</h2>
+                    <p className="text-xs text-gray-400">
+                      {t('editor.participants')}: {result.participants.join(', ')}
+                    </p>
+                  </div>
+                  {result.key_points.length > 0 && (
+                    <div>
+                      <h2 className="text-sm font-medium text-gray-400 mb-2">{t('editor.keyPoints')}</h2>
+                      <div className="space-y-2">
+                        {result.key_points.map((kp, i) => (
+                          <ProtocolCard key={i} timestamp={kp.timestamp} label={`${kp.speaker} — ${kp.topic}`} description={kp.content} onDelete={() => handleDeleteItem('key_points', i)} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {result.decisions.length > 0 && (
+                    <div>
+                      <h2 className="text-sm font-medium text-gray-400 mb-2">{t('editor.decisions')}</h2>
+                      <div className="space-y-2">
+                        {result.decisions.map((d, i) => (
+                          <ProtocolCard key={i} timestamp={d.timestamp} label={d.decision} description="" onDelete={() => handleDeleteItem('decisions', i)} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {result.action_items.length > 0 && (
+                    <div>
+                      <h2 className="text-sm font-medium text-gray-400 mb-2">{t('editor.actionItems')}</h2>
+                      <div className="space-y-2">
+                        {result.action_items.map((ai, i) => (
+                          <ProtocolCard key={i} timestamp={ai.timestamp} label={ai.assignee} description={ai.task} onDelete={() => handleDeleteItem('action_items', i)} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {!isSummaryShape(result) && !isProtocolShape(result) && (
+                <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                  <pre className="text-sm text-gray-300 whitespace-pre-wrap font-mono">{resultToText(result, t)}</pre>
+                </div>
+              )}
+
+              {/* Copy / Download */}
+              <div className="flex justify-end gap-2 pt-3 border-t border-gray-700">
+                <button onClick={() => handleCopy(resultToText(result, t), 'all')} className={btnCopy}>
+                  {copied === 'all' ? checkIcon : copyIcon}
+                  {copied === 'all' ? t('editor.copied') : t('analysis.copyResult')}
+                </button>
+                <button onClick={() => downloadText(resultToText(result, t), `${baseName}_analysis.txt`)} className={btnDownload}>
+                  {downloadIcon}
+                  TXT
+                </button>
+                <button onClick={() => downloadMarkdown(resultToMarkdown(result, t), `${baseName}_analysis.md`)} className={btnDownload}>
+                  {downloadIcon}
+                  Markdown
+                </button>
+              </div>
+
+              {/* Model info */}
+              {(() => {
+                const r = result as Record<string, unknown>
+                if (r?.llm_provider && r?.llm_model) {
+                  return (
+                    <p className="text-xs text-gray-500 text-right">
+                      {t('editor.generatedWithModel', { provider: r.llm_provider, model: r.llm_model })}
+                    </p>
+                  )
+                }
+                return null
+              })()}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function AnalysisView() {
   const { t } = useTranslation()
   const transcriptionId = useStore((s) => s.transcriptionId)
-  const analysisResult = useStore((s) => s.analysisResult)
-  const setAnalysisResult = useStore((s) => s.setAnalysisResult)
-  const analysisPrompt = useStore((s) => s.analysisPrompt)
-  const setAnalysisPrompt = useStore((s) => s.setAnalysisPrompt)
-  const analysisTemplate = useStore((s) => s.analysisTemplate)
-  const setAnalysisTemplate = useStore((s) => s.setAnalysisTemplate)
+  const analyses = useStore((s) => s.analyses)
+  const setAnalyses = useStore((s) => s.setAnalyses)
+  const addAnalysis = useStore((s) => s.addAnalysis)
+  const removeAnalysis = useStore((s) => s.removeAnalysis)
   const file = useStore((s) => s.file)
   const detectedLanguage = useStore((s) => s.transcriptionResult?.language)
 
@@ -141,7 +352,7 @@ export function AnalysisView() {
   const [language, setLanguage] = useState<string>(detectedLanguage || 'en')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [copied, setCopied] = useState<string | null>(null)
+  const [showForm, setShowForm] = useState(false)
 
   // Chapter hints (for summary template)
   const [hintsExpanded, setHintsExpanded] = useState(false)
@@ -152,7 +363,7 @@ export function AnalysisView() {
 
   const baseName = file?.original_filename?.replace(/\.[^.]+$/, '') || 'transcription'
 
-  // Fetch templates on mount
+  // Fetch templates and existing analyses on mount
   useEffect(() => {
     api.getAnalysisTemplates().then((tpls) => {
       setTemplates(tpls)
@@ -163,7 +374,17 @@ export function AnalysisView() {
     }).catch(console.error)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (transcriptionId) {
+      api.listAnalyses(transcriptionId).then(setAnalyses).catch(console.error)
+    }
+  }, [transcriptionId, setAnalyses])
+
   const currentTemplate = templates.find((tp) => tp.id === selectedTemplate)
+
+  const translateTemplateName = (id: string) =>
+    t(`analysis.template${id.charAt(0).toUpperCase()}${id.slice(1)}`,
+      templates.find((tp) => tp.id === id)?.name ?? id)
 
   const handleSelectTemplate = useCallback((id: string | null) => {
     setSelectedTemplate(id)
@@ -197,12 +418,6 @@ export function AnalysisView() {
     setHints(prev => prev.map((h, i) => i === index ? { ...h, [field]: value } : h))
   }, [])
 
-  const handleCopy = async (text: string, key: string) => {
-    await navigator.clipboard.writeText(text)
-    setCopied(key)
-    setTimeout(() => setCopied(null), 2000)
-  }
-
   const handleGenerate = async () => {
     if (!transcriptionId) return
     setLoading(true)
@@ -223,10 +438,18 @@ export function AnalysisView() {
         language,
         chapter_hints: selectedTemplate === 'summary' && validHints.length > 0 ? validHints : null,
         agenda: selectedTemplate === 'agenda' && agenda.trim() ? agenda.trim() : null,
+      }) as Record<string, unknown>
+
+      // Add to the analyses list
+      addAnalysis({
+        id: result.id as string,
+        template: (result.template as string) || null,
+        language: (result.language as string) || null,
+        llm_provider: (result.llm_provider as string) || null,
+        llm_model: (result.llm_model as string) || null,
+        created_at: new Date().toISOString(),
       })
-      setAnalysisResult(result)
-      setAnalysisPrompt(customPrompt)
-      setAnalysisTemplate(selectedTemplate)
+      setShowForm(false)
     } catch (e) {
       setError(e instanceof Error ? e.message : t('analysis.generationFailed'))
     } finally {
@@ -234,52 +457,18 @@ export function AnalysisView() {
     }
   }
 
-  const handleDeleteItem = useCallback(async (field: string, index: number) => {
+  const handleDeleteAnalysis = async (analysisId: string) => {
     if (!transcriptionId) return
     try {
-      const updated = await api.deleteAnalysisItem(transcriptionId, field, index)
-      setAnalysisResult(updated)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Delete failed')
-    }
-  }, [transcriptionId, setAnalysisResult])
-
-  const handleDelete = async () => {
-    if (!transcriptionId || !confirm(t('analysis.confirmDelete'))) return
-    try {
-      await api.deleteAnalysis(transcriptionId)
-      setAnalysisResult(null)
-      setAnalysisPrompt(null)
+      await api.deleteAnalysis(transcriptionId, analysisId)
+      removeAnalysis(analysisId)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Delete failed')
     }
   }
 
-  const copyIcon = (
-    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-  )
-  const checkIcon = (
-    <svg className="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-  )
-  const downloadIcon = (
-    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-  )
-
-  const btnCopy = "px-4 py-1.5 text-sm rounded flex items-center gap-2 text-gray-300 bg-gray-700 hover:bg-gray-600"
-  const btnDownload = "px-4 py-1.5 text-sm rounded flex items-center gap-2 text-white bg-green-700 hover:bg-green-600"
-
-  // Resolve display label for the analysis type
-  const resolvedTemplate = (() => {
-    const r = analysisResult as Record<string, unknown> | null
-    return r?.template as string | null ?? analysisTemplate
-  })()
-  const translateTemplateName = (id: string) =>
-    t(`analysis.template${id.charAt(0).toUpperCase()}${id.slice(1)}`,
-      templates.find((tp) => tp.id === id)?.name ?? id)
-
-  const templateLabel = resolvedTemplate
-    ? translateTemplateName(resolvedTemplate)
-    : t('analysis.customPrompt')
+  // Show the form automatically if there are no analyses
+  const formVisible = showForm || analyses.length === 0
 
   // Loading state
   if (loading) {
@@ -295,294 +484,209 @@ export function AnalysisView() {
     )
   }
 
-  // Result display
-  if (analysisResult) {
-    const fullText = resultToText(analysisResult, t)
-    const fullMarkdown = resultToMarkdown(analysisResult, t)
-
-    return (
-      <div className="p-4 space-y-4">
-        {/* Analysis type badge */}
-        <div className="flex items-center gap-2">
-          <span className="px-3 py-1 text-xs font-medium rounded-full bg-purple-900/40 text-purple-300 border border-purple-700/50">
-            {templateLabel}
-          </span>
-        </div>
-
-        {/* Smart result rendering */}
-        {isSummaryShape(analysisResult) && (
-          <>
-            <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-              <p className="text-sm text-gray-300 whitespace-pre-wrap">{analysisResult.summary}</p>
-            </div>
-            {analysisResult.chapters.length > 0 && (
-              <div>
-                <h2 className="text-sm font-medium text-gray-400 mb-2">{t('editor.chapters')}</h2>
-                <div className="space-y-2">
-                  {analysisResult.chapters.map((ch, i) => (
-                    <ChapterCard key={i} chapter={ch} index={i} onDelete={() => handleDeleteItem('chapters', i)} />
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
-        )}
-
-        {isProtocolShape(analysisResult) && (
-          <>
-            <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-              <h2 className="text-base font-medium text-white mb-1">{analysisResult.title}</h2>
-              <p className="text-xs text-gray-400">
-                {t('editor.participants')}: {analysisResult.participants.join(', ')}
-              </p>
-            </div>
-            {analysisResult.key_points.length > 0 && (
-              <div>
-                <h2 className="text-sm font-medium text-gray-400 mb-2">{t('editor.keyPoints')}</h2>
-                <div className="space-y-2">
-                  {analysisResult.key_points.map((kp, i) => (
-                    <ProtocolCard key={i} timestamp={kp.timestamp} label={`${kp.speaker} — ${kp.topic}`} description={kp.content} onDelete={() => handleDeleteItem('key_points', i)} />
-                  ))}
-                </div>
-              </div>
-            )}
-            {analysisResult.decisions.length > 0 && (
-              <div>
-                <h2 className="text-sm font-medium text-gray-400 mb-2">{t('editor.decisions')}</h2>
-                <div className="space-y-2">
-                  {analysisResult.decisions.map((d, i) => (
-                    <ProtocolCard key={i} timestamp={d.timestamp} label={d.decision} description="" onDelete={() => handleDeleteItem('decisions', i)} />
-                  ))}
-                </div>
-              </div>
-            )}
-            {analysisResult.action_items.length > 0 && (
-              <div>
-                <h2 className="text-sm font-medium text-gray-400 mb-2">{t('editor.actionItems')}</h2>
-                <div className="space-y-2">
-                  {analysisResult.action_items.map((ai, i) => (
-                    <ProtocolCard key={i} timestamp={ai.timestamp} label={ai.assignee} description={ai.task} onDelete={() => handleDeleteItem('action_items', i)} />
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
-        )}
-
-        {!isSummaryShape(analysisResult) && !isProtocolShape(analysisResult) && (
-          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-            <pre className="text-sm text-gray-300 whitespace-pre-wrap font-mono">{fullText}</pre>
-          </div>
-        )}
-
-        {/* Prompt used (collapsible) */}
-        {analysisPrompt && (
-          <details className="border border-gray-700 rounded-lg">
-            <summary className="px-4 py-2.5 text-sm text-gray-400 cursor-pointer hover:bg-gray-800 rounded-lg">
-              {t('analysis.promptUsed')}
-            </summary>
-            <div className="px-4 pb-4">
-              <pre className="text-xs text-gray-500 whitespace-pre-wrap font-mono">{analysisPrompt}</pre>
-            </div>
-          </details>
-        )}
-
-        {/* Copy / Download / Delete */}
-        <div className="flex justify-end gap-2 pt-3 border-t border-gray-700">
-          <button onClick={handleDelete} className="px-4 py-1.5 text-sm rounded flex items-center gap-2 text-red-300 bg-red-900/40 hover:bg-red-800/60 mr-auto">
-            {t('analysis.delete')}
-          </button>
-          <button onClick={() => handleCopy(fullText, 'all')} className={btnCopy}>
-            {copied === 'all' ? checkIcon : copyIcon}
-            {copied === 'all' ? t('editor.copied') : t('analysis.copyResult')}
-          </button>
-          <button onClick={() => downloadText(fullText, `${baseName}_analysis.txt`)} className={btnDownload}>
-            {downloadIcon}
-            TXT
-          </button>
-          <button onClick={() => downloadMarkdown(fullMarkdown, `${baseName}_analysis.md`)} className={btnDownload}>
-            {downloadIcon}
-            Markdown
-          </button>
-        </div>
-
-        {/* Model info */}
-        {(() => {
-          const r = analysisResult as Record<string, unknown>
-          if (r?.llm_provider && r?.llm_model) {
-            return (
-              <p className="text-xs text-gray-500 text-right">
-                {t('editor.generatedWithModel', { provider: r.llm_provider, model: r.llm_model })}
-              </p>
-            )
-          }
-          return null
-        })()}
-      </div>
-    )
-  }
-
-  // Configuration / generation form
   return (
-    <div className="p-6 space-y-4">
-      {/* Template selector */}
-      <div>
-        <label className="block text-xs text-gray-400 mb-2">{t('analysis.selectTemplate')}</label>
-        <div className="flex flex-wrap gap-2">
-          {templates.map((tpl) => (
-            <button
-              key={tpl.id}
-              onClick={() => handleSelectTemplate(tpl.id)}
-              className={`px-4 py-2 text-sm rounded-lg border transition-colors ${
-                selectedTemplate === tpl.id
-                  ? 'border-purple-500 bg-purple-900/40 text-purple-300'
-                  : 'border-gray-700 bg-gray-800 text-gray-300 hover:border-gray-500'
-              }`}
-              title={tpl.description}
-            >
-              {translateTemplateName(tpl.id)}
-            </button>
+    <div className="p-4 space-y-4">
+      {/* Existing analyses */}
+      {analyses.length > 0 && (
+        <div className="space-y-2">
+          {analyses.map((a) => (
+            <AnalysisCard
+              key={a.id}
+              analysisId={a.id}
+              transcriptionId={transcriptionId!}
+              templates={templates}
+              baseName={baseName}
+              onDelete={handleDeleteAnalysis}
+            />
           ))}
-          <button
-            onClick={() => handleSelectTemplate(null)}
-            className={`px-4 py-2 text-sm rounded-lg border transition-colors ${
-              selectedTemplate === null
-                ? 'border-purple-500 bg-purple-900/40 text-purple-300'
-                : 'border-gray-700 bg-gray-800 text-gray-300 hover:border-gray-500'
-            }`}
-          >
-            {t('analysis.customPrompt')}
-          </button>
         </div>
-      </div>
+      )}
 
-      {/* Chapter hints — only for summary template */}
-      {selectedTemplate === 'summary' && (
-        <div className="border border-gray-700 rounded-lg">
-          <button
-            onClick={() => setHintsExpanded(!hintsExpanded)}
-            className="w-full px-4 py-2.5 text-sm text-left text-gray-300 hover:bg-gray-800 rounded-lg flex items-center justify-between"
-          >
-            {t('editor.chapterHints')}
-            <svg
-              className={`w-4 h-4 transition-transform ${hintsExpanded ? 'rotate-180' : ''}`}
-              fill="none" viewBox="0 0 24 24" stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          {hintsExpanded && (
-            <div className="px-4 pb-4 space-y-2">
-              {hints.map((hint, i) => (
-                <div key={i} className="flex items-start gap-2">
-                  <input
-                    type="text"
-                    value={hint.title || ''}
-                    onChange={(e) => handleHintChange(i, 'title', e.target.value)}
-                    placeholder={t('editor.chapterTitle')}
-                    className="flex-1 px-3 py-1.5 text-sm bg-gray-800 border border-gray-600 rounded text-gray-200 placeholder-gray-500"
-                  />
-                  <input
-                    type="text"
-                    value={hint.description || ''}
-                    onChange={(e) => handleHintChange(i, 'description', e.target.value)}
-                    placeholder={t('editor.chapterDescription')}
-                    className="flex-1 px-3 py-1.5 text-sm bg-gray-800 border border-gray-600 rounded text-gray-200 placeholder-gray-500"
-                  />
-                  <button
-                    onClick={() => handleRemoveHint(i)}
-                    className="p-1.5 text-gray-400 hover:text-red-400"
-                    title={t('editor.removeChapter')}
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              ))}
+      {/* New analysis button — shown when form is not visible and analyses exist */}
+      {!formVisible && (
+        <button
+          onClick={() => setShowForm(true)}
+          className="w-full py-2.5 text-sm text-purple-400 hover:text-purple-300 border border-dashed border-gray-700 hover:border-purple-700 rounded-lg transition-colors"
+        >
+          {t('analysis.newAnalysis')}
+        </button>
+      )}
+
+      {/* Generation form */}
+      {formVisible && (
+        <div className="space-y-4">
+          {analyses.length > 0 && (
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-medium text-gray-300">{t('analysis.newAnalysis')}</h3>
               <button
-                onClick={handleAddHint}
-                disabled={hints.length >= 30}
-                className="text-sm text-purple-400 hover:text-purple-300 disabled:text-gray-600 disabled:cursor-not-allowed"
+                onClick={() => setShowForm(false)}
+                className="text-xs text-gray-500 hover:text-gray-300"
               >
-                + {hints.length >= 30 ? t('editor.maxChaptersReached') : t('editor.addChapter')}
+                {t('analysis.collapseForm')}
               </button>
             </div>
           )}
-        </div>
-      )}
 
-      {/* Agenda textarea — only for agenda template */}
-      {selectedTemplate === 'agenda' && (
-        <div>
-          <label className="block text-xs text-gray-400 mb-1">{t('analysis.agenda')}</label>
-          <textarea
-            value={agenda}
-            onChange={(e) => setAgenda(e.target.value)}
-            placeholder={t('analysis.agendaPlaceholder')}
-            rows={5}
-            className="w-full px-3 py-2 text-sm bg-gray-800 border border-gray-600 rounded-lg text-gray-200 placeholder-gray-500 resize-y"
-          />
-        </div>
-      )}
-
-      {/* Prompt editor (collapsible) */}
-      <div className="border border-gray-700 rounded-lg">
-        <button
-          onClick={() => setPromptExpanded(!promptExpanded)}
-          className="w-full px-4 py-2.5 text-sm text-left text-gray-300 hover:bg-gray-800 rounded-lg flex items-center justify-between"
-        >
-          {t('analysis.customizePrompt')}
-          <svg
-            className={`w-4 h-4 transition-transform ${promptExpanded ? 'rotate-180' : ''}`}
-            fill="none" viewBox="0 0 24 24" stroke="currentColor"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-        {promptExpanded && (
-          <div className="px-4 pb-4 space-y-2">
-            <textarea
-              value={customPrompt}
-              onChange={(e) => setCustomPrompt(e.target.value)}
-              rows={8}
-              className="w-full px-3 py-2 text-sm bg-gray-800 border border-gray-600 rounded-lg text-gray-200 placeholder-gray-500 resize-y font-mono"
-            />
-            {selectedTemplate && (
+          {/* Template selector */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-2">{t('analysis.selectTemplate')}</label>
+            <div className="flex flex-wrap gap-2">
+              {templates.map((tpl) => (
+                <button
+                  key={tpl.id}
+                  onClick={() => handleSelectTemplate(tpl.id)}
+                  className={`px-4 py-2 text-sm rounded-lg border transition-colors ${
+                    selectedTemplate === tpl.id
+                      ? 'border-purple-500 bg-purple-900/40 text-purple-300'
+                      : 'border-gray-700 bg-gray-800 text-gray-300 hover:border-gray-500'
+                  }`}
+                  title={tpl.description}
+                >
+                  {translateTemplateName(tpl.id)}
+                </button>
+              ))}
               <button
-                onClick={handleResetPrompt}
-                className="text-sm text-purple-400 hover:text-purple-300"
+                onClick={() => handleSelectTemplate(null)}
+                className={`px-4 py-2 text-sm rounded-lg border transition-colors ${
+                  selectedTemplate === null
+                    ? 'border-purple-500 bg-purple-900/40 text-purple-300'
+                    : 'border-gray-700 bg-gray-800 text-gray-300 hover:border-gray-500'
+                }`}
               >
-                {t('analysis.resetPrompt')}
+                {t('analysis.customPrompt')}
               </button>
+            </div>
+          </div>
+
+          {/* Chapter hints — only for summary template */}
+          {selectedTemplate === 'summary' && (
+            <div className="border border-gray-700 rounded-lg">
+              <button
+                onClick={() => setHintsExpanded(!hintsExpanded)}
+                className="w-full px-4 py-2.5 text-sm text-left text-gray-300 hover:bg-gray-800 rounded-lg flex items-center justify-between"
+              >
+                {t('editor.chapterHints')}
+                <svg
+                  className={`w-4 h-4 transition-transform ${hintsExpanded ? 'rotate-180' : ''}`}
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {hintsExpanded && (
+                <div className="px-4 pb-4 space-y-2">
+                  {hints.map((hint, i) => (
+                    <div key={i} className="flex items-start gap-2">
+                      <input
+                        type="text"
+                        value={hint.title || ''}
+                        onChange={(e) => handleHintChange(i, 'title', e.target.value)}
+                        placeholder={t('editor.chapterTitle')}
+                        className="flex-1 px-3 py-1.5 text-sm bg-gray-800 border border-gray-600 rounded text-gray-200 placeholder-gray-500"
+                      />
+                      <input
+                        type="text"
+                        value={hint.description || ''}
+                        onChange={(e) => handleHintChange(i, 'description', e.target.value)}
+                        placeholder={t('editor.chapterDescription')}
+                        className="flex-1 px-3 py-1.5 text-sm bg-gray-800 border border-gray-600 rounded text-gray-200 placeholder-gray-500"
+                      />
+                      <button
+                        onClick={() => handleRemoveHint(i)}
+                        className="p-1.5 text-gray-400 hover:text-red-400"
+                        title={t('editor.removeChapter')}
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={handleAddHint}
+                    disabled={hints.length >= 30}
+                    className="text-sm text-purple-400 hover:text-purple-300 disabled:text-gray-600 disabled:cursor-not-allowed"
+                  >
+                    + {hints.length >= 30 ? t('editor.maxChaptersReached') : t('editor.addChapter')}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Agenda textarea — only for agenda template */}
+          {selectedTemplate === 'agenda' && (
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">{t('analysis.agenda')}</label>
+              <textarea
+                value={agenda}
+                onChange={(e) => setAgenda(e.target.value)}
+                placeholder={t('analysis.agendaPlaceholder')}
+                rows={5}
+                className="w-full px-3 py-2 text-sm bg-gray-800 border border-gray-600 rounded-lg text-gray-200 placeholder-gray-500 resize-y"
+              />
+            </div>
+          )}
+
+          {/* Prompt editor (collapsible) */}
+          <div className="border border-gray-700 rounded-lg">
+            <button
+              onClick={() => setPromptExpanded(!promptExpanded)}
+              className="w-full px-4 py-2.5 text-sm text-left text-gray-300 hover:bg-gray-800 rounded-lg flex items-center justify-between"
+            >
+              {t('analysis.customizePrompt')}
+              <svg
+                className={`w-4 h-4 transition-transform ${promptExpanded ? 'rotate-180' : ''}`}
+                fill="none" viewBox="0 0 24 24" stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {promptExpanded && (
+              <div className="px-4 pb-4 space-y-2">
+                <textarea
+                  value={customPrompt}
+                  onChange={(e) => setCustomPrompt(e.target.value)}
+                  rows={8}
+                  className="w-full px-3 py-2 text-sm bg-gray-800 border border-gray-600 rounded-lg text-gray-200 placeholder-gray-500 resize-y font-mono"
+                />
+                {selectedTemplate && (
+                  <button
+                    onClick={handleResetPrompt}
+                    className="text-sm text-purple-400 hover:text-purple-300"
+                  >
+                    {t('analysis.resetPrompt')}
+                  </button>
+                )}
+              </div>
             )}
           </div>
-        )}
-      </div>
 
-      {/* Language selector + Generate button */}
-      <div className="flex items-center justify-center gap-3">
-        <div>
-          <label className="block text-xs text-gray-400 mb-1">{t('editor.outputLanguage')}</label>
-          <select
-            value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-            className="bg-gray-700 text-white text-sm rounded px-3 py-1.5"
-          >
-            {LANGUAGES.map((code) => (
-              <option key={code} value={code}>{t(`languages.${code}`, code)}</option>
-            ))}
-          </select>
+          {/* Language selector + Generate button */}
+          <div className="flex items-center justify-center gap-3">
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">{t('editor.outputLanguage')}</label>
+              <select
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                className="bg-gray-700 text-white text-sm rounded px-3 py-1.5"
+              >
+                {LANGUAGES.map((code) => (
+                  <option key={code} value={code}>{t(`languages.${code}`, code)}</option>
+                ))}
+              </select>
+            </div>
+            <button
+              onClick={handleGenerate}
+              className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-500 self-end"
+            >
+              {t('analysis.generate')}
+            </button>
+          </div>
+
+          {error && <p className="text-red-400 text-sm mt-2 text-center">{error}</p>}
         </div>
-        <button
-          onClick={handleGenerate}
-          className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-500 self-end"
-        >
-          {analysisResult ? t('analysis.regenerate') : t('analysis.generate')}
-        </button>
-      </div>
-
-      {error && <p className="text-red-400 text-sm mt-2 text-center">{error}</p>}
+      )}
     </div>
   )
 }

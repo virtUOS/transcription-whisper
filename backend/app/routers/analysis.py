@@ -1,9 +1,10 @@
 import json
 import time
+import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from app.config import settings
 from app.dependencies import get_current_user
-from app.models import UserInfo, AnalysisRequest
+from app.models import UserInfo, AnalysisRequest, AnalysisListItem
 from app.database import get_db
 from app.services.llm import get_llm_provider
 from app.services.llm.prompt import (
@@ -40,31 +41,15 @@ async def generate_analysis(
     chapter_hints = body.chapter_hints if body and body.chapter_hints else None
     agenda = body.agenda if body else None
 
+    analysis_id = str(uuid.uuid4())
+
     async with get_db() as db:
-        # Check for existing cached analysis
+        # Rate limit: reject if analysis is already in progress for this transcription
         cursor = await db.execute(
-            "SELECT analysis_json, template, custom_prompt, language, llm_provider, llm_model FROM analyses WHERE transcription_id = ?",
+            "SELECT id FROM analyses WHERE transcription_id = ? AND analysis_json IS NULL",
             (transcription_id,),
         )
-        existing = await cursor.fetchone()
-
-        if existing and existing["analysis_json"]:
-            # Check if cache matches current request
-            cached_template = existing["template"]
-            cached_prompt = existing["custom_prompt"]
-            cached_language = existing["language"]
-            if cached_template == template_name and cached_prompt == custom_prompt and cached_language == request_language:
-                data = json.loads(existing["analysis_json"])
-                data["llm_provider"] = existing["llm_provider"]
-                data["llm_model"] = existing["llm_model"]
-                return data
-            # Parameters differ — delete cached result to regenerate
-            await db.execute("DELETE FROM analyses WHERE transcription_id = ?", (transcription_id,))
-            await db.commit()
-            existing = None
-
-        # Rate limit: reject if analysis is already in progress
-        if existing and not existing["analysis_json"]:
+        if await cursor.fetchone():
             raise HTTPException(status_code=429, detail="Analysis generation already in progress")
 
         # Get transcription
@@ -89,9 +74,9 @@ async def generate_analysis(
 
         # Insert placeholder row to mark generation as in-progress
         await db.execute(
-            """INSERT OR IGNORE INTO analyses (transcription_id, analysis_json, template, custom_prompt, language, llm_provider, llm_model)
-               VALUES (?, NULL, ?, ?, ?, ?, ?)""",
-            (transcription_id, template_name, custom_prompt, request_language, settings.LLM_PROVIDER, settings.LLM_MODEL),
+            """INSERT INTO analyses (id, transcription_id, analysis_json, template, custom_prompt, language, llm_provider, llm_model)
+               VALUES (?, ?, NULL, ?, ?, ?, ?, ?)""",
+            (analysis_id, transcription_id, template_name, custom_prompt, request_language, settings.LLM_PROVIDER, settings.LLM_MODEL),
         )
         await db.commit()
 
@@ -130,7 +115,7 @@ async def generate_analysis(
         inc(errors_total, "llm_failed", "analysis")
         # Remove placeholder on failure so user can retry
         async with get_db() as db:
-            await db.execute("DELETE FROM analyses WHERE transcription_id = ? AND analysis_json IS NULL", (transcription_id,))
+            await db.execute("DELETE FROM analyses WHERE id = ? AND analysis_json IS NULL", (analysis_id,))
             await db.commit()
         raise
 
@@ -142,11 +127,12 @@ async def generate_analysis(
     async with get_db() as db:
         await db.execute(
             """UPDATE analyses SET analysis_json = ?, template = ?, custom_prompt = ?, language = ?, llm_provider = ?, llm_model = ?
-               WHERE transcription_id = ?""",
-            (json.dumps(result_data), template_name, custom_prompt, request_language, settings.LLM_PROVIDER, settings.LLM_MODEL, transcription_id),
+               WHERE id = ?""",
+            (json.dumps(result_data), template_name, custom_prompt, request_language, settings.LLM_PROVIDER, settings.LLM_MODEL, analysis_id),
         )
         await db.commit()
 
+    result_data["id"] = analysis_id
     result_data["llm_provider"] = settings.LLM_PROVIDER
     result_data["llm_model"] = settings.LLM_MODEL
     return result_data
@@ -217,9 +203,73 @@ async def _call_llm(provider, user_content: str, system_prompt: str) -> dict:
         raise HTTPException(status_code=503, detail="Unsupported LLM provider for analysis")
 
 
-@router.delete("/api/analysis/{transcription_id}")
+@router.get("/api/analysis/{transcription_id}")
+async def list_analyses(
+    transcription_id: str,
+    user: UserInfo = Depends(get_current_user),
+):
+    """List all analyses for a transcription."""
+    async with get_db() as db:
+        cursor = await db.execute(
+            "SELECT id FROM transcriptions WHERE id = ? AND user_id = ?",
+            (transcription_id, user.id),
+        )
+        if not await cursor.fetchone():
+            raise HTTPException(status_code=404, detail="Transcription not found")
+
+        cursor = await db.execute(
+            "SELECT id, template, language, llm_provider, llm_model, created_at FROM analyses WHERE transcription_id = ? AND analysis_json IS NOT NULL ORDER BY created_at DESC",
+            (transcription_id,),
+        )
+        rows = await cursor.fetchall()
+
+    return [
+        AnalysisListItem(
+            id=row["id"],
+            template=row["template"],
+            language=row["language"],
+            llm_provider=row["llm_provider"],
+            llm_model=row["llm_model"],
+            created_at=row["created_at"],
+        )
+        for row in rows
+    ]
+
+
+@router.get("/api/analysis/{transcription_id}/{analysis_id}")
+async def get_analysis(
+    transcription_id: str,
+    analysis_id: str,
+    user: UserInfo = Depends(get_current_user),
+):
+    """Get a single analysis by ID."""
+    async with get_db() as db:
+        cursor = await db.execute(
+            "SELECT id FROM transcriptions WHERE id = ? AND user_id = ?",
+            (transcription_id, user.id),
+        )
+        if not await cursor.fetchone():
+            raise HTTPException(status_code=404, detail="Transcription not found")
+
+        cursor = await db.execute(
+            "SELECT id, analysis_json, llm_provider, llm_model FROM analyses WHERE id = ? AND transcription_id = ?",
+            (analysis_id, transcription_id),
+        )
+        row = await cursor.fetchone()
+        if not row or not row["analysis_json"]:
+            raise HTTPException(status_code=404, detail="Analysis not found")
+
+    data = json.loads(row["analysis_json"])
+    data["id"] = row["id"]
+    data["llm_provider"] = row["llm_provider"]
+    data["llm_model"] = row["llm_model"]
+    return data
+
+
+@router.delete("/api/analysis/{transcription_id}/{analysis_id}")
 async def delete_analysis(
     transcription_id: str,
+    analysis_id: str,
     user: UserInfo = Depends(get_current_user),
 ):
     async with get_db() as db:
@@ -230,17 +280,24 @@ async def delete_analysis(
         if not await cursor.fetchone():
             raise HTTPException(status_code=404, detail="Transcription not found")
 
-        await db.execute("DELETE FROM analyses WHERE transcription_id = ?", (transcription_id,))
+        cursor = await db.execute(
+            "DELETE FROM analyses WHERE id = ? AND transcription_id = ?",
+            (analysis_id, transcription_id),
+        )
         await db.commit()
+
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Analysis not found")
 
     inc(deletions_total, "analysis")
 
     return {"status": "deleted"}
 
 
-@router.delete("/api/analysis/{transcription_id}/items/{field}/{item_index}")
+@router.delete("/api/analysis/{transcription_id}/{analysis_id}/items/{field}/{item_index}")
 async def delete_analysis_item(
     transcription_id: str,
+    analysis_id: str,
     field: str,
     item_index: int,
     user: UserInfo = Depends(get_current_user),
@@ -258,8 +315,8 @@ async def delete_analysis_item(
             raise HTTPException(status_code=404, detail="Transcription not found")
 
         cursor = await db.execute(
-            "SELECT analysis_json, llm_provider, llm_model FROM analyses WHERE transcription_id = ?",
-            (transcription_id,),
+            "SELECT analysis_json, llm_provider, llm_model FROM analyses WHERE id = ? AND transcription_id = ?",
+            (analysis_id, transcription_id),
         )
         row = await cursor.fetchone()
         if not row or not row["analysis_json"]:
@@ -276,8 +333,8 @@ async def delete_analysis_item(
         data[field] = items
 
         await db.execute(
-            "UPDATE analyses SET analysis_json = ? WHERE transcription_id = ?",
-            (json.dumps(data), transcription_id),
+            "UPDATE analyses SET analysis_json = ? WHERE id = ?",
+            (json.dumps(data), analysis_id),
         )
         await db.commit()
 

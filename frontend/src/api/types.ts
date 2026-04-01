@@ -141,6 +141,15 @@ export interface AnalysisGenerateRequest {
   agenda?: string | null
 }
 
+export interface AnalysisListItem {
+  id: string
+  template: string | null
+  language: string | null
+  llm_provider: string | null
+  llm_model: string | null
+  created_at: string | null
+}
+
 export interface ErrorResponse {
   error: string
   detail: string
