@@ -189,6 +189,19 @@ function App() {
     }
   }, [currentView, file, t])
 
+  const setRefinedUtterances = useStore((s) => s.setRefinedUtterances)
+  const setRefinementMetadata = useStore((s) => s.setRefinementMetadata)
+  const setActiveView = useStore((s) => s.setActiveView)
+  const addAnalysis = useStore((s) => s.addAnalysis)
+  const [autoPipelineRan, setAutoPipelineRan] = useState(false)
+
+  // Reset auto-pipeline flag when a new transcription starts
+  useEffect(() => {
+    if (transcriptionStatus && transcriptionStatus !== 'completed') {
+      setAutoPipelineRan(false)
+    }
+  }, [transcriptionStatus])
+
   // Auto-navigate to detail view when transcription completes
   useEffect(() => {
     if (isPopStateNav.current) {
@@ -199,6 +212,67 @@ function App() {
       setCurrentView('detail')
     }
   }, [transcriptionStatus, transcriptionResult, currentView, setCurrentView])
+
+  // Auto-run refinement & analysis when transcription completes with an active bundle
+  useEffect(() => {
+    if (transcriptionStatus !== 'completed' || !transcriptionResult || autoPipelineRan) return
+    const bundleId = useStore.getState().activeBundleId
+    if (!bundleId) return
+    const bundles = useStore.getState().bundles
+    const bundle = bundles.find((b) => b.id === bundleId)
+    if (!bundle) return
+
+    const transcriptionId = useStore.getState().transcriptionId
+    if (!transcriptionId) return
+
+    const refinementPresets = useStore.getState().refinementPresets
+    const analysisPresets = useStore.getState().analysisPresets
+    const hasRefinement = bundle.refinement_preset_id && refinementPresets.find((p) => p.id === bundle.refinement_preset_id)
+    const hasAnalysis = bundle.analysis_preset_id && analysisPresets.find((p) => p.id === bundle.analysis_preset_id)
+
+    if (!hasRefinement && !hasAnalysis) return
+    setAutoPipelineRan(true)
+
+    const run = async () => {
+      // Refinement first (if linked)
+      if (hasRefinement) {
+        try {
+          const result = await api.generateRefinement(transcriptionId, hasRefinement.context || undefined)
+          setRefinedUtterances(result.utterances)
+          setRefinementMetadata(result.metadata)
+          setActiveView('refined')
+        } catch (e) {
+          console.error('Auto-refinement failed:', e)
+        }
+      }
+
+      // Then analysis (if linked)
+      if (hasAnalysis) {
+        try {
+          const result = await api.generateAnalysis(transcriptionId, {
+            template: hasAnalysis.template,
+            custom_prompt: hasAnalysis.custom_prompt,
+            language: hasAnalysis.language,
+            chapter_hints: hasAnalysis.chapter_hints,
+            agenda: hasAnalysis.agenda,
+          })
+          const analysisResult = result as { id: string; template?: string; language?: string; llm_provider?: string; llm_model?: string; created_at?: string }
+          addAnalysis({
+            id: analysisResult.id,
+            template: analysisResult.template || null,
+            language: analysisResult.language || null,
+            llm_provider: analysisResult.llm_provider || null,
+            llm_model: analysisResult.llm_model || null,
+            created_at: analysisResult.created_at || null,
+          })
+        } catch (e) {
+          console.error('Auto-analysis failed:', e)
+        }
+      }
+    }
+
+    run()
+  }, [transcriptionStatus, transcriptionResult, autoPipelineRan, setRefinedUtterances, setRefinementMetadata, setActiveView, addAnalysis])
 
   if (!config) return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-gray-400">{t('common.loading')}</div>
 
