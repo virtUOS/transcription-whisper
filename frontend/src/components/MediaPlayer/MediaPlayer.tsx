@@ -30,9 +30,11 @@ function generateVtt(utterances: Utterance[], speakerMappings: Record<string, st
 interface Props {
   fileId: string
   mediaType: string
+  hasVideo: boolean
+  onCollapsedChange?: (collapsed: boolean) => void
 }
 
-export function MediaPlayer({ fileId, mediaType }: Props) {
+export function MediaPlayer({ fileId, mediaType, hasVideo, onCollapsedChange }: Props) {
   const { t } = useTranslation()
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const playerRef = useRef<ReturnType<typeof videojs> | null>(null)
@@ -46,7 +48,18 @@ export function MediaPlayer({ fileId, mediaType }: Props) {
 
   const [playbackError, setPlaybackError] = useState<string | null>(null)
   const [mediaNotFound, setMediaNotFound] = useState(false)
-  const isVideo = mediaType === 'mp4' || mediaType === 'webm' || mediaType === 'mov'
+  const [collapsed, setCollapsed] = useState(false)
+
+  const toggleCollapsed = () => {
+    const next = !collapsed
+    setCollapsed(next)
+    onCollapsedChange?.(next)
+    const player = playerRef.current
+    if (player) {
+      player.audioOnlyMode(next)
+    }
+  }
+
   const mimeTypes: Record<string, string> = {
     mp4: 'video/mp4',
     webm: 'video/webm',
@@ -71,7 +84,7 @@ export function MediaPlayer({ fileId, mediaType }: Props) {
         src: mediaUrl,
         type: mimeTypes[mediaType] || 'audio/mpeg',
       }],
-      ...(isVideo ? {} : { audioOnlyMode: true, height: 50 }),
+      ...(hasVideo ? {} : { audioOnlyMode: true, height: 50 }),
     })
 
     player.on('timeupdate', () => {
@@ -86,7 +99,7 @@ export function MediaPlayer({ fileId, mediaType }: Props) {
       if (!triedFallback) {
         triedFallback = true
         player.src({ src: api.getMediaFallbackUrl(fileId), type: 'audio/mpeg' })
-        if (isVideo) {
+        if (hasVideo) {
           player.audioOnlyMode(true)
         }
       } else {
@@ -108,17 +121,17 @@ export function MediaPlayer({ fileId, mediaType }: Props) {
       player.dispose()
       if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current)
     }
-  }, [fileId, mediaType, isVideo, mediaUrl, setCurrentTime])
+  }, [fileId, mediaType, hasVideo, mediaUrl, setCurrentTime])
 
   // Generate and update captions track reactively from store data
   const vttContent = useMemo(() => {
-    if (!isVideo || !transcriptionResult?.utterances?.length) return null
+    if (!hasVideo || collapsed || !transcriptionResult?.utterances?.length) return null
     return generateVtt(transcriptionResult.utterances, speakerMappings)
-  }, [isVideo, transcriptionResult?.utterances, speakerMappings])
+  }, [hasVideo, collapsed, transcriptionResult?.utterances, speakerMappings])
 
   useEffect(() => {
     const player = playerRef.current
-    if (!player || !isVideo || !vttContent) return
+    if (!player || !hasVideo || !vttContent) return
 
     player.ready(() => {
       // Remove old track
@@ -146,7 +159,7 @@ export function MediaPlayer({ fileId, mediaType }: Props) {
 
       trackRef.current = trackEl as unknown as HTMLTrackElement
     })
-  }, [vttContent, isVideo])
+  }, [vttContent, hasVideo])
 
   useEffect(() => {
     if (seekTo !== null && playerRef.current) {
@@ -166,7 +179,7 @@ export function MediaPlayer({ fileId, mediaType }: Props) {
   }
 
   return (
-    <div className={`mx-6 my-2 ${isVideo ? 'flex flex-col items-center' : 'max-h-16'}`}>
+    <div className={`mx-6 my-2 ${hasVideo && !collapsed ? 'flex flex-col items-center' : hasVideo ? '' : 'max-h-16'}`}>
       {playbackError && (
         <div className="p-4 bg-gray-800 rounded-lg border border-gray-700 text-center">
           <p className="text-gray-400 text-sm">{playbackError}</p>
@@ -180,8 +193,18 @@ export function MediaPlayer({ fileId, mediaType }: Props) {
           )}
         </div>
       )}
+      {hasVideo && !playbackError && (
+        <div className="flex justify-end w-full px-1">
+          <button
+            onClick={toggleCollapsed}
+            className="text-xs text-gray-400 hover:text-white transition-colors py-1"
+          >
+            {collapsed ? t('player.showVideo') : t('player.minimize')}
+          </button>
+        </div>
+      )}
       {/* Keep <video> in DOM always so video.js dispose doesn't race with React */}
-      <div data-vjs-player className={`${isVideo ? 'w-full overflow-hidden' : ''} ${playbackError ? 'hidden' : ''}`}>
+      <div data-vjs-player className={`${hasVideo && !collapsed ? 'w-full overflow-hidden' : ''} ${playbackError ? 'hidden' : ''} ${collapsed ? 'max-h-12' : ''}`}>
         <video ref={videoRef} className="video-js vjs-theme-city" />
       </div>
       {!playbackError && (
