@@ -5,7 +5,7 @@ import { api } from '../../api/client'
 import { ChapterCard } from '../SummaryView/ChapterCard'
 import { ProtocolCard } from '../ProtocolView/ProtocolCard'
 import { formatTime, downloadText, downloadMarkdown } from '../../utils/format'
-import { LANGUAGES } from '../../utils/languages'
+import { LanguageSelect } from '../LanguageSelect'
 import type { AnalysisTemplate, ChapterHint, SummaryChapter } from '../../api/types'
 
 // Type guards for smart result detection
@@ -666,15 +666,7 @@ export function AnalysisView() {
           <div className="flex items-center justify-center gap-3">
             <div>
               <label className="block text-xs text-gray-400 mb-1">{t('editor.outputLanguage')}</label>
-              <select
-                value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-                className="bg-gray-700 text-white text-sm rounded px-3 py-1.5"
-              >
-                {LANGUAGES.map((code) => (
-                  <option key={code} value={code}>{t(`languages.${code}`, code)}</option>
-                ))}
-              </select>
+              <LanguageSelect value={language} onChange={setLanguage} className="bg-gray-700 text-white text-sm rounded px-3 py-1.5" />
             </div>
             <button
               onClick={handleGenerate}

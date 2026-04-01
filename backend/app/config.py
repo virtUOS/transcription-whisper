@@ -25,6 +25,7 @@ class Settings:
     ARCHIVE_EXPIRY_HOURS: int = int(os.getenv("ARCHIVE_EXPIRY_HOURS", "4320"))
     DATABASE_PATH: str = os.getenv("DATABASE_PATH", "")
 
+    POPULAR_LANGUAGES: list[str] = os.getenv("POPULAR_LANGUAGES", "de,en,es,fr").split(",")
     ENABLE_METRICS: bool = os.getenv("ENABLE_METRICS", "true").lower() in ("true", "1", "yes")
     DEV_MODE: bool = os.getenv("DEV_MODE", "false").lower() in ("true", "1", "yes")
 

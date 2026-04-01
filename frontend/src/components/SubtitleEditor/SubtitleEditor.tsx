@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useStore } from '../../store'
 import { api } from '../../api/client'
 import { SubtitleRow } from './SubtitleRow'
-import { LANGUAGES } from '../../utils/languages'
+import { LanguageSelect } from '../LanguageSelect'
 import type { Utterance } from '../../api/types'
 
 interface SubtitleEditorProps {
@@ -580,18 +580,12 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
           <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-xl w-full max-w-sm mx-4 p-5">
             <h3 className="text-sm font-medium text-gray-200 mb-3">{t('editor.translateTo')}</h3>
             <label className="block text-xs text-gray-400 mb-1">{t('editor.translationLanguage')}</label>
-            <select
+            <LanguageSelect
               value={translateLanguage}
-              onChange={(e) => setTranslateLanguage(e.target.value)}
+              onChange={setTranslateLanguage}
               disabled={translating}
               className="w-full bg-gray-700 text-gray-200 text-xs px-3 py-2 rounded border border-gray-600 focus:border-indigo-500 focus:outline-none disabled:opacity-50"
-            >
-              {LANGUAGES.map((lang) => (
-                <option key={lang} value={lang}>
-                  {t(`languages.${lang}`)}
-                </option>
-              ))}
-            </select>
+            />
             {baseUtterances.length > 50 && (
               <p className="text-xs text-indigo-400/80 mt-2">
                 {t('editor.translationWarningLong', { count: baseUtterances.length })}

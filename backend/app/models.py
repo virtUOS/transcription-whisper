@@ -201,3 +201,4 @@ class ConfigResponse(BaseModel):
     default_model: str
     llm_available: bool
     logout_url: str
+    popular_languages: list[str] = []
