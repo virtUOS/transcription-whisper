@@ -121,6 +121,7 @@ function App() {
   const config = useStore((s) => s.config)
   const setConfig = useStore((s) => s.setConfig)
   const file = useStore((s) => s.file)
+  const uploading = useStore((s) => s.uploading)
   const currentView = useStore((s) => s.currentView)
   const setCurrentView = useStore((s) => s.setCurrentView)
   const transcriptionStatus = useStore((s) => s.transcriptionStatus)
@@ -195,7 +196,7 @@ function App() {
         <>
           <BackButton />
           <FileUpload />
-          {file && !showEditor && <SettingsPanel />}
+          {(file || uploading) && !showEditor && <SettingsPanel />}
           <ProgressBar />
         </>
       )}
@@ -204,7 +205,7 @@ function App() {
         <>
           <BackButton />
           <RecorderPanel />
-          {file && !showEditor && <SettingsPanel />}
+          {(file || uploading) && !showEditor && <SettingsPanel />}
           <ProgressBar />
         </>
       )}
