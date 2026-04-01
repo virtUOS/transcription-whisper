@@ -3,6 +3,7 @@ export interface FileInfo {
   original_filename: string
   media_type: string
   file_size: number
+  has_video: boolean
 }
 
 export interface TranscriptionSettings {
@@ -52,6 +53,7 @@ export interface TranscriptionListItem {
   expires_at: string
   archived: boolean
   title: string | null
+  has_video: boolean
 }
 
 export interface ChapterHint {
