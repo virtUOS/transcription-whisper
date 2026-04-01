@@ -13,3 +13,4 @@ CLAUDE.md
 examples/
 .playwright-mcp/
 .worktrees/
+*.db
