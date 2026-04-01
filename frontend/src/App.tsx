@@ -14,6 +14,7 @@ import { TabBar } from './components/TabBar'
 import { AnalysisView } from './components/AnalysisView'
 import { useStore, setPopStateFlag } from './store'
 import { api } from './api/client'
+import { PresetsPage } from './components/PresetsPage/PresetsPage'
 
 function BackButton() {
   const { t } = useTranslation()
@@ -141,9 +142,28 @@ function App() {
     setSpeakerModalOpen(true)
   }
 
+  const setTranscriptionPresets = useStore((s) => s.setTranscriptionPresets)
+  const setAnalysisPresets = useStore((s) => s.setAnalysisPresets)
+  const setRefinementPresets = useStore((s) => s.setRefinementPresets)
+  const setBundles = useStore((s) => s.setBundles)
+  const setActiveBundleId = useStore((s) => s.setActiveBundleId)
+
   useEffect(() => {
     api.getConfig().then(setConfig).catch(console.error)
-  }, [setConfig])
+    Promise.all([
+      api.getTranscriptionPresets(),
+      api.getAnalysisPresets(),
+      api.getRefinementPresets(),
+      api.getBundles(),
+      api.getDefaultBundle(),
+    ]).then(([tp, ap, rp, bundles, defaultBundle]) => {
+      setTranscriptionPresets(tp)
+      setAnalysisPresets(ap)
+      setRefinementPresets(rp)
+      setBundles(bundles)
+      if (defaultBundle) setActiveBundleId(defaultBundle.id)
+    }).catch(console.error)
+  }, [setConfig, setTranscriptionPresets, setAnalysisPresets, setRefinementPresets, setBundles, setActiveBundleId])
 
   // Track whether current navigation was triggered by browser back/forward
   const isPopStateNav = useRef(false)
@@ -190,6 +210,13 @@ function App() {
 
       {currentView === 'archive' && (
         <TranscriptionList />
+      )}
+
+      {currentView === 'presets' && (
+        <>
+          <BackButton />
+          <PresetsPage />
+        </>
       )}
 
       {currentView === 'upload' && (
