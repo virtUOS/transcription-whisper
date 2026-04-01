@@ -131,10 +131,10 @@ export function MediaPlayer({ fileId, mediaType, hasVideo, onCollapsedChange }: 
 
   useEffect(() => {
     const player = playerRef.current
-    if (!player || !hasVideo || !vttContent) return
+    if (!player || !hasVideo) return
 
     player.ready(() => {
-      // Remove old track
+      // Always remove old track first
       if (trackRef.current) {
         player.removeRemoteTextTrack(trackRef.current as unknown as ReturnType<typeof player.addRemoteTextTrack>)
         trackRef.current = null
@@ -143,6 +143,8 @@ export function MediaPlayer({ fileId, mediaType, hasVideo, onCollapsedChange }: 
         URL.revokeObjectURL(blobUrlRef.current)
         blobUrlRef.current = null
       }
+
+      if (!vttContent) return
 
       // Create new blob URL and track
       const blob = new Blob([vttContent], { type: 'text/vtt' })

@@ -131,6 +131,10 @@ function App() {
   const [focusSpeaker, setFocusSpeaker] = useState<string | undefined>(undefined)
   const [playerCollapsed, setPlayerCollapsed] = useState(false)
 
+  useEffect(() => {
+    setPlayerCollapsed(false)
+  }, [file?.id])
+
   const handleOpenSpeakerModal = (speakerId?: string) => {
     setFocusSpeaker(speakerId)
     setSpeakerModalOpen(true)
