@@ -9,6 +9,7 @@ from app.config import settings
 from app.database import init_db, get_db
 from app.routers import config_router, upload, transcription, refinement, analysis, translation
 from app.metrics import inc, cleanup_runs_total, cleanup_items_deleted_total
+from app.services.audio import has_video_stream
 
 
 async def cleanup_old_files():
@@ -82,6 +83,23 @@ async def cleanup_old_files():
 async def lifespan(app: FastAPI):
     os.makedirs(settings.TEMP_PATH, exist_ok=True)
     await init_db(settings.db_path)
+    # Backfill has_video for existing files
+    async with get_db() as db:
+        cursor = await db.execute(
+            "SELECT id, file_path FROM files WHERE has_video IS NULL"
+        )
+        rows = await cursor.fetchall()
+        for row in rows:
+            if row["file_path"] and os.path.exists(row["file_path"]):
+                video = await has_video_stream(row["file_path"])
+            else:
+                video = False
+            await db.execute(
+                "UPDATE files SET has_video = ? WHERE id = ?",
+                (int(video), row["id"]),
+            )
+        if rows:
+            await db.commit()
     cleanup_task = asyncio.create_task(cleanup_old_files())
     yield
     cleanup_task.cancel()

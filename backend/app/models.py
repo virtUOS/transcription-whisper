@@ -63,6 +63,7 @@ class TranscriptionListItem(BaseModel):
     expires_at: str
     archived: bool = False
     title: str | None = None
+    has_video: bool = False
 
 
 class SpeakerMappingRequest(BaseModel):
