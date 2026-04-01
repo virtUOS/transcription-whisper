@@ -330,7 +330,9 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
       setState('recording')
       startTimer()
     } catch (err) {
-      if (options.useCamera && err instanceof DOMException && err.name === 'NotAllowedError') {
+      if (options.captureSystemAudio && options.useMicrophone === false) {
+        setError('systemAudioFailed')
+      } else if (options.useCamera && err instanceof DOMException && err.name === 'NotAllowedError') {
         setError('cameraFailed')
       } else {
         setError('micRequired')

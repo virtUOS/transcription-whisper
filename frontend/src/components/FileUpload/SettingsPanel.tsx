@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useStore } from '../../store'
 import { api } from '../../api/client'
@@ -24,20 +24,7 @@ export function SettingsPanel() {
   const [error, setError] = useState<string | null>(null)
   const [pendingTranscription, setPendingTranscription] = useState(false)
 
-  useEffect(() => {
-    if (pendingTranscription && file) {
-      setPendingTranscription(false)
-      handleTranscribe()
-    }
-  }, [file, pendingTranscription])
-
-  useEffect(() => {
-    if (pendingTranscription && !uploading && !file) {
-      setPendingTranscription(false)
-    }
-  }, [uploading, file, pendingTranscription])
-
-  const handleTranscribe = async () => {
+  const handleTranscribe = useCallback(async () => {
     if (!file && uploading) {
       setPendingTranscription(true)
       return
@@ -63,7 +50,20 @@ export function SettingsPanel() {
     } finally {
       setSubmitting(false)
     }
-  }
+  }, [file, uploading, language, model, detectSpeakers, minSpeakers, maxSpeakers, initialPrompt, hotwords, setTranscriptionId, setTranscriptionStatus])
+
+  useEffect(() => {
+    if (pendingTranscription && file) {
+      setPendingTranscription(false)
+      handleTranscribe()
+    }
+  }, [file, pendingTranscription, handleTranscribe])
+
+  useEffect(() => {
+    if (pendingTranscription && !uploading && !file) {
+      setPendingTranscription(false)
+    }
+  }, [uploading, file, pendingTranscription])
 
   return (
     <div className="px-6 py-3 bg-gray-800 border-b border-gray-700 space-y-3">
