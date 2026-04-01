@@ -204,3 +204,67 @@ class ConfigResponse(BaseModel):
     llm_available: bool
     logout_url: str
     popular_languages: list[str] = []
+
+
+# --- Presets ---
+
+class TranscriptionPresetCreate(BaseModel):
+    name: str
+    language: str | None = None
+    model: str = "base"
+    min_speakers: int = 0
+    max_speakers: int = 0
+    initial_prompt: str | None = None
+    hotwords: str | None = None
+
+
+class TranscriptionPresetResponse(TranscriptionPresetCreate):
+    id: str
+    created_at: str | None = None
+    updated_at: str | None = None
+
+
+class AnalysisPresetCreate(BaseModel):
+    name: str
+    template: str | None = None
+    custom_prompt: str | None = None
+    language: str | None = None
+    chapter_hints: list[ChapterHint] | None = None
+    agenda: str | None = None
+
+
+class AnalysisPresetResponse(AnalysisPresetCreate):
+    id: str
+    created_at: str | None = None
+    updated_at: str | None = None
+
+
+class RefinementPresetCreate(BaseModel):
+    name: str
+    context: str | None = None
+
+
+class RefinementPresetResponse(RefinementPresetCreate):
+    id: str
+    created_at: str | None = None
+    updated_at: str | None = None
+
+
+class BundleCreate(BaseModel):
+    name: str
+    transcription_preset_id: str | None = None
+    analysis_preset_id: str | None = None
+    refinement_preset_id: str | None = None
+
+
+class BundleResponse(BundleCreate):
+    id: str
+    is_default: bool = False
+    created_at: str | None = None
+    updated_at: str | None = None
+
+
+class BundleExpandedResponse(BundleResponse):
+    transcription_preset: TranscriptionPresetResponse | None = None
+    analysis_preset: AnalysisPresetResponse | None = None
+    refinement_preset: RefinementPresetResponse | None = None
