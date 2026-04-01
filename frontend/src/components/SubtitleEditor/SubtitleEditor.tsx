@@ -222,17 +222,30 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
     if (!result) return
     const updated = [...result.utterances]
     updated[index] = { ...updated[index], [field]: value }
-    // Link timestamps: editing start adjusts previous utterance's end
-    if (field === 'start' && typeof value === 'number' && index > 0) {
-      const prev = updated[index - 1]
-      const newEnd = Math.max(value, prev.start) // don't push end below prev's start
-      updated[index - 1] = { ...prev, end: newEnd }
+
+    if (typeof value === 'number') {
+      const cur = updated[index]
+      // Ensure current row stays valid: start <= end
+      if (field === 'start' && value > cur.end) {
+        updated[index] = { ...updated[index], end: value }
+      }
+      if (field === 'end' && value < cur.start) {
+        updated[index] = { ...updated[index], start: value }
+      }
+
+      // Link timestamps: editing start adjusts previous utterance's end
+      if (field === 'start' && index > 0) {
+        const prev = updated[index - 1]
+        const newEnd = Math.max(value, prev.start)
+        updated[index - 1] = { ...prev, end: newEnd }
+      }
+      // Link timestamps: editing end adjusts next utterance's start (and end if needed)
+      if (field === 'end' && index < updated.length - 1) {
+        const next = updated[index + 1]
+        updated[index + 1] = { ...next, start: value, end: Math.max(value, next.end) }
+      }
     }
-    // Link timestamps: editing end adjusts next utterance's start (and end if needed)
-    if (field === 'end' && typeof value === 'number' && index < updated.length - 1) {
-      const next = updated[index + 1]
-      updated[index + 1] = { ...next, start: value, end: Math.max(value, next.end) }
-    }
+
     setResult({ ...result, utterances: updated })
     setDirty(true)
   }, [result, setResult, setDirty])
