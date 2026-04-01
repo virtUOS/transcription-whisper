@@ -224,25 +224,31 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
     updated[index] = { ...updated[index], [field]: value }
 
     if (typeof value === 'number') {
-      const cur = updated[index]
       // Ensure current row stays valid: start <= end
-      if (field === 'start' && value > cur.end) {
+      if (field === 'start' && value > updated[index].end) {
         updated[index] = { ...updated[index], end: value }
       }
-      if (field === 'end' && value < cur.start) {
+      if (field === 'end' && value < updated[index].start) {
         updated[index] = { ...updated[index], start: value }
       }
 
       // Link timestamps: editing start adjusts previous utterance's end
       if (field === 'start' && index > 0) {
         const prev = updated[index - 1]
-        const newEnd = Math.max(value, prev.start)
-        updated[index - 1] = { ...prev, end: newEnd }
+        updated[index - 1] = { ...prev, end: Math.max(value, prev.start) }
       }
-      // Link timestamps: editing end adjusts next utterance's start (and end if needed)
-      if (field === 'end' && index < updated.length - 1) {
-        const next = updated[index + 1]
-        updated[index + 1] = { ...next, start: value, end: Math.max(value, next.end) }
+
+      // Link timestamps: editing end cascades forward through all subsequent rows
+      if (field === 'end') {
+        for (let i = index; i < updated.length - 1; i++) {
+          const curEnd = updated[i].end
+          const next = updated[i + 1]
+          if (curEnd > next.start) {
+            updated[i + 1] = { ...next, start: curEnd, end: Math.max(curEnd, next.end) }
+          } else {
+            break // no more overlap, stop cascading
+          }
+        }
       }
     }
 
