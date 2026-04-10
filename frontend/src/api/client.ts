@@ -12,13 +12,22 @@ import type {
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '')
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${BASE}${url}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-  })
+  let response: Response
+  try {
+    response = await fetch(`${BASE}${url}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+    })
+  } catch (err) {
+    // Fetch threw — most likely a cross-origin redirect to the auth provider
+    // was blocked by CORS. Force a top-level navigation so the browser can
+    // complete the auth flow without CORS restrictions.
+    window.location.href = `${BASE}/`
+    throw err
+  }
   if (response.redirected) {
     window.location.href = response.url
     throw new Error('Redirected to auth')

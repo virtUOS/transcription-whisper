@@ -140,4 +140,10 @@ if os.path.isdir(static_dir):
         candidate = os.path.join(static_dir, full_path)
         if full_path and os.path.isfile(candidate):
             return FileResponse(candidate)
-        return FileResponse(os.path.join(static_dir, "index.html"))
+        # index.html must not be cached: browsers applying heuristic freshness
+        # would serve a stale shell after logout, bypassing the auth proxy and
+        # leaving the SPA stuck making XHRs without a valid session cookie.
+        return FileResponse(
+            os.path.join(static_dir, "index.html"),
+            headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
+        )
