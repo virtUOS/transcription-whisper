@@ -1,21 +1,38 @@
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Header } from './components/Header'
 import { SettingsPanel } from './components/FileUpload'
 import { FileUpload } from './components/FileUpload'
-import { RecorderPanel } from './components/Recorder'
 import { ProgressBar } from './components/ProgressBar'
 import { TranscriptionList } from './components/TranscriptionList'
-import { MediaPlayer } from './components/MediaPlayer'
-import { SubtitleEditor } from './components/SubtitleEditor'
-import { SpeakerMapping } from './components/SpeakerMapping'
-import { FormatViewer } from './components/FormatViewer'
 import { TabBar } from './components/TabBar'
-import { AnalysisView } from './components/AnalysisView'
 import { useStore, setPopStateFlag } from './store'
 import { api } from './api/client'
-import { PresetsPage } from './components/PresetsPage/PresetsPage'
 import { useBeforeUnloadWarning } from './hooks/useBeforeUnloadWarning'
+import { LoadingFallback } from './components/LoadingFallback'
+import { ChunkErrorBoundary } from './components/ChunkErrorBoundary'
+
+const RecorderPanel = lazy(() =>
+  import('./components/Recorder').then((m) => ({ default: m.RecorderPanel }))
+)
+const MediaPlayer = lazy(() =>
+  import('./components/MediaPlayer').then((m) => ({ default: m.MediaPlayer }))
+)
+const SubtitleEditor = lazy(() =>
+  import('./components/SubtitleEditor').then((m) => ({ default: m.SubtitleEditor }))
+)
+const SpeakerMapping = lazy(() =>
+  import('./components/SpeakerMapping').then((m) => ({ default: m.SpeakerMapping }))
+)
+const FormatViewer = lazy(() =>
+  import('./components/FormatViewer').then((m) => ({ default: m.FormatViewer }))
+)
+const AnalysisView = lazy(() =>
+  import('./components/AnalysisView').then((m) => ({ default: m.AnalysisView }))
+)
+const PresetsPage = lazy(() =>
+  import('./components/PresetsPage/PresetsPage').then((m) => ({ default: m.PresetsPage }))
+)
 
 function BackButton() {
   const { t } = useTranslation()
@@ -329,7 +346,11 @@ function App() {
       {currentView === 'presets' && (
         <>
           <BackButton />
-          <PresetsPage />
+          <ChunkErrorBoundary errorMessage={t('common.loadError')} reloadLabel={t('common.reload')}>
+            <Suspense fallback={<LoadingFallback />}>
+              <PresetsPage />
+            </Suspense>
+          </ChunkErrorBoundary>
         </>
       )}
 
@@ -345,7 +366,11 @@ function App() {
       {currentView === 'record' && (
         <>
           <BackButton />
-          <RecorderPanel />
+          <ChunkErrorBoundary errorMessage={t('common.loadError')} reloadLabel={t('common.reload')}>
+            <Suspense fallback={<LoadingFallback />}>
+              <RecorderPanel />
+            </Suspense>
+          </ChunkErrorBoundary>
           {(file || uploading) && !showEditor && <SettingsPanel />}
           <ProgressBar />
         </>
@@ -401,25 +426,27 @@ function App() {
             </div>
           )}
           {showEditor && file && (
-            <>
-              <MediaPlayer
-                fileId={file.id}
-                mediaType={file.media_type}
-                hasVideo={file.has_video}
-                onCollapsedChange={setPlayerCollapsed}
-              />
-              <TabBar onSpeakerNamesClick={() => handleOpenSpeakerModal()} />
+            <ChunkErrorBoundary errorMessage={t('common.loadError')} reloadLabel={t('common.reload')}>
+              <Suspense fallback={<LoadingFallback />}>
+                <MediaPlayer
+                  fileId={file.id}
+                  mediaType={file.media_type}
+                  hasVideo={file.has_video}
+                  onCollapsedChange={setPlayerCollapsed}
+                />
+                <TabBar onSpeakerNamesClick={() => handleOpenSpeakerModal()} />
 
-              <div className={`mx-6 my-2 ${!file.has_video || playerCollapsed ? 'max-h-[calc(100vh-14rem)]' : 'max-h-[calc(100vh-22rem)]'} overflow-auto`}>
-                {activeTab === 'subtitles' && <SubtitleEditor onOpenSpeakerModal={handleOpenSpeakerModal} />}
-                {activeTab === 'analysis' && <AnalysisView />}
-                {['srt', 'vtt', 'json', 'txt'].includes(activeTab) && (
-                  <FormatViewer format={activeTab} />
-                )}
-              </div>
+                <div className={`mx-6 my-2 ${!file.has_video || playerCollapsed ? 'max-h-[calc(100vh-14rem)]' : 'max-h-[calc(100vh-22rem)]'} overflow-auto`}>
+                  {activeTab === 'subtitles' && <SubtitleEditor onOpenSpeakerModal={handleOpenSpeakerModal} />}
+                  {activeTab === 'analysis' && <AnalysisView />}
+                  {['srt', 'vtt', 'json', 'txt'].includes(activeTab) && (
+                    <FormatViewer format={activeTab} />
+                  )}
+                </div>
 
-              <SpeakerMapping isOpen={speakerModalOpen} onClose={() => { setSpeakerModalOpen(false); setFocusSpeaker(undefined) }} focusSpeaker={focusSpeaker} />
-            </>
+                <SpeakerMapping isOpen={speakerModalOpen} onClose={() => { setSpeakerModalOpen(false); setFocusSpeaker(undefined) }} focusSpeaker={focusSpeaker} />
+              </Suspense>
+            </ChunkErrorBoundary>
           )}
         </>
       )}
