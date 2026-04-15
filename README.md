@@ -24,6 +24,7 @@
 - Editable LLM prompts — view and customize the prompt before generating analysis results.
 - LLM-powered transcription refinement to fix spelling, punctuation, terminology, filler words, and disfluencies — with original/refined toggle, per-utterance diff view, and changes summary.
 - LLM-powered caption translation to any supported language with Original/Translated view toggle and cached results.
+- User-defined presets for transcription, analysis, and refinement — bundle them together to auto-run a full pipeline (transcribe → refine → analyze → translate) on upload with a single click.
 - Inline file renaming in transcription history.
 - Copy, download, and delete generated analysis results.
 - LLM provider and model attribution display on generated content.
