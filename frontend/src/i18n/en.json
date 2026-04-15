@@ -370,6 +370,8 @@
     "retry": "Retry",
     "cancel": "Cancel",
     "close": "Close",
-    "logout": "Logout"
+    "logout": "Logout",
+    "loadError": "Failed to load this view. Please reload the page.",
+    "reload": "Reload"
   }
 }

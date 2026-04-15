@@ -370,6 +370,8 @@
     "retry": "Erneut versuchen",
     "cancel": "Abbrechen",
     "close": "Schließen",
-    "logout": "Abmelden"
+    "logout": "Abmelden",
+    "loadError": "Diese Ansicht konnte nicht geladen werden. Bitte laden Sie die Seite neu.",
+    "reload": "Neu laden"
   }
 }
