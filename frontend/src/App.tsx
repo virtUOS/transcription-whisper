@@ -15,14 +15,21 @@ import { AnalysisView } from './components/AnalysisView'
 import { useStore, setPopStateFlag } from './store'
 import { api } from './api/client'
 import { PresetsPage } from './components/PresetsPage/PresetsPage'
+import { useBeforeUnloadWarning } from './hooks/useBeforeUnloadWarning'
 
 function BackButton() {
   const { t } = useTranslation()
   const setCurrentView = useStore((s) => s.setCurrentView)
+  const confirmLeaveUpload = useStore((s) => s.confirmLeaveUpload)
+
+  const handleClick = () => {
+    if (!confirmLeaveUpload(t('upload.confirmLeave'))) return
+    setCurrentView('archive')
+  }
 
   return (
     <button
-      onClick={() => setCurrentView('archive')}
+      onClick={handleClick}
       className="flex items-center gap-1 px-6 py-2 text-sm text-gray-400 hover:text-white"
     >
       &larr; {t('nav.backToTranscriptions')}
@@ -133,6 +140,8 @@ function App() {
   const [focusSpeaker, setFocusSpeaker] = useState<string | undefined>(undefined)
   const [playerCollapsed, setPlayerCollapsed] = useState(false)
 
+  useBeforeUnloadWarning()
+
   useEffect(() => {
     setPlayerCollapsed(false)
   }, [file?.id])
@@ -171,6 +180,14 @@ function App() {
   // Sync browser back/forward buttons with view state
   useEffect(() => {
     const handlePopState = (e: PopStateEvent) => {
+      const state = useStore.getState()
+      if (state.uploading) {
+        if (!state.confirmLeaveUpload(t('upload.confirmLeave'))) {
+          // User declined — re-pin the current view so the back nav is undone.
+          history.pushState({ view: state.currentView }, '', '')
+          return
+        }
+      }
       setPopStateFlag(true)
       isPopStateNav.current = true
       setCurrentView(e.state?.view ?? 'archive')
@@ -178,7 +195,7 @@ function App() {
     }
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
-  }, [setCurrentView])
+  }, [setCurrentView, t])
 
   // Update browser tab title based on current view
   useEffect(() => {
