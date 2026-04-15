@@ -17,7 +17,11 @@ export function Header() {
       </div>
       <div className="flex flex-wrap items-center gap-4">
         <button
-          onClick={() => useStore.getState().setCurrentView('presets')}
+          onClick={() => {
+            const state = useStore.getState()
+            if (!state.confirmLeaveUpload(t('upload.confirmLeave'))) return
+            state.setCurrentView('presets')
+          }}
           className="text-sm text-gray-300 hover:text-white"
         >
           {t('nav.presets')}
