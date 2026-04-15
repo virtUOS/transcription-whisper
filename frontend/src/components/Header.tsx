@@ -36,7 +36,10 @@ export function Header() {
         </button>
         {config?.logout_url && (
           <button
-            onClick={() => { window.location.href = config.logout_url }}
+            onClick={() => {
+              if (!useStore.getState().confirmLeaveUpload(t('upload.confirmLeave'))) return
+              window.location.href = config.logout_url
+            }}
             className="text-sm text-red-400 hover:text-red-300"
           >
             {t('common.logout')}
