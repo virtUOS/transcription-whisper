@@ -13,6 +13,7 @@ export function FileUpload() {
   const reset = useStore((s) => s.reset)
   const uploading = useStore((s) => s.uploading)
   const setUploading = useStore((s) => s.setUploading)
+  const setUploadAbortController = useStore((s) => s.setUploadAbortController)
   const [error, setError] = useState<string | null>(null)
 
   const setCurrentView = useStore((s) => s.setCurrentView)
@@ -37,16 +38,21 @@ export function FileUpload() {
       setError(t('upload.fileTooLarge'))
       return
     }
+    const controller = new AbortController()
+    setUploadAbortController(controller)
     setUploading(true)
     try {
-      const fileInfo = await api.uploadFile(selectedFile)
+      const fileInfo = await api.uploadFile(selectedFile, controller.signal)
       setFile(fileInfo)
     } catch (e) {
+      // AbortError is a user-initiated cancel; don't show an error banner.
+      if (e instanceof Error && e.name === 'AbortError') return
       setError(e instanceof Error ? e.message : 'Upload failed')
     } finally {
       setUploading(false)
+      setUploadAbortController(null)
     }
-  }, [setFile, t])
+  }, [setFile, setUploading, setUploadAbortController, t])
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()

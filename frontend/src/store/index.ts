@@ -12,6 +12,9 @@ interface AppState {
   setFile: (file: FileInfo | null) => void
   uploading: boolean
   setUploading: (uploading: boolean) => void
+  uploadAbortController: AbortController | null
+  setUploadAbortController: (controller: AbortController | null) => void
+  confirmLeaveUpload: (message: string) => boolean
   transcriptionId: string | null
   transcriptionTitle: string | null
   transcriptionStatus: string | null
@@ -68,7 +71,7 @@ export function setPopStateFlag(value: boolean) {
   isPopStateNavigation = value
 }
 
-export const useStore = create<AppState>((set) => ({
+export const useStore = create<AppState>((set, get) => ({
   currentView: 'archive' as const,
   setCurrentView: (view) => {
     const current = useStore.getState().currentView
@@ -83,6 +86,20 @@ export const useStore = create<AppState>((set) => ({
   setFile: (file) => set({ file }),
   uploading: false,
   setUploading: (uploading) => set({ uploading }),
+  uploadAbortController: null,
+  setUploadAbortController: (controller) => set({ uploadAbortController: controller }),
+  confirmLeaveUpload: (message) => {
+    if (!get().uploading) return true
+    if (!window.confirm(message)) return false
+    // Re-read state after the (synchronous) confirm dialog — upload may have
+    // completed while the dialog was open.
+    const state = get()
+    if (state.uploading && state.uploadAbortController) {
+      state.uploadAbortController.abort()
+    }
+    set({ uploading: false, uploadAbortController: null })
+    return true
+  },
   transcriptionId: null,
   transcriptionTitle: null,
   transcriptionStatus: null,
@@ -132,7 +149,7 @@ export const useStore = create<AppState>((set) => ({
   clearRefinement: () => set({ refinedUtterances: null, refinementMetadata: null, activeView: 'original' as const }),
   reset: () => set({
     currentView: 'archive' as const,
-    file: null, uploading: false, transcriptionId: null, transcriptionTitle: null, transcriptionStatus: null,
+    file: null, uploading: false, uploadAbortController: null, transcriptionId: null, transcriptionTitle: null, transcriptionStatus: null,
     transcriptionResult: null, speakerMappings: {},
     currentTime: 0, seekTo: null, activeTab: 'subtitles', unsavedEdits: false,
     refinedUtterances: null, refinementMetadata: null, activeView: 'original' as const,

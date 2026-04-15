@@ -46,10 +46,10 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
 export const api = {
   getConfig: () => request<ConfigResponse>('/api/config'),
 
-  uploadFile: async (file: File): Promise<FileInfo> => {
+  uploadFile: async (file: File, signal?: AbortSignal): Promise<FileInfo> => {
     const formData = new FormData()
     formData.append('file', file)
-    const response = await fetch(`${BASE}/api/upload`, { method: 'POST', body: formData })
+    const response = await fetch(`${BASE}/api/upload`, { method: 'POST', body: formData, signal })
     if (!response.ok) {
       const error = await response.json().catch(() => ({ detail: response.statusText }))
       throw new Error(error.detail || response.statusText)
