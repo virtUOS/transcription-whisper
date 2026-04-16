@@ -42,6 +42,7 @@ export function TranscribeActionBar({
         onClick={onClick}
         disabled={disabled || submitting}
         title={disabled && disabledReason ? disabledReason : undefined}
+        tabIndex={sticky ? -1 : undefined}
         className={`w-full ${sticky ? 'max-w-[1200px] mx-auto' : ''} px-6 py-3 text-white text-sm font-medium rounded-lg transition-colors ${baseColor} disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
       >
         {submitting && (

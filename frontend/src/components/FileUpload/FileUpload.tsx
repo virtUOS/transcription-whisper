@@ -100,7 +100,7 @@ export function FileUpload() {
       {error && (
         <div className="mt-3 p-4 bg-red-900/30 rounded-lg border border-red-700">
           <div className="flex items-center gap-3">
-            <span className="text-red-400 text-lg">!</span>
+            <span className="text-red-400 text-lg" aria-hidden="true">!</span>
             <span className="text-red-300 text-sm">{error}</span>
           </div>
         </div>

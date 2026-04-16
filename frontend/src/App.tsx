@@ -194,7 +194,6 @@ function App() {
   const [submittedSummary, setSubmittedSummary] = useState<SubmittedSummary | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
-  const [settingsSaveError] = useState<string | null>(null)
 
   const [prevFileId, setPrevFileId] = useState(file?.id)
   if (file?.id !== prevFileId) {
@@ -425,6 +424,7 @@ function App() {
       setPendingTranscription(false)
     } catch (e) {
       setSubmitError(e instanceof Error ? e.message : 'Transcription failed')
+      setPendingTranscription(false)
     } finally {
       setSubmitting(false)
     }
@@ -478,7 +478,8 @@ function App() {
       setPendingTranscription(false)
       setSubmittedSummary(null)
       setSubmitError(null)
-      if (useStore.getState().transcriptionStatus === 'failed') {
+      const { transcriptionStatus: status } = useStore.getState()
+      if (status !== null && status !== 'completed') {
         useStore.getState().setTranscriptionId(null)
         useStore.getState().setTranscriptionStatus(null)
       }
@@ -524,7 +525,7 @@ function App() {
             <>
               <FileUpload />
               {(file || uploading) && !showEditor && (
-                <SettingsPanel values={settings} onChange={updateSettings} saveError={settingsSaveError} />
+                <SettingsPanel values={settings} onChange={updateSettings} />
               )}
               {(file || uploading) && !showEditor && (
                 <TranscribeActionBar
@@ -560,7 +561,7 @@ function App() {
                 </Suspense>
               </ChunkErrorBoundary>
               {(file || uploading) && !showEditor && (
-                <SettingsPanel values={settings} onChange={updateSettings} saveError={settingsSaveError} />
+                <SettingsPanel values={settings} onChange={updateSettings} />
               )}
               {(file || uploading) && !showEditor && (
                 <TranscribeActionBar
