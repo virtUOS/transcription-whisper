@@ -72,7 +72,7 @@ const components: Components = {
     <li className="text-gray-300" {...props}>{children}</li>
   ),
   img: ({ src, alt, ...props }) => (
-    <img src={resolveAssetUrl(typeof src === 'string' ? src : undefined)} alt={alt ?? ''} className="my-4 max-w-full rounded border border-gray-700 bg-gray-800/40 p-2" {...props} />
+    <img src={resolveAssetUrl(typeof src === 'string' ? src : undefined)} alt={alt ?? ''} className="my-4 w-full rounded border border-gray-700 bg-gray-800/40 p-2" {...props} />
   ),
   table: ({ children, ...props }) => (
     <div className="overflow-x-auto my-3">
