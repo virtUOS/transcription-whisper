@@ -1,6 +1,7 @@
+import { useId } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useStore } from '../store'
-import { LANGUAGES, LANGUAGES_WITH_AUTO } from '../utils/languages'
+import { LANGUAGES, LANGUAGES_WITH_AUTO, filterEnabledLanguages } from '../utils/languages'
 
 interface Props {
   value: string
@@ -8,18 +9,34 @@ interface Props {
   includeAuto?: boolean
   className?: string
   disabled?: boolean
+  id?: string
 }
 
-export function LanguageSelect({ value, onChange, includeAuto, className, disabled }: Props) {
+export function LanguageSelect({ value, onChange, includeAuto, className, disabled, id }: Props) {
   const { t } = useTranslation()
   const popularLanguages = useStore((s) => s.config?.popular_languages) || []
+  const enabledLanguages = useStore((s) => s.config?.enabled_languages) || []
+  const autoId = useId()
+  const effectiveId = id ?? autoId
 
-  const allCodes: readonly string[] = includeAuto ? LANGUAGES_WITH_AUTO : LANGUAGES
+  const baseList: readonly string[] = includeAuto ? LANGUAGES_WITH_AUTO : LANGUAGES
+  const allCodes = filterEnabledLanguages(baseList, enabledLanguages)
   const popular = popularLanguages.filter((code) => allCodes.includes(code))
   const rest = allCodes.filter((code) => code !== 'auto' && !popular.includes(code))
+  const userVisibleCount = allCodes.filter((code) => code !== 'auto').length
+
+  if (userVisibleCount === 1 && !includeAuto) {
+    const only = allCodes[0]
+    return (
+      <output id={effectiveId} className={className}>
+        {t(`languages.${only}`, only)}
+      </output>
+    )
+  }
 
   return (
     <select
+      id={effectiveId}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       className={className}
@@ -31,7 +48,7 @@ export function LanguageSelect({ value, onChange, includeAuto, className, disabl
           {popular.map((code) => (
             <option key={code} value={code}>{t(`languages.${code}`, code)}</option>
           ))}
-          <option disabled>{'───────────'}</option>
+          {rest.length > 0 && <option disabled>{'───────────'}</option>}
         </>
       )}
       {rest.map((code) => (
