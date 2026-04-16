@@ -17,6 +17,15 @@ export function Header() {
       </div>
       <div className="flex flex-wrap items-center gap-4">
         <button
+          type="button"
+          onClick={() => useStore.getState().setHelpOpen(true)}
+          aria-label={t('help.open')}
+          title={t('help.open')}
+          className="text-sm text-gray-300 hover:text-white w-6 h-6 rounded-full border border-gray-600 flex items-center justify-center focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500"
+        >
+          ?
+        </button>
+        <button
           onClick={() => {
             const state = useStore.getState()
             if (!state.confirmLeaveUpload(t('upload.confirmLeave'))) return
