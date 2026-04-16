@@ -372,7 +372,7 @@
     "sourceCamera": "Kamera",
     "sourceSystemAudio": "Systemaudio",
     "permissionDenied": "{{source}}-Zugriff ist blockiert.",
-    "permissionRecovery": "Erlauben Sie den Zugriff in den Website-Einstellungen Ihres Browsers und klicken Sie dann auf \"Erneut versuchen\".",
+    "permissionRecovery": "Erlauben Sie den Zugriff in den Website-Einstellungen Ihres Browsers und klicken Sie dann auf „Erneut versuchen“.",
     "permissionRetry": "Erneut versuchen",
     "micDenied": "Mikrofonzugriff wurde verweigert. Erlauben Sie den Zugriff in den Website-Einstellungen Ihres Browsers und versuchen Sie es erneut.",
     "cameraDenied": "Kamerazugriff wurde verweigert. Erlauben Sie den Zugriff in den Website-Einstellungen Ihres Browsers und versuchen Sie es erneut."
