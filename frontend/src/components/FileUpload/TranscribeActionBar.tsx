@@ -59,6 +59,7 @@ export function TranscribeActionBar({
       </div>
       {showSticky && (
         <div
+          aria-hidden="true"
           className="fixed left-0 right-0 bottom-0 bg-gray-900/95 backdrop-blur border-t border-gray-700 shadow-[0_-4px_12px_rgba(0,0,0,0.4)] px-6 py-3"
           style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}
         >
