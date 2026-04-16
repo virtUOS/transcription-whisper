@@ -4,8 +4,8 @@ export type DevicePermission = 'prompt' | 'granted' | 'denied'
 export type DeviceKind = 'mic' | 'camera'
 
 const permissionName: Record<DeviceKind, PermissionName> = {
-  mic: 'microphone' as PermissionName,
-  camera: 'camera' as PermissionName,
+  mic: 'microphone',
+  camera: 'camera',
 }
 
 export async function queryDevicePermission(kind: DeviceKind): Promise<DevicePermission> {
