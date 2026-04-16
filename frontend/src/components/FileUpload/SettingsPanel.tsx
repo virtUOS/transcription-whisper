@@ -73,38 +73,41 @@ export function SettingsPanel({ values, onChange, saveError = null }: SettingsPa
 
   return (
     <div className="px-6 py-3 bg-gray-800 border-b border-gray-700 space-y-3">
-      {(transcriptionPresets.length > 0 || bundles.length > 0) && (
-        <div className="flex flex-wrap gap-4 items-center mb-2">
-          {bundles.length > 0 && (
-            <div className="min-w-0">
-              <label className="block text-xs text-gray-400 mb-1">{t('presets.bundles')}</label>
-              <select
-                value={activeBundleId || ''}
-                onChange={(e) => handleLoadBundle(e.target.value || null)}
-                className="bg-gray-700 text-white text-sm rounded px-3 py-1.5"
-              >
-                <option value="">{t('presets.selectBundle')}</option>
-                {bundles.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.name}{b.is_default ? ` (${t('presets.bundle.isDefault')})` : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+      {/* Row 1 — Preset/bundle row (always renders; dropdowns left, save-as right) */}
+      <div className="flex flex-wrap items-end gap-4 mb-2">
+        {bundles.length > 0 && (
+          <div className="min-w-0">
+            <label className="block text-xs text-gray-400 mb-1">{t('presets.bundles')}</label>
+            <select
+              value={activeBundleId || ''}
+              onChange={(e) => handleLoadBundle(e.target.value || null)}
+              className="bg-gray-700 text-white text-sm rounded px-3 py-1.5"
+            >
+              <option value="">{t('presets.selectBundle')}</option>
+              {bundles.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}{b.is_default ? ` (${t('presets.bundle.isDefault')})` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+        {transcriptionPresets.length > 0 && (
           <div className="min-w-0">
             <label className="block text-xs text-gray-400 mb-1">{t('presets.transcription')}</label>
-            <PresetSelect
-              presets={transcriptionPresets}
-              selectedId={values.selectedPresetId}
-              onSelect={handleLoadPreset}
-              onSave={handleSavePreset}
-            />
+            <select
+              value={values.selectedPresetId || ''}
+              onChange={(e) => handleLoadPreset(e.target.value || null)}
+              className="bg-gray-700 text-white text-sm rounded px-3 py-1.5 min-w-[140px]"
+            >
+              <option value="">{t('presets.selectPreset')}</option>
+              {transcriptionPresets.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
           </div>
-        </div>
-      )}
-      {transcriptionPresets.length === 0 && bundles.length === 0 && (
-        <div className="flex justify-end mb-1">
+        )}
+        <div className="ml-auto">
           <PresetSelect
             presets={[]}
             selectedId={null}
@@ -112,8 +115,10 @@ export function SettingsPanel({ values, onChange, saveError = null }: SettingsPa
             onSave={handleSavePreset}
           />
         </div>
-      )}
-      <div className="flex flex-wrap gap-4 items-end">
+      </div>
+
+      {/* Row 2 — Core settings (Language + Model) */}
+      <div className="flex flex-wrap items-end gap-4">
         <div className="min-w-0">
           <label htmlFor="upload-language-field" className="block text-xs text-gray-400 mb-1">{t('settings.language')}</label>
           <LanguageSelect
@@ -152,15 +157,19 @@ export function SettingsPanel({ values, onChange, saveError = null }: SettingsPa
             )
           })()}
         </div>
-        <div className="flex items-center gap-2 py-1.5 min-w-0">
+      </div>
+
+      {/* Row 3 — Speaker detection (checkbox + optional min/max as one wrap unit) */}
+      <div className="flex flex-wrap items-end gap-4">
+        <label className="flex items-center gap-2 py-1.5">
           <input
             type="checkbox"
             checked={values.detectSpeakers}
             onChange={(e) => onChange({ detectSpeakers: e.target.checked })}
             className="rounded shrink-0"
           />
-          <label className="text-sm text-gray-300">{t('settings.detectSpeakers')}</label>
-        </div>
+          <span className="text-sm text-gray-300">{t('settings.detectSpeakers')}</span>
+        </label>
         {values.detectSpeakers && (
           <>
             <div className="min-w-0">
@@ -199,13 +208,18 @@ export function SettingsPanel({ values, onChange, saveError = null }: SettingsPa
             </div>
           </>
         )}
+      </div>
+
+      {/* Row 4 — Advanced options toggle (own line, right-aligned) */}
+      <div className="flex justify-end">
         <button
           onClick={() => onChange({ showAdvanced: !values.showAdvanced })}
-          className="text-sm text-blue-400 hover:text-blue-300 shrink-0"
+          className="text-sm text-blue-400 hover:text-blue-300"
         >
           {t('settings.advancedOptions')} {values.showAdvanced ? '▲' : '▼'}
         </button>
       </div>
+
       {saveError && (
         <div className="p-4 bg-red-900/30 rounded-lg border border-red-700">
           <div className="flex items-center gap-3">
@@ -214,6 +228,8 @@ export function SettingsPanel({ values, onChange, saveError = null }: SettingsPa
           </div>
         </div>
       )}
+
+      {/* Row 5 — Advanced options panel (unchanged) */}
       {values.showAdvanced && (
         <div className="flex flex-wrap gap-4">
           <div className="flex-1 min-w-[200px]">
