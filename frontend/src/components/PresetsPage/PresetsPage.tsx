@@ -132,15 +132,21 @@ function TranscriptionPresetsList() {
           </div>
           <div>
             <label className="block text-xs text-gray-400 mb-1">{t('settings.model')}</label>
-            <select
-              value={form.model ?? defaultModel}
-              onChange={(e) => setForm({ ...form, model: e.target.value })}
-              className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
-            >
-              {models.map((m) => (
-                <option key={m} value={m}>{t(`settings.modelLabels.${m}`, { defaultValue: m })}</option>
-              ))}
-            </select>
+            {models.length === 1 ? (
+              <div className="text-sm text-white px-3 py-1.5">
+                {t(`settings.modelLabels.${models[0]}`, { defaultValue: models[0] })}
+              </div>
+            ) : (
+              <select
+                value={form.model ?? defaultModel}
+                onChange={(e) => setForm({ ...form, model: e.target.value })}
+                className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                {models.map((m) => (
+                  <option key={m} value={m}>{t(`settings.modelLabels.${m}`, { defaultValue: m })}</option>
+                ))}
+              </select>
+            )}
           </div>
           <div>
             <label className="block text-xs text-gray-400 mb-1">{t('settings.hotwords')}</label>
