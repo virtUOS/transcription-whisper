@@ -373,5 +373,28 @@
     "logout": "Logout",
     "loadError": "Failed to load this view. Please reload the page.",
     "reload": "Reload"
+  },
+  "help": {
+    "open": "Open help",
+    "close": "Close help",
+    "title": "Help",
+    "emptyStateHint": "New here?",
+    "emptyStateLink": "Open the Getting Started guide",
+    "missingContent": "Content coming soon.",
+    "sections": {
+      "getting-started": "Getting Started",
+      "archive": "Archive",
+      "upload": "Upload",
+      "record": "Record",
+      "transcription-settings": "Transcription Settings",
+      "subtitle-editor": "Subtitle Editor",
+      "speaker-mapping": "Speaker Mapping",
+      "analysis": "Analysis",
+      "translation": "Translation",
+      "refinement": "Refinement",
+      "format-viewer": "Format Viewer",
+      "presets": "Presets",
+      "bundles": "Bundles"
+    }
   }
 }
