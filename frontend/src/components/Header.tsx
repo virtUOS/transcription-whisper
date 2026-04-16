@@ -21,7 +21,7 @@ export function Header() {
           onClick={() => useStore.getState().setHelpOpen(true)}
           aria-label={t('help.open')}
           title={t('help.open')}
-          className="text-sm text-gray-300 hover:text-white w-6 h-6 rounded-full border border-gray-600 flex items-center justify-center focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500"
+          className="text-sm text-gray-300 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500"
         >
           ?
         </button>
@@ -31,13 +31,13 @@ export function Header() {
             if (!state.confirmLeaveUpload(t('upload.confirmLeave'))) return
             state.setCurrentView('presets')
           }}
-          className="text-sm text-gray-300 hover:text-white"
+          className="text-sm text-gray-300 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500"
         >
           {t('nav.presets')}
         </button>
         <button
           onClick={toggleLanguage}
-          className="text-sm text-gray-300 hover:text-white"
+          className="text-sm text-gray-300 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500"
           title={i18n.language === 'de' ? 'Switch to English' : 'Auf Deutsch wechseln'}
           aria-label={i18n.language === 'de' ? 'Switch to English' : 'Auf Deutsch wechseln'}
         >
@@ -49,7 +49,7 @@ export function Header() {
               if (!useStore.getState().confirmLeaveUpload(t('upload.confirmLeave'))) return
               window.location.href = config.logout_url
             }}
-            className="text-sm text-red-400 hover:text-red-300"
+            className="text-sm text-red-400 hover:text-red-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500"
           >
             {t('common.logout')}
           </button>
