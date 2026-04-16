@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Header } from './components/Header'
 import { SettingsPanel } from './components/FileUpload'
 import { FileUpload } from './components/FileUpload'
-import { ProgressBar } from './components/ProgressBar'
+import { TranscriptionProgressCard } from './components/ProgressBar'
 import { TranscriptionList } from './components/TranscriptionList'
 import { TabBar } from './components/TabBar'
 import { useStore, setPopStateFlag } from './store'
@@ -373,7 +373,7 @@ function App() {
           <BackButton />
           <FileUpload />
           {(file || uploading) && !showEditor && <SettingsPanel />}
-          <ProgressBar />
+          <TranscriptionProgressCard />
         </>
       )}
 
@@ -386,7 +386,7 @@ function App() {
             </Suspense>
           </ChunkErrorBoundary>
           {(file || uploading) && !showEditor && <SettingsPanel />}
-          <ProgressBar />
+          <TranscriptionProgressCard />
         </>
       )}
 
@@ -402,7 +402,7 @@ function App() {
             </h1>
           )}
           <DetailActions />
-          <ProgressBar />
+          <TranscriptionProgressCard />
           {pipelineStatus && (
             <div className={`mx-6 my-2 px-4 py-2 rounded-lg flex items-center gap-3 ${
               pipelineStatus.step === 'refine' ? 'bg-amber-900/30 border border-amber-700/50' :

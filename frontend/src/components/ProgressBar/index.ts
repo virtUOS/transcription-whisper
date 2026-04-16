@@ -1,1 +1,1 @@
-export { ProgressBar } from './ProgressBar'
+export { TranscriptionProgressCard } from './TranscriptionProgressCard'
