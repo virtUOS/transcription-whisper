@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getSystemAudioSupport } from '../../utils/platformDetect'
+import { useDevicePermission } from '../../utils/devicePermissions'
 import { SourceCard } from './SourceCard'
 
 const systemAudioSupport = getSystemAudioSupport()
@@ -44,25 +45,29 @@ export function RecordingSources(props: RecordingSourcesProps) {
   const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([])
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([])
 
+  const micPermission = useDevicePermission('mic')
+  const cameraPermission = useDevicePermission('camera')
+
   const cameraDisabled = captureSystemAudio
-  const effectiveCamera = useCamera && !cameraDisabled
-  const valid = useMicrophone || captureSystemAudio || effectiveCamera
+  const validMic = useMicrophone && micPermission.state !== 'denied'
+  const validCamera = useCamera && !cameraDisabled && cameraPermission.state !== 'denied'
+  const valid = validMic || captureSystemAudio || validCamera
 
   useEffect(() => {
     onValidityChange?.(valid)
   }, [valid, onValidityChange])
 
-  async function enumerateWithPermission(requestVideo: boolean) {
+  async function enumerateWithPermission(kind: 'audio' | 'video') {
     try {
-      const constraints: MediaStreamConstraints = { audio: true }
-      if (requestVideo) constraints.video = true
+      const constraints: MediaStreamConstraints =
+        kind === 'audio' ? { audio: true } : { video: true }
       const stream = await navigator.mediaDevices.getUserMedia(constraints)
       stream.getTracks().forEach((tr) => tr.stop())
       const devices = await navigator.mediaDevices.enumerateDevices()
       setAudioDevices(devices.filter((d) => d.kind === 'audioinput'))
       setVideoDevices(devices.filter((d) => d.kind === 'videoinput'))
     } catch {
-      // Permission denied
+      // Permission denied — the permission hook picks this up via onchange or the next refresh.
     }
   }
 
@@ -72,7 +77,7 @@ export function RecordingSources(props: RecordingSourcesProps) {
         const devices = await navigator.mediaDevices.enumerateDevices()
         const hasAudioLabels = devices.some((d) => d.kind === 'audioinput' && d.label)
         if (!hasAudioLabels) {
-          await enumerateWithPermission(false)
+          await enumerateWithPermission('audio')
         } else {
           setAudioDevices(devices.filter((d) => d.kind === 'audioinput'))
           setVideoDevices(devices.filter((d) => d.kind === 'videoinput'))
@@ -90,7 +95,7 @@ export function RecordingSources(props: RecordingSourcesProps) {
     if (!useCamera || cameraDisabled) return
     const hasVideoLabels = videoDevices.some((d) => d.label)
     if (!hasVideoLabels) {
-      enumerateWithPermission(true)
+      enumerateWithPermission('video')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once per camera toggle, not on every device list change
   }, [useCamera, cameraDisabled])
@@ -105,6 +110,22 @@ export function RecordingSources(props: RecordingSourcesProps) {
     }
   }, [captureSystemAudio, audioDevices, audioDeviceId, secondAudioDeviceId, onSecondAudioDeviceChange])
 
+  const makeDeniedBanner = (sourceLabel: string, onRetry: () => void) => (
+    <div className="bg-red-900/30 border border-red-700 rounded px-3 py-2 text-xs flex items-start gap-3">
+      <span className="text-red-400 text-sm" aria-hidden="true">!</span>
+      <div className="flex-1 min-w-0">
+        <p className="text-red-200">{t('recorder.permissionDenied', { source: sourceLabel })}</p>
+        <p className="text-red-400/80 mt-1">{t('recorder.permissionRecovery')}</p>
+      </div>
+      <button
+        onClick={onRetry}
+        className="shrink-0 px-2 py-1 bg-red-700 hover:bg-red-600 text-white rounded text-xs"
+      >
+        {t('recorder.permissionRetry')}
+      </button>
+    </div>
+  )
+
   return (
     <div className="flex flex-col gap-3">
       <SourceCard
@@ -113,6 +134,8 @@ export function RecordingSources(props: RecordingSourcesProps) {
         enabled={useMicrophone}
         onToggle={onUseMicrophoneChange}
         recording={recording}
+        permission={micPermission.state}
+        deniedBanner={makeDeniedBanner(t('recorder.sourceMicrophone'), micPermission.refresh)}
       >
         <div className="flex flex-col gap-1 min-w-0 sm:flex-row sm:items-center sm:gap-3">
           <label className="text-xs text-gray-400 sm:min-w-24 sm:shrink-0">{t('recorder.selectMic')}</label>
@@ -176,6 +199,8 @@ export function RecordingSources(props: RecordingSourcesProps) {
         disabled={cameraDisabled}
         disabledReason={t('recorder.sourcesCameraDisabledBySystemAudio')}
         recording={recording}
+        permission={cameraPermission.state}
+        deniedBanner={makeDeniedBanner(t('recorder.sourceCamera'), cameraPermission.refresh)}
       >
         <div className="flex flex-col gap-1 min-w-0 sm:flex-row sm:items-center sm:gap-3">
           <label className="text-xs text-gray-400 sm:min-w-24 sm:shrink-0">{t('recorder.selectCamera')}</label>
