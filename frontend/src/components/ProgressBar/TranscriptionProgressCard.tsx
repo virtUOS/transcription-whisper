@@ -125,7 +125,7 @@ export function TranscriptionProgressCard({
       <div className="mx-6 my-4 p-5 bg-red-900/30 rounded-lg border border-red-700">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <span className="text-red-400 text-lg">!</span>
+            <span className="text-red-400 text-lg" aria-hidden="true">!</span>
             <span className="text-red-200">{t('transcription.progress.uploadFailed')}</span>
           </div>
           {onTryAgain && (
@@ -147,7 +147,7 @@ export function TranscriptionProgressCard({
       <div className="mx-6 my-4 p-5 bg-red-900/30 rounded-lg border border-red-700">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 min-w-0">
-            <span className="text-red-400 text-lg">!</span>
+            <span className="text-red-400 text-lg" aria-hidden="true">!</span>
             <div className="min-w-0">
               <p className="text-red-200">{t('transcription.failed')}</p>
               <p className="text-red-400/80 text-xs mt-1 break-words">{submitError}</p>
@@ -173,7 +173,7 @@ export function TranscriptionProgressCard({
       <div className="mx-6 my-4 p-5 bg-red-900/30 rounded-lg border border-red-700">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 min-w-0">
-            <span className="text-red-400 text-lg">!</span>
+            <span className="text-red-400 text-lg" aria-hidden="true">!</span>
             <div className="min-w-0">
               <p className="text-red-200">{t('transcription.failed')}</p>
               {errorMessage && (
