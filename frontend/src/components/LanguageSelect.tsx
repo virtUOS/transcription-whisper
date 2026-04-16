@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { useEffect, useId } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useStore } from '../store'
 import { LANGUAGES, LANGUAGES_WITH_AUTO, filterEnabledLanguages } from '../utils/languages'
@@ -24,12 +24,18 @@ export function LanguageSelect({ value, onChange, includeAuto, className, disabl
   const popular = popularLanguages.filter((code) => allCodes.includes(code))
   const rest = allCodes.filter((code) => code !== 'auto' && !popular.includes(code))
   const userVisibleCount = allCodes.filter((code) => code !== 'auto').length
+  const collapsedOnly = userVisibleCount === 1 && !includeAuto ? allCodes[0] : null
 
-  if (userVisibleCount === 1 && !includeAuto) {
-    const only = allCodes[0]
+  useEffect(() => {
+    if (collapsedOnly && value !== collapsedOnly) {
+      onChange(collapsedOnly)
+    }
+  }, [collapsedOnly, value, onChange])
+
+  if (collapsedOnly) {
     return (
-      <output id={effectiveId} className={className}>
-        {t(`languages.${only}`, only)}
+      <output id={effectiveId} className={className ? `block ${className}` : 'block'}>
+        {t(`languages.${collapsedOnly}`, collapsedOnly)}
       </output>
     )
   }
