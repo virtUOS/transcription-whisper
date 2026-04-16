@@ -20,6 +20,7 @@ async def get_config():
         llm_available=bool(settings.LLM_PROVIDER),
         logout_url=settings.LOGOUT_URL,
         popular_languages=settings.POPULAR_LANGUAGES,
+        enabled_languages=settings.ENABLED_LANGUAGES,
     )
 
 
