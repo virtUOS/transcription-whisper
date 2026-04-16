@@ -33,6 +33,9 @@ const AnalysisView = lazy(() =>
 const PresetsPage = lazy(() =>
   import('./components/PresetsPage/PresetsPage').then((m) => ({ default: m.PresetsPage }))
 )
+const HelpDrawer = lazy(() =>
+  import('./components/HelpDrawer').then((m) => ({ default: m.HelpDrawer }))
+)
 
 function BackButton() {
   const { t } = useTranslation()
@@ -153,6 +156,7 @@ function App() {
   const transcriptionTitle = useStore((s) => s.transcriptionTitle)
   const transcriptionResult = useStore((s) => s.transcriptionResult)
   const activeTab = useStore((s) => s.activeTab)
+  const helpOpen = useStore((s) => s.helpOpen)
   const [speakerModalOpen, setSpeakerModalOpen] = useState(false)
   const [focusSpeaker, setFocusSpeaker] = useState<string | undefined>(undefined)
   const [playerCollapsed, setPlayerCollapsed] = useState(false)
@@ -449,6 +453,12 @@ function App() {
             </ChunkErrorBoundary>
           )}
         </>
+      )}
+
+      {helpOpen && (
+        <Suspense fallback={null}>
+          <HelpDrawer />
+        </Suspense>
       )}
     </div>
   )
