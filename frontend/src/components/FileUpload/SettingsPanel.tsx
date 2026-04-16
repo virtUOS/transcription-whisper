@@ -113,6 +113,7 @@ export function SettingsPanel({ values, onChange, saveError = null }: SettingsPa
             selectedId={null}
             onSelect={() => {}}
             onSave={handleSavePreset}
+            hideDropdown
           />
         </div>
       </div>
