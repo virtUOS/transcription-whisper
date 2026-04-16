@@ -25,9 +25,9 @@
       "base": "Standard",
       "small": "Good",
       "medium": "Better",
-      "large-v3-turbo": "Best (fast)",
-      "large-v3": "Best",
-      "large-v2": "Best"
+      "large-v3-turbo": "Balanced",
+      "large-v3": "Best quality",
+      "large-v2": "Best quality"
     }
   },
   "transcription": {

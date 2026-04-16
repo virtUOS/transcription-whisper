@@ -41,7 +41,8 @@ function TranscriptionPresetsList() {
 
   const openEdit = (p: TranscriptionPreset) => {
     setEditingId(p.id)
-    setForm({ name: p.name, language: p.language, model: p.model, initial_prompt: p.initial_prompt, hotwords: p.hotwords })
+    const model = models.length === 1 ? models[0] : p.model
+    setForm({ name: p.name, language: p.language, model, initial_prompt: p.initial_prompt, hotwords: p.hotwords })
     setShowForm(true)
   }
 
@@ -132,15 +133,25 @@ function TranscriptionPresetsList() {
           </div>
           <div>
             <label className="block text-xs text-gray-400 mb-1">{t('settings.model')}</label>
-            <select
-              value={form.model ?? defaultModel}
-              onChange={(e) => setForm({ ...form, model: e.target.value })}
-              className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
-            >
-              {models.map((m) => (
-                <option key={m} value={m}>{t(`settings.modelLabels.${m}`, { defaultValue: m })}</option>
-              ))}
-            </select>
+            {models.length === 1 ? (() => {
+              const m = models[0]
+              const label = t(`settings.modelLabels.${m}`, '')
+              return (
+                <div className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5">
+                  {label ? `${label} (${m})` : m}
+                </div>
+              )
+            })() : (
+              <select
+                value={form.model ?? defaultModel}
+                onChange={(e) => setForm({ ...form, model: e.target.value })}
+                className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                {models.map((m) => (
+                  <option key={m} value={m}>{t(`settings.modelLabels.${m}`, { defaultValue: m })}</option>
+                ))}
+              </select>
+            )}
           </div>
           <div>
             <label className="block text-xs text-gray-400 mb-1">{t('settings.hotwords')}</label>
