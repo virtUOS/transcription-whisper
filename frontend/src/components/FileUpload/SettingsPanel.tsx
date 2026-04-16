@@ -124,20 +124,21 @@ export function SettingsPanel({ values, onChange, saveError = null }: SettingsPa
           />
         </div>
         <div className="min-w-0">
-          <label className="block text-xs text-gray-400 mb-1">{t('settings.model')}</label>
+          <label htmlFor="upload-model-field" className="block text-xs text-gray-400 mb-1">{t('settings.model')}</label>
           {(() => {
             const models = config?.whisper_models || []
             if (models.length === 1) {
               const m = models[0]
               const label = t(`settings.modelLabels.${m}`, '')
               return (
-                <div className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5">
+                <output id="upload-model-field" className="block w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5">
                   {label ? `${label} (${m})` : m}
-                </div>
+                </output>
               )
             }
             return (
               <select
+                id="upload-model-field"
                 value={values.model}
                 onChange={(e) => onChange({ model: e.target.value })}
                 className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5"

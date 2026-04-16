@@ -760,8 +760,9 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-xl w-full max-w-sm mx-4 p-5">
             <h3 className="text-sm font-medium text-gray-200 mb-3">{t('editor.translateTo')}</h3>
-            <label className="block text-xs text-gray-400 mb-1">{t('editor.translationLanguage')}</label>
+            <label htmlFor="translation-language-field" className="block text-xs text-gray-400 mb-1">{t('editor.translationLanguage')}</label>
             <LanguageSelect
+              id="translation-language-field"
               value={translateLanguage}
               onChange={setTranslateLanguage}
               disabled={translating}

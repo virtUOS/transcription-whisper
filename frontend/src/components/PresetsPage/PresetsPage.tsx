@@ -132,17 +132,18 @@ function TranscriptionPresetsList() {
             </select>
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1">{t('settings.model')}</label>
+            <label htmlFor="transcription-preset-model-field" className="block text-xs text-gray-400 mb-1">{t('settings.model')}</label>
             {models.length === 1 ? (() => {
               const m = models[0]
               const label = t(`settings.modelLabels.${m}`, '')
               return (
-                <div className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5">
+                <output id="transcription-preset-model-field" className="block w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5">
                   {label ? `${label} (${m})` : m}
-                </div>
+                </output>
               )
             })() : (
               <select
+                id="transcription-preset-model-field"
                 value={form.model ?? defaultModel}
                 onChange={(e) => setForm({ ...form, model: e.target.value })}
                 className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"

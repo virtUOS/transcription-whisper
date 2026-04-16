@@ -731,8 +731,8 @@ export function AnalysisView() {
           {/* Language selector + Generate button */}
           <div className="flex items-center justify-center gap-3">
             <div>
-              <label className="block text-xs text-gray-400 mb-1">{t('editor.outputLanguage')}</label>
-              <LanguageSelect value={language} onChange={setLanguage} className="bg-gray-700 text-white text-sm rounded px-3 py-1.5" />
+              <label htmlFor="analysis-output-language-field" className="block text-xs text-gray-400 mb-1">{t('editor.outputLanguage')}</label>
+              <LanguageSelect id="analysis-output-language-field" value={language} onChange={setLanguage} className="bg-gray-700 text-white text-sm rounded px-3 py-1.5" />
             </div>
             <button
               onClick={handleGenerate}
