@@ -41,7 +41,8 @@ function TranscriptionPresetsList() {
 
   const openEdit = (p: TranscriptionPreset) => {
     setEditingId(p.id)
-    setForm({ name: p.name, language: p.language, model: p.model, initial_prompt: p.initial_prompt, hotwords: p.hotwords })
+    const model = models.length === 1 ? models[0] : p.model
+    setForm({ name: p.name, language: p.language, model, initial_prompt: p.initial_prompt, hotwords: p.hotwords })
     setShowForm(true)
   }
 
