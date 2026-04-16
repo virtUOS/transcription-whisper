@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 160" width="720" height="160" role="img" aria-labelledby="bundle-pipeline-title">
+  <title id="bundle-pipeline-title">A bundle composes optional pipeline stages after transcription</title>
+  <style>
+    .stage { stroke-width: 1.5; }
+    .required { fill: #1e3a8a; stroke: #3b82f6; }
+    .optional { fill: #1f2937; stroke: #6b7280; stroke-dasharray: 4 3; }
+    .label { fill: #e5e7eb; font-family: system-ui, sans-serif; font-size: 13px; text-anchor: middle; }
+    .sub { fill: #9ca3af; font-family: system-ui, sans-serif; font-size: 10px; text-anchor: middle; }
+    .arrow { fill: none; stroke: #6b7280; stroke-width: 1.5; }
+    .arrow-head { fill: #6b7280; }
+  </style>
+  <rect class="stage required" x="20" y="50" width="120" height="60" rx="6" />
+  <text class="label" x="80" y="78">Transcription</text>
+  <text class="sub" x="80" y="94">always runs</text>
+  <rect class="stage optional" x="180" y="50" width="120" height="60" rx="6" />
+  <text class="label" x="240" y="78">Refinement</text>
+  <text class="sub" x="240" y="94">optional</text>
+  <rect class="stage optional" x="340" y="50" width="120" height="60" rx="6" />
+  <text class="label" x="400" y="78">Analysis</text>
+  <text class="sub" x="400" y="94">optional</text>
+  <rect class="stage optional" x="500" y="50" width="120" height="60" rx="6" />
+  <text class="label" x="560" y="78">Translation</text>
+  <text class="sub" x="560" y="94">optional</text>
+  <path class="arrow" d="M 140 80 L 175 80" />
+  <polygon class="arrow-head" points="170,77 181,80 170,83" />
+  <path class="arrow" d="M 300 80 L 335 80" />
+  <polygon class="arrow-head" points="330,77 341,80 330,83" />
+  <path class="arrow" d="M 460 80 L 495 80" />
+  <polygon class="arrow-head" points="490,77 501,80 490,83" />
+  <text class="sub" x="360" y="30">A bundle is any subset of these stages</text>
+</svg>
