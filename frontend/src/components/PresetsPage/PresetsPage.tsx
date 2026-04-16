@@ -520,6 +520,7 @@ function BundlesList() {
   const transcriptionPresets = useStore((s) => s.transcriptionPresets)
   const analysisPresets = useStore((s) => s.analysisPresets)
   const refinementPresets = useStore((s) => s.refinementPresets)
+  const enabledLanguages = useStore((s) => s.config?.enabled_languages) || []
 
   const emptyForm: PresetBundleCreate = { name: '', transcription_preset_id: null, analysis_preset_id: null, refinement_preset_id: null }
   const [showForm, setShowForm] = useState(false)
@@ -535,12 +536,15 @@ function BundlesList() {
 
   const openEdit = (b: PresetBundle) => {
     setEditingId(b.id)
+    const translateLanguage = b.translate_language && !isLanguageEnabled(b.translate_language, enabledLanguages)
+      ? null
+      : b.translate_language
     setForm({
       name: b.name,
       transcription_preset_id: b.transcription_preset_id,
       analysis_preset_id: b.analysis_preset_id,
       refinement_preset_id: b.refinement_preset_id,
-      translate_language: b.translate_language,
+      translate_language: translateLanguage,
     })
     setShowForm(true)
   }
@@ -721,14 +725,15 @@ function BundlesList() {
             </select>
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1">{t('presets.bundle.translateLanguage')}</label>
+            <label htmlFor="bundle-translate-language-field" className="block text-xs text-gray-400 mb-1">{t('presets.bundle.translateLanguage')}</label>
             <select
+              id="bundle-translate-language-field"
               value={form.translate_language ?? ''}
               onChange={(e) => setForm({ ...form, translate_language: e.target.value || null })}
               className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">{t('presets.bundle.none')}</option>
-              {LANGUAGES.map((code) => (
+              {filterEnabledLanguages(LANGUAGES, enabledLanguages).map((code) => (
                 <option key={code} value={code}>{t(`languages.${code}`)}</option>
               ))}
             </select>
