@@ -4,8 +4,6 @@ body {
   background-color: #111827;
 }
 
-@layer base {
-  button:not(:disabled) {
-    cursor: pointer;
-  }
+button:not(:disabled) {
+  cursor: pointer;
 }
