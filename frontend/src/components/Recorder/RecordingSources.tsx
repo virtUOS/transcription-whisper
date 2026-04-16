@@ -111,7 +111,7 @@ export function RecordingSources(props: RecordingSourcesProps) {
   }, [captureSystemAudio, audioDevices, audioDeviceId, secondAudioDeviceId, onSecondAudioDeviceChange])
 
   const makeDeniedBanner = (sourceLabel: string, onRetry: () => void) => (
-    <div className="bg-red-900/30 border border-red-700 rounded px-3 py-2 text-xs flex items-start gap-3">
+    <div role="alert" className="bg-red-900/30 border border-red-700 rounded px-3 py-2 text-xs flex items-start gap-3">
       <span className="text-red-400 text-sm" aria-hidden="true">!</span>
       <div className="flex-1 min-w-0">
         <p className="text-red-200">{t('recorder.permissionDenied', { source: sourceLabel })}</p>
