@@ -1,9 +1,8 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Header } from './components/Header'
-import { SettingsPanel } from './components/FileUpload'
+import { FileUpload, SettingsPanel, SubmittedSummaryCard, TranscribeActionBar } from './components/FileUpload'
 import type { SettingsPanelValues } from './components/FileUpload/SettingsPanel'
-import { FileUpload } from './components/FileUpload'
 import type { SubmittedSummary } from './components/FileUpload'
 import { TranscriptionProgressCard } from './components/ProgressBar'
 import { TranscriptionList } from './components/TranscriptionList'
@@ -207,6 +206,9 @@ function App() {
     setFocusSpeaker(speakerId)
     setSpeakerModalOpen(true)
   }
+
+  const bundles = useStore((s) => s.bundles)
+  const activeBundleId = useStore((s) => s.activeBundleId)
 
   const setTranscriptionPresets = useStore((s) => s.setTranscriptionPresets)
   const setAnalysisPresets = useStore((s) => s.setAnalysisPresets)
@@ -458,14 +460,26 @@ function App() {
     || pendingTranscription
     || submitError !== null
 
-  // Task 9 will wire these — referenced here to satisfy lint/tsc
-  void pendingTranscription
-  void submittedSummary
-  void submitting
-  void submitError
-  void handleTranscribe
-  void handleTryAgain
-  void inSubmittedState
+  const transcribeLabel = (() => {
+    if (pendingTranscription || (uploading && !file)) {
+      return t('transcription.transcribeWhenReady')
+    }
+    const activeBundle = bundles.find((b) => b.id === activeBundleId)
+    const isPipeline =
+      activeBundle && (activeBundle.analysis_preset_id || activeBundle.refinement_preset_id || activeBundle.translate_language)
+    if (isPipeline) return t('transcription.runPipeline')
+    return t('transcription.transcribe')
+  })()
+
+  const transcribeDisabled = (!file && !uploading) || submitting
+
+  useEffect(() => {
+    if (currentView !== 'upload' && currentView !== 'record') {
+      setPendingTranscription(false)
+      setSubmittedSummary(null)
+      setSubmitError(null)
+    }
+  }, [currentView])
 
   if (!config) return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-gray-400">{t('common.loading')}</div>
 
@@ -493,26 +507,68 @@ function App() {
       {currentView === 'upload' && (
         <>
           <BackButton />
-          <FileUpload />
-          {(file || uploading) && !showEditor && (
-            <SettingsPanel values={settings} onChange={updateSettings} saveError={settingsSaveError} />
+          {inSubmittedState ? (
+            <>
+              {submittedSummary && <SubmittedSummaryCard summary={submittedSummary} />}
+              <TranscriptionProgressCard
+                pendingTranscription={pendingTranscription}
+                submitError={submitError}
+                onTryAgain={handleTryAgain}
+              />
+            </>
+          ) : (
+            <>
+              <FileUpload />
+              {(file || uploading) && !showEditor && (
+                <SettingsPanel values={settings} onChange={updateSettings} saveError={settingsSaveError} />
+              )}
+              {(file || uploading) && !showEditor && (
+                <TranscribeActionBar
+                  onClick={handleTranscribe}
+                  disabled={transcribeDisabled}
+                  label={transcribeLabel}
+                  submitting={submitting}
+                  variant={pendingTranscription || (uploading && !file) ? 'pending' : 'primary'}
+                />
+              )}
+            </>
           )}
-          <TranscriptionProgressCard />
         </>
       )}
 
       {currentView === 'record' && (
         <>
           <BackButton />
-          <ChunkErrorBoundary errorMessage={t('common.loadError')} reloadLabel={t('common.reload')}>
-            <Suspense fallback={<LoadingFallback />}>
-              <RecorderPanel />
-            </Suspense>
-          </ChunkErrorBoundary>
-          {(file || uploading) && !showEditor && (
-            <SettingsPanel values={settings} onChange={updateSettings} saveError={settingsSaveError} />
+          {inSubmittedState ? (
+            <>
+              {submittedSummary && <SubmittedSummaryCard summary={submittedSummary} />}
+              <TranscriptionProgressCard
+                pendingTranscription={pendingTranscription}
+                submitError={submitError}
+                onTryAgain={handleTryAgain}
+              />
+            </>
+          ) : (
+            <>
+              <ChunkErrorBoundary errorMessage={t('common.loadError')} reloadLabel={t('common.reload')}>
+                <Suspense fallback={<LoadingFallback />}>
+                  <RecorderPanel />
+                </Suspense>
+              </ChunkErrorBoundary>
+              {(file || uploading) && !showEditor && (
+                <SettingsPanel values={settings} onChange={updateSettings} saveError={settingsSaveError} />
+              )}
+              {(file || uploading) && !showEditor && (
+                <TranscribeActionBar
+                  onClick={handleTranscribe}
+                  disabled={transcribeDisabled}
+                  label={transcribeLabel}
+                  submitting={submitting}
+                  variant={pendingTranscription || (uploading && !file) ? 'pending' : 'primary'}
+                />
+              )}
+            </>
           )}
-          <TranscriptionProgressCard />
         </>
       )}
 
