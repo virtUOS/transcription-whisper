@@ -204,6 +204,7 @@ class ConfigResponse(BaseModel):
     llm_available: bool
     logout_url: str
     popular_languages: list[str] = []
+    enabled_languages: list[str] = []
 
 
 # --- Presets ---

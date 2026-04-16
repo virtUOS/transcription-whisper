@@ -27,6 +27,7 @@ class Settings:
     DATABASE_PATH: str = os.getenv("DATABASE_PATH", "")
 
     POPULAR_LANGUAGES: list[str] = os.getenv("POPULAR_LANGUAGES", "de,en,es,fr").split(",")
+    ENABLED_LANGUAGES: list[str] = [c.strip() for c in os.getenv("ENABLED_LANGUAGES", "").split(",") if c.strip()]
     ENABLE_METRICS: bool = os.getenv("ENABLE_METRICS", "true").lower() in ("true", "1", "yes")
     DEV_MODE: bool = os.getenv("DEV_MODE", "false").lower() in ("true", "1", "yes")
 

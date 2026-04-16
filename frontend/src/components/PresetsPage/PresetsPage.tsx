@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useStore } from '../../store'
 import { api } from '../../api/client'
-import { LANGUAGES } from '../../utils/languages'
+import { LANGUAGES, filterEnabledLanguages, isLanguageEnabled } from '../../utils/languages'
 import type {
   TranscriptionPreset,
   TranscriptionPresetCreate,
@@ -32,6 +32,7 @@ function TranscriptionPresetsList() {
 
   const models = config?.whisper_models ?? []
   const defaultModel = config?.default_model ?? ''
+  const enabledLanguages = config?.enabled_languages ?? []
 
   const openNew = () => {
     setEditingId(null)
@@ -42,7 +43,8 @@ function TranscriptionPresetsList() {
   const openEdit = (p: TranscriptionPreset) => {
     setEditingId(p.id)
     const model = models.length === 1 ? models[0] : p.model
-    setForm({ name: p.name, language: p.language, model, initial_prompt: p.initial_prompt, hotwords: p.hotwords })
+    const language = p.language && !isLanguageEnabled(p.language, enabledLanguages) ? null : p.language
+    setForm({ name: p.name, language, model, initial_prompt: p.initial_prompt, hotwords: p.hotwords })
     setShowForm(true)
   }
 
@@ -119,37 +121,40 @@ function TranscriptionPresetsList() {
             />
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1">{t('settings.language')}</label>
+            <label htmlFor="transcription-preset-language-field" className="block text-xs text-gray-400 mb-1">{t('settings.language')}</label>
             <select
+              id="transcription-preset-language-field"
               value={form.language ?? ''}
               onChange={(e) => setForm({ ...form, language: e.target.value || null })}
               className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">{t('languages.auto')}</option>
-              {LANGUAGES.map((code) => (
+              {filterEnabledLanguages(LANGUAGES, enabledLanguages).map((code) => (
                 <option key={code} value={code}>{t(`languages.${code}`)}</option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1">{t('settings.model')}</label>
+            <label htmlFor="transcription-preset-model-field" className="block text-xs text-gray-400 mb-1">{t('settings.model')}</label>
             {models.length === 1 ? (() => {
               const m = models[0]
               const label = t(`settings.modelLabels.${m}`, '')
               return (
-                <div className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5">
+                <output id="transcription-preset-model-field" className="block w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5">
                   {label ? `${label} (${m})` : m}
-                </div>
+                </output>
               )
             })() : (
               <select
+                id="transcription-preset-model-field"
                 value={form.model ?? defaultModel}
                 onChange={(e) => setForm({ ...form, model: e.target.value })}
                 className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
               >
-                {models.map((m) => (
-                  <option key={m} value={m}>{t(`settings.modelLabels.${m}`, { defaultValue: m })}</option>
-                ))}
+                {models.map((m) => {
+                  const label = t(`settings.modelLabels.${m}`, '')
+                  return <option key={m} value={m}>{label ? `${label} (${m})` : m}</option>
+                })}
               </select>
             )}
           </div>
@@ -210,6 +215,7 @@ function AnalysisPresetsList() {
   const { t } = useTranslation()
   const presets = useStore((s) => s.analysisPresets)
   const setPresets = useStore((s) => s.setAnalysisPresets)
+  const enabledLanguages = useStore((s) => s.config?.enabled_languages) || []
 
   const emptyForm: AnalysisPresetCreate = { name: '', template: 'summary', custom_prompt: null, language: null }
   const [showForm, setShowForm] = useState(false)
@@ -225,7 +231,8 @@ function AnalysisPresetsList() {
 
   const openEdit = (p: AnalysisPreset) => {
     setEditingId(p.id)
-    setForm({ name: p.name, template: p.template, custom_prompt: p.custom_prompt, language: p.language })
+    const language = p.language && !isLanguageEnabled(p.language, enabledLanguages) ? null : p.language
+    setForm({ name: p.name, template: p.template, custom_prompt: p.custom_prompt, language })
     setShowForm(true)
   }
 
@@ -322,14 +329,15 @@ function AnalysisPresetsList() {
             </select>
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1">{t('settings.language')}</label>
+            <label htmlFor="analysis-preset-language-field" className="block text-xs text-gray-400 mb-1">{t('editor.outputLanguage')}</label>
             <select
+              id="analysis-preset-language-field"
               value={form.language ?? ''}
               onChange={(e) => setForm({ ...form, language: e.target.value || null })}
               className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">{t('languages.auto')}</option>
-              {LANGUAGES.map((code) => (
+              {filterEnabledLanguages(LANGUAGES, enabledLanguages).map((code) => (
                 <option key={code} value={code}>{t(`languages.${code}`)}</option>
               ))}
             </select>
@@ -513,6 +521,7 @@ function BundlesList() {
   const transcriptionPresets = useStore((s) => s.transcriptionPresets)
   const analysisPresets = useStore((s) => s.analysisPresets)
   const refinementPresets = useStore((s) => s.refinementPresets)
+  const enabledLanguages = useStore((s) => s.config?.enabled_languages) || []
 
   const emptyForm: PresetBundleCreate = { name: '', transcription_preset_id: null, analysis_preset_id: null, refinement_preset_id: null }
   const [showForm, setShowForm] = useState(false)
@@ -528,12 +537,15 @@ function BundlesList() {
 
   const openEdit = (b: PresetBundle) => {
     setEditingId(b.id)
+    const translateLanguage = b.translate_language && !isLanguageEnabled(b.translate_language, enabledLanguages)
+      ? null
+      : b.translate_language
     setForm({
       name: b.name,
       transcription_preset_id: b.transcription_preset_id,
       analysis_preset_id: b.analysis_preset_id,
       refinement_preset_id: b.refinement_preset_id,
-      translate_language: b.translate_language,
+      translate_language: translateLanguage,
     })
     setShowForm(true)
   }
@@ -714,14 +726,15 @@ function BundlesList() {
             </select>
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1">{t('presets.bundle.translateLanguage')}</label>
+            <label htmlFor="bundle-translate-language-field" className="block text-xs text-gray-400 mb-1">{t('presets.bundle.translateLanguage')}</label>
             <select
+              id="bundle-translate-language-field"
               value={form.translate_language ?? ''}
               onChange={(e) => setForm({ ...form, translate_language: e.target.value || null })}
               className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">{t('presets.bundle.none')}</option>
-              {LANGUAGES.map((code) => (
+              {filterEnabledLanguages(LANGUAGES, enabledLanguages).map((code) => (
                 <option key={code} value={code}>{t(`languages.${code}`)}</option>
               ))}
             </select>

@@ -127,6 +127,7 @@ export interface ConfigResponse {
   llm_available: boolean
   logout_url: string
   popular_languages: string[]
+  enabled_languages: string[]
 }
 
 export interface AnalysisTemplate {
