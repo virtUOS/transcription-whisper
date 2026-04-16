@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useStore } from '../../store'
 import { api } from '../../api/client'
-import { LANGUAGES } from '../../utils/languages'
+import { LANGUAGES, filterEnabledLanguages, isLanguageEnabled } from '../../utils/languages'
 import type {
   TranscriptionPreset,
   TranscriptionPresetCreate,
@@ -32,6 +32,7 @@ function TranscriptionPresetsList() {
 
   const models = config?.whisper_models ?? []
   const defaultModel = config?.default_model ?? ''
+  const enabledLanguages = config?.enabled_languages ?? []
 
   const openNew = () => {
     setEditingId(null)
@@ -42,7 +43,8 @@ function TranscriptionPresetsList() {
   const openEdit = (p: TranscriptionPreset) => {
     setEditingId(p.id)
     const model = models.length === 1 ? models[0] : p.model
-    setForm({ name: p.name, language: p.language, model, initial_prompt: p.initial_prompt, hotwords: p.hotwords })
+    const language = p.language && !isLanguageEnabled(p.language, enabledLanguages) ? null : p.language
+    setForm({ name: p.name, language, model, initial_prompt: p.initial_prompt, hotwords: p.hotwords })
     setShowForm(true)
   }
 
@@ -119,14 +121,15 @@ function TranscriptionPresetsList() {
             />
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1">{t('settings.language')}</label>
+            <label htmlFor="transcription-preset-language-field" className="block text-xs text-gray-400 mb-1">{t('settings.language')}</label>
             <select
+              id="transcription-preset-language-field"
               value={form.language ?? ''}
               onChange={(e) => setForm({ ...form, language: e.target.value || null })}
               className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">{t('languages.auto')}</option>
-              {LANGUAGES.map((code) => (
+              {filterEnabledLanguages(LANGUAGES, enabledLanguages).map((code) => (
                 <option key={code} value={code}>{t(`languages.${code}`)}</option>
               ))}
             </select>
