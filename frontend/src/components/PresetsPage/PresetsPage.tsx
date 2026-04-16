@@ -151,9 +151,10 @@ function TranscriptionPresetsList() {
                 onChange={(e) => setForm({ ...form, model: e.target.value })}
                 className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
               >
-                {models.map((m) => (
-                  <option key={m} value={m}>{t(`settings.modelLabels.${m}`, { defaultValue: m })}</option>
-                ))}
+                {models.map((m) => {
+                  const label = t(`settings.modelLabels.${m}`, '')
+                  return <option key={m} value={m}>{label ? `${label} (${m})` : m}</option>
+                })}
               </select>
             )}
           </div>
