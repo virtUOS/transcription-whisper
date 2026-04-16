@@ -389,7 +389,8 @@
     "backToTranscriptions": "Transcriptions",
     "newUpload": "Upload",
     "newRecording": "Record",
-    "presets": "Presets"
+    "presets": "Presets",
+    "menu": "Menu"
   },
   "common": {
     "loading": "Loading...",
