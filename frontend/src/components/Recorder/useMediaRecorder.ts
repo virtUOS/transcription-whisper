@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
+import { inferFromError } from '../../utils/devicePermissions'
 
 export type RecorderState = 'idle' | 'recording' | 'paused' | 'stopped'
 
@@ -195,22 +196,32 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
           recordingStream = displayStream
         }
       } else {
-        // Standard path: microphone (with optional system audio mixing)
-        const constraints: MediaStreamConstraints = {
-          audio: options.audioDeviceId
-            ? { deviceId: { exact: options.audioDeviceId } }
-            : true,
-        }
-        if (options.useCamera && !options.captureSystemAudio) {
-          constraints.video = options.videoDeviceId
-            ? { deviceId: { exact: options.videoDeviceId } }
-            : true
-        }
+        // Standard path: microphone (with optional system audio mixing and/or camera)
+        const audioConstraint: MediaTrackConstraints | boolean = options.audioDeviceId
+          ? { deviceId: { exact: options.audioDeviceId } }
+          : true
 
-        const micStream = await navigator.mediaDevices.getUserMedia(constraints)
+        const micStream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraint })
         streamRef.current = micStream
 
-        recordingStream = micStream
+        let cameraStream: MediaStream | null = null
+        if (options.useCamera && !options.captureSystemAudio) {
+          const videoConstraint: MediaTrackConstraints | boolean = options.videoDeviceId
+            ? { deviceId: { exact: options.videoDeviceId } }
+            : true
+          try {
+            cameraStream = await navigator.mediaDevices.getUserMedia({ video: videoConstraint })
+          } catch (err) {
+            micStream.getTracks().forEach((t) => t.stop())
+            streamRef.current = null
+            setError(inferFromError(err) === 'denied' ? 'cameraDenied' : 'cameraFailed')
+            return
+          }
+        }
+
+        recordingStream = cameraStream
+          ? new MediaStream([...micStream.getTracks(), ...cameraStream.getVideoTracks()])
+          : micStream
 
         if (options.captureSystemAudio) {
           if (options.secondAudioDeviceId) {
@@ -332,8 +343,8 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
     } catch (err) {
       if (options.captureSystemAudio && options.useMicrophone === false) {
         setError('systemAudioFailed')
-      } else if (options.useCamera && err instanceof DOMException && err.name === 'NotAllowedError') {
-        setError('cameraFailed')
+      } else if (inferFromError(err) === 'denied') {
+        setError('micDenied')
       } else {
         setError('micRequired')
       }

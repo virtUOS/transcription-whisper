@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import type { DevicePermission } from '../../utils/devicePermissions'
 
 interface SourceCardProps {
   icon: ReactNode
@@ -9,6 +10,8 @@ interface SourceCardProps {
   disabledReason?: string
   recording?: boolean
   children?: ReactNode
+  permission?: DevicePermission
+  deniedBanner?: ReactNode
 }
 
 export function SourceCard({
@@ -20,9 +23,12 @@ export function SourceCard({
   disabledReason,
   recording = false,
   children,
+  permission,
+  deniedBanner,
 }: SourceCardProps) {
   const interactive = !disabled && !recording
   const effectiveOn = !disabled && enabled
+  const showDenied = permission === 'denied' && !disabled && enabled
 
   return (
     <div
@@ -60,7 +66,10 @@ export function SourceCard({
       {disabled && disabledReason && (
         <p className="mt-2 text-xs text-gray-500">{disabledReason}</p>
       )}
-      {!disabled && enabled && children && (
+      {showDenied && deniedBanner && (
+        <div className="mt-3">{deniedBanner}</div>
+      )}
+      {!showDenied && !disabled && enabled && children && (
         <div className="mt-3">{children}</div>
       )}
     </div>

@@ -370,7 +370,12 @@
     "sourcesCameraDisabledBySystemAudio": "Not available while System audio is on",
     "sourceMicrophone": "Microphone",
     "sourceCamera": "Camera",
-    "sourceSystemAudio": "System audio"
+    "sourceSystemAudio": "System audio",
+    "permissionDenied": "{{source}} access is blocked.",
+    "permissionRecovery": "Allow it in your browser's site settings, then click Retry.",
+    "permissionRetry": "Retry",
+    "micDenied": "Microphone access was denied. Allow it in your browser's site settings and try again.",
+    "cameraDenied": "Camera access was denied. Allow it in your browser's site settings and try again."
   },
   "player": {
     "subtitles": "Subtitles",
