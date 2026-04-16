@@ -179,11 +179,12 @@ function App() {
     showAdvanced: false,
   })
 
+  const configModelApplied = useRef(false)
   useEffect(() => {
-    if (config?.default_model && settings.model === 'base') {
+    if (config?.default_model && !configModelApplied.current) {
+      configModelApplied.current = true
       setSettings((s) => ({ ...s, model: config.default_model }))
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-sync when config first loads
   }, [config?.default_model])
 
   const updateSettings = useCallback((patch: Partial<SettingsPanelValues>) => {
