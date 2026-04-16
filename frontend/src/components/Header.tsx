@@ -100,6 +100,7 @@ export function Header() {
           onClick={() => setBurgerOpen((open) => !open)}
           aria-label={t('nav.menu')}
           aria-expanded={burgerOpen}
+          aria-haspopup="menu"
           aria-controls="header-mobile-menu"
           className={buttonClass}
         >
