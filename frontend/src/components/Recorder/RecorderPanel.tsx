@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useMediaRecorder, getFileExtension, getPreferredMimeType } from './useMediaRecorder'
 import { RecorderControls } from './RecorderControls'
 import { AudioLevelMeter } from './AudioLevelMeter'
-import { DeviceSelector } from './DeviceSelector'
+import { RecordingSources } from './RecordingSources'
 import { api } from '../../api/client'
 import { useStore } from '../../store'
 import { formatFileSize } from '../../utils/format'
@@ -35,14 +35,11 @@ export function RecorderPanel() {
   const [captureSystemAudio, setCaptureSystemAudio] = useState(false)
   const [secondAudioDeviceId, setSecondAudioDeviceId] = useState('')
   const [useMicrophone, setUseMicrophone] = useState(true)
+  const [sourcesValid, setSourcesValid] = useState(true)
 
   const handleCaptureSystemAudioChange = useCallback((capture: boolean) => {
     setCaptureSystemAudio(capture)
-    if (capture) setUseCamera(false)
-    if (!capture) {
-      setSecondAudioDeviceId('')
-      setUseMicrophone(true)
-    }
+    if (!capture) setSecondAudioDeviceId('')
   }, [])
 
   const { state, blob, stream, duration, error, start, pause, resume, stop, discard } =
@@ -129,22 +126,23 @@ export function RecorderPanel() {
 
   return (
     <div className="border-2 border-dashed border-gray-600 rounded-lg p-6 space-y-4">
-      {/* Device selector */}
+      {/* Recording sources */}
       {state !== 'stopped' && (
-        <DeviceSelector
-          useCamera={useCamera}
-          onUseCameraChange={setUseCamera}
+        <RecordingSources
+          useMicrophone={useMicrophone}
+          onUseMicrophoneChange={setUseMicrophone}
           audioDeviceId={audioDeviceId}
           onAudioDeviceChange={setAudioDeviceId}
-          videoDeviceId={videoDeviceId}
-          onVideoDeviceChange={setVideoDeviceId}
           captureSystemAudio={captureSystemAudio}
           onCaptureSystemAudioChange={handleCaptureSystemAudioChange}
           secondAudioDeviceId={secondAudioDeviceId}
           onSecondAudioDeviceChange={setSecondAudioDeviceId}
-          useMicrophone={useMicrophone}
-          onUseMicrophoneChange={setUseMicrophone}
-          disabled={isActive}
+          useCamera={useCamera}
+          onUseCameraChange={setUseCamera}
+          videoDeviceId={videoDeviceId}
+          onVideoDeviceChange={setVideoDeviceId}
+          recording={isActive}
+          onValidityChange={setSourcesValid}
         />
       )}
 
@@ -186,6 +184,8 @@ export function RecorderPanel() {
         onDiscard={discard}
         onUseRecording={handleUseRecording}
         uploading={uploading}
+        startDisabled={!sourcesValid}
+        startDisabledReason={!sourcesValid ? t('recorder.sourcesAtLeastOne') : undefined}
       />
 
       {/* Error messages */}

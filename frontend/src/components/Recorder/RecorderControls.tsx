@@ -11,6 +11,8 @@ interface RecorderControlsProps {
   onDiscard: () => void
   onUseRecording: () => void
   uploading?: boolean
+  startDisabled?: boolean
+  startDisabledReason?: string
 }
 
 function formatDuration(ms: number): string {
@@ -31,6 +33,8 @@ export function RecorderControls({
   onDiscard,
   onUseRecording,
   uploading = false,
+  startDisabled = false,
+  startDisabledReason,
 }: RecorderControlsProps) {
   const { t } = useTranslation()
 
@@ -51,7 +55,9 @@ export function RecorderControls({
         {state === 'idle' && (
           <button
             onClick={onStart}
-            className="flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+            disabled={startDisabled}
+            title={startDisabled ? startDisabledReason : undefined}
+            className="flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
           >
             <span className="w-3 h-3 rounded-full bg-white" />
             {t('recorder.startRecording')}
