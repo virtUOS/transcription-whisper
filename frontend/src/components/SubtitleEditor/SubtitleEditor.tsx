@@ -84,11 +84,14 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
   const [editingCell, setEditingCell] = useState<{ index: number; field: string } | null>(null)
   const setSeekTo = useStore((s) => s.setSeekTo)
 
-  const utterances = activeView === 'translated' && translatedUtterances
-    ? translatedUtterances
-    : activeView === 'refined' && refinedUtterances
-      ? refinedUtterances
-      : (result?.utterances || [])
+  const utterances = useMemo(() =>
+    activeView === 'translated' && translatedUtterances
+      ? translatedUtterances
+      : activeView === 'refined' && refinedUtterances
+        ? refinedUtterances
+        : (result?.utterances || []),
+    [activeView, translatedUtterances, refinedUtterances, result]
+  )
 
   // Color map based on display names so same-name speakers always share color
   const speakerColorMap = useMemo(() => {
@@ -314,7 +317,7 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
 
     setResult({ ...result, utterances: updated })
     setDirty(true)
-  }, [result, setResult, setDirty])
+  }, [result, setResult, setDirty, t])
 
   const handleAddRow = useCallback((afterIndex: number) => {
     if (!result) return

@@ -4,6 +4,8 @@ import { api } from '../../api/client'
 import { useStore } from '../../store'
 import { formatFileSize } from '../../utils/format'
 
+const MAX_FILE_SIZE = 1 * 1024 * 1024 * 1024 // 1GB
+
 export function FileUpload() {
   const { t } = useTranslation()
   const file = useStore((s) => s.file)
@@ -29,8 +31,6 @@ export function FileUpload() {
     reset()
     setCurrentView('archive')
   }, [transcriptionId, reset, setCurrentView])
-
-  const MAX_FILE_SIZE = 1 * 1024 * 1024 * 1024 // 1GB
 
   const handleUpload = useCallback(async (selectedFile: File) => {
     setError(null)

@@ -10,11 +10,14 @@ export function AudioLevelMeter({ stream }: AudioLevelMeterProps) {
   const analyserRef = useRef<AnalyserNode | null>(null)
   const contextRef = useRef<AudioContext | null>(null)
 
+  const [prevStream, setPrevStream] = useState(stream)
+  if (stream !== prevStream) {
+    setPrevStream(stream)
+    if (!stream) setLevel(0)
+  }
+
   useEffect(() => {
-    if (!stream) {
-      setLevel(0)
-      return
-    }
+    if (!stream) return
 
     const audioContext = new AudioContext()
     const analyser = audioContext.createAnalyser()

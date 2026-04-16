@@ -95,20 +95,25 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
     ? speakerMappings[utterance.speaker] || utterance.speaker
     : ''
 
-  // Sync inlineText when utterance changes externally or when not editing text
-  useEffect(() => {
+  // Sync inlineText when utterance changes externally
+  const [prevUtteranceText, setPrevUtteranceText] = useState(utterance.text)
+  if (utterance.text !== prevUtteranceText) {
+    setPrevUtteranceText(utterance.text)
     if (editingField !== 'text') {
       setInlineText(utterance.text)
     }
-  }, [utterance.text, editingField])
+  }
 
   // Initialize editValue when a non-text field starts editing on this row
-  useEffect(() => {
-    if (!editingField || editingField === 'text') return
-    if (editingField === 'start') setEditValue(formatTimestamp(utterance.start))
-    else if (editingField === 'end') setEditValue(formatTimestamp(utterance.end))
-    else if (editingField === 'speaker') setEditValue(speakerDisplay)
-  }, [editingField, utterance.start, utterance.end, speakerDisplay])
+  const [prevEditingField, setPrevEditingField] = useState(editingField)
+  if (editingField !== prevEditingField) {
+    setPrevEditingField(editingField)
+    if (editingField && editingField !== 'text') {
+      if (editingField === 'start') setEditValue(formatTimestamp(utterance.start))
+      else if (editingField === 'end') setEditValue(formatTimestamp(utterance.end))
+      else if (editingField === 'speaker') setEditValue(speakerDisplay)
+    }
+  }
 
   // Auto-focus and auto-size textarea when entering text edit mode
   useEffect(() => {

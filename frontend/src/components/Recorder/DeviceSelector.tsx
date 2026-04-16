@@ -86,6 +86,7 @@ export function DeviceSelector({
     if (!hasVideoLabels) {
       enumerateWithPermission(true)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once per camera toggle, not on every device list change
   }, [useCamera])
 
   // Auto-select first available second device when dual-device dropdown appears

@@ -6,6 +6,18 @@ import { useStore } from '../../store'
 import { api } from '../../api/client'
 import type { Utterance } from '../../api/types'
 
+const mimeTypes: Record<string, string> = {
+  mp4: 'video/mp4',
+  webm: 'video/webm',
+  mov: 'video/quicktime',
+  mp3: 'audio/mpeg',
+  wav: 'audio/wav',
+  m4a: 'audio/mp4',
+  aac: 'audio/aac',
+  opus: 'audio/opus',
+  ogg: 'audio/ogg',
+}
+
 function formatVttTime(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000)
   const h = Math.floor(totalSeconds / 3600)
@@ -61,17 +73,6 @@ export function MediaPlayer({ fileId, mediaType, hasVideo, onCollapsedChange }: 
     }
   }
 
-  const mimeTypes: Record<string, string> = {
-    mp4: 'video/mp4',
-    webm: 'video/webm',
-    mov: 'video/quicktime',
-    mp3: 'audio/mpeg',
-    wav: 'audio/wav',
-    m4a: 'audio/mp4',
-    aac: 'audio/aac',
-    opus: 'audio/opus',
-    ogg: 'audio/ogg',
-  }
   const mediaUrl = api.getMediaUrl(fileId)
 
   useEffect(() => {
@@ -158,7 +159,7 @@ export function MediaPlayer({ fileId, mediaType, hasVideo, onCollapsedChange }: 
   const vttContent = useMemo(() => {
     if (!hasVideo || collapsed || !transcriptionResult?.utterances?.length) return null
     return generateVtt(transcriptionResult.utterances, speakerMappings)
-  }, [hasVideo, collapsed, transcriptionResult?.utterances, speakerMappings])
+  }, [hasVideo, collapsed, transcriptionResult, speakerMappings])
 
   useEffect(() => {
     const player = playerRef.current

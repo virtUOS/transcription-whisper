@@ -28,9 +28,13 @@ export function SpeakerMapping({ isOpen, onClose, focusSpeaker }: Props) {
   const [localMappings, setLocalMappings] = useState<Record<string, string>>(speakerMappings)
 
   // Sync local mappings when store mappings change (e.g. on reopen)
-  useEffect(() => {
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen)
+  const [prevSpeakerMappings, setPrevSpeakerMappings] = useState(speakerMappings)
+  if (isOpen !== prevIsOpen || speakerMappings !== prevSpeakerMappings) {
+    setPrevIsOpen(isOpen)
+    setPrevSpeakerMappings(speakerMappings)
     if (isOpen) setLocalMappings(speakerMappings)
-  }, [isOpen, speakerMappings])
+  }
 
   // Collect custom (non-placeholder) names for datalist suggestions
   const customNames = useMemo(() => {

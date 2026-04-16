@@ -64,6 +64,7 @@ function DetailActions() {
   const setHistory = useStore((s) => s.setTranscriptionHistory)
   const setCurrentView = useStore((s) => s.setCurrentView)
   const reset = useStore((s) => s.reset)
+  const [now] = useState(() => Date.now())
 
   // Ensure history is loaded (may not be if user navigated directly to detail)
   useEffect(() => {
@@ -137,7 +138,7 @@ function DetailActions() {
         </svg>
         {t('transcription.delete')}
       </button>
-      <span className={`text-xs ${new Date(item.expires_at + 'Z').getTime() - Date.now() < 24 * 60 * 60 * 1000 ? 'text-red-400' : 'text-gray-500'}`}>
+      <span className={`text-xs ${new Date(item.expires_at + 'Z').getTime() - now < 24 * 60 * 60 * 1000 ? 'text-red-400' : 'text-gray-500'}`}>
         {t('transcription.expiresOn', { date: new Date(item.expires_at + 'Z').toLocaleDateString('de-DE') })}
       </span>
     </div>
@@ -163,9 +164,11 @@ function App() {
 
   useBeforeUnloadWarning()
 
-  useEffect(() => {
+  const [prevFileId, setPrevFileId] = useState(file?.id)
+  if (file?.id !== prevFileId) {
+    setPrevFileId(file?.id)
     setPlayerCollapsed(false)
-  }, [file?.id])
+  }
 
   const handleOpenSpeakerModal = (speakerId?: string) => {
     setFocusSpeaker(speakerId)
@@ -225,7 +228,7 @@ function App() {
     } else {
       document.title = t('title')
     }
-  }, [currentView, file, t])
+  }, [currentView, file, t, transcriptionTitle])
 
   const setRefinedUtterances = useStore((s) => s.setRefinedUtterances)
   const setRefinementMetadata = useStore((s) => s.setRefinementMetadata)
@@ -238,11 +241,18 @@ function App() {
   const [pipelineErrors, setPipelineErrors] = useState<string[]>([])
 
   // Reset auto-pipeline flag when a new transcription starts
+  const [prevTranscriptionStatus, setPrevTranscriptionStatus] = useState(transcriptionStatus)
+  if (transcriptionStatus !== prevTranscriptionStatus) {
+    setPrevTranscriptionStatus(transcriptionStatus)
+    if (transcriptionStatus && transcriptionStatus !== 'completed') {
+      setPipelineStatus(null)
+      setPipelineErrors([])
+    }
+  }
+
   useEffect(() => {
     if (transcriptionStatus && transcriptionStatus !== 'completed') {
       autoPipelineRanRef.current = false
-      setPipelineStatus(null)
-      setPipelineErrors([])
     }
   }, [transcriptionStatus])
 
@@ -333,7 +343,7 @@ function App() {
     }
 
     run()
-  }, [transcriptionStatus, transcriptionResult, setRefinedUtterances, setRefinementMetadata, setActiveView, addAnalysis, setTranslatedUtterances, setTranslationLanguage])
+  }, [transcriptionStatus, transcriptionResult, setRefinedUtterances, setRefinementMetadata, setActiveView, addAnalysis, setTranslatedUtterances, setTranslationLanguage, t])
 
   if (!config) return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-gray-400">{t('common.loading')}</div>
 

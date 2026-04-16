@@ -24,6 +24,29 @@ function resolveAssetUrl(src: string | undefined): string | undefined {
   return assetUrls[key] ?? src
 }
 
+function LightboxImage({ src, alt, ...props }: React.ImgHTMLAttributes<HTMLImageElement>) {
+  const resolved = resolveAssetUrl(typeof src === 'string' ? src : undefined)
+  const dialogRef = useRef<HTMLDialogElement>(null)
+  return (
+    <>
+      <img
+        src={resolved}
+        alt={alt ?? ''}
+        className="my-4 w-full rounded border border-gray-700 bg-gray-800/40 p-2 cursor-pointer hover:border-gray-500 transition-colors"
+        onClick={() => dialogRef.current?.showModal()}
+        {...props}
+      />
+      <dialog
+        ref={dialogRef}
+        onClick={(e) => { if (e.target === e.currentTarget) dialogRef.current?.close() }}
+        className="backdrop:bg-black/70 bg-transparent p-4 w-[90vw] max-h-[90vh] m-auto"
+      >
+        <img src={resolved} alt={alt ?? ''} className="w-full object-contain rounded bg-gray-800 p-6" />
+      </dialog>
+    </>
+  )
+}
+
 const components: Components = {
   a: ({ href, children, ...props }) => {
     const isExternal = href?.startsWith('http://') || href?.startsWith('https://')
@@ -71,28 +94,7 @@ const components: Components = {
   li: ({ children, ...props }) => (
     <li className="text-gray-300" {...props}>{children}</li>
   ),
-  img: ({ src, alt, ...props }) => {
-    const resolved = resolveAssetUrl(typeof src === 'string' ? src : undefined)
-    const dialogRef = useRef<HTMLDialogElement>(null)
-    return (
-      <>
-        <img
-          src={resolved}
-          alt={alt ?? ''}
-          className="my-4 w-full rounded border border-gray-700 bg-gray-800/40 p-2 cursor-pointer hover:border-gray-500 transition-colors"
-          onClick={() => dialogRef.current?.showModal()}
-          {...props}
-        />
-        <dialog
-          ref={dialogRef}
-          onClick={(e) => { if (e.target === e.currentTarget) dialogRef.current?.close() }}
-          className="backdrop:bg-black/70 bg-transparent p-4 w-[90vw] max-h-[90vh] m-auto"
-        >
-          <img src={resolved} alt={alt ?? ''} className="w-full object-contain rounded bg-gray-800 p-6" />
-        </dialog>
-      </>
-    )
-  },
+  img: LightboxImage,
   table: ({ children, ...props }) => (
     <div className="overflow-x-auto my-3">
       <table className="text-sm text-gray-300 border-collapse" {...props}>{children}</table>

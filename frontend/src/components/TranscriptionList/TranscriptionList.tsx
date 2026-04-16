@@ -56,7 +56,7 @@ export function TranscriptionList() {
 
   const reset = useStore((s) => s.reset)
 
-  const doSelect = async (item: TranscriptionListItem) => {
+  const doSelect = useCallback(async (item: TranscriptionListItem) => {
     setTranscriptionId(item.id)
     setTranscriptionTitle(item.title || null)
     setTranscriptionStatus(item.status)
@@ -84,10 +84,11 @@ export function TranscriptionList() {
         }
       } catch {
         reset()
-        setHistory(history.filter((h) => h.id !== item.id))
+        const currentHistory = useStore.getState().transcriptionHistory
+        setHistory(currentHistory.filter((h) => h.id !== item.id))
       }
     }
-  }
+  }, [setTranscriptionId, setTranscriptionTitle, setTranscriptionStatus, setFile, setCurrentView, setResult, setSpeakerMappings, setRefinedUtterances, setRefinementMetadata, clearRefinement, setTranslatedUtterances, setTranslationLanguage, clearTranslation, reset, setHistory])
 
   const handleClick = useCallback((item: TranscriptionListItem) => {
     if (clickTimerRef.current) clearTimeout(clickTimerRef.current)
@@ -95,7 +96,7 @@ export function TranscriptionList() {
       clickTimerRef.current = null
       doSelect(item)
     }, 250)
-  }, [])
+  }, [doSelect])
 
   const handleEditStart = useCallback((e: React.MouseEvent, item: TranscriptionListItem, field: 'title' | 'filename') => {
     e.stopPropagation()
