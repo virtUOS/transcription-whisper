@@ -478,10 +478,12 @@ function App() {
       setPendingTranscription(false)
       setSubmittedSummary(null)
       setSubmitError(null)
-      const { transcriptionStatus: status } = useStore.getState()
-      if (status !== null && status !== 'completed') {
-        useStore.getState().setTranscriptionId(null)
-        useStore.getState().setTranscriptionStatus(null)
+      if (currentView !== 'detail') {
+        const { transcriptionStatus: status } = useStore.getState()
+        if (status !== null && status !== 'completed') {
+          useStore.getState().setTranscriptionId(null)
+          useStore.getState().setTranscriptionStatus(null)
+        }
       }
     }
   }, [currentView])
