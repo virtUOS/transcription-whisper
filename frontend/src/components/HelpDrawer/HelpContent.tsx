@@ -86,9 +86,9 @@ const components: Components = {
         <dialog
           ref={dialogRef}
           onClick={(e) => { if (e.target === e.currentTarget) dialogRef.current?.close() }}
-          className="backdrop:bg-black/70 bg-transparent p-4 max-w-[90vw] max-h-[90vh] m-auto"
+          className="backdrop:bg-black/70 bg-transparent p-4 w-[90vw] max-h-[90vh] m-auto"
         >
-          <img src={resolved} alt={alt ?? ''} className="w-full h-full object-contain rounded bg-gray-800 p-4" />
+          <img src={resolved} alt={alt ?? ''} className="w-full object-contain rounded bg-gray-800 p-6" />
         </dialog>
       </>
     )
