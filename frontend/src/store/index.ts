@@ -61,6 +61,10 @@ interface AppState {
   setRefinementPresets: (presets: RefinementPreset[]) => void
   setBundles: (bundles: PresetBundle[]) => void
   setActiveBundleId: (id: string | null) => void
+  helpOpen: boolean
+  helpInitialSection: string | null
+  setHelpOpen: (open: boolean, initialSection?: string | null) => void
+  closeHelp: () => void
   clearRefinement: () => void
   reset: () => void
 }
@@ -146,6 +150,11 @@ export const useStore = create<AppState>((set, get) => ({
   setRefinementPresets: (presets) => set({ refinementPresets: presets }),
   setBundles: (bundles) => set({ bundles }),
   setActiveBundleId: (id) => set({ activeBundleId: id }),
+  helpOpen: false,
+  helpInitialSection: null,
+  setHelpOpen: (open, initialSection) =>
+    set({ helpOpen: open, helpInitialSection: initialSection ?? null }),
+  closeHelp: () => set({ helpOpen: false }),
   clearRefinement: () => set({ refinedUtterances: null, refinementMetadata: null, activeView: 'original' as const }),
   reset: () => set({
     currentView: 'archive' as const,
