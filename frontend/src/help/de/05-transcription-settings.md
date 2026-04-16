@@ -8,14 +8,14 @@ Die Sprechererkennung (Diarization) erkennt, wer wann gesprochen hat, und versie
 
 | Stufe | Geschwindigkeit | Hinweis |
 |---|---|---|
-| Draft | Schnellste | Gut für schnelle Vorschauen langer Dateien |
+| Entwurf | Schnellste | Gut für schnelle Vorschauen langer Dateien |
 | Standard | Schnell | — |
-| Good | Mittel | — |
-| Better | Langsam | — |
-| Best (fast) | Schnell/genau | Empfohlene Standardwahl |
-| Best | Langsamste | Maximale Genauigkeit |
+| Gut | Mittel | — |
+| Besser | Langsam | — |
+| Ausgewogen | Schnell/genau | Empfohlene Standardwahl |
+| Beste Qualität | Langsamste | Maximale Genauigkeit |
 
-**Best (fast)** ist für die meisten Anwendungsfälle die richtige Wahl.
+**Ausgewogen** ist für die meisten Anwendungsfälle die richtige Wahl.
 
 ## Erweiterte Optionen
 

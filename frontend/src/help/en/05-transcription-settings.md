@@ -12,10 +12,10 @@ Diarization detects who spoke when and tags each utterance with a label like SPE
 | Standard | Fast | — |
 | Good | Medium | — |
 | Better | Slow | — |
-| Best (fast) | Fast/accurate | Recommended default |
-| Best | Slowest | Maximum accuracy |
+| Balanced | Fast/accurate | Recommended default |
+| Best quality | Slowest | Maximum accuracy |
 
-**Best (fast)** is usually the right choice for most use cases.
+**Balanced** is usually the right choice for most use cases.
 
 ## Advanced options
 
