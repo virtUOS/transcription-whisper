@@ -214,6 +214,7 @@ function AnalysisPresetsList() {
   const { t } = useTranslation()
   const presets = useStore((s) => s.analysisPresets)
   const setPresets = useStore((s) => s.setAnalysisPresets)
+  const enabledLanguages = useStore((s) => s.config?.enabled_languages) || []
 
   const emptyForm: AnalysisPresetCreate = { name: '', template: 'summary', custom_prompt: null, language: null }
   const [showForm, setShowForm] = useState(false)
@@ -229,7 +230,8 @@ function AnalysisPresetsList() {
 
   const openEdit = (p: AnalysisPreset) => {
     setEditingId(p.id)
-    setForm({ name: p.name, template: p.template, custom_prompt: p.custom_prompt, language: p.language })
+    const language = p.language && !isLanguageEnabled(p.language, enabledLanguages) ? null : p.language
+    setForm({ name: p.name, template: p.template, custom_prompt: p.custom_prompt, language })
     setShowForm(true)
   }
 
@@ -326,14 +328,15 @@ function AnalysisPresetsList() {
             </select>
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1">{t('settings.language')}</label>
+            <label htmlFor="analysis-preset-language-field" className="block text-xs text-gray-400 mb-1">{t('settings.language')}</label>
             <select
+              id="analysis-preset-language-field"
               value={form.language ?? ''}
               onChange={(e) => setForm({ ...form, language: e.target.value || null })}
               className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">{t('languages.auto')}</option>
-              {LANGUAGES.map((code) => (
+              {filterEnabledLanguages(LANGUAGES, enabledLanguages).map((code) => (
                 <option key={code} value={code}>{t(`languages.${code}`)}</option>
               ))}
             </select>
