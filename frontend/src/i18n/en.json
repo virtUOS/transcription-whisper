@@ -49,7 +49,24 @@
     "statusProcessing": "Transcribing audio — please wait, this may take a few minutes.",
     "statusUploading": "Uploading file — please wait...",
     "editTitle": "Edit title",
-    "editFilename": "Edit filename"
+    "editFilename": "Edit filename",
+    "summary": {
+      "noLanguage": "auto",
+      "speakersOff": "no speakers",
+      "speakersOne": "{{count}} speaker",
+      "speakersRange": "{{min}}–{{max}} speakers",
+      "viaBundle": "via \"{{name}}\" bundle",
+      "line": "{{size}} · {{model}} · {{language}} · {{speakers}}"
+    },
+    "progress": {
+      "pendingUpload": "Uploading file — we'll start transcribing as soon as it's done.",
+      "queued": "Queued…",
+      "processing": "Transcribing…",
+      "uploadFailed": "Upload failed",
+      "editSettings": "Edit settings",
+      "tryAgain": "Try again",
+      "youCanLeave": "You can leave this page — we'll keep working in the background. Find it later in your transcriptions."
+    }
   },
   "editor": {
     "subtitles": "Subtitles",
@@ -348,7 +365,12 @@
     "systemAudioFailed": "Could not capture system audio. You may have cancelled the prompt or your browser does not support this feature.",
     "selectSecondDevice": "System audio source",
     "secondDeviceFailed": "Could not open the selected system audio device. Please check that it is available and not in use.",
-    "consentReminder": "Don't record people without their permission. Ask first!"
+    "consentReminder": "Don't record people without their permission. Ask first!",
+    "sourcesAtLeastOne": "Enable at least one source",
+    "sourcesCameraDisabledBySystemAudio": "Not available while System audio is on",
+    "sourceMicrophone": "Microphone",
+    "sourceCamera": "Camera",
+    "sourceSystemAudio": "System audio"
   },
   "player": {
     "subtitles": "Subtitles",
