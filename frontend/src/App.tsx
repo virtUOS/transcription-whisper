@@ -1,8 +1,10 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Header } from './components/Header'
 import { SettingsPanel } from './components/FileUpload'
+import type { SettingsPanelValues } from './components/FileUpload/SettingsPanel'
 import { FileUpload } from './components/FileUpload'
+import type { SubmittedSummary } from './components/FileUpload'
 import { TranscriptionProgressCard } from './components/ProgressBar'
 import { TranscriptionList } from './components/TranscriptionList'
 import { TabBar } from './components/TabBar'
@@ -153,6 +155,7 @@ function App() {
   const uploading = useStore((s) => s.uploading)
   const currentView = useStore((s) => s.currentView)
   const setCurrentView = useStore((s) => s.setCurrentView)
+  const transcriptionId = useStore((s) => s.transcriptionId)
   const transcriptionStatus = useStore((s) => s.transcriptionStatus)
   const transcriptionTitle = useStore((s) => s.transcriptionTitle)
   const transcriptionResult = useStore((s) => s.transcriptionResult)
@@ -163,6 +166,35 @@ function App() {
   const [playerCollapsed, setPlayerCollapsed] = useState(false)
 
   useBeforeUnloadWarning()
+
+  const [settings, setSettings] = useState<SettingsPanelValues>({
+    language: 'auto',
+    model: config?.default_model || 'base',
+    detectSpeakers: true,
+    minSpeakers: 1,
+    maxSpeakers: 2,
+    initialPrompt: '',
+    hotwords: '',
+    selectedPresetId: null,
+    showAdvanced: false,
+  })
+
+  useEffect(() => {
+    if (config?.default_model && settings.model === 'base') {
+      setSettings((s) => ({ ...s, model: config.default_model }))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-sync when config first loads
+  }, [config?.default_model])
+
+  const updateSettings = useCallback((patch: Partial<SettingsPanelValues>) => {
+    setSettings((s) => ({ ...s, ...patch }))
+  }, [])
+
+  const [pendingTranscription, setPendingTranscription] = useState(false)
+  const [submittedSummary, setSubmittedSummary] = useState<SubmittedSummary | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [settingsSaveError] = useState<string | null>(null)
 
   const [prevFileId, setPrevFileId] = useState(file?.id)
   if (file?.id !== prevFileId) {
@@ -345,6 +377,95 @@ function App() {
     run()
   }, [transcriptionStatus, transcriptionResult, setRefinedUtterances, setRefinementMetadata, setActiveView, addAnalysis, setTranslatedUtterances, setTranslationLanguage, t])
 
+  const handleTranscribe = useCallback(async () => {
+    const state = useStore.getState()
+    const f = state.file
+    const isUploading = state.uploading
+    const bundleId = state.activeBundleId
+    const bundleList = state.bundles
+    const bundleName = bundleId ? bundleList.find((b) => b.id === bundleId)?.name : undefined
+
+    if (!f && !isUploading) return
+
+    const summary: SubmittedSummary = {
+      filename: f?.original_filename || t('transcription.statusUploading'),
+      fileSize: f?.file_size || 0,
+      model: settings.model,
+      language: settings.language === 'auto' ? null : settings.language,
+      detectSpeakers: settings.detectSpeakers,
+      minSpeakers: settings.minSpeakers,
+      maxSpeakers: settings.maxSpeakers,
+      bundleName,
+    }
+    setSubmittedSummary(summary)
+
+    if (!f && isUploading) {
+      setPendingTranscription(true)
+      return
+    }
+    if (!f) return
+
+    setSubmitting(true)
+    setSubmitError(null)
+    try {
+      const result = await api.startTranscription({
+        file_id: f.id,
+        language: settings.language === 'auto' ? null : settings.language,
+        model: settings.model,
+        min_speakers: settings.detectSpeakers ? settings.minSpeakers : 0,
+        max_speakers: settings.detectSpeakers ? settings.maxSpeakers : 0,
+        initial_prompt: settings.initialPrompt || null,
+        hotwords: settings.hotwords || null,
+      })
+      useStore.getState().setTranscriptionId(result.id)
+      useStore.getState().setTranscriptionStatus(result.status)
+      setPendingTranscription(false)
+    } catch (e) {
+      setSubmitError(e instanceof Error ? e.message : 'Transcription failed')
+    } finally {
+      setSubmitting(false)
+    }
+  }, [settings, t])
+
+  useEffect(() => {
+    if (pendingTranscription && file) {
+      handleTranscribe()
+    }
+  }, [file, pendingTranscription, handleTranscribe])
+
+  useEffect(() => {
+    if (pendingTranscription && file && submittedSummary) {
+      setSubmittedSummary({
+        ...submittedSummary,
+        filename: file.original_filename,
+        fileSize: file.file_size,
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when file lands while pending
+  }, [file, pendingTranscription])
+
+  const handleTryAgain = useCallback(() => {
+    useStore.getState().setTranscriptionId(null)
+    useStore.getState().setTranscriptionStatus(null)
+    setPendingTranscription(false)
+    setSubmitError(null)
+    setSubmittedSummary(null)
+  }, [])
+
+  const inSubmittedState =
+    (transcriptionId !== null && transcriptionStatus !== 'completed')
+    || pendingTranscription
+    || submitError !== null
+
+  // Task 9 will wire these — referenced here to satisfy lint/tsc
+  void pendingTranscription
+  void submittedSummary
+  void submitting
+  void submitError
+  void handleTranscribe
+  void handleTryAgain
+  void inSubmittedState
+
   if (!config) return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-gray-400">{t('common.loading')}</div>
 
   const showEditor = transcriptionStatus === 'completed' && transcriptionResult
@@ -372,7 +493,9 @@ function App() {
         <>
           <BackButton />
           <FileUpload />
-          {(file || uploading) && !showEditor && <SettingsPanel />}
+          {(file || uploading) && !showEditor && (
+            <SettingsPanel values={settings} onChange={updateSettings} saveError={settingsSaveError} />
+          )}
           <TranscriptionProgressCard />
         </>
       )}
@@ -385,7 +508,9 @@ function App() {
               <RecorderPanel />
             </Suspense>
           </ChunkErrorBoundary>
-          {(file || uploading) && !showEditor && <SettingsPanel />}
+          {(file || uploading) && !showEditor && (
+            <SettingsPanel values={settings} onChange={updateSettings} saveError={settingsSaveError} />
+          )}
           <TranscriptionProgressCard />
         </>
       )}
