@@ -639,6 +639,8 @@ function App() {
                 />
                 <TabBar onSpeakerNamesClick={() => handleOpenSpeakerModal()} />
 
+                <SpeakerMapping isOpen={speakerModalOpen} onClose={() => { setSpeakerModalOpen(false); setFocusSpeaker(undefined) }} focusSpeaker={focusSpeaker} />
+
                 <div className={`mx-6 my-2 ${!file.has_video || playerCollapsed ? 'max-h-[calc(100vh-14rem)]' : 'max-h-[calc(100vh-22rem)]'} overflow-auto`}>
                   {activeTab === 'subtitles' && <SubtitleEditor onOpenSpeakerModal={handleOpenSpeakerModal} />}
                   {activeTab === 'analysis' && <AnalysisView />}
@@ -646,8 +648,6 @@ function App() {
                     <FormatViewer format={activeTab} />
                   )}
                 </div>
-
-                <SpeakerMapping isOpen={speakerModalOpen} onClose={() => { setSpeakerModalOpen(false); setFocusSpeaker(undefined) }} focusSpeaker={focusSpeaker} />
               </Suspense>
             </ChunkErrorBoundary>
           )}
