@@ -282,6 +282,21 @@ export function TranscriptionList() {
       </div>
         </>
       )}
+
+      {history.length === 0 && (
+        <div className="mt-6 px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg flex items-center justify-between gap-4">
+          <span className="text-sm text-gray-400">
+            {t('help.emptyStateHint')}
+          </span>
+          <button
+            type="button"
+            onClick={() => useStore.getState().setHelpOpen(true, 'getting-started')}
+            className="text-sm text-blue-400 hover:text-blue-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 rounded"
+          >
+            {t('help.emptyStateLink')} →
+          </button>
+        </div>
+      )}
     </div>
   )
 }

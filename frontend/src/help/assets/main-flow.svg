@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 140" role="img" aria-labelledby="main-flow-title">
+  <title id="main-flow-title">Archive → Upload or Record → Detail</title>
+  <style>
+    .box { fill: #1f2937; stroke: #4b5563; stroke-width: 1.5; }
+    .label { fill: #e5e7eb; font-family: system-ui, sans-serif; font-size: 14px; text-anchor: middle; }
+    .arrow { fill: none; stroke: #6b7280; stroke-width: 1.5; }
+    .arrow-head { fill: #6b7280; }
+  </style>
+  <rect class="box" x="20" y="50" width="120" height="40" rx="6" />
+  <text class="label" x="80" y="75">Archive</text>
+  <rect class="box" x="220" y="20" width="120" height="40" rx="6" />
+  <text class="label" x="280" y="45">Upload</text>
+  <rect class="box" x="220" y="80" width="120" height="40" rx="6" />
+  <text class="label" x="280" y="105">Record</text>
+  <rect class="box" x="440" y="50" width="160" height="40" rx="6" />
+  <text class="label" x="520" y="75">Detail (editor + analysis)</text>
+  <path class="arrow" d="M 140 70 Q 180 70 220 40" />
+  <path class="arrow" d="M 140 70 Q 180 70 220 100" />
+  <path class="arrow" d="M 340 40 Q 390 40 440 70" />
+  <path class="arrow" d="M 340 100 Q 390 100 440 70" />
+  <polygon class="arrow-head" points="215,37 226,40 215,43" />
+  <polygon class="arrow-head" points="215,97 226,100 215,103" />
+  <polygon class="arrow-head" points="435,67 446,70 435,73" />
+  <polygon class="arrow-head" points="435,67 446,70 435,73" />
+</svg>

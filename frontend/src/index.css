@@ -3,3 +3,7 @@
 body {
   background-color: #111827;
 }
+
+button:not(:disabled) {
+  cursor: pointer;
+}

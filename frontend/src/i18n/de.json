@@ -373,5 +373,28 @@
     "logout": "Abmelden",
     "loadError": "Diese Ansicht konnte nicht geladen werden. Bitte laden Sie die Seite neu.",
     "reload": "Neu laden"
+  },
+  "help": {
+    "open": "Hilfe öffnen",
+    "close": "Hilfe schließen",
+    "title": "Hilfe",
+    "emptyStateHint": "Neu hier?",
+    "emptyStateLink": "Einführung öffnen",
+    "missingContent": "Inhalt folgt in Kürze.",
+    "sections": {
+      "getting-started": "Einführung",
+      "archive": "Archiv",
+      "upload": "Hochladen",
+      "record": "Aufnehmen",
+      "transcription-settings": "Transkriptionseinstellungen",
+      "subtitle-editor": "Untertitel-Editor",
+      "speaker-mapping": "Sprecher zuordnen",
+      "analysis": "Analyse",
+      "translation": "Übersetzung",
+      "refinement": "Verfeinerung",
+      "format-viewer": "Formatansicht",
+      "presets": "Voreinstellungen",
+      "bundles": "Bundles"
+    }
   }
 }
