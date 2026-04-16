@@ -25,3 +25,25 @@ export const LANGUAGES = [
 ] as const
 
 export const LANGUAGES_WITH_AUTO = ['auto', ...LANGUAGES] as const
+
+/**
+ * Filter a list of language codes through an allowlist.
+ * Empty allowlist (length 0) is the "no restriction" sentinel → return the full list.
+ * The special 'auto' code is always kept when present in the input list, regardless of allowlist.
+ */
+export function filterEnabledLanguages<T extends string>(
+  list: readonly T[],
+  enabled: readonly string[],
+): T[] {
+  if (enabled.length === 0) return [...list]
+  return list.filter((code) => code === 'auto' || enabled.includes(code))
+}
+
+/**
+ * Check whether a single language code is enabled by the allowlist.
+ * Empty allowlist means all codes are enabled.
+ */
+export function isLanguageEnabled(code: string, enabled: readonly string[]): boolean {
+  if (enabled.length === 0) return true
+  return enabled.includes(code)
+}
