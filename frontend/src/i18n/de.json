@@ -49,7 +49,24 @@
     "statusProcessing": "Audio wird transkribiert — bitte warten, dies kann einige Minuten dauern.",
     "statusUploading": "Datei wird hochgeladen — bitte warten...",
     "editTitle": "Titel bearbeiten",
-    "editFilename": "Dateinamen bearbeiten"
+    "editFilename": "Dateinamen bearbeiten",
+    "summary": {
+      "noLanguage": "automatisch",
+      "speakersOff": "keine Sprecher",
+      "speakersOne": "{{count}} Sprecher",
+      "speakersRange": "{{min}}–{{max}} Sprecher",
+      "viaBundle": "über Paket \"{{name}}\"",
+      "line": "{{size}} · {{model}} · {{language}} · {{speakers}}"
+    },
+    "progress": {
+      "pendingUpload": "Datei wird hochgeladen — die Transkription startet automatisch, sobald sie fertig ist.",
+      "queued": "Warteschlange…",
+      "processing": "Wird transkribiert…",
+      "uploadFailed": "Upload fehlgeschlagen",
+      "editSettings": "Einstellungen ändern",
+      "tryAgain": "Erneut versuchen",
+      "youCanLeave": "Sie können diese Seite verlassen — wir arbeiten im Hintergrund weiter. Finden Sie sie später in Ihren Transkriptionen."
+    }
   },
   "editor": {
     "subtitles": "Untertitel",
@@ -348,7 +365,12 @@
     "systemAudioFailed": "Systemaudio konnte nicht aufgenommen werden. Möglicherweise haben Sie die Eingabeaufforderung abgebrochen oder Ihr Browser unterstützt diese Funktion nicht.",
     "selectSecondDevice": "Systemaudioquelle",
     "secondDeviceFailed": "Das ausgewählte Systemaudio-Gerät konnte nicht geöffnet werden. Bitte überprüfen Sie, ob es verfügbar und nicht in Verwendung ist.",
-    "consentReminder": "Nehmen Sie niemanden ohne Erlaubnis auf. Fragen Sie vorher!"
+    "consentReminder": "Nehmen Sie niemanden ohne Erlaubnis auf. Fragen Sie vorher!",
+    "sourcesAtLeastOne": "Mindestens eine Quelle aktivieren",
+    "sourcesCameraDisabledBySystemAudio": "Nicht verfügbar, solange Systemaudio aktiv ist",
+    "sourceMicrophone": "Mikrofon",
+    "sourceCamera": "Kamera",
+    "sourceSystemAudio": "Systemaudio"
   },
   "player": {
     "subtitles": "Untertitel",

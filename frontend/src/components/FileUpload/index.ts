@@ -1,2 +1,5 @@
 export { FileUpload } from './FileUpload'
 export { SettingsPanel } from './SettingsPanel'
+export { SubmittedSummaryCard } from './SubmittedSummaryCard'
+export type { SubmittedSummary } from './SubmittedSummaryCard'
+export { TranscribeActionBar } from './TranscribeActionBar'

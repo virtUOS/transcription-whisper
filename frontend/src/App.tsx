@@ -1,9 +1,10 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Header } from './components/Header'
-import { SettingsPanel } from './components/FileUpload'
-import { FileUpload } from './components/FileUpload'
-import { ProgressBar } from './components/ProgressBar'
+import { FileUpload, SettingsPanel, SubmittedSummaryCard, TranscribeActionBar } from './components/FileUpload'
+import type { SettingsPanelValues } from './components/FileUpload/SettingsPanel'
+import type { SubmittedSummary } from './components/FileUpload'
+import { TranscriptionProgressCard } from './components/ProgressBar'
 import { TranscriptionList } from './components/TranscriptionList'
 import { TabBar } from './components/TabBar'
 import { useStore, setPopStateFlag } from './store'
@@ -153,6 +154,7 @@ function App() {
   const uploading = useStore((s) => s.uploading)
   const currentView = useStore((s) => s.currentView)
   const setCurrentView = useStore((s) => s.setCurrentView)
+  const transcriptionId = useStore((s) => s.transcriptionId)
   const transcriptionStatus = useStore((s) => s.transcriptionStatus)
   const transcriptionTitle = useStore((s) => s.transcriptionTitle)
   const transcriptionResult = useStore((s) => s.transcriptionResult)
@@ -164,6 +166,35 @@ function App() {
 
   useBeforeUnloadWarning()
 
+  const [settings, setSettings] = useState<SettingsPanelValues>({
+    language: 'auto',
+    model: config?.default_model || 'base',
+    detectSpeakers: true,
+    minSpeakers: 1,
+    maxSpeakers: 2,
+    initialPrompt: '',
+    hotwords: '',
+    selectedPresetId: null,
+    showAdvanced: false,
+  })
+
+  const configModelApplied = useRef(false)
+  useEffect(() => {
+    if (config?.default_model && !configModelApplied.current) {
+      configModelApplied.current = true
+      setSettings((s) => ({ ...s, model: config.default_model }))
+    }
+  }, [config?.default_model])
+
+  const updateSettings = useCallback((patch: Partial<SettingsPanelValues>) => {
+    setSettings((s) => ({ ...s, ...patch }))
+  }, [])
+
+  const [pendingTranscription, setPendingTranscription] = useState(false)
+  const [submittedSummary, setSubmittedSummary] = useState<SubmittedSummary | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+
   const [prevFileId, setPrevFileId] = useState(file?.id)
   if (file?.id !== prevFileId) {
     setPrevFileId(file?.id)
@@ -174,6 +205,9 @@ function App() {
     setFocusSpeaker(speakerId)
     setSpeakerModalOpen(true)
   }
+
+  const bundles = useStore((s) => s.bundles)
+  const activeBundleId = useStore((s) => s.activeBundleId)
 
   const setTranscriptionPresets = useStore((s) => s.setTranscriptionPresets)
   const setAnalysisPresets = useStore((s) => s.setAnalysisPresets)
@@ -345,6 +379,115 @@ function App() {
     run()
   }, [transcriptionStatus, transcriptionResult, setRefinedUtterances, setRefinementMetadata, setActiveView, addAnalysis, setTranslatedUtterances, setTranslationLanguage, t])
 
+  const handleTranscribe = useCallback(async () => {
+    const state = useStore.getState()
+    const f = state.file
+    const isUploading = state.uploading
+    const bundleId = state.activeBundleId
+    const bundleList = state.bundles
+    const bundleName = bundleId ? bundleList.find((b) => b.id === bundleId)?.name : undefined
+
+    if (!f && !isUploading) return
+
+    const summary: SubmittedSummary = {
+      filename: f?.original_filename || t('transcription.statusUploading'),
+      fileSize: f?.file_size || 0,
+      model: settings.model,
+      language: settings.language === 'auto' ? null : settings.language,
+      detectSpeakers: settings.detectSpeakers,
+      minSpeakers: settings.minSpeakers,
+      maxSpeakers: settings.maxSpeakers,
+      bundleName,
+    }
+    setSubmittedSummary(summary)
+
+    if (!f && isUploading) {
+      setPendingTranscription(true)
+      return
+    }
+    if (!f) return
+
+    setSubmitting(true)
+    setSubmitError(null)
+    try {
+      const result = await api.startTranscription({
+        file_id: f.id,
+        language: settings.language === 'auto' ? null : settings.language,
+        model: settings.model,
+        min_speakers: settings.detectSpeakers ? settings.minSpeakers : 0,
+        max_speakers: settings.detectSpeakers ? settings.maxSpeakers : 0,
+        initial_prompt: settings.initialPrompt || null,
+        hotwords: settings.hotwords || null,
+      })
+      useStore.getState().setTranscriptionId(result.id)
+      useStore.getState().setTranscriptionStatus(result.status)
+      setPendingTranscription(false)
+    } catch (e) {
+      setSubmitError(e instanceof Error ? e.message : 'Transcription failed')
+      setPendingTranscription(false)
+    } finally {
+      setSubmitting(false)
+    }
+  }, [settings, t])
+
+  useEffect(() => {
+    if (pendingTranscription && file) {
+      handleTranscribe()
+    }
+  }, [file, pendingTranscription, handleTranscribe])
+
+  useEffect(() => {
+    if (pendingTranscription && file && submittedSummary) {
+      setSubmittedSummary({
+        ...submittedSummary,
+        filename: file.original_filename,
+        fileSize: file.file_size,
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when file lands while pending
+  }, [file, pendingTranscription])
+
+  const handleTryAgain = useCallback(() => {
+    useStore.getState().setTranscriptionId(null)
+    useStore.getState().setTranscriptionStatus(null)
+    setPendingTranscription(false)
+    setSubmitError(null)
+    setSubmittedSummary(null)
+  }, [])
+
+  const inSubmittedState =
+    (transcriptionId !== null && transcriptionStatus !== 'completed')
+    || pendingTranscription
+    || submitError !== null
+
+  const transcribeLabel = (() => {
+    if (pendingTranscription || (uploading && !file)) {
+      return t('transcription.transcribeWhenReady')
+    }
+    const activeBundle = bundles.find((b) => b.id === activeBundleId)
+    const isPipeline =
+      activeBundle && (activeBundle.analysis_preset_id || activeBundle.refinement_preset_id || activeBundle.translate_language)
+    if (isPipeline) return t('transcription.runPipeline')
+    return t('transcription.transcribe')
+  })()
+
+  const transcribeDisabled = (!file && !uploading) || submitting
+
+  useEffect(() => {
+    if (currentView !== 'upload' && currentView !== 'record') {
+      setPendingTranscription(false)
+      setSubmittedSummary(null)
+      setSubmitError(null)
+      if (currentView !== 'detail') {
+        const { transcriptionStatus: status } = useStore.getState()
+        if (status !== null && status !== 'completed') {
+          useStore.getState().setTranscriptionId(null)
+          useStore.getState().setTranscriptionStatus(null)
+        }
+      }
+    }
+  }, [currentView])
+
   if (!config) return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-gray-400">{t('common.loading')}</div>
 
   const showEditor = transcriptionStatus === 'completed' && transcriptionResult
@@ -371,22 +514,68 @@ function App() {
       {currentView === 'upload' && (
         <>
           <BackButton />
-          <FileUpload />
-          {(file || uploading) && !showEditor && <SettingsPanel />}
-          <ProgressBar />
+          {inSubmittedState ? (
+            <>
+              {submittedSummary && <SubmittedSummaryCard summary={submittedSummary} />}
+              <TranscriptionProgressCard
+                pendingTranscription={pendingTranscription}
+                submitError={submitError}
+                onTryAgain={handleTryAgain}
+              />
+            </>
+          ) : (
+            <>
+              <FileUpload />
+              {(file || uploading) && !showEditor && (
+                <SettingsPanel values={settings} onChange={updateSettings} />
+              )}
+              {(file || uploading) && !showEditor && (
+                <TranscribeActionBar
+                  onClick={handleTranscribe}
+                  disabled={transcribeDisabled}
+                  label={transcribeLabel}
+                  submitting={submitting}
+                  variant={pendingTranscription || (uploading && !file) ? 'pending' : 'primary'}
+                />
+              )}
+            </>
+          )}
         </>
       )}
 
       {currentView === 'record' && (
         <>
           <BackButton />
-          <ChunkErrorBoundary errorMessage={t('common.loadError')} reloadLabel={t('common.reload')}>
-            <Suspense fallback={<LoadingFallback />}>
-              <RecorderPanel />
-            </Suspense>
-          </ChunkErrorBoundary>
-          {(file || uploading) && !showEditor && <SettingsPanel />}
-          <ProgressBar />
+          {inSubmittedState ? (
+            <>
+              {submittedSummary && <SubmittedSummaryCard summary={submittedSummary} />}
+              <TranscriptionProgressCard
+                pendingTranscription={pendingTranscription}
+                submitError={submitError}
+                onTryAgain={handleTryAgain}
+              />
+            </>
+          ) : (
+            <>
+              <ChunkErrorBoundary errorMessage={t('common.loadError')} reloadLabel={t('common.reload')}>
+                <Suspense fallback={<LoadingFallback />}>
+                  <RecorderPanel />
+                </Suspense>
+              </ChunkErrorBoundary>
+              {(file || uploading) && !showEditor && (
+                <SettingsPanel values={settings} onChange={updateSettings} />
+              )}
+              {(file || uploading) && !showEditor && (
+                <TranscribeActionBar
+                  onClick={handleTranscribe}
+                  disabled={transcribeDisabled}
+                  label={transcribeLabel}
+                  submitting={submitting}
+                  variant={pendingTranscription || (uploading && !file) ? 'pending' : 'primary'}
+                />
+              )}
+            </>
+          )}
         </>
       )}
 
@@ -402,7 +591,7 @@ function App() {
             </h1>
           )}
           <DetailActions />
-          <ProgressBar />
+          <TranscriptionProgressCard />
           {pipelineStatus && (
             <div className={`mx-6 my-2 px-4 py-2 rounded-lg flex items-center gap-3 ${
               pipelineStatus.step === 'refine' ? 'bg-amber-900/30 border border-amber-700/50' :
