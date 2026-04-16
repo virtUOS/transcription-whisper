@@ -115,8 +115,9 @@ export function SettingsPanel({ values, onChange, saveError = null }: SettingsPa
       )}
       <div className="flex flex-wrap gap-4 items-end">
         <div className="min-w-0">
-          <label className="block text-xs text-gray-400 mb-1">{t('settings.language')}</label>
+          <label htmlFor="upload-language-field" className="block text-xs text-gray-400 mb-1">{t('settings.language')}</label>
           <LanguageSelect
+            id="upload-language-field"
             value={values.language}
             onChange={(v) => onChange({ language: v })}
             includeAuto
