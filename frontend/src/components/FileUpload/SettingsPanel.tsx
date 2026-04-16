@@ -125,16 +125,30 @@ export function SettingsPanel({ values, onChange, saveError = null }: SettingsPa
         </div>
         <div className="min-w-0">
           <label className="block text-xs text-gray-400 mb-1">{t('settings.model')}</label>
-          <select
-            value={values.model}
-            onChange={(e) => onChange({ model: e.target.value })}
-            className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5"
-          >
-            {(config?.whisper_models || []).map((m) => {
+          {(() => {
+            const models = config?.whisper_models || []
+            if (models.length === 1) {
+              const m = models[0]
               const label = t(`settings.modelLabels.${m}`, '')
-              return <option key={m} value={m}>{label ? `${label} (${m})` : m}</option>
-            })}
-          </select>
+              return (
+                <div className="text-sm text-white px-3 py-1.5">
+                  {label ? `${label} (${m})` : m}
+                </div>
+              )
+            }
+            return (
+              <select
+                value={values.model}
+                onChange={(e) => onChange({ model: e.target.value })}
+                className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5"
+              >
+                {models.map((m) => {
+                  const label = t(`settings.modelLabels.${m}`, '')
+                  return <option key={m} value={m}>{label ? `${label} (${m})` : m}</option>
+                })}
+              </select>
+            )
+          })()}
         </div>
         <div className="flex items-center gap-2 py-1.5 min-w-0">
           <input
