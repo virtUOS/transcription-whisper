@@ -106,6 +106,20 @@ export function HelpDrawer() {
             ✕
           </button>
         </div>
+        <div className="md:hidden px-4 py-2 border-b border-gray-700">
+          <select
+            value={activeId}
+            onChange={(e) => setActiveId(e.target.value as HelpSectionId)}
+            aria-label={t('help.title')}
+            className="w-full bg-gray-700 text-white text-sm rounded px-3 py-2"
+          >
+            {sections.map((section) => (
+              <option key={section.id} value={section.id}>
+                {t(`help.sections.${section.id}`)}
+              </option>
+            ))}
+          </select>
+        </div>
         <div className="flex flex-1 min-h-0">
           <HelpSidebar activeId={activeId} onSelect={setActiveId} />
           <HelpContent sectionId={activeId} />

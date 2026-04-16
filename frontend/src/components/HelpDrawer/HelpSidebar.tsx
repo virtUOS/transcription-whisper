@@ -13,7 +13,7 @@ export function HelpSidebar({ activeId, onSelect }: HelpSidebarProps) {
   return (
     <nav
       aria-label={t('help.title')}
-      className="w-[200px] shrink-0 border-r border-gray-700 overflow-y-auto py-4"
+      className="hidden md:block w-[200px] shrink-0 border-r border-gray-700 overflow-y-auto py-4"
     >
       <ul className="space-y-1">
         {sections.map((section) => {
