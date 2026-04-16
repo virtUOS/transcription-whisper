@@ -133,11 +133,15 @@ function TranscriptionPresetsList() {
           </div>
           <div>
             <label className="block text-xs text-gray-400 mb-1">{t('settings.model')}</label>
-            {models.length === 1 ? (
-              <div className="text-sm text-white px-3 py-1.5">
-                {t(`settings.modelLabels.${models[0]}`, { defaultValue: models[0] })}
-              </div>
-            ) : (
+            {models.length === 1 ? (() => {
+              const m = models[0]
+              const label = t(`settings.modelLabels.${m}`, '')
+              return (
+                <div className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5">
+                  {label ? `${label} (${m})` : m}
+                </div>
+              )
+            })() : (
               <select
                 value={form.model ?? defaultModel}
                 onChange={(e) => setForm({ ...form, model: e.target.value })}

@@ -131,7 +131,7 @@ export function SettingsPanel({ values, onChange, saveError = null }: SettingsPa
               const m = models[0]
               const label = t(`settings.modelLabels.${m}`, '')
               return (
-                <div className="text-sm text-white px-3 py-1.5">
+                <div className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5">
                   {label ? `${label} (${m})` : m}
                 </div>
               )
