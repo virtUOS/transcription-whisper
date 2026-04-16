@@ -329,7 +329,7 @@ function AnalysisPresetsList() {
             </select>
           </div>
           <div>
-            <label htmlFor="analysis-preset-language-field" className="block text-xs text-gray-400 mb-1">{t('settings.language')}</label>
+            <label htmlFor="analysis-preset-language-field" className="block text-xs text-gray-400 mb-1">{t('editor.outputLanguage')}</label>
             <select
               id="analysis-preset-language-field"
               value={form.language ?? ''}
