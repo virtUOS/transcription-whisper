@@ -110,6 +110,48 @@ For subpath deployments behind a reverse proxy (e.g., serving at `/transcription
 docker build --build-arg VITE_BASE_PATH=/transcription -t transcription-app .
 ```
 
+## API access
+
+The REST API is available for scripting and third-party integrations when
+`ENABLE_API_TOKENS=true` is set in the environment.
+
+### Enabling tokens
+
+Add to `.env` before `docker run` or the local uvicorn process:
+
+```
+ENABLE_API_TOKENS=true
+API_TOKEN_MAX_PER_USER=10        # optional, default 10
+API_TOKEN_DEFAULT_EXPIRY_DAYS=90 # optional, default 90
+```
+
+### Issuing a token
+
+With `ENABLE_API_TOKENS=true`, logged-in users see a **Settings → API tokens**
+page in the UI. Click **Create token**, choose an expiry, and copy the
+displayed `tw_…` string. The raw token is shown only once.
+
+### Using a token
+
+Pass the token as an HTTP bearer header:
+
+```bash
+curl -H "Authorization: Bearer tw_..." https://your-host/api/tokens
+```
+
+For the status WebSocket, pass the token as a query parameter (browsers cannot
+send custom headers on WebSocket requests):
+
+```
+wss://your-host/api/ws/status/{transcription_id}?token=tw_...
+```
+
+Tokens inherit the issuing user's access — they can read and write the user's
+own files, transcriptions, and presets, but cannot see another user's data.
+Tokens never carry LLM capabilities beyond what the deployment has configured:
+if `LLM_PROVIDER` is unset, analysis/translation/refinement endpoints return
+503 regardless of authentication method.
+
 ## Development
 
 ### Backend
