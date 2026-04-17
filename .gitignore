@@ -10,6 +10,7 @@ __pycache__/
 .superpowers/
 docs/superpowers/
 CLAUDE.md
+.claude/
 examples/
 .playwright-mcp/
 .worktrees/

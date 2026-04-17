@@ -11,7 +11,7 @@ from app.services.llm.prompt import (
     build_translation_user_prompt,
     chunk_utterances_for_refinement,
 )
-from app.metrics import inc, observe, llm_requests_total, llm_duration_seconds, llm_errors_total, deletions_total, errors_total
+from app.metrics import inc, observe, track_llm_tokens, llm_requests_total, llm_duration_seconds, llm_errors_total, deletions_total, errors_total
 
 router = APIRouter()
 
@@ -36,9 +36,10 @@ async def _call_llm_translation(provider, utterances: list[dict], target_languag
                 temperature=0.3,
                 response_format={"type": "json_object"},
             )
+            track_llm_tokens(settings.LLM_PROVIDER, provider._model, "translation", getattr(resp, "usage", None))
             data = json.loads(resp.choices[0].message.content or "{}")
         elif isinstance(provider, OllamaProvider):
-            content = await provider._chat(system, user)
+            content = await provider._chat(system, user, operation="translation")
             data = json.loads(content)
         else:
             raise HTTPException(status_code=503, detail="Unsupported LLM provider for translation")

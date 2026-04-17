@@ -27,8 +27,33 @@ async def convert_to_mp3(input_path: str) -> str:
     return output_path
 
 
+async def get_media_duration(file_path: str) -> float | None:
+    """Return the duration of a media file in seconds, or None on failure."""
+    process = None
+    try:
+        process = await asyncio.create_subprocess_exec(
+            settings.FFPROBE_PATH, "-v", "error", "-show_entries", "format=duration",
+            "-of", "default=noprint_wrappers=1:nokey=1", file_path,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, _ = await process.communicate()
+        return float(stdout.decode().strip())
+    except (FileNotFoundError, OSError, ValueError):
+        return None
+    except asyncio.CancelledError:
+        if process and process.returncode is None:
+            process.kill()
+            try:
+                await process.wait()
+            except Exception:
+                pass
+        raise
+
+
 async def has_video_stream(file_path: str) -> bool:
     """Check if a media file contains a video stream using ffprobe."""
+    process = None
     try:
         process = await asyncio.create_subprocess_exec(
             settings.FFPROBE_PATH, "-v", "error", "-select_streams", "v",
@@ -40,3 +65,11 @@ async def has_video_stream(file_path: str) -> bool:
         return b"video" in stdout
     except (FileNotFoundError, OSError):
         return False
+    except asyncio.CancelledError:
+        if process and process.returncode is None:
+            process.kill()
+            try:
+                await process.wait()
+            except Exception:
+                pass
+        raise
