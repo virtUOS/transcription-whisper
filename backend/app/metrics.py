@@ -138,8 +138,17 @@ storage_bytes = (
 # --- Auth ---
 auth_failures_total = _counter(
     "transcription_auth_failures_total", "Authentication failures",
-    ["reason"],  # reason: missing_headers | ws_missing_headers
+    ["reason"],  # reason: missing_headers | ws_missing_headers | invalid_token | expired_token | revoked_token
 )
+
+# --- API tokens ---
+api_tokens_created_total = _counter("transcription_api_tokens_created_total", "API tokens created")
+api_tokens_revoked_total = _counter("transcription_api_tokens_revoked_total", "API tokens revoked")
+api_token_auth_total = _counter(
+    "transcription_api_token_auth_total", "API token authentication attempts",
+    ["result"],  # result: success | failure
+)
+api_tokens_active = _gauge("transcription_api_tokens_active", "Active (non-revoked, non-expired) API tokens")
 
 
 # --- Helper for safe instrumentation ---
