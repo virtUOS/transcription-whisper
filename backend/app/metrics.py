@@ -1,5 +1,8 @@
+import time
+from contextlib import asynccontextmanager
+
 from prometheus_client import Counter, Histogram, Gauge, Info, generate_latest, CONTENT_TYPE_LATEST
-from fastapi import Response
+from fastapi import HTTPException, Response
 from app.config import settings
 
 CONTENT_TYPE = CONTENT_TYPE_LATEST
@@ -211,6 +214,27 @@ def track_llm_tokens(provider: str, model: str, operation: str, usage) -> None:
         inc(llm_tokens_total, provider, model, operation, "prompt", amount=int(prompt))
     if completion:
         inc(llm_tokens_total, provider, model, operation, "completion", amount=int(completion))
+
+
+@asynccontextmanager
+async def measure_llm_operation(operation: str):
+    """Time an LLM call and emit request/duration/error metrics.
+
+    HTTPException passes through without counting as an LLM error (it signals a
+    caller-side failure like an unsupported provider, not a model failure).
+    """
+    start = time.monotonic()
+    try:
+        yield
+    except HTTPException:
+        raise
+    except Exception:
+        inc(llm_errors_total, settings.LLM_PROVIDER, settings.LLM_MODEL, operation)
+        inc(errors_total, "llm_failed", operation)
+        raise
+    duration = time.monotonic() - start
+    inc(llm_requests_total, settings.LLM_PROVIDER, settings.LLM_MODEL, operation)
+    observe(llm_duration_seconds, duration, settings.LLM_PROVIDER, settings.LLM_MODEL, operation)
 
 
 def metrics_response() -> Response:

@@ -1,5 +1,4 @@
 import json
-import time
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from app.config import settings
@@ -14,7 +13,7 @@ from app.models import (
 )
 from app.database import get_db
 from app.services.llm import get_llm_provider
-from app.metrics import inc, observe, llm_requests_total, llm_duration_seconds, llm_errors_total, deletions_total, errors_total
+from app.metrics import inc, measure_llm_operation, deletions_total
 
 router = APIRouter()
 
@@ -72,20 +71,16 @@ async def refine_transcription(
     context = body.context if body else None
     transcript_json = json.dumps(mapped_utterances, ensure_ascii=False)
 
-    start_time = time.monotonic()
     try:
-        llm_result: LLMRefinementResponse = await provider.generate_refinement(
-            transcript_json, context=context,
-        )
+        async with measure_llm_operation("refinement"):
+            llm_result: LLMRefinementResponse = await provider.generate_refinement(
+                transcript_json, context=context,
+            )
+    except HTTPException:
+        raise
     except Exception:
-        inc(llm_errors_total, settings.LLM_PROVIDER, settings.LLM_MODEL, "refinement")
-        inc(errors_total, "llm_failed", "refinement")
         await reset_refinement_state(transcription_id, user.id)
         raise HTTPException(status_code=500, detail="Refinement failed")
-
-    duration = time.monotonic() - start_time
-    inc(llm_requests_total, settings.LLM_PROVIDER, settings.LLM_MODEL, "refinement")
-    observe(llm_duration_seconds, duration, settings.LLM_PROVIDER, settings.LLM_MODEL, "refinement")
 
     if len(llm_result.utterances) != len(original_utterances):
         await reset_refinement_state(transcription_id, user.id)
