@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../../api/client'
 import type { ApiTokenCreated } from '../../api/types'
@@ -17,6 +17,13 @@ export function CreateTokenModal({ onClose, onCreated }: Props) {
   const [created, setCreated] = useState<ApiTokenCreated | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    if (!copied) return
+    const id = setTimeout(() => setCopied(false), 2000)
+    return () => clearTimeout(id)
+  }, [copied])
 
   const expiryOptions = [
     { label: t('settings.apiTokens.expiry30'), days: 30 },
@@ -39,7 +46,9 @@ export function CreateTokenModal({ onClose, onCreated }: Props) {
   }
 
   async function handleCopy() {
-    if (created) await navigator.clipboard.writeText(created.token)
+    if (!created) return
+    await navigator.clipboard.writeText(created.token)
+    setCopied(true)
   }
 
   function handleDone() {
@@ -63,9 +72,12 @@ export function CreateTokenModal({ onClose, onCreated }: Props) {
               <button
                 type="button"
                 onClick={handleCopy}
-                className="text-sm bg-gray-700 hover:bg-gray-600 text-white rounded px-4 py-1.5"
+                aria-live="polite"
+                className={`text-sm rounded px-4 py-1.5 text-white transition-colors ${
+                  copied ? 'bg-green-600 hover:bg-green-500' : 'bg-gray-700 hover:bg-gray-600'
+                }`}
               >
-                {t('settings.apiTokens.copy')}
+                {copied ? t('settings.apiTokens.copied') : t('settings.apiTokens.copy')}
               </button>
               <button
                 type="button"
