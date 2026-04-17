@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { api } from '../../api/client'
 import type { ApiToken } from '../../api/types'
 import { CreateTokenModal } from './CreateTokenModal'
@@ -15,6 +16,7 @@ function getTokenStatus(token: ApiToken): TokenStatus {
 }
 
 export function ApiTokensSection() {
+  const { t } = useTranslation()
   const [tokens, setTokens] = useState<ApiToken[]>([])
   const [error, setError] = useState<string | null>(null)
   const [showModal, setShowModal] = useState(false)
@@ -55,13 +57,13 @@ export function ApiTokensSection() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold text-white">API tokens</h2>
+        <h2 className="text-lg font-semibold text-white">{t('settings.apiTokens.title')}</h2>
         <button
           type="button"
           onClick={() => setShowModal(true)}
           className="text-sm bg-blue-600 hover:bg-blue-500 text-white rounded px-4 py-1.5"
         >
-          Create token
+          {t('settings.apiTokens.createButton')}
         </button>
       </div>
 
@@ -70,7 +72,7 @@ export function ApiTokensSection() {
       )}
 
       {tokens.length === 0 && !error && (
-        <p className="text-sm text-gray-500">No API tokens yet.</p>
+        <p className="text-sm text-gray-500">{t('settings.apiTokens.empty')}</p>
       )}
 
       {tokens.length > 0 && (
@@ -78,6 +80,7 @@ export function ApiTokensSection() {
           {tokens.map((token) => {
             const status = getTokenStatus(token)
             const isInactive = status !== 'active'
+            const statusKey = status === 'active' ? 'statusActive' : status === 'expired' ? 'statusExpired' : 'statusRevoked'
             return (
               <div
                 key={token.id}
@@ -85,20 +88,20 @@ export function ApiTokensSection() {
               >
                 <div className="min-w-0 space-y-0.5">
                   <p className="font-medium text-white truncate">{token.name}</p>
-                  <p className="text-xs text-gray-400 font-mono">{token.prefix}…</p>
+                  <p className="text-xs text-gray-400 font-mono">{token.prefix}{t('settings.apiTokens.prefixSuffix')}</p>
                   <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-gray-500">
                     <span className={
                       status === 'active' ? 'text-green-400' :
                       status === 'expired' ? 'text-yellow-500' :
                       'text-red-400'
                     }>
-                      {status}
+                      {t(`settings.apiTokens.${statusKey}`)}
                     </span>
                     {token.expires_at && (
-                      <span>expires {token.expires_at}</span>
+                      <span>{t('settings.apiTokens.expiresOnTmpl', { date: token.expires_at })}</span>
                     )}
                     {token.last_used_at && (
-                      <span>last used {token.last_used_at}</span>
+                      <span>{t('settings.apiTokens.lastUsedTmpl', { date: token.last_used_at })}</span>
                     )}
                   </div>
                 </div>
@@ -109,7 +112,7 @@ export function ApiTokensSection() {
                     disabled={revoking === token.id}
                     className="text-sm text-red-400 hover:text-red-300 disabled:opacity-50 shrink-0"
                   >
-                    {revoking === token.id ? '…' : 'Revoke'}
+                    {revoking === token.id ? t('settings.apiTokens.prefixSuffix') : t('settings.apiTokens.revoke')}
                   </button>
                 )}
               </div>

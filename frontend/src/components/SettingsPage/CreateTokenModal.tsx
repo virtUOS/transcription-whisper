@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { api } from '../../api/client'
 import type { ApiTokenCreated } from '../../api/types'
 
@@ -7,19 +8,20 @@ interface Props {
   onCreated: () => void
 }
 
-const EXPIRY_OPTIONS: { label: string; days: number | null }[] = [
-  { label: '30 days', days: 30 },
-  { label: '90 days', days: 90 },
-  { label: '365 days', days: 365 },
-  { label: 'Never', days: null },
-]
-
 export function CreateTokenModal({ onClose, onCreated }: Props) {
+  const { t } = useTranslation()
   const [name, setName] = useState('')
   const [expiryDays, setExpiryDays] = useState<number | null>(90)
   const [created, setCreated] = useState<ApiTokenCreated | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+
+  const expiryOptions = [
+    { label: t('settings.apiTokens.expiry30'), days: 30 },
+    { label: t('settings.apiTokens.expiry90'), days: 90 },
+    { label: t('settings.apiTokens.expiry365'), days: 365 },
+    { label: t('settings.apiTokens.expiryNever'), days: null },
+  ]
 
   async function handleCreate() {
     setError(null)
@@ -48,9 +50,9 @@ export function CreateTokenModal({ onClose, onCreated }: Props) {
       <div className="bg-gray-900 border border-gray-700 rounded-lg p-6 max-w-md w-full space-y-4 mx-4">
         {created ? (
           <>
-            <h2 className="text-lg font-semibold text-white">Token created</h2>
+            <h2 className="text-lg font-semibold text-white">{t('settings.apiTokens.createdHeader')}</h2>
             <p className="text-sm text-yellow-400">
-              Save this now — you won't see it again.
+              {t('settings.apiTokens.saveNowWarning')}
             </p>
             <div className="bg-gray-800 rounded px-3 py-2 font-mono text-sm text-green-400 break-all select-all">
               {created.token}
@@ -61,27 +63,27 @@ export function CreateTokenModal({ onClose, onCreated }: Props) {
                 onClick={handleCopy}
                 className="text-sm bg-gray-700 hover:bg-gray-600 text-white rounded px-4 py-1.5"
               >
-                Copy
+                {t('settings.apiTokens.copy')}
               </button>
               <button
                 type="button"
                 onClick={handleDone}
                 className="text-sm bg-blue-600 hover:bg-blue-500 text-white rounded px-4 py-1.5"
               >
-                Done
+                {t('settings.apiTokens.done')}
               </button>
             </div>
           </>
         ) : (
           <>
-            <h2 className="text-lg font-semibold text-white">Create API token</h2>
+            <h2 className="text-lg font-semibold text-white">{t('settings.apiTokens.createButton')}</h2>
 
             {error && (
               <p className="text-sm text-red-400">{error}</p>
             )}
 
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Name</label>
+              <label className="block text-xs text-gray-400 mb-1">{t('settings.apiTokens.nameLabel')}</label>
               <input
                 type="text"
                 value={name}
@@ -93,14 +95,14 @@ export function CreateTokenModal({ onClose, onCreated }: Props) {
             </div>
 
             <div>
-              <label htmlFor="token-expiry-select" className="block text-xs text-gray-400 mb-1">Expires in</label>
+              <label htmlFor="token-expiry-select" className="block text-xs text-gray-400 mb-1">{t('settings.apiTokens.expiresLabel')}</label>
               <select
                 id="token-expiry-select"
                 value={expiryDays === null ? '' : String(expiryDays)}
                 onChange={(e) => setExpiryDays(e.target.value === '' ? null : Number(e.target.value))}
                 className="w-full bg-gray-800 text-white text-sm rounded px-3 py-1.5 outline-none focus:ring-1 focus:ring-blue-500 border border-gray-700"
               >
-                {EXPIRY_OPTIONS.map((opt) => (
+                {expiryOptions.map((opt) => (
                   <option key={opt.label} value={opt.days === null ? '' : String(opt.days)}>
                     {opt.label}
                   </option>
@@ -114,7 +116,7 @@ export function CreateTokenModal({ onClose, onCreated }: Props) {
                 onClick={onClose}
                 className="text-sm text-gray-400 hover:text-white px-3 py-1.5"
               >
-                Cancel
+                {t('settings.apiTokens.cancel')}
               </button>
               <button
                 type="button"
@@ -122,7 +124,7 @@ export function CreateTokenModal({ onClose, onCreated }: Props) {
                 disabled={submitting || !name.trim()}
                 className="text-sm bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded px-4 py-1.5"
               >
-                {submitting ? '…' : 'Create'}
+                {submitting ? t('settings.apiTokens.prefixSuffix') : t('settings.apiTokens.createCta')}
               </button>
             </div>
           </>

@@ -398,6 +398,33 @@
     "settings": "Settings",
     "menu": "Menu"
   },
+  "settings": {
+    "title": "Settings",
+    "apiTokens": {
+      "title": "API tokens",
+      "createButton": "Create token",
+      "nameLabel": "Name",
+      "expiresLabel": "Expires in",
+      "expiry30": "30 days",
+      "expiry90": "90 days",
+      "expiry365": "365 days",
+      "expiryNever": "Never",
+      "createCta": "Create",
+      "cancel": "Cancel",
+      "revoke": "Revoke",
+      "statusActive": "Active",
+      "statusExpired": "Expired",
+      "statusRevoked": "Revoked",
+      "createdHeader": "Token created",
+      "saveNowWarning": "Save this now — you won't see it again.",
+      "copy": "Copy",
+      "done": "Done",
+      "prefixSuffix": "…",
+      "expiresOnTmpl": "expires {{date}}",
+      "lastUsedTmpl": "last used {{date}}",
+      "empty": "No API tokens yet. Create one to get started."
+    }
+  },
   "common": {
     "loading": "Loading...",
     "error": "Error",
