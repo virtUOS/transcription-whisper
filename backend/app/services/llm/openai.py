@@ -1,6 +1,7 @@
 import json
 from openai import AsyncOpenAI
 from app.config import settings
+from app.metrics import track_llm_tokens
 from app.services.llm.base import LLMProvider
 from app.services.llm.prompt import (
     build_system_prompt, build_user_prompt, chunk_transcript, build_consolidation_prompt,
@@ -19,6 +20,11 @@ class OpenAIProvider(LLMProvider):
         )
         self._model = settings.LLM_MODEL or "gpt-4o"
 
+    async def _chat_complete(self, operation: str, **kwargs):
+        response = await self._client.chat.completions.create(model=self._model, **kwargs)
+        track_llm_tokens("openai", self._model, operation, getattr(response, "usage", None))
+        return response
+
     async def generate_summary(self, transcript: str, chapter_hints: list | None = None, language: str | None = None) -> SummaryResult:
         chunks = chunk_transcript(transcript)
 
@@ -34,8 +40,8 @@ class OpenAIProvider(LLMProvider):
         return await self._consolidate(chunk_summaries, chapter_hints, language)
 
     async def _summarize_single(self, transcript: str, chapter_hints: list | None = None, language: str | None = None) -> SummaryResult:
-        response = await self._client.chat.completions.create(
-            model=self._model,
+        response = await self._chat_complete(
+            "analysis",
             messages=[
                 {"role": "system", "content": build_system_prompt(chapter_hints, language)},
                 {"role": "user", "content": build_user_prompt(transcript)},
@@ -56,8 +62,8 @@ class OpenAIProvider(LLMProvider):
         prompt = build_consolidation_prompt(
             "\n\n---\n\n".join(chunk_summaries), chapter_hints, language
         )
-        response = await self._client.chat.completions.create(
-            model=self._model,
+        response = await self._chat_complete(
+            "analysis",
             messages=[
                 {"role": "system", "content": build_system_prompt(chapter_hints, language)},
                 {"role": "user", "content": prompt},
@@ -88,8 +94,8 @@ class OpenAIProvider(LLMProvider):
         return await self._consolidate_protocol(chunk_protocols, language)
 
     async def _protocol_single(self, transcript: str, summary_context: str | None = None, language: str | None = None) -> ProtocolResult:
-        response = await self._client.chat.completions.create(
-            model=self._model,
+        response = await self._chat_complete(
+            "analysis",
             messages=[
                 {"role": "system", "content": build_protocol_system_prompt(language)},
                 {"role": "user", "content": build_protocol_user_prompt(transcript, summary_context)},
@@ -117,8 +123,8 @@ class OpenAIProvider(LLMProvider):
             schema=json.dumps(PROTOCOL_SCHEMA, indent=2),
             language_instruction=language_instruction,
         )
-        response = await self._client.chat.completions.create(
-            model=self._model,
+        response = await self._chat_complete(
+            "analysis",
             messages=[
                 {"role": "system", "content": build_protocol_system_prompt(language)},
                 {"role": "user", "content": prompt},
@@ -148,8 +154,8 @@ class OpenAIProvider(LLMProvider):
         for chunk in chunks:
             system = build_refinement_system_prompt(context)
             user = build_refinement_user_prompt(chunk)
-            resp = await self._client.chat.completions.create(
-                model=self._model,
+            resp = await self._chat_complete(
+                "refinement",
                 messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
                 temperature=0.3,
                 response_format={"type": "json_object"},
@@ -159,8 +165,8 @@ class OpenAIProvider(LLMProvider):
             summaries.append(data.get("changes_summary", ""))
 
         if len(summaries) > 1:
-            consolidation_resp = await self._client.chat.completions.create(
-                model=self._model,
+            consolidation_resp = await self._chat_complete(
+                "refinement",
                 messages=[{"role": "user", "content": REFINEMENT_CONSOLIDATION_PROMPT.format(
                     summaries="\n".join(f"- {s}" for s in summaries)
                 )}],
@@ -176,8 +182,8 @@ class OpenAIProvider(LLMProvider):
         )
 
     async def generate_title(self, transcript: str) -> str:
-        response = await self._client.chat.completions.create(
-            model=self._model,
+        response = await self._chat_complete(
+            "title",
             messages=[
                 {"role": "system", "content": "Generate a short descriptive title (max 8 words) for the following transcript. Return ONLY the title text, nothing else. No quotes, no punctuation at the end."},
                 {"role": "user", "content": transcript[:2000]},

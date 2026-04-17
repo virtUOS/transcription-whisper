@@ -16,13 +16,17 @@ from app.models import (
 from app.database import get_db
 from app.services.asr import get_asr_backend
 from app.services.asr.base import TranscriptionSettings
+from app.services.audio import get_media_duration
 from app.services.formats import generate_srt, generate_vtt, generate_txt
 from app.metrics import (
     inc, observe, gauge_inc, gauge_dec,
     transcriptions_total, transcription_duration_seconds, active_transcriptions,
+    transcription_audio_duration_seconds, transcription_realtime_factor,
+    transcription_queue_depth, transcription_queue_wait_seconds,
     diarization_speakers_detected, edits_saved_total, speaker_renames_total,
     downloads_total, deletions_total, errors_total,
     websocket_connections_active, websocket_connections_total,
+    websocket_messages_sent_total, websocket_disconnects_total,
 )
 
 router = APIRouter()
@@ -57,20 +61,32 @@ async def start_transcription(
         )
         await db.commit()
 
-    asyncio.create_task(_run_transcription(transcription_id, mp3_path, req))
+    gauge_inc(transcription_queue_depth)
+    submitted_at = time.monotonic()
+    asyncio.create_task(_run_transcription(transcription_id, mp3_path, req, submitted_at))
     return {"id": transcription_id, "status": "pending"}
 
 
-async def _run_transcription(transcription_id: str, file_path: str, req: TranscriptionSettingsModel):
+async def _run_transcription(transcription_id: str, file_path: str, req: TranscriptionSettingsModel, submitted_at: float):
     backend = get_asr_backend()
+    backend_name = settings.ASR_BACKEND
     ts = TranscriptionSettings(
         language=req.language, model=req.model,
         min_speakers=req.min_speakers, max_speakers=req.max_speakers,
         initial_prompt=req.initial_prompt, hotwords=req.hotwords,
     )
 
+    gauge_dec(transcription_queue_depth)
+    observe(transcription_queue_wait_seconds, time.monotonic() - submitted_at, backend_name)
     gauge_inc(active_transcriptions)
     start_time = time.monotonic()
+
+    try:
+        audio_duration = await asyncio.wait_for(get_media_duration(file_path), timeout=5)
+    except (asyncio.TimeoutError, Exception):
+        audio_duration = None
+    if audio_duration is not None:
+        observe(transcription_audio_duration_seconds, audio_duration, backend_name)
 
     try:
         async with get_db() as db:
@@ -94,8 +110,12 @@ async def _run_transcription(transcription_id: str, file_path: str, req: Transcr
         result = await backend.get_result(asr_job_id)
 
         duration = time.monotonic() - start_time
-        observe(transcription_duration_seconds, duration, req.language or "auto", req.model or "default")
-        inc(transcriptions_total, req.language or "auto", req.model or "default", "completed")
+        lang_label = req.language or "auto"
+        model_label = req.model or "default"
+        observe(transcription_duration_seconds, duration, backend_name, lang_label, model_label)
+        inc(transcriptions_total, backend_name, lang_label, model_label, "completed")
+        if audio_duration and audio_duration > 0:
+            observe(transcription_realtime_factor, duration / audio_duration, backend_name, model_label)
 
         # Track number of unique speakers detected
         speakers = {u.speaker for u in result.utterances if u.speaker}
@@ -130,7 +150,7 @@ async def _run_transcription(transcription_id: str, file_path: str, req: Transcr
     except Exception as e:
         logging.error("Transcription %s failed: %s: %s", transcription_id, type(e).__name__, e)
         logging.error("Traceback: %s", traceback.format_exc())
-        inc(transcriptions_total, req.language or "auto", req.model or "default", "failed")
+        inc(transcriptions_total, backend_name, req.language or "auto", req.model or "default", "failed")
         inc(errors_total, "transcription_failed", "asr")
 
         async with get_db() as db:
@@ -388,13 +408,17 @@ async def update_title(transcription_id: str, body: TitleRequest, user: UserInfo
 
 @router.websocket("/api/ws/status/{transcription_id}")
 async def websocket_status(websocket: WebSocket, transcription_id: str):
+    from app.metrics import auth_failures_total
     await websocket.accept()
     inc(websocket_connections_total)
     gauge_inc(websocket_connections_active)
+    close_reason = "client_disconnect"
     try:
         # Extract user from headers (same as get_current_user dependency)
         user_id = websocket.headers.get("x-auth-request-user")
         if not user_id:
+            inc(auth_failures_total, "ws_missing_headers")
+            close_reason = "auth_missing"
             await websocket.close(code=4001, reason="Missing authentication")
             return
 
@@ -405,6 +429,7 @@ async def websocket_status(websocket: WebSocket, transcription_id: str):
                 (transcription_id, user_id),
             )
             if not await cursor.fetchone():
+                close_reason = "not_found"
                 await websocket.close(code=4003, reason="Not found")
                 return
 
@@ -418,6 +443,8 @@ async def websocket_status(websocket: WebSocket, transcription_id: str):
 
             if not row:
                 await websocket.send_json({"type": "error", "detail": "Transcription not found"})
+                inc(websocket_messages_sent_total, "error")
+                close_reason = "not_found_record"
                 break
 
             status = row["status"]
@@ -425,15 +452,21 @@ async def websocket_status(websocket: WebSocket, transcription_id: str):
             if status == "failed" and row["error_message"]:
                 msg["error"] = row["error_message"]
             await websocket.send_json(msg)
+            inc(websocket_messages_sent_total, "status")
 
             if status in ("completed", "failed"):
+                close_reason = status
                 break
 
             await asyncio.sleep(5)
     except WebSocketDisconnect:
-        pass
+        close_reason = "client_disconnect"
+    except Exception:
+        close_reason = "error"
+        raise
     finally:
         gauge_dec(websocket_connections_active)
+        inc(websocket_disconnects_total, close_reason)
         try:
             await websocket.close()
         except Exception:

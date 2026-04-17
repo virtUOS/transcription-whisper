@@ -46,12 +46,28 @@ file_renames_total = _counter("transcription_file_renames_total", "Total file re
 # --- Transcription jobs ---
 transcriptions_total = _counter(
     "transcription_jobs_total", "Total transcription jobs",
-    ["language", "model", "status"],
+    ["backend", "language", "model", "status"],
 )
 transcription_duration_seconds = _histogram(
-    "transcription_duration_seconds", "Transcription duration",
-    labels=["language", "model"],
+    "transcription_duration_seconds", "Transcription wall-clock duration",
+    labels=["backend", "language", "model"],
     buckets=[1, 5, 10, 30, 60, 120, 300, 600, 1200, 1800, 3600],
+)
+transcription_audio_duration_seconds = _histogram(
+    "transcription_audio_duration_seconds", "Input media duration (length of the audio being transcribed)",
+    labels=["backend"],
+    buckets=[10, 30, 60, 180, 300, 600, 1200, 1800, 3600, 7200, 14400],
+)
+transcription_realtime_factor = _histogram(
+    "transcription_realtime_factor", "Processing time divided by audio duration (lower is faster; <1 means faster than realtime)",
+    labels=["backend", "model"],
+    buckets=[0.05, 0.1, 0.25, 0.5, 1, 2, 4, 8, 16],
+)
+transcription_queue_depth = _gauge("transcription_queue_depth", "Transcriptions in 'pending' state waiting to start")
+transcription_queue_wait_seconds = _histogram(
+    "transcription_queue_wait_seconds", "Time a job spent pending before processing started",
+    labels=["backend"],
+    buckets=[0.1, 0.5, 1, 5, 15, 30, 60, 300, 900],
 )
 active_transcriptions = _gauge("transcription_active_jobs", "Active transcription jobs")
 diarization_speakers_detected = _histogram(
@@ -83,6 +99,10 @@ llm_errors_total = _counter(
     "transcription_llm_errors_total", "LLM errors",
     ["provider", "model", "operation"],
 )
+llm_tokens_total = _counter(
+    "transcription_llm_tokens_total", "LLM tokens consumed",
+    ["provider", "model", "operation", "kind"],  # kind: prompt | completion
+)
 
 # --- Errors ---
 errors_total = _counter("transcription_errors_total", "Errors", ["error_type", "component"])
@@ -97,10 +117,29 @@ api_request_duration_seconds = _histogram(
 # --- WebSocket ---
 websocket_connections_active = _gauge("transcription_websocket_connections_active", "Active WebSocket connections")
 websocket_connections_total = _counter("transcription_websocket_connections_total", "Total WebSocket connections")
+websocket_messages_sent_total = _counter(
+    "transcription_websocket_messages_sent_total", "WebSocket messages sent to clients",
+    ["type"],  # type: status | error
+)
+websocket_disconnects_total = _counter(
+    "transcription_websocket_disconnects_total", "WebSocket disconnects",
+    ["reason"],  # reason: client_disconnect | auth_missing | not_found | completed | failed | not_found_record | error
+)
 
 # --- Cleanup ---
 cleanup_runs_total = _counter("transcription_cleanup_runs_total", "Cleanup job runs", ["status"])
 cleanup_items_deleted_total = _counter("transcription_cleanup_items_deleted_total", "Items deleted by cleanup", ["resource_type"])
+
+# --- Storage ---
+storage_bytes = (
+    Gauge("transcription_storage_bytes", "Disk usage in bytes", ["path"]) if _enabled else None
+)
+
+# --- Auth ---
+auth_failures_total = _counter(
+    "transcription_auth_failures_total", "Authentication failures",
+    ["reason"],  # reason: missing_headers | ws_missing_headers
+)
 
 
 # --- Helper for safe instrumentation ---
@@ -134,6 +173,35 @@ def gauge_dec(gauge, amount=1):
     """Safely decrement a gauge (no-op if metrics disabled)."""
     if gauge is not None:
         gauge.dec(amount)
+
+
+def gauge_set(gauge, value, *args):
+    """Safely set a gauge value (no-op if metrics disabled)."""
+    if gauge is None:
+        return
+    if args:
+        gauge.labels(*args).set(value)
+    else:
+        gauge.set(value)
+
+
+def track_llm_tokens(provider: str, model: str, operation: str, usage) -> None:
+    """Record LLM token counts from a provider response.
+
+    `usage` accepts OpenAI-style objects (prompt_tokens/completion_tokens) and
+    Ollama-style dicts (prompt_eval_count/eval_count).
+    """
+    if llm_tokens_total is None or usage is None:
+        return
+    prompt = getattr(usage, "prompt_tokens", None)
+    completion = getattr(usage, "completion_tokens", None)
+    if prompt is None and isinstance(usage, dict):
+        prompt = usage.get("prompt_tokens") or usage.get("prompt_eval_count")
+        completion = usage.get("completion_tokens") or usage.get("eval_count")
+    if prompt:
+        inc(llm_tokens_total, provider, model, operation, "prompt", amount=int(prompt))
+    if completion:
+        inc(llm_tokens_total, provider, model, operation, "completion", amount=int(completion))
 
 
 def metrics_response() -> Response:

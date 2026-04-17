@@ -151,9 +151,13 @@ The application includes comprehensive Prometheus metrics for monitoring usage a
   - `transcription_file_renames_total` — Total file renames
 
 - **Transcription Jobs**:
-  - `transcription_jobs_total` — Total jobs by language, model, and status
-  - `transcription_duration_seconds` — Processing time distribution by language and model
+  - `transcription_jobs_total` — Total jobs by backend, language, model, and status
+  - `transcription_duration_seconds` — Wall-clock processing time by backend, language, and model
+  - `transcription_audio_duration_seconds` — Input media length (seconds) by backend — pair with `transcription_duration_seconds` to derive realtime factor
+  - `transcription_realtime_factor` — Processing time divided by audio duration by backend and model (<1 = faster than realtime)
   - `transcription_active_jobs` — Number of currently processing jobs
+  - `transcription_queue_depth` — Jobs waiting in `pending` state before ASR pickup
+  - `transcription_queue_wait_seconds` — Time spent in `pending` before processing started (by backend)
   - `transcription_diarization_speakers_detected` — Speakers detected per job distribution
 
 - **Editing & Interaction**:
@@ -161,10 +165,11 @@ The application includes comprehensive Prometheus metrics for monitoring usage a
   - `transcription_speaker_renames_total` — Speaker mapping updates
   - `transcription_downloads_total` — Exports/downloads by format
 
-- **LLM (Analysis, Translation & Refinement)**:
+- **LLM (Analysis, Translation, Refinement & Titles)**:
   - `transcription_llm_requests_total` — LLM requests by provider, model, and operation
   - `transcription_llm_duration_seconds` — LLM request duration by provider, model, and operation
   - `transcription_llm_errors_total` — LLM errors by provider, model, and operation
+  - `transcription_llm_tokens_total` — Tokens consumed by provider, model, operation, and kind (`prompt`/`completion`); emitted per LLM call so chunked operations aggregate. Operations include `analysis`, `translation`, `refinement`, `title`.
 
 - **Deletions**:
   - `transcription_deletions_total` — Resource deletions by type (transcription/analysis/translation/refinement)
@@ -172,6 +177,14 @@ The application includes comprehensive Prometheus metrics for monitoring usage a
 - **WebSocket**:
   - `transcription_websocket_connections_active` — Active WebSocket connections
   - `transcription_websocket_connections_total` — Total WebSocket connections
+  - `transcription_websocket_messages_sent_total` — Messages sent to clients by type (`status`/`error`)
+  - `transcription_websocket_disconnects_total` — Disconnects by reason (`client_disconnect`, `auth_missing`, `not_found`, `completed`, `failed`, `not_found_record`, `error`)
+
+- **Storage**:
+  - `transcription_storage_bytes` — Disk usage of the media/DB volume, refreshed at startup and after each cleanup run (labelled by `path`)
+
+- **Auth**:
+  - `transcription_auth_failures_total` — Authentication failures by reason (`missing_headers`, `ws_missing_headers`)
 
 - **Cleanup**:
   - `transcription_cleanup_runs_total` — Cleanup job runs by status (success/failed)
@@ -180,6 +193,8 @@ The application includes comprehensive Prometheus metrics for monitoring usage a
 - **API & Errors**:
   - `transcription_api_request_duration_seconds` — API request latency by endpoint, method, and status
   - `transcription_errors_total` — Errors by type and component
+
+> Breaking change: `transcription_jobs_total` and `transcription_duration_seconds` now carry an additional `backend` label (`murmurai` / `whisperx`). Existing dashboards and alerts will need to include the new label or aggregate it away.
 
 ### Configuration
 
@@ -202,13 +217,15 @@ scrape_configs:
 
 The metrics are designed to work well with Grafana. Key dashboard panels might include:
 
-- Active transcription jobs and WebSocket connections over time
-- Transcription success/failure rates by model and language
-- Processing time percentiles by model
+- Active transcription jobs, queue depth, and WebSocket connections over time
+- Transcription success/failure rates by backend, model, and language
+- Realtime factor (RTF) distribution by backend/model — speed of transcription vs audio length
+- Queue wait time percentiles — backpressure signal
 - File upload volume and sizes
-- LLM request duration and error rates by provider
+- LLM request duration, error rates, and token consumption (prompt vs completion) by provider/operation
 - Export/download format distribution
-- Cleanup job effectiveness
+- Disk usage trend and cleanup job effectiveness
+- WebSocket disconnect reasons (client vs error vs auth)
 
 ## Authors
 

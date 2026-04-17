@@ -8,8 +8,26 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import init_db, get_db
 from app.routers import config_router, upload, transcription, refinement, analysis, translation, presets
-from app.metrics import inc, cleanup_runs_total, cleanup_items_deleted_total
+from app.metrics import inc, gauge_set, cleanup_runs_total, cleanup_items_deleted_total, storage_bytes
 from app.services.audio import has_video_stream
+
+
+def _dir_size_bytes(path: str) -> int:
+    total = 0
+    for root, _dirs, files in os.walk(path):
+        for name in files:
+            try:
+                total += os.path.getsize(os.path.join(root, name))
+            except OSError:
+                pass
+    return total
+
+
+def _refresh_storage_gauge():
+    try:
+        gauge_set(storage_bytes, _dir_size_bytes(settings.TEMP_PATH), settings.TEMP_PATH)
+    except Exception:
+        pass
 
 
 async def cleanup_old_files():
@@ -74,6 +92,7 @@ async def cleanup_old_files():
             inc(cleanup_items_deleted_total, "transcription", amount=transcriptions_deleted)
             inc(cleanup_items_deleted_total, "analysis", amount=analyses_deleted)
             inc(cleanup_items_deleted_total, "speaker_mapping", amount=mappings_deleted)
+            _refresh_storage_gauge()
         except Exception as e:
             inc(cleanup_runs_total, "failed")
             print(f"Cleanup error: {e}")
@@ -100,6 +119,7 @@ async def lifespan(app: FastAPI):
             )
         if rows:
             await db.commit()
+    _refresh_storage_gauge()
     cleanup_task = asyncio.create_task(cleanup_old_files())
     yield
     cleanup_task.cancel()

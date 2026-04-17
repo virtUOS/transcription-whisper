@@ -14,7 +14,7 @@ from app.services.llm.prompt import (
     chunk_transcript,
     build_consolidation_prompt,
 )
-from app.metrics import inc, observe, llm_requests_total, llm_duration_seconds, llm_errors_total, deletions_total, errors_total
+from app.metrics import inc, observe, track_llm_tokens, llm_requests_total, llm_duration_seconds, llm_errors_total, deletions_total, errors_total
 
 router = APIRouter()
 
@@ -178,6 +178,7 @@ async def _call_llm(provider, user_content: str, system_prompt: str) -> dict:
             temperature=0.3,
             response_format={"type": "json_object"},
         )
+        track_llm_tokens(settings.LLM_PROVIDER, provider._model, "analysis", getattr(response, "usage", None))
         content = response.choices[0].message.content or "{}"
         return json.loads(content)
     elif hasattr(provider, "_base_url"):
@@ -198,6 +199,7 @@ async def _call_llm(provider, user_content: str, system_prompt: str) -> dict:
             )
             resp.raise_for_status()
             data = resp.json()
+            track_llm_tokens(settings.LLM_PROVIDER, provider._model, "analysis", data)
             return json.loads(data["message"]["content"])
     else:
         raise HTTPException(status_code=503, detail="Unsupported LLM provider for analysis")

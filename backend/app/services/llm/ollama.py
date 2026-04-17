@@ -1,6 +1,7 @@
 import json
 import httpx
 from app.config import settings
+from app.metrics import track_llm_tokens
 from app.services.llm.base import LLMProvider
 from app.services.llm.prompt import (
     build_system_prompt, build_user_prompt, chunk_transcript, build_consolidation_prompt,
@@ -48,7 +49,7 @@ class OllamaProvider(LLMProvider):
             chapters=[SummaryChapter(**ch) for ch in data.get("chapters", [])],
         )
 
-    async def _chat(self, system: str, user: str) -> str:
+    async def _chat(self, system: str, user: str, operation: str = "analysis") -> str:
         async with httpx.AsyncClient(timeout=300) as client:
             response = await client.post(
                 f"{self._base_url}/api/chat",
@@ -63,7 +64,9 @@ class OllamaProvider(LLMProvider):
                 },
             )
             response.raise_for_status()
-            return response.json()["message"]["content"]
+            payload = response.json()
+            track_llm_tokens("ollama", self._model, operation, payload)
+            return payload["message"]["content"]
 
     async def generate_protocol(self, transcript: str, summary_context: str | None = None, language: str | None = None) -> ProtocolResult:
         chunks = chunk_transcript(transcript)
@@ -117,7 +120,7 @@ class OllamaProvider(LLMProvider):
         for chunk in chunks:
             system = build_refinement_system_prompt(context)
             user = build_refinement_user_prompt(chunk)
-            content = await self._chat(system, user)
+            content = await self._chat(system, user, operation="refinement")
             data = json.loads(content)
             all_refined.extend(data.get("utterances", []))
             summaries.append(data.get("changes_summary", ""))
@@ -128,6 +131,7 @@ class OllamaProvider(LLMProvider):
                 REFINEMENT_CONSOLIDATION_PROMPT.format(
                     summaries="\n".join(f"- {s}" for s in summaries)
                 ),
+                operation="refinement",
             )
         else:
             combined_summary = summaries[0] if summaries else "No changes needed"
@@ -141,6 +145,7 @@ class OllamaProvider(LLMProvider):
         result = await self._chat(
             "Generate a short descriptive title (max 8 words) for the following transcript. Return ONLY the title text, nothing else. No quotes, no punctuation at the end.",
             transcript[:2000],
+            operation="title",
         )
         try:
             data = json.loads(result)
