@@ -20,6 +20,11 @@
     "initialPromptHelp": "Optionaler Kontext für die Transkription",
     "hotwords": "Schlüsselwörter",
     "hotwordsHelp": "Kommagetrennte Fachbegriffe",
+    "groups": {
+      "presets": "Voreinstellungen",
+      "transcription": "Transkription",
+      "speakers": "Sprecher"
+    },
     "modelLabels": {
       "tiny": "Entwurf",
       "base": "Standard",

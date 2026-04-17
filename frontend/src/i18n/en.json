@@ -20,6 +20,11 @@
     "initialPromptHelp": "Optional context for the transcription",
     "hotwords": "Hotwords",
     "hotwordsHelp": "Comma-separated technical terms",
+    "groups": {
+      "presets": "Presets",
+      "transcription": "Transcription",
+      "speakers": "Speakers"
+    },
     "modelLabels": {
       "tiny": "Draft",
       "base": "Standard",

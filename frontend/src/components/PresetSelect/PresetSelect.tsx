@@ -12,9 +12,10 @@ interface PresetSelectProps {
   onSelect: (id: string | null) => void
   onSave: (name: string) => void
   placeholder?: string
+  hideDropdown?: boolean
 }
 
-export function PresetSelect({ presets, selectedId, onSelect, onSave, placeholder }: PresetSelectProps) {
+export function PresetSelect({ presets, selectedId, onSelect, onSave, placeholder, hideDropdown }: PresetSelectProps) {
   const { t } = useTranslation()
   const [showSave, setShowSave] = useState(false)
   const [saveName, setSaveName] = useState('')
@@ -29,16 +30,18 @@ export function PresetSelect({ presets, selectedId, onSelect, onSave, placeholde
 
   return (
     <div className="flex items-center gap-2">
-      <select
-        value={selectedId || ''}
-        onChange={(e) => onSelect(e.target.value || null)}
-        className="bg-gray-700 text-white text-sm rounded px-3 py-1.5 min-w-[140px]"
-      >
-        <option value="">{placeholder || t('presets.selectPreset')}</option>
-        {presets.map((p) => (
-          <option key={p.id} value={p.id}>{p.name}</option>
-        ))}
-      </select>
+      {!hideDropdown && (
+        <select
+          value={selectedId || ''}
+          onChange={(e) => onSelect(e.target.value || null)}
+          className="bg-gray-700 text-white text-sm rounded px-3 py-1.5 min-w-[140px]"
+        >
+          <option value="">{placeholder || t('presets.selectPreset')}</option>
+          {presets.map((p) => (
+            <option key={p.id} value={p.id}>{p.name}</option>
+          ))}
+        </select>
+      )}
 
       {showSave ? (
         <div className="flex items-center gap-1">

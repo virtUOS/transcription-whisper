@@ -71,10 +71,16 @@ export function SettingsPanel({ values, onChange, saveError = null }: SettingsPa
     }
   }
 
+  const groupClass = 'flex flex-wrap items-end gap-3 border border-gray-700 rounded-md px-3 pt-1 pb-3'
+  const legendClass = 'text-[10px] uppercase tracking-wider text-gray-500 px-1'
+
   return (
     <div className="px-6 py-3 bg-gray-800 border-b border-gray-700 space-y-3">
-      {(transcriptionPresets.length > 0 || bundles.length > 0) && (
-        <div className="flex flex-wrap gap-4 items-center mb-2">
+      {/* Container row — semantic groups laid out side-by-side, wrap freely */}
+      <div className="flex flex-wrap gap-3 items-stretch">
+        {/* Presets group */}
+        <fieldset className={groupClass}>
+          <legend className={legendClass}>{t('settings.groups.presets')}</legend>
           {bundles.length > 0 && (
             <div className="min-w-0">
               <label className="block text-xs text-gray-400 mb-1">{t('presets.bundles')}</label>
@@ -92,120 +98,135 @@ export function SettingsPanel({ values, onChange, saveError = null }: SettingsPa
               </select>
             </div>
           )}
-          <div className="min-w-0">
-            <label className="block text-xs text-gray-400 mb-1">{t('presets.transcription')}</label>
+          {transcriptionPresets.length > 0 && (
+            <div className="min-w-0">
+              <label className="block text-xs text-gray-400 mb-1">{t('presets.transcription')}</label>
+              <select
+                value={values.selectedPresetId || ''}
+                onChange={(e) => handleLoadPreset(e.target.value || null)}
+                className="bg-gray-700 text-white text-sm rounded px-3 py-1.5 min-w-[140px]"
+              >
+                <option value="">{t('presets.selectPreset')}</option>
+                {transcriptionPresets.map((p) => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          <div className="self-end">
             <PresetSelect
-              presets={transcriptionPresets}
-              selectedId={values.selectedPresetId}
-              onSelect={handleLoadPreset}
+              presets={[]}
+              selectedId={null}
+              onSelect={() => {}}
               onSave={handleSavePreset}
+              hideDropdown
             />
           </div>
-        </div>
-      )}
-      {transcriptionPresets.length === 0 && bundles.length === 0 && (
-        <div className="flex justify-end mb-1">
-          <PresetSelect
-            presets={[]}
-            selectedId={null}
-            onSelect={() => {}}
-            onSave={handleSavePreset}
-          />
-        </div>
-      )}
-      <div className="flex flex-wrap gap-4 items-end">
-        <div className="min-w-0">
-          <label htmlFor="upload-language-field" className="block text-xs text-gray-400 mb-1">{t('settings.language')}</label>
-          <LanguageSelect
-            id="upload-language-field"
-            value={values.language}
-            onChange={(v) => onChange({ language: v })}
-            includeAuto
-            className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5"
-          />
-        </div>
-        <div className="min-w-0">
-          <label htmlFor="upload-model-field" className="block text-xs text-gray-400 mb-1">{t('settings.model')}</label>
-          {(() => {
-            const models = config?.whisper_models || []
-            if (models.length === 1) {
-              const m = models[0]
-              const label = t(`settings.modelLabels.${m}`, '')
+        </fieldset>
+
+        {/* Transcription group (Language + Quality) */}
+        <fieldset className={groupClass}>
+          <legend className={legendClass}>{t('settings.groups.transcription')}</legend>
+          <div className="min-w-0">
+            <label htmlFor="upload-language-field" className="block text-xs text-gray-400 mb-1">{t('settings.language')}</label>
+            <LanguageSelect
+              id="upload-language-field"
+              value={values.language}
+              onChange={(v) => onChange({ language: v })}
+              includeAuto
+              className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5"
+            />
+          </div>
+          <div className="min-w-0">
+            <label htmlFor="upload-model-field" className="block text-xs text-gray-400 mb-1">{t('settings.model')}</label>
+            {(() => {
+              const models = config?.whisper_models || []
+              if (models.length === 1) {
+                const m = models[0]
+                const label = t(`settings.modelLabels.${m}`, '')
+                return (
+                  <output id="upload-model-field" className="block w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5">
+                    {label ? `${label} (${m})` : m}
+                  </output>
+                )
+              }
               return (
-                <output id="upload-model-field" className="block w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5">
-                  {label ? `${label} (${m})` : m}
-                </output>
+                <select
+                  id="upload-model-field"
+                  value={values.model}
+                  onChange={(e) => onChange({ model: e.target.value })}
+                  className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5"
+                >
+                  {models.map((m) => {
+                    const label = t(`settings.modelLabels.${m}`, '')
+                    return <option key={m} value={m}>{label ? `${label} (${m})` : m}</option>
+                  })}
+                </select>
               )
-            }
-            return (
-              <select
-                id="upload-model-field"
-                value={values.model}
-                onChange={(e) => onChange({ model: e.target.value })}
-                className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5"
-              >
-                {models.map((m) => {
-                  const label = t(`settings.modelLabels.${m}`, '')
-                  return <option key={m} value={m}>{label ? `${label} (${m})` : m}</option>
-                })}
-              </select>
-            )
-          })()}
-        </div>
-        <div className="flex items-center gap-2 py-1.5 min-w-0">
-          <input
-            type="checkbox"
-            checked={values.detectSpeakers}
-            onChange={(e) => onChange({ detectSpeakers: e.target.checked })}
-            className="rounded shrink-0"
-          />
-          <label className="text-sm text-gray-300">{t('settings.detectSpeakers')}</label>
-        </div>
-        {values.detectSpeakers && (
-          <>
-            <div className="min-w-0">
-              <label className="block text-xs text-gray-400 mb-1">{t('settings.minSpeakers')}</label>
-              <input
-                type="number"
-                min={1}
-                max={20}
-                value={values.minSpeakers}
-                onChange={(e) => {
-                  const val = Math.max(1, Math.min(20, Number(e.target.value)))
-                  onChange({
-                    minSpeakers: val,
-                    maxSpeakers: val > values.maxSpeakers ? val : values.maxSpeakers,
-                  })
-                }}
-                className="bg-gray-700 text-white text-sm rounded px-3 py-1.5 w-16"
-              />
-            </div>
-            <div className="min-w-0">
-              <label className="block text-xs text-gray-400 mb-1">{t('settings.maxSpeakers')}</label>
-              <input
-                type="number"
-                min={1}
-                max={20}
-                value={values.maxSpeakers}
-                onChange={(e) => {
-                  const val = Math.max(1, Math.min(20, Number(e.target.value)))
-                  onChange({
-                    maxSpeakers: val,
-                    minSpeakers: val < values.minSpeakers ? val : values.minSpeakers,
-                  })
-                }}
-                className="bg-gray-700 text-white text-sm rounded px-3 py-1.5 w-16"
-              />
-            </div>
-          </>
-        )}
+            })()}
+          </div>
+        </fieldset>
+
+        {/* Speakers group (checkbox + optional min/max — never split across wraps) */}
+        <fieldset className={groupClass}>
+          <legend className={legendClass}>{t('settings.groups.speakers')}</legend>
+          <label className="flex items-center gap-2 py-1.5">
+            <input
+              type="checkbox"
+              checked={values.detectSpeakers}
+              onChange={(e) => onChange({ detectSpeakers: e.target.checked })}
+              className="rounded shrink-0"
+            />
+            <span className="text-sm text-gray-300">{t('settings.detectSpeakers')}</span>
+          </label>
+          {values.detectSpeakers && (
+            <>
+              <div className="min-w-0">
+                <label className="block text-xs text-gray-400 mb-1">{t('settings.minSpeakers')}</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={values.minSpeakers}
+                  onChange={(e) => {
+                    const val = Math.max(1, Math.min(20, Number(e.target.value)))
+                    onChange({
+                      minSpeakers: val,
+                      maxSpeakers: val > values.maxSpeakers ? val : values.maxSpeakers,
+                    })
+                  }}
+                  className="bg-gray-700 text-white text-sm rounded px-3 py-1.5 w-16"
+                />
+              </div>
+              <div className="min-w-0">
+                <label className="block text-xs text-gray-400 mb-1">{t('settings.maxSpeakers')}</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={values.maxSpeakers}
+                  onChange={(e) => {
+                    const val = Math.max(1, Math.min(20, Number(e.target.value)))
+                    onChange({
+                      maxSpeakers: val,
+                      minSpeakers: val < values.minSpeakers ? val : values.minSpeakers,
+                    })
+                  }}
+                  className="bg-gray-700 text-white text-sm rounded px-3 py-1.5 w-16"
+                />
+              </div>
+            </>
+          )}
+        </fieldset>
+
         <button
           onClick={() => onChange({ showAdvanced: !values.showAdvanced })}
-          className="text-sm text-blue-400 hover:text-blue-300 shrink-0"
+          className="ml-auto self-end text-sm text-blue-400 hover:text-blue-300 py-1.5 shrink-0"
         >
           {t('settings.advancedOptions')} {values.showAdvanced ? '▲' : '▼'}
         </button>
       </div>
+
       {saveError && (
         <div className="p-4 bg-red-900/30 rounded-lg border border-red-700">
           <div className="flex items-center gap-3">
@@ -214,27 +235,32 @@ export function SettingsPanel({ values, onChange, saveError = null }: SettingsPa
           </div>
         </div>
       )}
+
+      {/* Advanced options panel — wrapped in a labeled container to match other groups */}
       {values.showAdvanced && (
-        <div className="flex flex-wrap gap-4">
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-xs text-gray-400 mb-1">{t('settings.initialPrompt')}</label>
-            <textarea
-              value={values.initialPrompt}
-              onChange={(e) => onChange({ initialPrompt: e.target.value })}
-              placeholder={t('settings.initialPromptHelp')}
-              className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5 h-16 resize-none"
-            />
+        <fieldset className={`${groupClass} w-full`}>
+          <legend className={legendClass}>{t('settings.advancedOptions')}</legend>
+          <div className="flex flex-wrap gap-3 w-full">
+            <div className="flex-1 min-w-[200px]">
+              <label className="block text-xs text-gray-400 mb-1">{t('settings.initialPrompt')}</label>
+              <textarea
+                value={values.initialPrompt}
+                onChange={(e) => onChange({ initialPrompt: e.target.value })}
+                placeholder={t('settings.initialPromptHelp')}
+                className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5 h-16 resize-none"
+              />
+            </div>
+            <div className="flex-1 min-w-[200px]">
+              <label className="block text-xs text-gray-400 mb-1">{t('settings.hotwords')}</label>
+              <input
+                value={values.hotwords}
+                onChange={(e) => onChange({ hotwords: e.target.value })}
+                placeholder={t('settings.hotwordsHelp')}
+                className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5"
+              />
+            </div>
           </div>
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-xs text-gray-400 mb-1">{t('settings.hotwords')}</label>
-            <input
-              value={values.hotwords}
-              onChange={(e) => onChange({ hotwords: e.target.value })}
-              placeholder={t('settings.hotwordsHelp')}
-              className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5"
-            />
-          </div>
-        </div>
+        </fieldset>
       )}
     </div>
   )
