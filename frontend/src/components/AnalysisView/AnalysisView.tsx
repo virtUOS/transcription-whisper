@@ -39,89 +39,66 @@ function isProtocolShape(result: unknown): result is ProtocolShape {
   return typeof r.title === 'string' && Array.isArray(r.key_points) && Array.isArray(r.decisions) && Array.isArray(r.action_items)
 }
 
-function resultToText(result: unknown, t: (key: string) => string): string {
+function formatResult(result: unknown, t: (key: string) => string, format: 'text' | 'markdown'): string {
+  const md = format === 'markdown'
+
   if (isSummaryShape(result)) {
-    let text = result.summary + '\n'
+    let out = result.summary + '\n'
     if (result.chapters.length > 0) {
-      text += '\n'
+      out += '\n'
       result.chapters.forEach((ch, i) => {
-        text += `${i + 1}. ${ch.title} [${formatTime(ch.start_time)} — ${formatTime(ch.end_time)}]\n${ch.summary}\n\n`
+        const times = `${formatTime(ch.start_time)} — ${formatTime(ch.end_time)}`
+        out += md
+          ? `### ${i + 1}. ${ch.title}\n*${times}*\n\n${ch.summary}\n\n`
+          : `${i + 1}. ${ch.title} [${times}]\n${ch.summary}\n\n`
       })
     }
-    return text.trimEnd()
+    return out.trimEnd()
   }
+
   if (isProtocolShape(result)) {
-    let text = `${t('editor.protocol')}: ${result.title}\n`
-    text += `${t('editor.participants')}: ${result.participants.join(', ')}\n`
+    let out = md
+      ? `# ${t('editor.protocol')}: ${result.title}\n\n**${t('editor.participants')}:** ${result.participants.join(', ')}\n`
+      : `${t('editor.protocol')}: ${result.title}\n${t('editor.participants')}: ${result.participants.join(', ')}\n`
+
     if (result.key_points.length > 0) {
-      text += `\n${t('editor.keyPoints').toUpperCase()}\n`
+      out += md ? `\n## ${t('editor.keyPoints')}\n\n` : `\n${t('editor.keyPoints').toUpperCase()}\n`
       result.key_points.forEach((kp, i) => {
         const ts = kp.timestamp !== null ? `[${formatTime(kp.timestamp)}] ` : ''
-        text += `${i + 1}. ${ts}${kp.speaker} — ${kp.topic}\n   ${kp.content}\n\n`
+        out += md
+          ? `${i + 1}. **${ts}${kp.speaker}** — ${kp.topic}\n   ${kp.content}\n\n`
+          : `${i + 1}. ${ts}${kp.speaker} — ${kp.topic}\n   ${kp.content}\n\n`
       })
     }
     if (result.decisions.length > 0) {
-      text += `${t('editor.decisions').toUpperCase()}\n`
+      out += md ? `## ${t('editor.decisions')}\n\n` : `${t('editor.decisions').toUpperCase()}\n`
       result.decisions.forEach((d, i) => {
-        const ts = d.timestamp !== null ? `[${formatTime(d.timestamp)}] ` : ''
-        text += `${i + 1}. ${ts}${d.decision}\n\n`
+        const ts = d.timestamp !== null
+          ? (md ? `**[${formatTime(d.timestamp)}]** ` : `[${formatTime(d.timestamp)}] `)
+          : ''
+        out += `${i + 1}. ${ts}${d.decision}\n\n`
       })
     }
     if (result.action_items.length > 0) {
-      text += `${t('editor.actionItems').toUpperCase()}\n`
+      out += md ? `## ${t('editor.actionItems')}\n\n` : `${t('editor.actionItems').toUpperCase()}\n`
       result.action_items.forEach((ai, i) => {
-        const ts = ai.timestamp !== null ? ` (${formatTime(ai.timestamp)})` : ''
-        text += `${i + 1}. ${ai.assignee} — ${ai.task}${ts}\n\n`
+        const ts = ai.timestamp !== null
+          ? (md ? ` *(${formatTime(ai.timestamp)})*` : ` (${formatTime(ai.timestamp)})`)
+          : ''
+        out += md
+          ? `- [ ] **${ai.assignee}** — ${ai.task}${ts}\n`
+          : `${i + 1}. ${ai.assignee} — ${ai.task}${ts}\n\n`
       })
     }
-    return text.trimEnd()
+    return out.trimEnd()
   }
+
   if (typeof result === 'string') return result
   return JSON.stringify(result, null, 2)
 }
 
-function resultToMarkdown(result: unknown, t: (key: string) => string): string {
-  if (isSummaryShape(result)) {
-    let md = result.summary + '\n'
-    if (result.chapters.length > 0) {
-      md += '\n'
-      result.chapters.forEach((ch, i) => {
-        md += `### ${i + 1}. ${ch.title}\n`
-        md += `*${formatTime(ch.start_time)} — ${formatTime(ch.end_time)}*\n\n`
-        md += `${ch.summary}\n\n`
-      })
-    }
-    return md.trimEnd()
-  }
-  if (isProtocolShape(result)) {
-    let md = `# ${t('editor.protocol')}: ${result.title}\n\n`
-    md += `**${t('editor.participants')}:** ${result.participants.join(', ')}\n`
-    if (result.key_points.length > 0) {
-      md += `\n## ${t('editor.keyPoints')}\n\n`
-      result.key_points.forEach((kp, i) => {
-        const ts = kp.timestamp !== null ? `[${formatTime(kp.timestamp)}] ` : ''
-        md += `${i + 1}. **${ts}${kp.speaker}** — ${kp.topic}\n   ${kp.content}\n\n`
-      })
-    }
-    if (result.decisions.length > 0) {
-      md += `## ${t('editor.decisions')}\n\n`
-      result.decisions.forEach((d, i) => {
-        const ts = d.timestamp !== null ? `**[${formatTime(d.timestamp)}]** ` : ''
-        md += `${i + 1}. ${ts}${d.decision}\n\n`
-      })
-    }
-    if (result.action_items.length > 0) {
-      md += `## ${t('editor.actionItems')}\n\n`
-      result.action_items.forEach((ai) => {
-        const ts = ai.timestamp !== null ? ` *(${formatTime(ai.timestamp)})*` : ''
-        md += `- [ ] **${ai.assignee}** — ${ai.task}${ts}\n`
-      })
-    }
-    return md.trimEnd()
-  }
-  if (typeof result === 'string') return result
-  return JSON.stringify(result, null, 2)
-}
+const resultToText = (result: unknown, t: (key: string) => string) => formatResult(result, t, 'text')
+const resultToMarkdown = (result: unknown, t: (key: string) => string) => formatResult(result, t, 'markdown')
 
 // Individual analysis card that loads its own data on expand
 function AnalysisCard({ analysisId, transcriptionId, templates, baseName, onDelete }: {
