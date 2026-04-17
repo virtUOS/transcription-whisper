@@ -28,9 +28,13 @@ import os
 
 
 def test_api_token_settings_defaults(monkeypatch):
+    # Neutralize the repo .env so reload() sees only the shell environment,
+    # otherwise a local developer .env with ENABLE_API_TOKENS=true leaks in.
+    import dotenv
+    monkeypatch.setattr(dotenv, "load_dotenv", lambda *a, **kw: None)
+    from app import config as config_module
     for var in ("ENABLE_API_TOKENS", "API_TOKEN_MAX_PER_USER", "API_TOKEN_DEFAULT_EXPIRY_DAYS"):
         monkeypatch.delenv(var, raising=False)
-    from app import config as config_module
     importlib.reload(config_module)
     assert config_module.settings.ENABLE_API_TOKENS is False
     assert config_module.settings.API_TOKEN_MAX_PER_USER == 10
@@ -38,10 +42,12 @@ def test_api_token_settings_defaults(monkeypatch):
 
 
 def test_api_token_settings_from_env(monkeypatch):
+    import dotenv
+    monkeypatch.setattr(dotenv, "load_dotenv", lambda *a, **kw: None)
+    from app import config as config_module
     monkeypatch.setenv("ENABLE_API_TOKENS", "true")
     monkeypatch.setenv("API_TOKEN_MAX_PER_USER", "5")
     monkeypatch.setenv("API_TOKEN_DEFAULT_EXPIRY_DAYS", "30")
-    from app import config as config_module
     importlib.reload(config_module)
     assert config_module.settings.ENABLE_API_TOKENS is True
     assert config_module.settings.API_TOKEN_MAX_PER_USER == 5
