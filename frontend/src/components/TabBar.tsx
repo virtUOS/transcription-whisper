@@ -21,7 +21,7 @@ export function TabBar({ onSpeakerNamesClick }: Props) {
   ]
 
   return (
-    <div className="flex items-center gap-1 px-6 py-2 bg-gray-800 border-b border-gray-700 overflow-x-auto">
+    <div className="flex items-center gap-1 px-6 py-2 bg-gray-800 border-b border-gray-700 overflow-x-auto [mask-image:linear-gradient(to_right,transparent,black_1rem,black_calc(100%-1rem),transparent)] sm:[mask-image:none]">
       {tabs.map((tab) => (
         <button
           key={tab.id}

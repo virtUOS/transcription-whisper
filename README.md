@@ -29,6 +29,8 @@
 - Copy, download, and delete generated analysis results.
 - LLM provider and model attribution display on generated content.
 - Transcription history as default landing page with persistent storage.
+- Auto-generated transcription titles via LLM (overridable through inline rename).
+- In-app help drawer with a bilingual (English/German) user manual covering every feature.
 - Per-item expiration with configurable retention — files expire after a default period (3 days), with an "archive" action to extend retention (180 days).
 - Real-time progress updates via WebSocket.
 - Responsive layout — mobile-friendly UI with no horizontal overflow on small screens.
@@ -73,6 +75,7 @@ LLM_BASE_URL=                     # for custom endpoints (e.g., vLLM, Ollama: ht
 
 # UI Configuration
 POPULAR_LANGUAGES=de,en,es,fr       # languages pinned at top of dropdowns (comma-separated codes)
+ENABLED_LANGUAGES=                  # allowlist of languages (comma-separated codes); unset = all enabled
 
 # Application
 TEMP_PATH=tmp/transcription-files
