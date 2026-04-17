@@ -205,6 +205,7 @@ class ConfigResponse(BaseModel):
     logout_url: str
     popular_languages: list[str] = []
     enabled_languages: list[str] = []
+    api_tokens_enabled: bool = False
 
 
 # --- Presets ---
@@ -270,3 +271,44 @@ class BundleExpandedResponse(BundleResponse):
     transcription_preset: TranscriptionPresetResponse | None = None
     analysis_preset: AnalysisPresetResponse | None = None
     refinement_preset: RefinementPresetResponse | None = None
+
+
+# --- API Tokens ---
+
+class TokenCreateRequest(BaseModel):
+    name: str
+    expires_in_days: int | None = None
+
+    @field_validator("name")
+    @classmethod
+    def name_length(cls, v: str) -> str:
+        stripped = v.strip()
+        if not (1 <= len(stripped) <= 64):
+            raise ValueError("Name must be 1–64 characters")
+        return stripped
+
+    @field_validator("expires_in_days")
+    @classmethod
+    def positive_days(cls, v: int | None) -> int | None:
+        if v is not None and v <= 0:
+            raise ValueError("expires_in_days must be positive or null")
+        return v
+
+
+class TokenCreateResponse(BaseModel):
+    id: str
+    name: str
+    prefix: str
+    created_at: str
+    expires_at: str | None = None
+    token: str  # raw token — only present in creation response
+
+
+class TokenListItem(BaseModel):
+    id: str
+    name: str
+    prefix: str
+    created_at: str
+    expires_at: str | None = None
+    last_used_at: str | None = None
+    revoked_at: str | None = None
