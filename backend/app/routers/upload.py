@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, UploadFile, HTTPException
 from fastapi.responses import FileResponse
 from app.config import settings
 from app.dependencies import get_current_user
+from app.router_helpers import fetch_file_owned_or_404
 from app.models import UserInfo, FileInfo, RenameRequest
 from app.database import get_db
 from app.services.audio import convert_to_mp3, has_video_stream
@@ -99,14 +100,7 @@ async def get_media(
     user: UserInfo = Depends(get_current_user),
 ):
     async with get_db() as db:
-        cursor = await db.execute(
-            "SELECT file_path, media_type FROM files WHERE id = ? AND user_id = ?",
-            (file_id, user.id),
-        )
-        row = await cursor.fetchone()
-
-    if not row:
-        raise HTTPException(status_code=404, detail="File not found")
+        row = await fetch_file_owned_or_404(db, file_id, user.id)
 
     file_path = row["file_path"]
     if not os.path.exists(file_path):
@@ -122,13 +116,9 @@ async def get_media_fallback(
     user: UserInfo = Depends(get_current_user),
 ):
     async with get_db() as db:
-        cursor = await db.execute(
-            "SELECT mp3_path FROM files WHERE id = ? AND user_id = ?",
-            (file_id, user.id),
-        )
-        row = await cursor.fetchone()
+        row = await fetch_file_owned_or_404(db, file_id, user.id, detail="No fallback available")
 
-    if not row or not row["mp3_path"]:
+    if not row["mp3_path"]:
         raise HTTPException(status_code=404, detail="No fallback available")
 
     mp3_path = row["mp3_path"]
@@ -149,13 +139,7 @@ async def rename_file(
         raise HTTPException(status_code=400, detail="Invalid filename")
 
     async with get_db() as db:
-        cursor = await db.execute(
-            "SELECT original_filename, media_type, file_size, has_video FROM files WHERE id = ? AND user_id = ?",
-            (file_id, user.id),
-        )
-        row = await cursor.fetchone()
-        if not row:
-            raise HTTPException(status_code=404, detail="File not found")
+        row = await fetch_file_owned_or_404(db, file_id, user.id)
 
         # Preserve original extension
         original_ext = os.path.splitext(row["original_filename"])[1]
