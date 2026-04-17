@@ -785,12 +785,12 @@ export function PresetsPage() {
       <h2 className="text-xl font-semibold text-white mb-4">{t('presets.title')}</h2>
 
       {/* Tab bar */}
-      <div className="flex gap-1 border-b border-gray-700 mb-5">
+      <div className="flex gap-1 border-b border-gray-700 mb-5 overflow-x-auto [mask-image:linear-gradient(to_right,transparent,black_1rem,black_calc(100%-1rem),transparent)] sm:[mask-image:none]">
         {tabs.map(({ key, label }) => (
           <button
             key={key}
             onClick={() => setActiveTab(key)}
-            className={`px-4 py-2 text-sm font-medium transition-colors ${
+            className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
               activeTab === key
                 ? 'text-white border-b-2 border-blue-400 -mb-px'
                 : 'text-gray-400 hover:text-gray-200'
