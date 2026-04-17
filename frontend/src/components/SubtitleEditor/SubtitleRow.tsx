@@ -2,15 +2,8 @@ import { useState, useRef, useEffect, forwardRef } from 'react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useStore } from '../../store'
+import { formatTime } from '../../utils/format'
 import type { Utterance } from '../../api/types'
-
-function formatTimestamp(ms: number): string {
-  const s = Math.floor(ms / 1000)
-  const m = Math.floor(s / 60)
-  const h = Math.floor(m / 60)
-  const pad = (n: number) => n.toString().padStart(2, '0')
-  return `${pad(h)}:${pad(m % 60)}:${pad(s % 60)}`
-}
 
 function highlightText(text: string, query: string): ReactNode {
   if (!query) return text
@@ -109,8 +102,8 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
   if (editingField !== prevEditingField) {
     setPrevEditingField(editingField)
     if (editingField && editingField !== 'text') {
-      if (editingField === 'start') setEditValue(formatTimestamp(utterance.start))
-      else if (editingField === 'end') setEditValue(formatTimestamp(utterance.end))
+      if (editingField === 'start') setEditValue(formatTime(utterance.start))
+      else if (editingField === 'end') setEditValue(formatTime(utterance.end))
       else if (editingField === 'speaker') setEditValue(speakerDisplay)
     }
   }
@@ -216,10 +209,10 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
         </td>
         <td className="inline-block sm:table-cell px-2 py-2 sm:py-2 pt-2 pb-0 text-blue-400 cursor-pointer group" onClick={(e) => { e.stopPropagation(); delayedSeek(utterance.start) }}>
           <span className="inline-flex items-center gap-1">
-            {renderCell('start', formatTimestamp(utterance.start))}
+            {renderCell('start', formatTime(utterance.start))}
             {!readOnly && editingField !== 'start' && (
               <button
-                onClick={(e) => { e.stopPropagation(); cancelSeek(); startEdit('start', formatTimestamp(utterance.start)) }}
+                onClick={(e) => { e.stopPropagation(); cancelSeek(); startEdit('start', formatTime(utterance.start)) }}
                 className="opacity-60 hover:opacity-100 transition-opacity text-gray-500 hover:text-blue-400 shrink-0"
                 title={t('editor.editTimestamp')}
               >
@@ -232,10 +225,10 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
         </td>
         <td className="inline-block sm:table-cell px-2 py-2 sm:py-2 pt-2 pb-0 text-blue-400 cursor-pointer group" onClick={(e) => { e.stopPropagation(); delayedSeek(utterance.end) }}>
           <span className="inline-flex items-center gap-1">
-            {renderCell('end', formatTimestamp(utterance.end))}
+            {renderCell('end', formatTime(utterance.end))}
             {!readOnly && editingField !== 'end' && (
               <button
-                onClick={(e) => { e.stopPropagation(); cancelSeek(); startEdit('end', formatTimestamp(utterance.end)) }}
+                onClick={(e) => { e.stopPropagation(); cancelSeek(); startEdit('end', formatTime(utterance.end)) }}
                 className="opacity-60 hover:opacity-100 transition-opacity text-gray-500 hover:text-blue-400 shrink-0"
                 title={t('editor.editTimestamp')}
               >

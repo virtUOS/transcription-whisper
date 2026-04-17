@@ -4,6 +4,7 @@ import videojs from 'video.js'
 import 'video.js/dist/video-js.css'
 import { useStore } from '../../store'
 import { api } from '../../api/client'
+import { formatVttTime } from '../../utils/format'
 import type { Utterance } from '../../api/types'
 
 const mimeTypes: Record<string, string> = {
@@ -16,15 +17,6 @@ const mimeTypes: Record<string, string> = {
   aac: 'audio/aac',
   opus: 'audio/opus',
   ogg: 'audio/ogg',
-}
-
-function formatVttTime(ms: number): string {
-  const totalSeconds = Math.floor(ms / 1000)
-  const h = Math.floor(totalSeconds / 3600)
-  const m = Math.floor((totalSeconds % 3600) / 60)
-  const s = totalSeconds % 60
-  const millis = ms % 1000
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(millis).padStart(3, '0')}`
 }
 
 function generateVtt(utterances: Utterance[], speakerMappings: Record<string, string>): string {

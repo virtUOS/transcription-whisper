@@ -6,14 +6,12 @@ import { HelpContent } from './HelpContent'
 import { sections, viewToSection } from './helpSections'
 import type { HelpSectionId } from './helpSections'
 
-type AppView = 'archive' | 'upload' | 'record' | 'detail' | 'presets'
-
 export function HelpDrawer() {
   const { t } = useTranslation()
   const open = useStore((s) => s.helpOpen)
   const initialSection = useStore((s) => s.helpInitialSection)
   const closeHelp = useStore((s) => s.closeHelp)
-  const currentView = useStore((s) => s.currentView) as AppView
+  const currentView = useStore((s) => s.currentView)
 
   // Compute the section to land on when opening.
   // Because the component unmounts when !open, useState(derivedSection) will

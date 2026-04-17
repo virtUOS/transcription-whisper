@@ -233,10 +233,9 @@ function AnalysisCard({ analysisId, transcriptionId, templates, baseName, onDele
             </div>
           )}
           {error && <p className="text-red-400 text-sm">{error}</p>}
-          {!!result && (
-            <>
-              {/* Download buttons at top */}
-              <div className="flex justify-end gap-2">
+          {!!result && (() => {
+            const copyDownloadButtons = (extraClassName = '') => (
+              <div className={`flex justify-end gap-2 ${extraClassName}`.trim()}>
                 <button onClick={() => handleCopy(resultToText(result, t), 'all')} className={btnCopy}>
                   {copied === 'all' ? checkIcon : copyIcon}
                   {copied === 'all' ? t('editor.copied') : t('analysis.copyResult')}
@@ -250,6 +249,10 @@ function AnalysisCard({ analysisId, transcriptionId, templates, baseName, onDele
                   Markdown
                 </button>
               </div>
+            )
+            return (
+            <>
+              {copyDownloadButtons()}
 
               {isSummaryShape(result) && (
                 <>
@@ -316,21 +319,7 @@ function AnalysisCard({ analysisId, transcriptionId, templates, baseName, onDele
                 </div>
               )}
 
-              {/* Copy / Download */}
-              <div className="flex justify-end gap-2 pt-3 border-t border-gray-700">
-                <button onClick={() => handleCopy(resultToText(result, t), 'all')} className={btnCopy}>
-                  {copied === 'all' ? checkIcon : copyIcon}
-                  {copied === 'all' ? t('editor.copied') : t('analysis.copyResult')}
-                </button>
-                <button onClick={() => downloadText(resultToText(result, t), `${baseName}_analysis.txt`)} className={btnDownload}>
-                  {downloadIcon}
-                  TXT
-                </button>
-                <button onClick={() => downloadMarkdown(resultToMarkdown(result, t), `${baseName}_analysis.md`)} className={btnDownload}>
-                  {downloadIcon}
-                  Markdown
-                </button>
-              </div>
+              {copyDownloadButtons('pt-3 border-t border-gray-700')}
 
               {/* Model info */}
               {(() => {
@@ -345,7 +334,8 @@ function AnalysisCard({ analysisId, transcriptionId, templates, baseName, onDele
                 return null
               })()}
             </>
-          )}
+            )
+          })()}
         </div>
       )}
     </div>
