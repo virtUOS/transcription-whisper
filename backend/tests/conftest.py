@@ -1,5 +1,8 @@
-import asyncio
 import os
+os.environ.setdefault("ENABLE_API_TOKENS", "true")
+os.environ.setdefault("DEV_MODE", "true")
+
+import asyncio
 import tempfile
 import pytest
 import pytest_asyncio

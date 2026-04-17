@@ -420,6 +420,8 @@
       "copy": "Copy",
       "done": "Done",
       "prefixSuffix": "…",
+      "revoking": "Revoking…",
+      "creating": "Creating…",
       "expiresOnTmpl": "expires {{date}}",
       "lastUsedTmpl": "last used {{date}}",
       "empty": "No API tokens yet. Create one to get started."

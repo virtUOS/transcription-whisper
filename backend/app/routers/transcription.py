@@ -28,6 +28,7 @@ from app.metrics import (
     downloads_total, deletions_total, errors_total,
     websocket_connections_active, websocket_connections_total,
     websocket_messages_sent_total, websocket_disconnects_total,
+    auth_failures_total, api_token_auth_total,
 )
 
 router = APIRouter()
@@ -409,7 +410,6 @@ async def update_title(transcription_id: str, body: TitleRequest, user: UserInfo
 
 @router.websocket("/api/ws/status/{transcription_id}")
 async def websocket_status(websocket: WebSocket, transcription_id: str):
-    from app.metrics import auth_failures_total
     await websocket.accept()
     inc(websocket_connections_total)
     gauge_inc(websocket_connections_active)
@@ -423,11 +423,13 @@ async def websocket_status(websocket: WebSocket, transcription_id: str):
                 async with get_db() as db:
                     result = await resolve_token(db, raw_token=raw)
                 if result is None:
+                    inc(api_token_auth_total, "failure")
                     inc(auth_failures_total, "invalid_token")
                     close_reason = "auth_missing"
                     await websocket.close(code=4001, reason="Invalid token")
                     return
                 user_id = result[0].id
+                inc(api_token_auth_total, "success")
 
         if user_id is None:
             user_id = websocket.headers.get("x-auth-request-user")

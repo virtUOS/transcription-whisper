@@ -219,7 +219,7 @@ export const api = {
 
   revokeApiToken: async (id: string): Promise<void> => {
     const response = await fetch(`${BASE}/api/tokens/${id}`, { method: 'DELETE' })
-    if (!response.ok && response.status !== 204) {
+    if (!response.ok) {
       throw new Error(response.statusText)
     }
   },

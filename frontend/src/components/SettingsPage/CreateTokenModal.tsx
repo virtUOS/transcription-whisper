@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../../api/client'
 import type { ApiTokenCreated } from '../../api/types'
+import { useStore } from '../../store'
 
 interface Props {
   onClose: () => void
@@ -10,8 +11,9 @@ interface Props {
 
 export function CreateTokenModal({ onClose, onCreated }: Props) {
   const { t } = useTranslation()
+  const defaultDays = useStore((s) => s.config?.api_token_default_expiry_days) ?? 90
   const [name, setName] = useState('')
-  const [expiryDays, setExpiryDays] = useState<number | null>(90)
+  const [expiryDays, setExpiryDays] = useState<number | null>(defaultDays)
   const [created, setCreated] = useState<ApiTokenCreated | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -124,7 +126,7 @@ export function CreateTokenModal({ onClose, onCreated }: Props) {
                 disabled={submitting || !name.trim()}
                 className="text-sm bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded px-4 py-1.5"
               >
-                {submitting ? t('settings.apiTokens.prefixSuffix') : t('settings.apiTokens.createCta')}
+                {submitting ? t('settings.apiTokens.creating') : t('settings.apiTokens.createCta')}
               </button>
             </div>
           </>

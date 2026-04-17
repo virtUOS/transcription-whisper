@@ -149,7 +149,8 @@ app.include_router(refinement.router)
 app.include_router(analysis.router)
 app.include_router(translation.router)
 app.include_router(presets.router)
-app.include_router(tokens.router)
+if settings.ENABLE_API_TOKENS:
+    app.include_router(tokens.router)
 
 # Serve frontend static files (only when built files exist, i.e., in Docker)
 from fastapi.staticfiles import StaticFiles

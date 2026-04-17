@@ -22,6 +22,7 @@ async def get_config():
         popular_languages=settings.POPULAR_LANGUAGES,
         enabled_languages=settings.ENABLED_LANGUAGES,
         api_tokens_enabled=settings.ENABLE_API_TOKENS,
+        api_token_default_expiry_days=settings.API_TOKEN_DEFAULT_EXPIRY_DAYS,
     )
 
 

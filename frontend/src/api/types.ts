@@ -129,6 +129,7 @@ export interface ConfigResponse {
   popular_languages: string[]
   enabled_languages: string[]
   api_tokens_enabled?: boolean
+  api_token_default_expiry_days?: number
 }
 
 export interface AnalysisTemplate {

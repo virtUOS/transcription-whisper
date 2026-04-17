@@ -138,7 +138,7 @@ storage_bytes = (
 # --- Auth ---
 auth_failures_total = _counter(
     "transcription_auth_failures_total", "Authentication failures",
-    ["reason"],  # reason: missing_headers | ws_missing_headers | invalid_token | expired_token | revoked_token
+    ["reason"],  # reason: missing_headers | ws_missing_headers | invalid_token
 )
 
 # --- API tokens ---

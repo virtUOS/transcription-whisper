@@ -112,7 +112,7 @@ export function ApiTokensSection() {
                     disabled={revoking === token.id}
                     className="text-sm text-red-400 hover:text-red-300 disabled:opacity-50 shrink-0"
                   >
-                    {revoking === token.id ? t('settings.apiTokens.prefixSuffix') : t('settings.apiTokens.revoke')}
+                    {revoking === token.id ? t('settings.apiTokens.revoking') : t('settings.apiTokens.revoke')}
                   </button>
                 )}
               </div>
