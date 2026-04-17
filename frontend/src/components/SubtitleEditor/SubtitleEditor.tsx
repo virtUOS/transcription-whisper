@@ -527,7 +527,7 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
         )}
       </div>
       {(llmAvailable || refinementMetadata || translatedUtterances) && (
-      <div className="flex items-center gap-2 px-3 py-2 bg-gray-800 border-b border-gray-700">
+      <div className="flex flex-wrap items-center gap-2 px-3 py-2 bg-gray-800 border-b border-gray-700">
         {llmAvailable && !refinementMetadata && (
           <button
             onClick={() => setShowRefineModal(true)}
