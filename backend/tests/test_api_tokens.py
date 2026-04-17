@@ -1,5 +1,7 @@
 import pytest
 import app.config as config_module
+from httpx import AsyncClient, ASGITransport
+from app.main import app
 from app.database import get_db
 from app.models import UserInfo
 from app.services.api_tokens import (
@@ -211,3 +213,95 @@ async def test_touch_last_used_updates_timestamp():
         cursor = await db.execute("SELECT last_used_at FROM api_tokens WHERE id = ?", (t["id"],))
         row = await cursor.fetchone()
     assert row["last_used_at"] is not None
+
+
+@pytest.mark.asyncio
+async def test_create_token_endpoint_returns_raw_token_once(monkeypatch):
+    monkeypatch.setattr(config_module.settings, "ENABLE_API_TOKENS", True)
+    monkeypatch.setattr(config_module.settings, "DEV_MODE", True)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as c:
+        r = await c.post("/api/tokens", json={"name": "my-cli", "expires_in_days": 30})
+        assert r.status_code == 200, r.text
+        data = r.json()
+        assert data["token"].startswith("tw_")
+        assert data["prefix"] == data["token"][:12]
+
+        r2 = await c.get("/api/tokens")
+        assert r2.status_code == 200
+        items = r2.json()
+        assert len(items) == 1
+        assert "token" not in items[0]
+
+
+@pytest.mark.asyncio
+async def test_create_token_rejects_empty_name(monkeypatch):
+    monkeypatch.setattr(config_module.settings, "ENABLE_API_TOKENS", True)
+    monkeypatch.setattr(config_module.settings, "DEV_MODE", True)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as c:
+        r = await c.post("/api/tokens", json={"name": "   ", "expires_in_days": None})
+    assert r.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_create_token_duplicate_name_returns_409(monkeypatch):
+    monkeypatch.setattr(config_module.settings, "ENABLE_API_TOKENS", True)
+    monkeypatch.setattr(config_module.settings, "DEV_MODE", True)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as c:
+        await c.post("/api/tokens", json={"name": "dup", "expires_in_days": None})
+        r = await c.post("/api/tokens", json={"name": "dup", "expires_in_days": None})
+    assert r.status_code == 409
+
+
+@pytest.mark.asyncio
+async def test_create_token_over_cap_returns_429(monkeypatch):
+    monkeypatch.setattr(config_module.settings, "ENABLE_API_TOKENS", True)
+    monkeypatch.setattr(config_module.settings, "DEV_MODE", True)
+    monkeypatch.setattr(config_module.settings, "API_TOKEN_MAX_PER_USER", 1)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as c:
+        await c.post("/api/tokens", json={"name": "a", "expires_in_days": None})
+        r = await c.post("/api/tokens", json={"name": "b", "expires_in_days": None})
+    assert r.status_code == 429
+
+
+@pytest.mark.asyncio
+async def test_revoke_token_returns_204_and_blocks_reuse(monkeypatch):
+    monkeypatch.setattr(config_module.settings, "ENABLE_API_TOKENS", True)
+    monkeypatch.setattr(config_module.settings, "DEV_MODE", True)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as c:
+        created = (await c.post("/api/tokens", json={"name": "r", "expires_in_days": None})).json()
+        r = await c.delete(f"/api/tokens/{created['id']}")
+        assert r.status_code == 204
+        r2 = await c.get("/api/tokens", headers={"Authorization": f"Bearer {created['token']}"})
+    assert r2.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_routes_absent_when_flag_off(monkeypatch):
+    monkeypatch.setattr(config_module.settings, "ENABLE_API_TOKENS", False)
+    monkeypatch.setattr(config_module.settings, "DEV_MODE", True)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as c:
+        r = await c.get("/api/tokens")
+    assert r.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_list_tokens_user_isolated(monkeypatch):
+    monkeypatch.setattr(config_module.settings, "ENABLE_API_TOKENS", True)
+    monkeypatch.setattr(config_module.settings, "DEV_MODE", True)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as c:
+        await c.post("/api/tokens", json={"name": "dev-t", "expires_in_days": None})
+        await c.post(
+            "/api/tokens",
+            headers={"X-Auth-Request-User": "alice"},
+            json={"name": "alice-t", "expires_in_days": None},
+        )
+        items = (await c.get("/api/tokens")).json()
+    names = {i["name"] for i in items}
+    assert names == {"dev-t"}
