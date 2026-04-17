@@ -47,3 +47,17 @@ export function isLanguageEnabled(code: string, enabled: readonly string[]): boo
   if (enabled.length === 0) return true
   return enabled.includes(code)
 }
+
+/**
+ * Split a filtered language list into popular-first and rest groups,
+ * preserving the order of `popular` for the promoted codes. The 'auto'
+ * sentinel is excluded from both groups since it is rendered separately.
+ */
+export function partitionPopular<T extends string>(
+  codes: readonly T[],
+  popular: readonly string[],
+): { popular: T[]; rest: T[] } {
+  const promoted = popular.filter((code): code is T => codes.includes(code as T))
+  const rest = codes.filter((code) => code !== 'auto' && !promoted.includes(code))
+  return { popular: promoted, rest }
+}

@@ -1,7 +1,8 @@
 import { useEffect, useId } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useStore } from '../store'
-import { LANGUAGES, LANGUAGES_WITH_AUTO, filterEnabledLanguages } from '../utils/languages'
+import { LANGUAGES_WITH_AUTO, filterEnabledLanguages } from '../utils/languages'
+import { LanguageOptions } from './LanguageOptions'
 
 interface Props {
   value: string
@@ -19,12 +20,9 @@ export function LanguageSelect({ value, onChange, includeAuto, className, disabl
   const autoId = useId()
   const effectiveId = id ?? autoId
 
-  const baseList: readonly string[] = includeAuto ? LANGUAGES_WITH_AUTO : LANGUAGES
-  const allCodes = filterEnabledLanguages(baseList, enabledLanguages)
-  const popular = popularLanguages.filter((code) => allCodes.includes(code))
-  const rest = allCodes.filter((code) => code !== 'auto' && !popular.includes(code))
+  const allCodes = filterEnabledLanguages(LANGUAGES_WITH_AUTO, enabledLanguages)
   const userVisibleCount = allCodes.filter((code) => code !== 'auto').length
-  const collapsedOnly = userVisibleCount === 1 && !includeAuto ? allCodes[0] : null
+  const collapsedOnly = userVisibleCount === 1 && !includeAuto ? allCodes.find((code) => code !== 'auto') ?? null : null
 
   useEffect(() => {
     if (collapsedOnly && value !== collapsedOnly) {
@@ -49,17 +47,7 @@ export function LanguageSelect({ value, onChange, includeAuto, className, disabl
       disabled={disabled}
     >
       {includeAuto && <option value="auto">{t('languages.auto')}</option>}
-      {popular.length > 0 && (
-        <>
-          {popular.map((code) => (
-            <option key={code} value={code}>{t(`languages.${code}`, code)}</option>
-          ))}
-          {rest.length > 0 && <option disabled>{'───────────'}</option>}
-        </>
-      )}
-      {rest.map((code) => (
-        <option key={code} value={code}>{t(`languages.${code}`, code)}</option>
-      ))}
+      <LanguageOptions enabled={enabledLanguages} popular={popularLanguages} />
     </select>
   )
 }

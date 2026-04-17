@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useStore } from '../../store'
 import { api } from '../../api/client'
-import { LANGUAGES, filterEnabledLanguages, isLanguageEnabled } from '../../utils/languages'
+import { isLanguageEnabled } from '../../utils/languages'
+import { LanguageOptions } from '../LanguageOptions'
 import type {
   TranscriptionPreset,
   TranscriptionPresetCreate,
@@ -33,6 +34,7 @@ function TranscriptionPresetsList() {
   const models = config?.whisper_models ?? []
   const defaultModel = config?.default_model ?? ''
   const enabledLanguages = config?.enabled_languages ?? []
+  const popularLanguages = config?.popular_languages ?? []
 
   const openNew = () => {
     setEditingId(null)
@@ -129,9 +131,7 @@ function TranscriptionPresetsList() {
               className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">{t('languages.auto')}</option>
-              {filterEnabledLanguages(LANGUAGES, enabledLanguages).map((code) => (
-                <option key={code} value={code}>{t(`languages.${code}`)}</option>
-              ))}
+              <LanguageOptions enabled={enabledLanguages} popular={popularLanguages} />
             </select>
           </div>
           <div>
@@ -216,6 +216,7 @@ function AnalysisPresetsList() {
   const presets = useStore((s) => s.analysisPresets)
   const setPresets = useStore((s) => s.setAnalysisPresets)
   const enabledLanguages = useStore((s) => s.config?.enabled_languages) || []
+  const popularLanguages = useStore((s) => s.config?.popular_languages) || []
 
   const emptyForm: AnalysisPresetCreate = { name: '', template: 'summary', custom_prompt: null, language: null }
   const [showForm, setShowForm] = useState(false)
@@ -337,9 +338,7 @@ function AnalysisPresetsList() {
               className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">{t('languages.auto')}</option>
-              {filterEnabledLanguages(LANGUAGES, enabledLanguages).map((code) => (
-                <option key={code} value={code}>{t(`languages.${code}`)}</option>
-              ))}
+              <LanguageOptions enabled={enabledLanguages} popular={popularLanguages} />
             </select>
           </div>
           {(form.template === null || form.template === 'custom') && (
@@ -522,6 +521,7 @@ function BundlesList() {
   const analysisPresets = useStore((s) => s.analysisPresets)
   const refinementPresets = useStore((s) => s.refinementPresets)
   const enabledLanguages = useStore((s) => s.config?.enabled_languages) || []
+  const popularLanguages = useStore((s) => s.config?.popular_languages) || []
 
   const emptyForm: PresetBundleCreate = { name: '', transcription_preset_id: null, analysis_preset_id: null, refinement_preset_id: null }
   const [showForm, setShowForm] = useState(false)
@@ -734,9 +734,7 @@ function BundlesList() {
               className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">{t('presets.bundle.none')}</option>
-              {filterEnabledLanguages(LANGUAGES, enabledLanguages).map((code) => (
-                <option key={code} value={code}>{t(`languages.${code}`)}</option>
-              ))}
+              <LanguageOptions enabled={enabledLanguages} popular={popularLanguages} />
             </select>
           </div>
           <div className="flex gap-2 justify-end">
