@@ -31,3 +31,27 @@ async def test_has_video_column_exists(tmp_path):
         cursor = await db.execute("PRAGMA table_info(files)")
         columns = {row[1] for row in await cursor.fetchall()}
     assert "has_video" in columns
+
+
+@pytest.mark.asyncio
+async def test_api_tokens_table_created(tmp_path):
+    db_path = str(tmp_path / "api_tokens.db")
+    await init_db(db_path)
+    async with get_db(db_path) as db:
+        cursor = await db.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='api_tokens'"
+        )
+        row = await cursor.fetchone()
+    assert row is not None
+
+
+@pytest.mark.asyncio
+async def test_api_tokens_hash_index_created(tmp_path):
+    db_path = str(tmp_path / "api_tokens_idx.db")
+    await init_db(db_path)
+    async with get_db(db_path) as db:
+        cursor = await db.execute(
+            "SELECT name FROM sqlite_master WHERE type='index' AND name='idx_api_tokens_hash'"
+        )
+        row = await cursor.fetchone()
+    assert row is not None

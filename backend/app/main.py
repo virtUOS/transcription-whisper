@@ -7,9 +7,10 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import init_db, get_db
-from app.routers import config_router, upload, transcription, refinement, analysis, translation, presets
-from app.metrics import inc, gauge_set, cleanup_runs_total, cleanup_items_deleted_total, storage_bytes
+from app.routers import config_router, upload, transcription, refinement, analysis, translation, presets, tokens
+from app.metrics import inc, gauge_set, cleanup_runs_total, cleanup_items_deleted_total, storage_bytes, api_tokens_active
 from app.services.audio import has_video_stream
+from app.services.api_tokens import cleanup_stale_tokens, count_active_tokens
 
 
 def _dir_size_bytes(path: str) -> int:
@@ -86,12 +87,16 @@ async def cleanup_old_files():
                 )
                 db_files_deleted = cursor.rowcount
                 await db.commit()
+                tokens_deleted = await cleanup_stale_tokens(db)
+                active_tokens = await count_active_tokens(db)
 
             inc(cleanup_runs_total, "success")
             inc(cleanup_items_deleted_total, "file", amount=files_deleted + db_files_deleted)
             inc(cleanup_items_deleted_total, "transcription", amount=transcriptions_deleted)
             inc(cleanup_items_deleted_total, "analysis", amount=analyses_deleted)
             inc(cleanup_items_deleted_total, "speaker_mapping", amount=mappings_deleted)
+            inc(cleanup_items_deleted_total, "api_token", amount=tokens_deleted)
+            gauge_set(api_tokens_active, active_tokens)
             _refresh_storage_gauge()
         except Exception as e:
             inc(cleanup_runs_total, "failed")
@@ -120,6 +125,8 @@ async def lifespan(app: FastAPI):
         if rows:
             await db.commit()
     _refresh_storage_gauge()
+    async with get_db() as db:
+        gauge_set(api_tokens_active, await count_active_tokens(db))
     cleanup_task = asyncio.create_task(cleanup_old_files())
     yield
     cleanup_task.cancel()
@@ -142,6 +149,8 @@ app.include_router(refinement.router)
 app.include_router(analysis.router)
 app.include_router(translation.router)
 app.include_router(presets.router)
+if settings.ENABLE_API_TOKENS:
+    app.include_router(tokens.router)
 
 # Serve frontend static files (only when built files exist, i.e., in Docker)
 from fastapi.staticfiles import StaticFiles

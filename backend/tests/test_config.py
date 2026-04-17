@@ -21,3 +21,28 @@ async def test_metrics_endpoint():
         response = await client.get("/metrics")
     assert response.status_code == 200
     assert "transcription_app_info" in response.text
+
+
+import importlib
+import os
+
+
+def test_api_token_settings_defaults(monkeypatch):
+    for var in ("ENABLE_API_TOKENS", "API_TOKEN_MAX_PER_USER", "API_TOKEN_DEFAULT_EXPIRY_DAYS"):
+        monkeypatch.delenv(var, raising=False)
+    from app import config as config_module
+    importlib.reload(config_module)
+    assert config_module.settings.ENABLE_API_TOKENS is False
+    assert config_module.settings.API_TOKEN_MAX_PER_USER == 10
+    assert config_module.settings.API_TOKEN_DEFAULT_EXPIRY_DAYS == 90
+
+
+def test_api_token_settings_from_env(monkeypatch):
+    monkeypatch.setenv("ENABLE_API_TOKENS", "true")
+    monkeypatch.setenv("API_TOKEN_MAX_PER_USER", "5")
+    monkeypatch.setenv("API_TOKEN_DEFAULT_EXPIRY_DAYS", "30")
+    from app import config as config_module
+    importlib.reload(config_module)
+    assert config_module.settings.ENABLE_API_TOKENS is True
+    assert config_module.settings.API_TOKEN_MAX_PER_USER == 5
+    assert config_module.settings.API_TOKEN_DEFAULT_EXPIRY_DAYS == 30

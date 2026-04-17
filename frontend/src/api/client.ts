@@ -7,6 +7,7 @@ import type {
   AnalysisPreset, AnalysisPresetCreate,
   RefinementPreset, RefinementPresetCreate,
   PresetBundle, PresetBundleCreate, PresetBundleExpanded,
+  ApiToken, ApiTokenCreated,
 } from './types'
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '')
@@ -205,4 +206,21 @@ export const api = {
   clearDefaultBundle: () =>
     request<{ status: string }>('/api/presets/default', { method: 'DELETE' }),
   getDefaultBundle: () => request<PresetBundleExpanded | null>('/api/presets/default'),
+
+  // --- API Tokens ---
+
+  listApiTokens: () => request<ApiToken[]>('/api/tokens'),
+
+  createApiToken: (name: string, expiresInDays: number | null) =>
+    request<ApiTokenCreated>('/api/tokens', {
+      method: 'POST',
+      body: JSON.stringify({ name, expires_in_days: expiresInDays }),
+    }),
+
+  revokeApiToken: async (id: string): Promise<void> => {
+    const response = await fetch(`${BASE}/api/tokens/${id}`, { method: 'DELETE' })
+    if (!response.ok) {
+      throw new Error(response.statusText)
+    }
+  },
 }

@@ -34,6 +34,9 @@ const AnalysisView = lazy(() =>
 const PresetsPage = lazy(() =>
   import('./components/PresetsPage/PresetsPage').then((m) => ({ default: m.PresetsPage }))
 )
+const SettingsPage = lazy(() =>
+  import('./components/SettingsPage').then((m) => ({ default: m.SettingsPage }))
+)
 const HelpDrawer = lazy(() =>
   import('./components/HelpDrawer').then((m) => ({ default: m.HelpDrawer }))
 )
@@ -506,6 +509,17 @@ function App() {
           <ChunkErrorBoundary errorMessage={t('common.loadError')} reloadLabel={t('common.reload')}>
             <Suspense fallback={<LoadingFallback />}>
               <PresetsPage />
+            </Suspense>
+          </ChunkErrorBoundary>
+        </>
+      )}
+
+      {currentView === 'settings' && (
+        <>
+          <BackButton />
+          <ChunkErrorBoundary errorMessage={t('common.loadError')} reloadLabel={t('common.reload')}>
+            <Suspense fallback={<LoadingFallback />}>
+              <SettingsPage />
             </Suspense>
           </ChunkErrorBoundary>
         </>
