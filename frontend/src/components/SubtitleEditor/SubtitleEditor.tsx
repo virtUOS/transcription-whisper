@@ -642,7 +642,7 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
 
       {/* Scrollable subtitle table */}
       <div ref={containerRef} className="overflow-auto">
-        <table className="w-full border-collapse text-sm sm:table-fixed">
+        <table className="w-full border-collapse text-sm">
           <thead className="hidden sm:table-header-group">
             <tr className="bg-gray-800 text-gray-400 text-xs">
               <th className="px-3 py-2 text-left w-10">#</th>

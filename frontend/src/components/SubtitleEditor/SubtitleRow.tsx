@@ -352,7 +352,7 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
                   {onDeleteRow && (
                     <button
                       onClick={(e) => { e.stopPropagation(); if (confirm(t('editor.confirmDeleteRow'))) onDeleteRow(index) }}
-                      className="sm:hidden opacity-60 hover:opacity-100 transition-opacity text-gray-500 hover:text-red-400 shrink-0 mt-0.5"
+                      className="opacity-60 hover:opacity-100 transition-opacity text-gray-500 hover:text-red-400 shrink-0 mt-0.5"
                       title={t('editor.deleteRow')}
                     >
                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -365,23 +365,10 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
             </span>
           )}
         </td>
-        {!readOnly && onDeleteRow && (
-          <td className="hidden sm:table-cell px-2 py-2 text-right">
-            <button
-              onClick={(e) => { e.stopPropagation(); if (confirm(t('editor.confirmDeleteRow'))) onDeleteRow(index) }}
-              className="opacity-0 group-hover:opacity-60 hover:!opacity-100 transition-opacity text-gray-500 hover:text-red-400"
-              title={t('editor.deleteRow')}
-            >
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            </button>
-          </td>
-        )}
       </tr>
       {showDiff && originalText && (
         <tr className="bg-gray-800/50">
-          <td colSpan={6} className="px-3 py-2">
+          <td colSpan={5} className="px-3 py-2">
             <div className="flex gap-4 text-xs">
               <div className="flex-1">
                 <span className="text-gray-500 font-medium">{t('editor.originalText')}:</span>
