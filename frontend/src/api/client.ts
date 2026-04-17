@@ -87,7 +87,7 @@ export const api = {
   saveTranscription: (id: string, utterances: import('./types').Utterance[]) =>
     request<{ status: string }>(`/api/transcription/${id}`, {
       method: 'PUT',
-      body: JSON.stringify(utterances),
+      body: JSON.stringify({ utterances }),
     }),
 
   updateSpeakers: (id: string, mappings: Record<string, string>) =>

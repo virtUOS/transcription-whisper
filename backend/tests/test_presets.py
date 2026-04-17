@@ -143,3 +143,32 @@ async def test_user_isolation(client):
     # User B should not see it
     resp = await client.get("/api/presets/transcription", headers={"X-Auth-Request-User": "user-b"})
     assert len(resp.json()) == 0
+
+
+@pytest.mark.asyncio
+async def test_bundle_rejects_foreign_preset(client):
+    # Each preset type, when referenced by another user's bundle, must 404.
+    a = {"X-Auth-Request-User": "user-a"}
+    b = {"X-Auth-Request-User": "user-b"}
+
+    tp = (await client.post("/api/presets/transcription", json={"name": "A tp"}, headers=a)).json()["id"]
+    ap = (await client.post("/api/presets/analysis", json={"name": "A ap", "template": "summary"}, headers=a)).json()["id"]
+    rp = (await client.post("/api/presets/refinement", json={"name": "A rp"}, headers=a)).json()["id"]
+
+    for field, value in [("transcription_preset_id", tp), ("analysis_preset_id", ap), ("refinement_preset_id", rp)]:
+        resp = await client.post(
+            "/api/presets/bundles",
+            json={"name": "B bundle", field: value},
+            headers=b,
+        )
+        assert resp.status_code == 404, f"{field} should be rejected across users"
+
+    # Update must reject the same way.
+    own_tp = (await client.post("/api/presets/transcription", json={"name": "B tp"}, headers=b)).json()["id"]
+    bundle_id = (await client.post("/api/presets/bundles", json={"name": "B bundle", "transcription_preset_id": own_tp}, headers=b)).json()["id"]
+    resp = await client.put(
+        f"/api/presets/bundles/{bundle_id}",
+        json={"name": "B bundle", "analysis_preset_id": ap},
+        headers=b,
+    )
+    assert resp.status_code == 404

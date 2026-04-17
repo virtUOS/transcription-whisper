@@ -136,6 +136,27 @@ async def test_rename_preserves_extension():
 
 
 @pytest.mark.asyncio
+async def test_rename_strips_caller_supplied_extension():
+    # "meeting.webm" + original ".webm" must not become "meeting.webm.webm".
+    transport = ASGITransport(app=app)
+    with patch("app.routers.upload.convert_to_mp3", new_callable=AsyncMock) as mock_convert:
+        mock_convert.return_value = "/tmp/fake.mp3"
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            upload_resp = await client.post(
+                "/api/upload",
+                files={"file": ("recording.webm", b"\x1a\x45\xdf\xa3" + b"\x00" * 100, "audio/webm")},
+            )
+            file_id = upload_resp.json()["id"]
+
+            response = await client.patch(
+                f"/api/files/{file_id}/rename",
+                json={"filename": "meeting.webm"},
+            )
+    assert response.status_code == 200
+    assert response.json()["original_filename"] == "meeting.webm"
+
+
+@pytest.mark.asyncio
 async def test_upload_mp3_has_video_false():
     """Audio files should have has_video=False."""
     transport = ASGITransport(app=app)

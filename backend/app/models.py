@@ -51,6 +51,10 @@ class TranscriptionResult(BaseModel):
     language: str | None = None
 
 
+class TranscriptionUpdateRequest(BaseModel):
+    utterances: list[Utterance]
+
+
 class TranscriptionListItem(BaseModel):
     id: str
     file_id: str

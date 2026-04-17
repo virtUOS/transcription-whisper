@@ -141,9 +141,11 @@ async def rename_file(
     async with get_db() as db:
         row = await fetch_file_owned_or_404(db, file_id, user.id)
 
-        # Preserve original extension
+        # Preserve original extension; strip any extension the caller included
+        # so "renamed.mp3" doesn't become "renamed.mp3.mp3".
         original_ext = os.path.splitext(row["original_filename"])[1]
-        new_filename = filename + original_ext
+        base = os.path.splitext(filename)[0] or filename
+        new_filename = base + original_ext
 
         if len(new_filename) > 255:
             raise HTTPException(status_code=400, detail="Filename too long")

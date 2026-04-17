@@ -325,6 +325,27 @@ async def delete_refinement_preset(preset_id: str, user: UserInfo = Depends(get_
 # Bundles
 # ---------------------------------------------------------------------------
 
+_PRESET_TABLES = {
+    "transcription_preset_id": ("transcription_presets", "Transcription preset"),
+    "analysis_preset_id": ("analysis_presets", "Analysis preset"),
+    "refinement_preset_id": ("refinement_presets", "Refinement preset"),
+}
+
+
+async def _verify_bundle_preset_ownership(db, body: BundleCreate, user_id: str) -> None:
+    """Reject any preset reference that does not belong to the caller."""
+    for field, (table, label) in _PRESET_TABLES.items():
+        value = getattr(body, field)
+        if not value:
+            continue
+        cursor = await db.execute(
+            f"SELECT 1 FROM {table} WHERE id = ? AND user_id = ?",
+            (value, user_id),
+        )
+        if not await cursor.fetchone():
+            raise HTTPException(status_code=404, detail=f"{label} not found")
+
+
 @router.get("/api/presets/bundles", response_model=list[BundleResponse])
 async def list_bundles(user: UserInfo = Depends(get_current_user)):
     async with get_db() as db:
@@ -340,6 +361,7 @@ async def list_bundles(user: UserInfo = Depends(get_current_user)):
 async def create_bundle(body: BundleCreate, user: UserInfo = Depends(get_current_user)):
     bundle_id = str(uuid.uuid4())
     async with get_db() as db:
+        await _verify_bundle_preset_ownership(db, body, user.id)
         await db.execute(
             """INSERT INTO preset_bundles
                (id, user_id, name, transcription_preset_id, analysis_preset_id, refinement_preset_id, translate_language)
@@ -375,6 +397,7 @@ async def update_bundle(bundle_id: str, body: BundleCreate, user: UserInfo = Dep
         )
         if not await cursor.fetchone():
             raise HTTPException(status_code=404, detail="Bundle not found")
+        await _verify_bundle_preset_ownership(db, body, user.id)
         await db.execute(
             """UPDATE preset_bundles
                SET name = ?, transcription_preset_id = ?, analysis_preset_id = ?,
@@ -451,8 +474,8 @@ async def get_default_bundle(user: UserInfo = Depends(get_current_user)):
         transcription_preset = None
         if bundle_row["transcription_preset_id"]:
             cursor = await db.execute(
-                "SELECT * FROM transcription_presets WHERE id = ?",
-                (bundle_row["transcription_preset_id"],),
+                "SELECT * FROM transcription_presets WHERE id = ? AND user_id = ?",
+                (bundle_row["transcription_preset_id"], user.id),
             )
             tp_row = await cursor.fetchone()
             if tp_row:
@@ -461,8 +484,8 @@ async def get_default_bundle(user: UserInfo = Depends(get_current_user)):
         analysis_preset = None
         if bundle_row["analysis_preset_id"]:
             cursor = await db.execute(
-                "SELECT * FROM analysis_presets WHERE id = ?",
-                (bundle_row["analysis_preset_id"],),
+                "SELECT * FROM analysis_presets WHERE id = ? AND user_id = ?",
+                (bundle_row["analysis_preset_id"], user.id),
             )
             ap_row = await cursor.fetchone()
             if ap_row:
@@ -471,8 +494,8 @@ async def get_default_bundle(user: UserInfo = Depends(get_current_user)):
         refinement_preset = None
         if bundle_row["refinement_preset_id"]:
             cursor = await db.execute(
-                "SELECT * FROM refinement_presets WHERE id = ?",
-                (bundle_row["refinement_preset_id"],),
+                "SELECT * FROM refinement_presets WHERE id = ? AND user_id = ?",
+                (bundle_row["refinement_preset_id"], user.id),
             )
             rp_row = await cursor.fetchone()
             if rp_row:

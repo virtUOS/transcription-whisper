@@ -12,7 +12,7 @@ from app.router_helpers import ensure_transcription_owned, load_speaker_mappings
 from app.models import (
     UserInfo, TranscriptionSettings as TranscriptionSettingsModel,
     TranscriptionStatus, TranscriptionListItem, Utterance, SpeakerMappingRequest,
-    TitleRequest,
+    TitleRequest, TranscriptionUpdateRequest,
 )
 from app.database import get_db
 from app.services.asr import get_asr_backend
@@ -244,7 +244,7 @@ async def export_transcription(transcription_id: str, format_type: str, user: Us
 
 
 @router.put("/api/transcription/{transcription_id}")
-async def update_transcription(transcription_id: str, utterances: list[Utterance], user: UserInfo = Depends(get_current_user)):
+async def update_transcription(transcription_id: str, body: TranscriptionUpdateRequest, user: UserInfo = Depends(get_current_user)):
     async with get_db() as db:
         cursor = await db.execute(
             "SELECT id FROM transcriptions WHERE id = ? AND user_id = ? AND status = 'completed'",
@@ -255,7 +255,7 @@ async def update_transcription(transcription_id: str, utterances: list[Utterance
 
         await db.execute(
             "UPDATE transcriptions SET result_json = ? WHERE id = ?",
-            (json.dumps([u.model_dump() for u in utterances]), transcription_id),
+            (json.dumps([u.model_dump() for u in body.utterances]), transcription_id),
         )
         await db.commit()
 
