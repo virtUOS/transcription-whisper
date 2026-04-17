@@ -1,5 +1,4 @@
 import json
-import time
 from fastapi import APIRouter, Depends, HTTPException
 from app.config import settings
 from app.dependencies import get_current_user
@@ -12,7 +11,7 @@ from app.services.llm.prompt import (
     build_translation_user_prompt,
     chunk_utterances_for_refinement,
 )
-from app.metrics import inc, observe, track_llm_tokens, llm_requests_total, llm_duration_seconds, llm_errors_total, deletions_total, errors_total
+from app.metrics import inc, measure_llm_operation, track_llm_tokens, deletions_total
 
 router = APIRouter()
 
@@ -95,20 +94,14 @@ async def translate_transcription(
         )
         await db.commit()
 
-    start_time = time.monotonic()
     try:
-        translated = await _call_llm_translation(provider, original_utterances, body.target_language)
+        async with measure_llm_operation("translation"):
+            translated = await _call_llm_translation(provider, original_utterances, body.target_language)
     except HTTPException:
         raise
     except Exception:
-        inc(llm_errors_total, settings.LLM_PROVIDER, settings.LLM_MODEL, "translation")
-        inc(errors_total, "llm_failed", "translation")
         await reset_translation_state(transcription_id, user.id)
         raise HTTPException(status_code=500, detail="Translation failed")
-
-    duration = time.monotonic() - start_time
-    inc(llm_requests_total, settings.LLM_PROVIDER, settings.LLM_MODEL, "translation")
-    observe(llm_duration_seconds, duration, settings.LLM_PROVIDER, settings.LLM_MODEL, "translation")
 
     if len(translated) != len(original_utterances):
         await reset_translation_state(transcription_id, user.id)
