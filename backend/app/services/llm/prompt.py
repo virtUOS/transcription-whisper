@@ -414,10 +414,6 @@ Do not include any text outside the JSON object.""",
 }
 
 
-def get_analysis_template(name: str) -> dict | None:
-    return ANALYSIS_TEMPLATES.get(name)
-
-
 def list_analysis_templates() -> list[dict]:
     return [
         {"id": k, "name": v["name"], "description": v["description"], "default_prompt": v["system_prompt"]}

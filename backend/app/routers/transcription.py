@@ -8,6 +8,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
 from app.config import settings
 from app.dependencies import get_current_user
+from app.router_helpers import ensure_transcription_owned, load_speaker_mappings
 from app.models import (
     UserInfo, TranscriptionSettings as TranscriptionSettingsModel,
     TranscriptionStatus, TranscriptionListItem, Utterance, SpeakerMappingRequest,
@@ -194,12 +195,7 @@ async def get_transcription(transcription_id: str, user: UserInfo = Depends(get_
     utterances = [Utterance(**u) for u in json.loads(row["result_json"] or "[]")]
 
     async with get_db() as db:
-        cursor = await db.execute(
-            "SELECT original_label, custom_name FROM speaker_mappings WHERE transcription_id = ?",
-            (transcription_id,),
-        )
-        mapping_rows = await cursor.fetchall()
-        speaker_mappings = {r["original_label"]: r["custom_name"] for r in mapping_rows} if mapping_rows else {}
+        speaker_mappings = await load_speaker_mappings(db, transcription_id)
 
     return {
         "id": row["id"], "status": row["status"],
@@ -224,12 +220,7 @@ async def export_transcription(transcription_id: str, format_type: str, user: Us
         if not row:
             raise HTTPException(status_code=404, detail="Transcription not found")
 
-        cursor = await db.execute(
-            "SELECT original_label, custom_name FROM speaker_mappings WHERE transcription_id = ?",
-            (transcription_id,),
-        )
-        mapping_rows = await cursor.fetchall()
-        speaker_map = {r["original_label"]: r["custom_name"] for r in mapping_rows} if mapping_rows else None
+        speaker_map = await load_speaker_mappings(db, transcription_id)
 
     utterances = [Utterance(**u) for u in json.loads(row["result_json"] or "[]")]
 
@@ -277,12 +268,7 @@ async def update_transcription(transcription_id: str, utterances: list[Utterance
 async def update_speaker_mappings(transcription_id: str, request: SpeakerMappingRequest, user: UserInfo = Depends(get_current_user)):
     mappings = request.mappings
     async with get_db() as db:
-        cursor = await db.execute(
-            "SELECT id FROM transcriptions WHERE id = ? AND user_id = ?",
-            (transcription_id, user.id),
-        )
-        if not await cursor.fetchone():
-            raise HTTPException(status_code=404, detail="Transcription not found")
+        await ensure_transcription_owned(db, transcription_id, user.id)
 
         await db.execute("DELETE FROM speaker_mappings WHERE transcription_id = ?", (transcription_id,))
         for original, custom in mappings.items():

@@ -3,6 +3,7 @@ import time
 from fastapi import APIRouter, Depends, HTTPException
 from app.config import settings
 from app.dependencies import get_current_user
+from app.router_helpers import ensure_transcription_owned, reset_translation_state
 from app.models import UserInfo, TranslationRequest, Utterance
 from app.database import get_db
 from app.services.llm import get_llm_provider
@@ -102,12 +103,7 @@ async def translate_transcription(
     except Exception:
         inc(llm_errors_total, settings.LLM_PROVIDER, settings.LLM_MODEL, "translation")
         inc(errors_total, "llm_failed", "translation")
-        async with get_db() as db:
-            await db.execute(
-                "UPDATE transcriptions SET translated_utterances_json = NULL, translation_language = NULL WHERE id = ? AND user_id = ?",
-                (transcription_id, user.id),
-            )
-            await db.commit()
+        await reset_translation_state(transcription_id, user.id)
         raise HTTPException(status_code=500, detail="Translation failed")
 
     duration = time.monotonic() - start_time
@@ -115,12 +111,7 @@ async def translate_transcription(
     observe(llm_duration_seconds, duration, settings.LLM_PROVIDER, settings.LLM_MODEL, "translation")
 
     if len(translated) != len(original_utterances):
-        async with get_db() as db:
-            await db.execute(
-                "UPDATE transcriptions SET translated_utterances_json = NULL, translation_language = NULL WHERE id = ? AND user_id = ?",
-                (transcription_id, user.id),
-            )
-            await db.commit()
+        await reset_translation_state(transcription_id, user.id)
         raise HTTPException(
             status_code=500,
             detail=f"LLM returned {len(translated)} utterances, expected {len(original_utterances)}",
@@ -176,12 +167,7 @@ async def delete_translation(
     user: UserInfo = Depends(get_current_user),
 ):
     async with get_db() as db:
-        cursor = await db.execute(
-            "SELECT id FROM transcriptions WHERE id = ? AND user_id = ?",
-            (transcription_id, user.id),
-        )
-        if not await cursor.fetchone():
-            raise HTTPException(status_code=404, detail="Transcription not found")
+        await ensure_transcription_owned(db, transcription_id, user.id)
 
         await db.execute(
             """UPDATE transcriptions

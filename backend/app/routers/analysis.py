@@ -4,6 +4,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from app.config import settings
 from app.dependencies import get_current_user
+from app.router_helpers import ensure_transcription_owned, load_speaker_mappings
 from app.models import UserInfo, AnalysisRequest, AnalysisListItem
 from app.database import get_db
 from app.services.llm import get_llm_provider
@@ -65,12 +66,7 @@ async def generate_analysis(
         analysis_language = request_language or row["language"]
 
         # Get speaker mappings
-        cursor = await db.execute(
-            "SELECT original_label, custom_name FROM speaker_mappings WHERE transcription_id = ?",
-            (transcription_id,),
-        )
-        mapping_rows = await cursor.fetchall()
-        speaker_map = {r["original_label"]: r["custom_name"] for r in mapping_rows} if mapping_rows else None
+        speaker_map = await load_speaker_mappings(db, transcription_id)
 
         # Insert placeholder row to mark generation as in-progress
         await db.execute(
@@ -212,12 +208,7 @@ async def list_analyses(
 ):
     """List all analyses for a transcription."""
     async with get_db() as db:
-        cursor = await db.execute(
-            "SELECT id FROM transcriptions WHERE id = ? AND user_id = ?",
-            (transcription_id, user.id),
-        )
-        if not await cursor.fetchone():
-            raise HTTPException(status_code=404, detail="Transcription not found")
+        await ensure_transcription_owned(db, transcription_id, user.id)
 
         cursor = await db.execute(
             "SELECT id, template, language, llm_provider, llm_model, created_at FROM analyses WHERE transcription_id = ? AND analysis_json IS NOT NULL ORDER BY created_at DESC",
@@ -246,12 +237,7 @@ async def get_analysis(
 ):
     """Get a single analysis by ID."""
     async with get_db() as db:
-        cursor = await db.execute(
-            "SELECT id FROM transcriptions WHERE id = ? AND user_id = ?",
-            (transcription_id, user.id),
-        )
-        if not await cursor.fetchone():
-            raise HTTPException(status_code=404, detail="Transcription not found")
+        await ensure_transcription_owned(db, transcription_id, user.id)
 
         cursor = await db.execute(
             "SELECT id, analysis_json, llm_provider, llm_model FROM analyses WHERE id = ? AND transcription_id = ?",
@@ -275,12 +261,7 @@ async def delete_analysis(
     user: UserInfo = Depends(get_current_user),
 ):
     async with get_db() as db:
-        cursor = await db.execute(
-            "SELECT id FROM transcriptions WHERE id = ? AND user_id = ?",
-            (transcription_id, user.id),
-        )
-        if not await cursor.fetchone():
-            raise HTTPException(status_code=404, detail="Transcription not found")
+        await ensure_transcription_owned(db, transcription_id, user.id)
 
         cursor = await db.execute(
             "DELETE FROM analyses WHERE id = ? AND transcription_id = ?",
@@ -309,12 +290,7 @@ async def delete_analysis_item(
         raise HTTPException(status_code=400, detail=f"Field must be one of: {', '.join(sorted(ALLOWED_FIELDS))}")
 
     async with get_db() as db:
-        cursor = await db.execute(
-            "SELECT id FROM transcriptions WHERE id = ? AND user_id = ?",
-            (transcription_id, user.id),
-        )
-        if not await cursor.fetchone():
-            raise HTTPException(status_code=404, detail="Transcription not found")
+        await ensure_transcription_owned(db, transcription_id, user.id)
 
         cursor = await db.execute(
             "SELECT analysis_json, llm_provider, llm_model FROM analyses WHERE id = ? AND transcription_id = ?",

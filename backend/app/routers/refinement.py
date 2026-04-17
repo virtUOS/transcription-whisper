@@ -4,6 +4,11 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from app.config import settings
 from app.dependencies import get_current_user
+from app.router_helpers import (
+    ensure_transcription_owned,
+    load_speaker_mappings,
+    reset_refinement_state,
+)
 from app.models import (
     UserInfo, RefineRequest, LLMRefinementResponse, RefinementMetadata, RefinementResult, Utterance,
 )
@@ -49,12 +54,7 @@ async def refine_transcription(
 
         original_utterances = json.loads(result_json or "[]")
 
-        cursor = await db.execute(
-            "SELECT original_label, custom_name FROM speaker_mappings WHERE transcription_id = ?",
-            (transcription_id,),
-        )
-        mapping_rows = await cursor.fetchall()
-        speaker_map = {r["original_label"]: r["custom_name"] for r in mapping_rows} if mapping_rows else {}
+        speaker_map = await load_speaker_mappings(db, transcription_id)
 
         await db.execute(
             "UPDATE transcriptions SET refined_utterances_json = '' WHERE id = ? AND user_id = ?",
@@ -80,12 +80,7 @@ async def refine_transcription(
     except Exception:
         inc(llm_errors_total, settings.LLM_PROVIDER, settings.LLM_MODEL, "refinement")
         inc(errors_total, "llm_failed", "refinement")
-        async with get_db() as db:
-            await db.execute(
-                "UPDATE transcriptions SET refined_utterances_json = NULL WHERE id = ? AND user_id = ?",
-                (transcription_id, user.id),
-            )
-            await db.commit()
+        await reset_refinement_state(transcription_id, user.id)
         raise HTTPException(status_code=500, detail="Refinement failed")
 
     duration = time.monotonic() - start_time
@@ -93,12 +88,7 @@ async def refine_transcription(
     observe(llm_duration_seconds, duration, settings.LLM_PROVIDER, settings.LLM_MODEL, "refinement")
 
     if len(llm_result.utterances) != len(original_utterances):
-        async with get_db() as db:
-            await db.execute(
-                "UPDATE transcriptions SET refined_utterances_json = NULL WHERE id = ? AND user_id = ?",
-                (transcription_id, user.id),
-            )
-            await db.commit()
+        await reset_refinement_state(transcription_id, user.id)
         raise HTTPException(
             status_code=500,
             detail=f"LLM returned {len(llm_result.utterances)} utterances, expected {len(original_utterances)}",
@@ -162,12 +152,7 @@ async def delete_refinement(
     user: UserInfo = Depends(get_current_user),
 ):
     async with get_db() as db:
-        cursor = await db.execute(
-            "SELECT id FROM transcriptions WHERE id = ? AND user_id = ?",
-            (transcription_id, user.id),
-        )
-        if not await cursor.fetchone():
-            raise HTTPException(status_code=404, detail="Transcription not found")
+        await ensure_transcription_owned(db, transcription_id, user.id)
 
         await db.execute(
             """UPDATE transcriptions
