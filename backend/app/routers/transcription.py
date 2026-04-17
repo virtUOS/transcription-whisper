@@ -15,6 +15,7 @@ from app.models import (
 )
 from app.database import get_db
 from app.services.asr import get_asr_backend
+from app.services.api_tokens import resolve_token
 from app.services.asr.base import TranscriptionSettings
 from app.services.audio import get_media_duration
 from app.services.formats import generate_srt, generate_vtt, generate_txt
@@ -414,8 +415,23 @@ async def websocket_status(websocket: WebSocket, transcription_id: str):
     gauge_inc(websocket_connections_active)
     close_reason = "client_disconnect"
     try:
-        # Extract user from headers (same as get_current_user dependency)
-        user_id = websocket.headers.get("x-auth-request-user")
+        # Prefer API token from query param when feature is enabled
+        user_id: str | None = None
+        if settings.ENABLE_API_TOKENS:
+            raw = websocket.query_params.get("token")
+            if raw and raw.startswith("tw_"):
+                async with get_db() as db:
+                    result = await resolve_token(db, raw_token=raw)
+                if result is None:
+                    inc(auth_failures_total, "invalid_token")
+                    close_reason = "auth_missing"
+                    await websocket.close(code=4001, reason="Invalid token")
+                    return
+                user_id = result[0].id
+
+        if user_id is None:
+            user_id = websocket.headers.get("x-auth-request-user")
+
         if not user_id:
             inc(auth_failures_total, "ws_missing_headers")
             close_reason = "auth_missing"
