@@ -167,11 +167,12 @@ async def test_cleanup_stale_tokens_removes_old_revoked_and_expired():
         await db.commit()
 
         deleted = await cleanup_stale_tokens(db)
-        assert deleted == 2
 
-        cursor = await db.execute("SELECT COUNT(*) as cnt FROM api_tokens")
-        row = await cursor.fetchone()
-        assert row["cnt"] == 1
+        cursor = await db.execute("SELECT name FROM api_tokens")
+        rows = await cursor.fetchall()
+        remaining_names = {r["name"] for r in rows}
+    assert deleted == 2
+    assert remaining_names == {"still-active"}
 
 
 @pytest.mark.asyncio
@@ -191,3 +192,22 @@ async def test_create_token_cap_ignores_expired_tokens(monkeypatch):
         # Should now be allowed — only one "active" token
         result = await create_token(db, user_id="u1", name="c", expires_in_days=None)
     assert result["id"] is not None
+
+
+@pytest.mark.asyncio
+async def test_touch_last_used_updates_timestamp():
+    from app.database import get_db
+    async with get_db() as db:
+        await _seed_user(db)
+        t = await create_token(db, user_id="u1", name="touch-test", expires_in_days=None)
+
+        # Fetch initial last_used_at — should be NULL
+        cursor = await db.execute("SELECT last_used_at FROM api_tokens WHERE id = ?", (t["id"],))
+        row = await cursor.fetchone()
+        assert row["last_used_at"] is None
+
+        await touch_last_used(db, token_id=t["id"])
+
+        cursor = await db.execute("SELECT last_used_at FROM api_tokens WHERE id = ?", (t["id"],))
+        row = await cursor.fetchone()
+    assert row["last_used_at"] is not None

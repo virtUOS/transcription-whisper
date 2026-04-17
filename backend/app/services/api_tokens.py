@@ -38,8 +38,16 @@ async def create_token(
     Raises TokenLimitError if the user is at the cap.
     Raises DuplicateTokenNameError if an active token with this name already exists.
     """
+    # Capture current time once for all queries and the INSERT
+    now_dt = datetime.now(timezone.utc)
+    now = now_dt.strftime("%Y-%m-%d %H:%M:%S")
+    expires_at: str | None = None
+    if expires_in_days is not None:
+        expires_at = (now_dt + timedelta(days=expires_in_days)).strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
+
     # Check per-user cap (count truly active tokens: non-revoked and non-expired)
-    now = _now_str()
     cursor = await db.execute(
         "SELECT COUNT(*) FROM api_tokens WHERE user_id = ? AND revoked_at IS NULL AND (expires_at IS NULL OR expires_at > ?)",
         (user_id, now),
@@ -51,13 +59,13 @@ async def create_token(
             f"User {user_id} has reached the maximum of {settings.API_TOKEN_MAX_PER_USER} active tokens"
         )
 
-    # Check for duplicate name among active tokens
+    # Check for duplicate name among active (non-revoked, non-expired) tokens
     cursor = await db.execute(
-        "SELECT COUNT(*) FROM api_tokens WHERE user_id = ? AND name = ? AND revoked_at IS NULL",
-        (user_id, name),
+        "SELECT id FROM api_tokens WHERE user_id = ? AND name = ? AND revoked_at IS NULL AND (expires_at IS NULL OR expires_at > ?)",
+        (user_id, name, now),
     )
     row = await cursor.fetchone()
-    if row[0] > 0:
+    if row is not None:
         raise DuplicateTokenNameError(
             f"An active token named '{name}' already exists for this user"
         )
@@ -67,20 +75,13 @@ async def create_token(
     prefix = raw_token[:12]
     token_hash = _hash_token(raw_token)
     token_id = str(uuid.uuid4())
-    created_at = _now_str()
-
-    expires_at: str | None = None
-    if expires_in_days is not None:
-        expires_at = (
-            datetime.now(timezone.utc) + timedelta(days=expires_in_days)
-        ).strftime("%Y-%m-%d %H:%M:%S")
 
     await db.execute(
         """
         INSERT INTO api_tokens (id, user_id, name, prefix, token_hash, created_at, expires_at)
         VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
-        (token_id, user_id, name, prefix, token_hash, created_at, expires_at),
+        (token_id, user_id, name, prefix, token_hash, now, expires_at),
     )
     await db.commit()
 
@@ -88,7 +89,7 @@ async def create_token(
         "id": token_id,
         "name": name,
         "prefix": prefix,
-        "created_at": created_at,
+        "created_at": now,
         "expires_at": expires_at,
         "token": raw_token,
     }
