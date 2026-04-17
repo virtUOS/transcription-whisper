@@ -38,10 +38,11 @@ async def create_token(
     Raises TokenLimitError if the user is at the cap.
     Raises DuplicateTokenNameError if an active token with this name already exists.
     """
-    # Check per-user cap (count non-revoked tokens)
+    # Check per-user cap (count truly active tokens: non-revoked and non-expired)
+    now = _now_str()
     cursor = await db.execute(
-        "SELECT COUNT(*) FROM api_tokens WHERE user_id = ? AND revoked_at IS NULL",
-        (user_id,),
+        "SELECT COUNT(*) FROM api_tokens WHERE user_id = ? AND revoked_at IS NULL AND (expires_at IS NULL OR expires_at > ?)",
+        (user_id, now),
     )
     row = await cursor.fetchone()
     active_count = row[0]

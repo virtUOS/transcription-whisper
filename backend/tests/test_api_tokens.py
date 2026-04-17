@@ -172,3 +172,22 @@ async def test_cleanup_stale_tokens_removes_old_revoked_and_expired():
         cursor = await db.execute("SELECT COUNT(*) as cnt FROM api_tokens")
         row = await cursor.fetchone()
         assert row["cnt"] == 1
+
+
+@pytest.mark.asyncio
+async def test_create_token_cap_ignores_expired_tokens(monkeypatch):
+    monkeypatch.setattr(config_module.settings, "API_TOKEN_MAX_PER_USER", 2)
+    async with get_db() as db:
+        await _seed_user(db)
+        # Two active tokens → at cap
+        await create_token(db, user_id="u1", name="a", expires_in_days=None)
+        b = await create_token(db, user_id="u1", name="b", expires_in_days=None)
+        # Force one to be expired → no longer "active"
+        await db.execute(
+            "UPDATE api_tokens SET expires_at = '2000-01-01 00:00:00' WHERE id = ?",
+            (b["id"],),
+        )
+        await db.commit()
+        # Should now be allowed — only one "active" token
+        result = await create_token(db, user_id="u1", name="c", expires_in_days=None)
+    assert result["id"] is not None
