@@ -24,6 +24,13 @@ export function Header() {
     setBurgerOpen(false)
   }
 
+  const openSettings = () => {
+    const state = useStore.getState()
+    if (!state.confirmLeaveUpload(t('upload.confirmLeave'))) return
+    state.setCurrentView('settings')
+    setBurgerOpen(false)
+  }
+
   const handleToggleLanguage = () => {
     toggleLanguage()
     setBurgerOpen(false)
@@ -78,6 +85,11 @@ export function Header() {
         <button onClick={openPresets} className={buttonClass}>
           {t('nav.presets')}
         </button>
+        {config?.api_tokens_enabled && (
+          <button onClick={openSettings} className={buttonClass}>
+            {t('nav.settings')}
+          </button>
+        )}
         <button
           onClick={handleToggleLanguage}
           className={buttonClass}
@@ -130,6 +142,16 @@ export function Header() {
             >
               {t('nav.presets')}
             </button>
+            {config?.api_tokens_enabled && (
+              <button
+                type="button"
+                role="menuitem"
+                onClick={openSettings}
+                className={`${buttonClass} text-left px-4 py-2`}
+              >
+                {t('nav.settings')}
+              </button>
+            )}
             <button
               type="button"
               role="menuitem"
