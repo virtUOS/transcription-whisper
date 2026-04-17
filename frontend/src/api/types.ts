@@ -128,6 +128,7 @@ export interface ConfigResponse {
   logout_url: string
   popular_languages: string[]
   enabled_languages: string[]
+  api_tokens_enabled?: boolean
 }
 
 export interface AnalysisTemplate {
@@ -242,4 +243,23 @@ export interface PresetBundleExpanded extends PresetBundle {
   transcription_preset: TranscriptionPreset | null
   analysis_preset: AnalysisPreset | null
   refinement_preset: RefinementPreset | null
+}
+
+export interface ApiToken {
+  id: string
+  name: string
+  prefix: string
+  created_at: string
+  expires_at: string | null
+  last_used_at: string | null
+  revoked_at: string | null
+}
+
+export interface ApiTokenCreateRequest {
+  name: string
+  expires_in_days: number | null
+}
+
+export interface ApiTokenCreated extends ApiToken {
+  token: string
 }
