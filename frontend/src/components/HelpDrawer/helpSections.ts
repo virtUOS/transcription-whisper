@@ -45,7 +45,7 @@ export const sections: readonly HelpSection[] = [
   { id: 'api-access', filename: '14-api-access.md' },
 ] as const
 
-type AppView = 'archive' | 'upload' | 'record' | 'detail' | 'presets' | 'settings'
+import type { AppView } from '../../store'
 
 export const viewToSection: Record<AppView, HelpSectionId> = {
   archive: 'getting-started',

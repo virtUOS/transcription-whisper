@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { FileInfo, TranscriptionResult, TranscriptionListItem, ConfigResponse, Utterance, RefinementMetadata, AnalysisListItem, TranscriptionPreset, AnalysisPreset, RefinementPreset, PresetBundle } from '../api/types'
 
-type AppView = 'archive' | 'upload' | 'record' | 'detail' | 'presets' | 'settings'
+export type AppView = 'archive' | 'upload' | 'record' | 'detail' | 'presets' | 'settings'
 
 interface AppState {
   currentView: AppView

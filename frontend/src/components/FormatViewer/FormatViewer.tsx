@@ -1,27 +1,11 @@
 import { useMemo } from 'react'
 import { useStore } from '../../store'
 import { useTranslation } from 'react-i18next'
+import { downloadText, formatSrtTime, formatVttTime } from '../../utils/format'
 import type { Utterance } from '../../api/types'
 
 interface Props {
   format: string
-}
-
-function pad(n: number, digits = 2) {
-  return n.toString().padStart(digits, '0')
-}
-
-function formatSrtTime(ms: number): string {
-  const totalSec = Math.floor(ms / 1000)
-  const h = Math.floor(totalSec / 3600)
-  const m = Math.floor((totalSec % 3600) / 60)
-  const s = totalSec % 60
-  const millis = ms % 1000
-  return `${pad(h)}:${pad(m)}:${pad(s)},${pad(millis, 3)}`
-}
-
-function formatVttTime(ms: number): string {
-  return formatSrtTime(ms).replace(',', '.')
 }
 
 function getSpeakerLabel(utt: Utterance, mappings: Record<string, string>): string {
@@ -98,14 +82,8 @@ export function FormatViewer({ format }: Props) {
   }, [result, refinedUtterances, translatedUtterances, activeView, speakerMappings, format])
 
   const handleDownload = () => {
-    const blob = new Blob([content], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
     const baseName = file?.original_filename?.replace(/\.[^.]+$/, '') || 'transcription'
-    a.download = `${baseName}.${format}`
-    a.click()
-    URL.revokeObjectURL(url)
+    downloadText(content, `${baseName}.${format}`)
   }
 
   const downloadBtn = (
