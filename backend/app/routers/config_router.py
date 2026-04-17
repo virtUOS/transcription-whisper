@@ -1,6 +1,7 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from app.config import settings
-from app.models import ConfigResponse
+from app.dependencies import get_current_user
+from app.models import ConfigResponse, UserInfo
 from app.metrics import metrics_response
 
 router = APIRouter()
@@ -12,7 +13,7 @@ async def health():
 
 
 @router.get("/api/config", response_model=ConfigResponse)
-async def get_config():
+async def get_config(_user: UserInfo = Depends(get_current_user)):
     return ConfigResponse(
         asr_backend=settings.ASR_BACKEND,
         whisper_models=settings.WHISPER_MODELS,
