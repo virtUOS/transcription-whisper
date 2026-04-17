@@ -457,7 +457,8 @@
       "refinement": "Refinement",
       "format-viewer": "Format Viewer",
       "presets": "Presets",
-      "bundles": "Bundles"
+      "bundles": "Bundles",
+      "api-access": "API Access"
     }
   }
 }

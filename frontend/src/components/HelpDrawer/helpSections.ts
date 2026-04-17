@@ -21,6 +21,7 @@ export type HelpSectionId =
   | 'format-viewer'
   | 'presets'
   | 'bundles'
+  | 'api-access'
 
 export interface HelpSection {
   id: HelpSectionId
@@ -41,9 +42,10 @@ export const sections: readonly HelpSection[] = [
   { id: 'format-viewer', filename: '11-format-viewer.md' },
   { id: 'presets', filename: '12-presets.md' },
   { id: 'bundles', filename: '13-bundles.md' },
+  { id: 'api-access', filename: '14-api-access.md' },
 ] as const
 
-type AppView = 'archive' | 'upload' | 'record' | 'detail' | 'presets'
+type AppView = 'archive' | 'upload' | 'record' | 'detail' | 'presets' | 'settings'
 
 export const viewToSection: Record<AppView, HelpSectionId> = {
   archive: 'getting-started',
@@ -51,6 +53,7 @@ export const viewToSection: Record<AppView, HelpSectionId> = {
   record: 'record',
   detail: 'subtitle-editor',
   presets: 'presets',
+  settings: 'api-access',
 }
 
 // Vite glob: load every en/*.md and de/*.md as a raw string at build time.

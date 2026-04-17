@@ -457,7 +457,8 @@
       "refinement": "Verfeinerung",
       "format-viewer": "Formatansicht",
       "presets": "Voreinstellungen",
-      "bundles": "Bundles"
+      "bundles": "Bundles",
+      "api-access": "API-Zugriff"
     }
   }
 }
