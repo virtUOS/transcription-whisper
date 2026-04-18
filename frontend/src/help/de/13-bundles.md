@@ -8,7 +8,7 @@ Ein Bundle ist eine benannte Zusammenstellung von Pipeline-Stufen: Transkription
 
 ![Bundle pipeline](./assets/bundle-pipeline.svg)
 
-Die Stufen laufen immer in dieser Reihenfolge: **Transkription → Verfeinerung → Analyse → Übersetzung**. Die Ausführung erfolgt nacheinander, aber jede Stufe arbeitet unabhängig mit dem Original-Transkript — Analyse und Übersetzung verwenden nicht den verfeinerten Text. Die Verfeinerung erzeugt lediglich eine zusätzliche Ansicht neben dem Original.
+Die Stufen laufen immer in dieser Reihenfolge: **Transkription → Verfeinerung → Analyse → Übersetzung**. Ist ein Verfeinerungsschritt konfiguriert, lesen Analyse und Übersetzung standardmäßig den verfeinerten Text statt des Originals — der bereinigte Text fließt also durch die Pipeline weiter. Lass den Verfeinerungsschritt weg (oder stelle den **Quelle**-Umschalter beim manuellen Ausführen um), damit diese Stufen auf dem Original-Transkript arbeiten.
 
 ## Standard-Bundle und Automatik
 

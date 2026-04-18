@@ -25,3 +25,7 @@ For long recordings with a known agenda, paste the agenda into the chapter hints
 ## Running multiple analyses
 
 You can run analysis as many times as you like, with different templates or prompts. Each result is saved separately and displayed in the analysis history. From there you can compare outputs, delete older results, or re-run any configuration.
+
+## Source: original or refined
+
+If a refinement exists, the analyze form shows a **Source** toggle (Original / Refined) — defaulted to **Refined**, so the LLM sees the cleaned-up text by default. Switch to **Original** to analyze the raw ASR output instead. Each stored analysis shows which source it used ("from refined" / "from original"); if the source has since changed or the refinement was deleted, the label turns amber and you can re-run to regenerate.

@@ -28,7 +28,7 @@ Edits are not saved automatically. When you have local modifications, an unsaved
 
 ## Refining and translating from the editor
 
-When an LLM is configured, the editor toolbar shows **Refine transcription** and **Translate** buttons. Each opens a small dialog — refinement takes an optional context note (savable as a preset), translation takes a target language. The resulting view appears next to the original, and a view switcher lets you toggle between **Original**, **Refined**, and the translated version. Refined and translated views are read-only; edits only apply to the original. Use the small delete buttons next to the switcher to remove a refined or translated copy.
+When an LLM is configured, the editor toolbar shows **Refine transcription** and **Translate** buttons. Each opens a small dialog — refinement takes an optional context note (savable as a preset), translation takes a target language. When a refinement exists, the translate dialog also shows a **Source** toggle so you can pick whether to translate from the refined or the original text (defaults to refined). The resulting view appears next to the original, and a view switcher lets you toggle between **Original**, **Refined**, and the translated version (labelled with its source, e.g. "from refined"). Refined and translated views are read-only; edits only apply to the original. If you later edit the original or delete the refinement a translation came from, a small amber hint appears in the toolbar so you can re-run. Use the small delete buttons next to the switcher to remove a refined or translated copy.
 
 ## Reviewing refinement changes
 
