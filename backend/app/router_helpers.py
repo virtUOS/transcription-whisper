@@ -24,7 +24,10 @@ async def load_speaker_mappings(db, transcription_id: str) -> dict[str, str]:
 async def reset_translation_state(transcription_id: str, user_id: str) -> None:
     async with get_db() as db:
         await db.execute(
-            "UPDATE transcriptions SET translated_utterances_json = NULL, translation_language = NULL WHERE id = ? AND user_id = ?",
+            "UPDATE transcriptions SET translated_utterances_json = NULL, "
+            "translation_language = NULL, translation_source = NULL, "
+            "translation_source_hash = NULL "
+            "WHERE id = ? AND user_id = ?",
             (transcription_id, user_id),
         )
         await db.commit()

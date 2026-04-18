@@ -273,6 +273,7 @@ function App() {
   const addAnalysis = useStore((s) => s.addAnalysis)
   const setTranslatedUtterances = useStore((s) => s.setTranslatedUtterances)
   const setTranslationLanguage = useStore((s) => s.setTranslationLanguage)
+  const setTranslationMetadata = useStore((s) => s.setTranslationMetadata)
   const autoPipelineRanRef = useRef(false)
   const [pipelineStatus, setPipelineStatus] = useState<{ key: string; step: 'refine' | 'analyze' | 'translate'; params?: Record<string, string> } | null>(null)
   const [pipelineErrors, setPipelineErrors] = useState<string[]>([])
@@ -350,7 +351,7 @@ function App() {
             chapter_hints: hasAnalysis.chapter_hints,
             agenda: hasAnalysis.agenda,
           })
-          const analysisResult = result as { id: string; template?: string; language?: string; llm_provider?: string; llm_model?: string; created_at?: string }
+          const analysisResult = result as { id: string; template?: string; language?: string; llm_provider?: string; llm_model?: string; created_at?: string; source?: 'original' | 'refined' }
           addAnalysis({
             id: analysisResult.id,
             template: analysisResult.template || null,
@@ -358,6 +359,7 @@ function App() {
             llm_provider: analysisResult.llm_provider || null,
             llm_model: analysisResult.llm_model || null,
             created_at: analysisResult.created_at || null,
+            source: analysisResult.source || null,
           })
         } catch (e) {
           errors.push(`${t('editor.analysis')}: ${e instanceof Error ? e.message : String(e)}`)
@@ -370,6 +372,11 @@ function App() {
           const result = await api.translateTranscription(transcriptionId, hasTranslation)
           setTranslatedUtterances(result.utterances)
           setTranslationLanguage(result.language)
+          setTranslationMetadata({
+            source: result.source,
+            stale: result.stale,
+            sourceAvailable: result.source_available,
+          })
         } catch (e) {
           errors.push(`${t('editor.translate')}: ${e instanceof Error ? e.message : String(e)}`)
         }
@@ -380,7 +387,7 @@ function App() {
     }
 
     run()
-  }, [transcriptionStatus, transcriptionResult, setRefinedUtterances, setRefinementMetadata, setActiveView, addAnalysis, setTranslatedUtterances, setTranslationLanguage, t])
+  }, [transcriptionStatus, transcriptionResult, setRefinedUtterances, setRefinementMetadata, setActiveView, addAnalysis, setTranslatedUtterances, setTranslationLanguage, setTranslationMetadata, t])
 
   const handleTranscribe = useCallback(async () => {
     const state = useStore.getState()

@@ -41,8 +41,11 @@ async def generate_analysis(
     request_language = body.language if body else None
     chapter_hints = body.chapter_hints if body and body.chapter_hints else None
     agenda = body.agenda if body else None
+    explicit_source = body.source if body else None
 
     analysis_id = str(uuid.uuid4())
+
+    from app.services.source_tracking import hash_utterance_texts, select_source
 
     async with get_db() as db:
         # Rate limit: reject if analysis is already in progress for this transcription
@@ -55,7 +58,8 @@ async def generate_analysis(
 
         # Get transcription
         cursor = await db.execute(
-            "SELECT result_json, language FROM transcriptions WHERE id = ? AND user_id = ? AND status = 'completed'",
+            "SELECT result_json, refined_utterances_json, language FROM transcriptions "
+            "WHERE id = ? AND user_id = ? AND status = 'completed'",
             (transcription_id, user.id),
         )
         row = await cursor.fetchone()
@@ -63,21 +67,37 @@ async def generate_analysis(
             raise HTTPException(status_code=404, detail="Transcription not found")
 
         result_json = row["result_json"]
+        refined_json = row["refined_utterances_json"]
         analysis_language = request_language or row["language"]
+
+        try:
+            chosen_source = select_source(
+                explicit=explicit_source,
+                result_json=result_json,
+                refined_json=refined_json,
+            )
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+
+        source_json = refined_json if chosen_source == "refined" else result_json
+        source_utterances = json.loads(source_json or "[]")
+        source_hash = hash_utterance_texts(source_utterances)
 
         # Get speaker mappings
         speaker_map = await load_speaker_mappings(db, transcription_id)
 
         # Insert placeholder row to mark generation as in-progress
         await db.execute(
-            """INSERT INTO analyses (id, transcription_id, analysis_json, template, custom_prompt, language, llm_provider, llm_model)
-               VALUES (?, ?, NULL, ?, ?, ?, ?, ?)""",
-            (analysis_id, transcription_id, template_name, custom_prompt, request_language, settings.LLM_PROVIDER, settings.LLM_MODEL),
+            """INSERT INTO analyses (id, transcription_id, analysis_json, template,
+                                      custom_prompt, language, llm_provider, llm_model,
+                                      source, source_hash)
+               VALUES (?, ?, NULL, ?, ?, ?, ?, ?, ?, ?)""",
+            (analysis_id, transcription_id, template_name, custom_prompt, request_language,
+             settings.LLM_PROVIDER, settings.LLM_MODEL, chosen_source, source_hash),
         )
         await db.commit()
 
-    utterances = json.loads(result_json or "[]")
-    transcript = format_transcript_for_llm(utterances, speaker_map)
+    transcript = format_transcript_for_llm(source_utterances, speaker_map)
 
     # For built-in templates (summary, protocol), delegate to existing provider methods
     # which handle chunking and consolidation internally
@@ -131,6 +151,10 @@ async def generate_analysis(
     result_data["id"] = analysis_id
     result_data["llm_provider"] = settings.LLM_PROVIDER
     result_data["llm_model"] = settings.LLM_MODEL
+    result_data["source"] = chosen_source
+    result_data["source_hash"] = source_hash
+    result_data["stale"] = False
+    result_data["source_available"] = True
     return result_data
 
 
@@ -211,7 +235,9 @@ async def list_analyses(
         await ensure_transcription_owned(db, transcription_id, user.id)
 
         cursor = await db.execute(
-            "SELECT id, template, language, llm_provider, llm_model, created_at FROM analyses WHERE transcription_id = ? AND analysis_json IS NOT NULL ORDER BY created_at DESC",
+            "SELECT id, template, language, llm_provider, llm_model, created_at, source "
+            "FROM analyses WHERE transcription_id = ? AND analysis_json IS NOT NULL "
+            "ORDER BY created_at DESC",
             (transcription_id,),
         )
         rows = await cursor.fetchall()
@@ -224,6 +250,7 @@ async def list_analyses(
             llm_provider=row["llm_provider"],
             llm_model=row["llm_model"],
             created_at=row["created_at"],
+            source=row["source"],
         )
         for row in rows
     ]
@@ -236,21 +263,47 @@ async def get_analysis(
     user: UserInfo = Depends(get_current_user),
 ):
     """Get a single analysis by ID."""
+    from app.services.source_tracking import hash_utterance_texts
+
     async with get_db() as db:
         await ensure_transcription_owned(db, transcription_id, user.id)
 
         cursor = await db.execute(
-            "SELECT id, analysis_json, llm_provider, llm_model FROM analyses WHERE id = ? AND transcription_id = ?",
+            "SELECT id, analysis_json, llm_provider, llm_model, source, source_hash "
+            "FROM analyses WHERE id = ? AND transcription_id = ?",
             (analysis_id, transcription_id),
         )
         row = await cursor.fetchone()
         if not row or not row["analysis_json"]:
             raise HTTPException(status_code=404, detail="Analysis not found")
 
+        txn_cursor = await db.execute(
+            "SELECT result_json, refined_utterances_json FROM transcriptions WHERE id = ?",
+            (transcription_id,),
+        )
+        txn_row = await txn_cursor.fetchone()
+
+    source = row["source"] or "original"
+    cached_hash = row["source_hash"]
+    current_source_json = (
+        txn_row["refined_utterances_json"] if source == "refined" else txn_row["result_json"]
+    )
+    source_available = bool(current_source_json) and current_source_json != ""
+    current_hash = (
+        hash_utterance_texts(json.loads(current_source_json))
+        if source_available else None
+    )
+    hash_stale = bool(cached_hash) and current_hash is not None and current_hash != cached_hash
+    stale = hash_stale or not source_available
+
     data = json.loads(row["analysis_json"])
     data["id"] = row["id"]
     data["llm_provider"] = row["llm_provider"]
     data["llm_model"] = row["llm_model"]
+    data["source"] = source
+    data["source_hash"] = cached_hash
+    data["stale"] = stale
+    data["source_available"] = source_available
     return data
 
 

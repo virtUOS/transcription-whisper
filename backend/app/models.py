@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel, field_validator, model_validator
 
 
@@ -187,6 +189,7 @@ class AnalysisListItem(BaseModel):
     llm_provider: str | None = None
     llm_model: str | None = None
     created_at: str | None = None
+    source: Literal["original", "refined"] | None = None
 
 
 class AnalysisRequest(BaseModel):
@@ -195,10 +198,21 @@ class AnalysisRequest(BaseModel):
     language: str | None = None
     chapter_hints: list[ChapterHint] | None = None
     agenda: str | None = None
+    source: Literal["original", "refined"] | None = None
 
 
 class TranslationRequest(BaseModel):
     target_language: str
+    source: Literal["original", "refined"] | None = None
+
+
+class TranslationResult(BaseModel):
+    utterances: list[Utterance]
+    language: str
+    source: Literal["original", "refined"]
+    source_hash: str | None = None
+    stale: bool = False
+    source_available: bool = True
 
 
 class ConfigResponse(BaseModel):
