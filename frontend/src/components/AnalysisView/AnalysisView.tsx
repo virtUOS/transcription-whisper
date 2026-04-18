@@ -298,17 +298,28 @@ function AnalysisCard({ analysisId, transcriptionId, templates, baseName, onDele
 
               {copyDownloadButtons('pt-3 border-t border-gray-700')}
 
-              {/* Model info */}
+              {/* Model info + source */}
               {(() => {
                 const r = result as Record<string, unknown>
-                if (r?.llm_provider && r?.llm_model) {
-                  return (
-                    <p className="text-xs text-gray-500 text-right">
-                      {t('editor.generatedWithModel', { provider: r.llm_provider, model: r.llm_model })}
-                    </p>
-                  )
-                }
-                return null
+                const source = r?.source as 'original' | 'refined' | undefined
+                const stale = r?.stale as boolean | undefined
+                const sourceAvailable = r?.source_available as boolean | undefined
+                return (
+                  <div className="flex items-center justify-end gap-3">
+                    {source && (
+                      <p className={`text-xs ${stale || sourceAvailable === false ? 'text-amber-400' : 'text-gray-500'}`}>
+                        {source === 'refined' ? t('editor.fromRefined') : t('editor.fromOriginal')}
+                        {stale && ` · ${t('editor.sourceStale')}`}
+                        {sourceAvailable === false && ` · ${t('editor.sourceMissing')}`}
+                      </p>
+                    )}
+                    {r?.llm_provider && r?.llm_model ? (
+                      <p className="text-xs text-gray-500 text-right">
+                        {t('editor.generatedWithModel', { provider: r.llm_provider, model: r.llm_model })}
+                      </p>
+                    ) : null}
+                  </div>
+                )
               })()}
             </>
             )
@@ -334,15 +345,22 @@ export function AnalysisView() {
   const bundles = useStore((s) => s.bundles)
   const activeBundleId = useStore((s) => s.activeBundleId)
 
+  const refinedUtterances = useStore((s) => s.refinedUtterances)
+
   const [selectedAnalysisPresetId, setSelectedAnalysisPresetId] = useState<string | null>(null)
   const [templates, setTemplates] = useState<AnalysisTemplate[]>([])
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
   const [customPrompt, setCustomPrompt] = useState('')
   const [promptExpanded, setPromptExpanded] = useState(false)
   const [language, setLanguage] = useState<string>(detectedLanguage || 'en')
+  const [analysisSource, setAnalysisSource] = useState<'original' | 'refined'>('refined')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
+
+  useEffect(() => {
+    setAnalysisSource(refinedUtterances ? 'refined' : 'original')
+  }, [refinedUtterances])
 
   // Chapter hints (for summary template)
   const [hintsExpanded, setHintsExpanded] = useState(false)
@@ -460,6 +478,7 @@ export function AnalysisView() {
         language,
         chapter_hints: selectedTemplate === 'summary' && validHints.length > 0 ? validHints : null,
         agenda: selectedTemplate === 'agenda' && agenda.trim() ? agenda.trim() : null,
+        source: refinedUtterances ? analysisSource : null,
       }) as Record<string, unknown>
 
       // Add to the analyses list
@@ -469,6 +488,7 @@ export function AnalysisView() {
         language: (result.language as string) || null,
         llm_provider: (result.llm_provider as string) || null,
         llm_model: (result.llm_model as string) || null,
+        source: (result.source as 'original' | 'refined') || null,
         created_at: new Date().toISOString(),
       })
       setShowForm(false)
@@ -695,12 +715,33 @@ export function AnalysisView() {
             )}
           </div>
 
-          {/* Language selector + Generate button */}
-          <div className="flex items-center justify-center gap-3">
+          {/* Language selector + Source toggle + Generate button */}
+          <div className="flex items-center justify-center gap-3 flex-wrap">
             <div>
               <label htmlFor="analysis-output-language-field" className="block text-xs text-gray-400 mb-1">{t('editor.outputLanguage')}</label>
               <LanguageSelect id="analysis-output-language-field" value={language} onChange={setLanguage} className="bg-gray-700 text-white text-sm rounded px-3 py-1.5" />
             </div>
+            {refinedUtterances && (
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">{t('editor.source')}</label>
+                <div className="inline-flex rounded border border-gray-600 overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setAnalysisSource('original')}
+                    className={`px-3 py-1.5 text-sm ${analysisSource === 'original' ? 'bg-gray-600 text-white' : 'bg-gray-700 text-gray-400 hover:bg-gray-650'}`}
+                  >
+                    {t('editor.sourceOriginal')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAnalysisSource('refined')}
+                    className={`px-3 py-1.5 text-sm ${analysisSource === 'refined' ? 'bg-purple-700/70 text-purple-200' : 'bg-gray-700 text-gray-400 hover:bg-gray-650'}`}
+                  >
+                    {t('editor.sourceRefined')}
+                  </button>
+                </div>
+              </div>
+            )}
             <button
               onClick={handleGenerate}
               className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-500 self-end"

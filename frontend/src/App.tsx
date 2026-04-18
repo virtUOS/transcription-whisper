@@ -387,7 +387,7 @@ function App() {
     }
 
     run()
-  }, [transcriptionStatus, transcriptionResult, setRefinedUtterances, setRefinementMetadata, setActiveView, addAnalysis, setTranslatedUtterances, setTranslationLanguage, t])
+  }, [transcriptionStatus, transcriptionResult, setRefinedUtterances, setRefinementMetadata, setActiveView, addAnalysis, setTranslatedUtterances, setTranslationLanguage, setTranslationMetadata, t])
 
   const handleTranscribe = useCallback(async () => {
     const state = useStore.getState()
