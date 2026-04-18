@@ -189,6 +189,7 @@ class AnalysisListItem(BaseModel):
     llm_provider: str | None = None
     llm_model: str | None = None
     created_at: str | None = None
+    source: Literal["original", "refined"] | None = None
 
 
 class AnalysisRequest(BaseModel):
