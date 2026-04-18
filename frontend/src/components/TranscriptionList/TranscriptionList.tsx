@@ -33,6 +33,7 @@ export function TranscriptionList() {
   const clearRefinement = useStore((s) => s.clearRefinement)
   const setTranslatedUtterances = useStore((s) => s.setTranslatedUtterances)
   const setTranslationLanguage = useStore((s) => s.setTranslationLanguage)
+  const setTranslationMetadata = useStore((s) => s.setTranslationMetadata)
   const clearTranslation = useStore((s) => s.clearTranslation)
   const setCurrentView = useStore((s) => s.setCurrentView)
 
@@ -79,6 +80,11 @@ export function TranscriptionList() {
           const translation = await api.getTranslation(item.id)
           setTranslatedUtterances(translation.utterances)
           setTranslationLanguage(translation.language)
+          setTranslationMetadata({
+            source: translation.source,
+            stale: translation.stale,
+            sourceAvailable: translation.source_available,
+          })
         } catch {
           clearTranslation()
         }
@@ -88,7 +94,7 @@ export function TranscriptionList() {
         setHistory(currentHistory.filter((h) => h.id !== item.id))
       }
     }
-  }, [setTranscriptionId, setTranscriptionTitle, setTranscriptionStatus, setFile, setCurrentView, setResult, setSpeakerMappings, setRefinedUtterances, setRefinementMetadata, clearRefinement, setTranslatedUtterances, setTranslationLanguage, clearTranslation, reset, setHistory])
+  }, [setTranscriptionId, setTranscriptionTitle, setTranscriptionStatus, setFile, setCurrentView, setResult, setSpeakerMappings, setRefinedUtterances, setRefinementMetadata, clearRefinement, setTranslatedUtterances, setTranslationLanguage, setTranslationMetadata, clearTranslation, reset, setHistory])
 
   const handleClick = useCallback((item: TranscriptionListItem) => {
     if (clickTimerRef.current) clearTimeout(clickTimerRef.current)
