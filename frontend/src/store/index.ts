@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { FileInfo, TranscriptionResult, TranscriptionListItem, ConfigResponse, Utterance, RefinementMetadata, AnalysisListItem, TranscriptionPreset, AnalysisPreset, RefinementPreset, PresetBundle } from '../api/types'
+import type { FileInfo, TranscriptionResult, TranscriptionListItem, ConfigResponse, Utterance, RefinementMetadata, AnalysisListItem, TranscriptionPreset, AnalysisPreset, RefinementPreset, PresetBundle, UtteranceSource } from '../api/types'
 
 export type AppView = 'archive' | 'upload' | 'record' | 'detail' | 'presets' | 'settings'
 
@@ -43,8 +43,12 @@ interface AppState {
   setActiveView: (view: 'original' | 'refined' | 'translated') => void
   translatedUtterances: Utterance[] | null
   translationLanguage: string | null
+  translationSource: UtteranceSource | null
+  translationStale: boolean
+  translationSourceAvailable: boolean
   setTranslatedUtterances: (utterances: Utterance[] | null) => void
   setTranslationLanguage: (language: string | null) => void
+  setTranslationMetadata: (meta: { source: UtteranceSource; stale: boolean; sourceAvailable: boolean } | null) => void
   clearTranslation: () => void
   analyses: AnalysisListItem[]
   setAnalyses: (analyses: AnalysisListItem[]) => void
@@ -132,9 +136,24 @@ export const useStore = create<AppState>((set, get) => ({
   setActiveView: (view) => set({ activeView: view }),
   translatedUtterances: null,
   translationLanguage: null,
+  translationSource: null,
+  translationStale: false,
+  translationSourceAvailable: true,
   setTranslatedUtterances: (utterances) => set({ translatedUtterances: utterances }),
   setTranslationLanguage: (language) => set({ translationLanguage: language }),
-  clearTranslation: () => set({ translatedUtterances: null, translationLanguage: null, activeView: 'original' as const }),
+  setTranslationMetadata: (meta) => set({
+    translationSource: meta?.source ?? null,
+    translationStale: meta?.stale ?? false,
+    translationSourceAvailable: meta?.sourceAvailable ?? true,
+  }),
+  clearTranslation: () => set({
+    translatedUtterances: null,
+    translationLanguage: null,
+    translationSource: null,
+    translationStale: false,
+    translationSourceAvailable: true,
+    activeView: 'original' as const,
+  }),
   analyses: [],
   setAnalyses: (analyses) => set({ analyses }),
   addAnalysis: (item) => set((s) => ({ analyses: [item, ...s.analyses] })),
@@ -163,6 +182,7 @@ export const useStore = create<AppState>((set, get) => ({
     currentTime: 0, seekTo: null, activeTab: 'subtitles', unsavedEdits: false,
     refinedUtterances: null, refinementMetadata: null, activeView: 'original' as const,
     translatedUtterances: null, translationLanguage: null,
+    translationSource: null, translationStale: false, translationSourceAvailable: true,
     analyses: [],
   }),
 }))

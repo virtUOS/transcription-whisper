@@ -1,3 +1,5 @@
+export type UtteranceSource = 'original' | 'refined'
+
 export interface FileInfo {
   id: string
   original_filename: string
@@ -146,6 +148,7 @@ export interface AnalysisGenerateRequest {
   language?: string | null
   chapter_hints?: ChapterHint[] | null
   agenda?: string | null
+  source?: UtteranceSource | null
 }
 
 export interface AnalysisListItem {
@@ -155,6 +158,16 @@ export interface AnalysisListItem {
   llm_provider: string | null
   llm_model: string | null
   created_at: string | null
+  source: UtteranceSource | null
+}
+
+export interface TranslationResult {
+  utterances: Utterance[]
+  language: string
+  source: UtteranceSource
+  source_hash: string | null
+  stale: boolean
+  source_available: boolean
 }
 
 export interface ErrorResponse {

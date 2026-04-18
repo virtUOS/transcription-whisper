@@ -2,12 +2,13 @@ import type {
   FileInfo, TranscriptionSettings, TranscriptionStatus,
   TranscriptionResult, TranscriptionListItem, ConfigResponse,
   RefinementResult,
-  AnalysisTemplate, AnalysisGenerateRequest, AnalysisListItem, Utterance,
+  AnalysisTemplate, AnalysisGenerateRequest, AnalysisListItem,
   TranscriptionPreset, TranscriptionPresetCreate,
   AnalysisPreset, AnalysisPresetCreate,
   RefinementPreset, RefinementPresetCreate,
   PresetBundle, PresetBundleCreate, PresetBundleExpanded,
   ApiToken, ApiTokenCreated,
+  TranslationResult, UtteranceSource,
 } from './types'
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '')
@@ -148,14 +149,14 @@ export const api = {
   deleteAnalysisItem: (transcriptionId: string, analysisId: string, field: string, index: number) =>
     request<unknown>(`/api/analysis/${transcriptionId}/${analysisId}/items/${field}/${index}`, { method: 'DELETE' }),
 
-  translateTranscription: (id: string, targetLanguage: string) =>
-    request<{ utterances: Utterance[], language: string }>(`/api/translate/${id}`, {
+  translateTranscription: (id: string, targetLanguage: string, source?: UtteranceSource) =>
+    request<TranslationResult>(`/api/translate/${id}`, {
       method: 'POST',
-      body: JSON.stringify({ target_language: targetLanguage }),
+      body: JSON.stringify({ target_language: targetLanguage, ...(source ? { source } : {}) }),
     }),
 
   getTranslation: (id: string) =>
-    request<{ utterances: Utterance[], language: string }>(`/api/translate/${id}`),
+    request<TranslationResult>(`/api/translate/${id}`),
 
   deleteTranslation: (id: string) =>
     request<{ status: string }>(`/api/translate/${id}`, { method: 'DELETE' }),
