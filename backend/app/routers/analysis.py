@@ -293,7 +293,8 @@ async def get_analysis(
         hash_utterance_texts(json.loads(current_source_json))
         if source_available else None
     )
-    stale = bool(cached_hash) and current_hash is not None and current_hash != cached_hash
+    hash_stale = bool(cached_hash) and current_hash is not None and current_hash != cached_hash
+    stale = hash_stale or not source_available
 
     data = json.loads(row["analysis_json"])
     data["id"] = row["id"]

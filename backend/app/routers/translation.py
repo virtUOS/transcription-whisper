@@ -81,14 +81,17 @@ async def translate_transcription(
         cached_source = row["translation_source"]
         cached_hash = row["translation_source_hash"]
 
-        if translated_json and translated_json != "" and translation_lang == body.target_language:
+        same_language = translation_lang == body.target_language
+        same_source_request = body.source is None or body.source == (cached_source or "original")
+        if translated_json and translated_json != "" and same_language and same_source_request:
             current_source_json = refined_json if cached_source == "refined" else result_json
             source_available = bool(current_source_json) and current_source_json != ""
             current_hash = (
                 hash_utterance_texts(json.loads(current_source_json))
                 if source_available else None
             )
-            stale = bool(cached_hash) and current_hash is not None and current_hash != cached_hash
+            hash_stale = bool(cached_hash) and current_hash is not None and current_hash != cached_hash
+            stale = hash_stale or not source_available
             return {
                 "utterances": json.loads(translated_json),
                 "language": translation_lang,
@@ -197,7 +200,8 @@ async def get_translation(
         hash_utterance_texts(json.loads(current_source_json))
         if source_available else None
     )
-    stale = bool(cached_hash) and current_hash is not None and current_hash != cached_hash
+    hash_stale = bool(cached_hash) and current_hash is not None and current_hash != cached_hash
+    stale = hash_stale or not source_available
 
     return {
         "utterances": json.loads(translated_json),
