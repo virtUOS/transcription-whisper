@@ -55,3 +55,18 @@ async def test_api_tokens_hash_index_created(tmp_path):
         )
         row = await cursor.fetchone()
     assert row is not None
+
+
+@pytest.mark.asyncio
+async def test_source_tracking_columns_exist(tmp_path):
+    db_path = str(tmp_path / "source_tracking.db")
+    await init_db(db_path)
+    async with get_db(db_path) as db:
+        cursor = await db.execute("PRAGMA table_info(transcriptions)")
+        txn_columns = {row[1] for row in await cursor.fetchall()}
+        cursor = await db.execute("PRAGMA table_info(analyses)")
+        ana_columns = {row[1] for row in await cursor.fetchall()}
+    assert "translation_source" in txn_columns
+    assert "translation_source_hash" in txn_columns
+    assert "source" in ana_columns
+    assert "source_hash" in ana_columns

@@ -43,7 +43,9 @@ CREATE TABLE IF NOT EXISTS transcriptions (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     completed_at TIMESTAMP,
     refined_utterances_json TEXT,
-    refinement_metadata_json TEXT
+    refinement_metadata_json TEXT,
+    translation_source TEXT,
+    translation_source_hash TEXT
 );
 
 CREATE TABLE IF NOT EXISTS speaker_mappings (
@@ -62,6 +64,8 @@ CREATE TABLE IF NOT EXISTS analyses (
     language TEXT,
     llm_provider TEXT,
     llm_model TEXT,
+    source TEXT,
+    source_hash TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -143,6 +147,10 @@ MIGRATIONS = [
     ("title", "transcriptions", "title TEXT"),
     ("has_video", "files", "has_video INTEGER"),
     ("translate_language", "preset_bundles", "translate_language TEXT"),
+    ("translation_source", "transcriptions", "translation_source TEXT"),
+    ("translation_source_hash", "transcriptions", "translation_source_hash TEXT"),
+    ("source", "analyses", "source TEXT"),
+    ("source_hash", "analyses", "source_hash TEXT"),
 ]
 
 
@@ -200,6 +208,17 @@ async def init_db(db_path: str) -> None:
         # Normalize any ISO-format (T-separator) timestamps to SQLite format (space-separator)
         await db.execute(
             "UPDATE files SET expires_at = strftime('%Y-%m-%d %H:%M:%S', expires_at) WHERE expires_at LIKE '%T%'"
+        )
+        # Backfill source='original' on rows that already have derived results
+        await db.execute(
+            "UPDATE transcriptions SET translation_source = 'original' "
+            "WHERE translated_utterances_json IS NOT NULL "
+            "AND translated_utterances_json != '' "
+            "AND translation_source IS NULL"
+        )
+        await db.execute(
+            "UPDATE analyses SET source = 'original' "
+            "WHERE analysis_json IS NOT NULL AND source IS NULL"
         )
         await db.commit()
 
