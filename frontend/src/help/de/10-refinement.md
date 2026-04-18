@@ -14,4 +14,4 @@ Bei sauberen Einzelsprecher-Aufnahmen — Vorlesungen, Kommentaren, vorbereitete
 
 ## Reihenfolge mit anderen Schritten
 
-In einer Bundle-Pipeline läuft die Verfeinerung immer vor Analyse und Übersetzung. Das bedeutet, dass nachgelagerte Schritte den bereinigten Text erhalten, nicht die rohe ASR-Ausgabe. Wenn du die Verfeinerung manuell ausführst, nachdem eine Analyse bereits abgeschlossen ist, werden die vorhandenen Analyseergebnisse nicht aktualisiert — starte die Analyse erneut, wenn sie die verfeinerte Version berücksichtigen soll. Weitere Informationen findest du unter **Analyse** und **Übersetzung**.
+In einer Bundle-Pipeline läuft die Verfeinerung immer vor Analyse und Übersetzung. Die Ausführung erfolgt nacheinander, aber jede Stufe liest unabhängig das Original-ASR-Transkript — Analyse und Übersetzung erhalten nicht den verfeinerten Text als Eingabe. Die Verfeinerung erzeugt eine eigene Ansicht, die du neben dem Original lesen, bearbeiten und herunterladen kannst; sie fließt nicht in nachgelagerte Stufen ein. Mehr dazu unter **Analyse**, **Übersetzung** und **Bundles**.

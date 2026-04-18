@@ -14,4 +14,4 @@ For clean, single-speaker recordings — lectures, voiceovers, prepared speeches
 
 ## How it composes with other steps
 
-In a bundle pipeline, refinement always runs before analysis and translation. That means downstream steps receive the cleaned text, not the raw ASR output. If you run refinement manually after analysis has already completed, the existing analysis results are not updated — re-run analysis if you want it to reflect the refined version. See **Analysis** and **Translation** for how those steps use the transcript.
+In a bundle pipeline, refinement always runs before analysis and translation. Execution is sequenced, but each stage reads the original ASR transcript independently — analysis and translation do not receive the refined text as their input. Refinement produces a separate view you can read, edit, and download alongside the original; it does not feed downstream stages. See **Analysis**, **Translation**, and **Bundles** for more.
