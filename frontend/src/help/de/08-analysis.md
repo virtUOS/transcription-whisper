@@ -25,3 +25,7 @@ Bei langen Aufnahmen mit bekannter Agenda füge diese in das Agenda-Feld ein (ei
 ## Mehrere Analysen
 
 Du kannst die Analyse beliebig oft mit verschiedenen Vorlagen oder Prompts ausführen. Jedes Ergebnis wird separat gespeichert und im Analyseverlauf angezeigt. Von dort aus kannst du Ergebnisse vergleichen, ältere löschen oder eine beliebige Konfiguration erneut ausführen.
+
+## Quelle: Original oder Verfeinert
+
+Sobald eine Verfeinerung existiert, zeigt das Analyse-Formular einen Umschalter **Quelle** (Original / Verfeinert) — voreingestellt auf **Verfeinert**, sodass das LLM standardmäßig den bereinigten Text erhält. Wechsle auf **Original**, um stattdessen das rohe ASR-Transkript zu analysieren. Jede gespeicherte Analyse zeigt an, welche Quelle verwendet wurde („aus Verfeinerung" / „aus Original"); wenn sich die Quelle seither geändert hat oder die Verfeinerung gelöscht wurde, wird der Hinweis bernsteinfarben, und du kannst die Analyse zur Neugenerierung erneut ausführen.

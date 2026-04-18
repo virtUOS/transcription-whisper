@@ -10,4 +10,12 @@ Wähle vor dem Ausführen der Übersetzung die Zielsprache aus dem Dropdown aus.
 
 ## Manuell oder per Bundle
 
-Du kannst die Übersetzung jederzeit manuell aus der Detailansicht starten, sobald die Transkription abgeschlossen ist. Alternativ kannst du eine Zielsprache in einer Bundle-Konfiguration festlegen, damit die Übersetzung nach Abschluss der Transkription automatisch läuft. Die Übersetzung arbeitet immer mit dem Original-Transkript — eine vorhergehende Verfeinerung ändert nicht den Eingabetext der Übersetzung. Wenn du das Original bearbeitest und die Übersetzung diese Änderungen widerspiegeln soll, lösche die aktuelle Übersetzung und starte sie erneut. Weitere Informationen zur Reihenfolge der Pipeline-Schritte findest du unter **Bundles**.
+Du kannst die Übersetzung jederzeit manuell aus der Detailansicht starten, sobald die Transkription abgeschlossen ist. Alternativ kannst du eine Zielsprache in einer Bundle-Konfiguration festlegen, damit die Übersetzung nach Abschluss der Transkription automatisch läuft.
+
+## Quelle wählen
+
+Sobald eine Verfeinerung existiert, zeigt der Übersetzen-Dialog einen Umschalter **Quelle** (Original / Verfeinert) — voreingestellt auf **Verfeinert**, sodass die Übersetzung standardmäßig den bereinigten Text erhält. Wechsle auf **Original**, um stattdessen das rohe ASR-Transkript zu übersetzen. Ohne Verfeinerung ist der Umschalter ausgeblendet und es wird immer das Original verwendet. Der Ansichts-Umschalter kennzeichnet jede Übersetzung mit ihrer Quelle, z. B. `Übersetzt (EN · aus Verfeinerung)`.
+
+Wenn du später das Original bearbeitest oder die Verfeinerung löschst, aus der eine Übersetzung erstellt wurde, erscheint im Editor ein kleiner bernsteinfarbener Hinweis („Quelle hat neueren Inhalt" oder „Quelle nicht mehr verfügbar"). Ein Klick darauf öffnet den Übersetzen-Dialog zum erneuten Ausführen.
+
+Weitere Informationen zur Reihenfolge der Pipeline-Schritte findest du unter **Bundles**.
