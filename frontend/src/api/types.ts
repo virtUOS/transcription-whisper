@@ -130,6 +130,7 @@ export interface ConfigResponse {
   enabled_languages: string[]
   api_tokens_enabled?: boolean
   api_token_default_expiry_days?: number
+  contact_email?: string
 }
 
 export interface AnalysisTemplate {

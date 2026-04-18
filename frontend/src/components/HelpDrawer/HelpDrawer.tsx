@@ -12,6 +12,7 @@ export function HelpDrawer() {
   const initialSection = useStore((s) => s.helpInitialSection)
   const closeHelp = useStore((s) => s.closeHelp)
   const currentView = useStore((s) => s.currentView)
+  const contactEmail = useStore((s) => s.config?.contact_email)
 
   // Compute the section to land on when opening.
   // Because the component unmounts when !open, useState(derivedSection) will
@@ -122,6 +123,17 @@ export function HelpDrawer() {
           <HelpSidebar activeId={activeId} onSelect={setActiveId} />
           <HelpContent sectionId={activeId} />
         </div>
+        {contactEmail && (
+          <div className="px-6 py-3 border-t border-gray-700 text-sm text-gray-400">
+            {t('help.contact')}{' '}
+            <a
+              href={`mailto:${contactEmail}`}
+              className="text-blue-400 hover:text-blue-300 underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 rounded"
+            >
+              {contactEmail}
+            </a>
+          </div>
+        )}
       </div>
     </div>
   )

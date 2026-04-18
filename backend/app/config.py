@@ -22,6 +22,7 @@ class Settings:
     FFMPEG_PATH: str = os.getenv("FFMPEG_PATH", "ffmpeg")
     FFPROBE_PATH: str = os.getenv("FFPROBE_PATH", "ffprobe")
     LOGOUT_URL: str = os.getenv("LOGOUT_URL", "")
+    CONTACT_EMAIL: str = os.getenv("CONTACT_EMAIL", "")
     DEFAULT_EXPIRY_HOURS: int = int(os.getenv("DEFAULT_EXPIRY_HOURS", "72"))
     ARCHIVE_EXPIRY_HOURS: int = int(os.getenv("ARCHIVE_EXPIRY_HOURS", "4320"))
     DATABASE_PATH: str = os.getenv("DATABASE_PATH", "")

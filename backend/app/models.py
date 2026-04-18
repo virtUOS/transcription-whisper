@@ -211,6 +211,7 @@ class ConfigResponse(BaseModel):
     enabled_languages: list[str] = []
     api_tokens_enabled: bool = False
     api_token_default_expiry_days: int = 90
+    contact_email: str = ""
 
 
 # --- Presets ---

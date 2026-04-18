@@ -445,6 +445,7 @@
     "emptyStateHint": "New here?",
     "emptyStateLink": "Open the Getting Started guide",
     "missingContent": "Content coming soon.",
+    "contact": "Contact:",
     "sections": {
       "getting-started": "Getting Started",
       "archive": "Archive",
