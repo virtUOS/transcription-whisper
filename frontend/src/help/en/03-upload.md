@@ -18,4 +18,4 @@ Only the backends your administrator has enabled appear in the interface.
 
 ## Using a bundle
 
-A bundle chains transcription, refinement, analysis, and translation presets into a single step. Select one from the bundle dropdown before starting to apply all four stages automatically. You can create and manage bundles on the **Bundles** section.
+A bundle chains transcription, refinement, analysis, and translation presets into a single configuration. Select one from the bundle dropdown before starting to run all configured stages automatically after transcription finishes. You can create and manage bundles on the **Presets** page. See **Bundles** for how the pipeline composes.

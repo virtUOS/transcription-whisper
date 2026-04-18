@@ -10,4 +10,4 @@ Select the target language from the dropdown before running translation. The lis
 
 ## Manual vs bundle
 
-You can trigger translation manually from the detail view at any time after transcription is complete. Alternatively, include a target language in a bundle configuration to have translation run automatically as part of the pipeline. In a bundle, translation runs after refinement and analysis, so downstream translation sees the full cleaned text. See **Refinement** for more on how pipeline steps compose.
+You can trigger translation manually from the detail view at any time after transcription is complete. Alternatively, include a target language in a bundle configuration to have translation run automatically after transcription finishes. Translation always operates on the original ASR transcript — running refinement first does not change the input translation sees. If you edit the original transcript and want the translation to reflect those edits, delete the current translation and re-run it. See **Bundles** for how pipeline steps are sequenced.

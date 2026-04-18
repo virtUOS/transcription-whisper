@@ -8,7 +8,7 @@ A bundle is a named composition of pipeline stages: transcription, refinement, a
 
 ![Bundle pipeline](./assets/bundle-pipeline.svg)
 
-Stages always execute in order: **transcription → refinement → analysis → translation**. Each stage receives the output of the previous one — refinement improves the raw transcript, analysis reads the refined text, and translation works from the analysis result or the transcript if no analysis is included.
+Stages always execute in order: **transcription → refinement → analysis → translation**. Execution is sequenced, but each stage operates on the original transcription independently — analysis and translation do not consume the refined text. Refinement simply produces an extra view alongside the original.
 
 ## The default bundle and auto-run
 

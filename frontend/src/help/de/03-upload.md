@@ -18,4 +18,4 @@ Es werden nur die Backends angezeigt, die vom Administrator aktiviert wurden.
 
 ## Bundles verwenden
 
-Ein Bundle verknüpft Transkriptions-, Verarbeitungs-, Analyse- und Übersetzungsvoreinstellungen zu einem einzigen Schritt. Wähle ein Bundle im Dropdown aus, bevor du startest, um alle vier Stufen automatisch anzuwenden. Bundles kannst du im Abschnitt **Bundles** erstellen und verwalten.
+Ein Bundle verknüpft Voreinstellungen für Transkription, Verfeinerung, Analyse und Übersetzung zu einer einzigen Konfiguration. Wähle ein Bundle im Dropdown aus, bevor du startest — die konfigurierten Stufen laufen dann nach Abschluss der Transkription automatisch. Bundles erstellst und verwaltest du auf der **Voreinstellungen**-Seite. Wie die Pipeline zusammengesetzt wird, steht unter **Bundles**.
