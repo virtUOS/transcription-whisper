@@ -40,6 +40,10 @@ export function RecorderPanel() {
   const handleCaptureSystemAudioChange = useCallback((capture: boolean) => {
     setCaptureSystemAudio(capture)
     if (!capture) setSecondAudioDeviceId('')
+    // Camera and system audio are mutually exclusive — turn camera off so the UI
+    // doesn't show a stale "on" toggle or a black video preview rectangle while
+    // the recording itself silently drops the video track.
+    if (capture) setUseCamera(false)
   }, [])
 
   const { state, blob, stream, duration, error, start, pause, resume, stop, discard } =
@@ -149,7 +153,7 @@ export function RecorderPanel() {
       {/* Video preview or audio level meter */}
       {state !== 'stopped' && (
         <div className="flex justify-center">
-          {useCamera && stream ? (
+          {useCamera && !captureSystemAudio && stream ? (
             <video
               ref={videoPreviewRef}
               autoPlay
