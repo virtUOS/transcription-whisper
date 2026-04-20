@@ -4,7 +4,6 @@
     "chooseFile": "Datei auswählen",
     "dragDrop": "Datei hierher ziehen oder klicken zum Hochladen",
     "uploadedFile": "Hochgeladene Datei",
-    "deleteFile": "Datei löschen",
     "supportedFormats": "Unterstützte Formate: MP3, WAV, MP4, WebM, M4A, MOV, AAC, Opus, OGG (max 1GB)",
     "fileTooLarge": "Datei ist zu groß. Maximale Größe ist 1 GB.",
     "confirmLeave": "Ein Upload läuft gerade. Wenn Sie die Seite verlassen, wird er abgebrochen. Fortfahren?"

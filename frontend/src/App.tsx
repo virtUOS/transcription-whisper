@@ -549,6 +549,15 @@ function App() {
                   label={transcribeLabel}
                   submitting={submitting}
                   variant={pendingTranscription || (uploading && !file) ? 'pending' : 'primary'}
+                  onDiscard={file ? async () => {
+                    if (transcriptionId) {
+                      try {
+                        await api.deleteTranscription(transcriptionId)
+                      } catch { /* ignore — reset still proceeds */ }
+                    }
+                    resetAll()
+                  } : undefined}
+                  discardLabel={t('recorder.discard')}
                 />
               )}
             </>

@@ -10,27 +10,11 @@ export function FileUpload() {
   const { t } = useTranslation()
   const file = useStore((s) => s.file)
   const setFile = useStore((s) => s.setFile)
-  const transcriptionId = useStore((s) => s.transcriptionId)
   const transcriptionTitle = useStore((s) => s.transcriptionTitle)
-  const reset = useStore((s) => s.reset)
   const uploading = useStore((s) => s.uploading)
   const setUploading = useStore((s) => s.setUploading)
   const setUploadAbortController = useStore((s) => s.setUploadAbortController)
   const [error, setError] = useState<string | null>(null)
-
-  const setCurrentView = useStore((s) => s.setCurrentView)
-
-  const handleDelete = useCallback(async () => {
-    if (transcriptionId) {
-      try {
-        await api.deleteTranscription(transcriptionId)
-      } catch (e) {
-        console.error('Delete failed:', e)
-      }
-    }
-    reset()
-    setCurrentView('archive')
-  }, [transcriptionId, reset, setCurrentView])
 
   const handleUpload = useCallback(async (selectedFile: File) => {
     setError(null)
@@ -72,9 +56,6 @@ export function FileUpload() {
           {transcriptionTitle ? <>{transcriptionTitle} <span className="text-gray-500">[{file.original_filename}]</span></> : file.original_filename}
         </span>
         <span className="text-gray-500 shrink-0">({formatFileSize(file.file_size)})</span>
-        <button onClick={handleDelete} className="text-red-400 hover:text-red-300 shrink-0">
-          {t('upload.deleteFile')}
-        </button>
       </div>
     )
   }
