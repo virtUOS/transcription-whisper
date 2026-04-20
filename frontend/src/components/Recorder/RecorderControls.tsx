@@ -9,8 +9,6 @@ interface RecorderControlsProps {
   onResume: () => void
   onStop: () => void
   onDiscard: () => void
-  onUseRecording: () => void
-  uploading?: boolean
   startDisabled?: boolean
   startDisabledReason?: string
 }
@@ -31,8 +29,6 @@ export function RecorderControls({
   onResume,
   onStop,
   onDiscard,
-  onUseRecording,
-  uploading = false,
   startDisabled = false,
   startDisabledReason,
 }: RecorderControlsProps) {
@@ -111,22 +107,10 @@ export function RecorderControls({
         )}
 
         {state === 'stopped' && (
-          <>
-            <button
-              onClick={onUseRecording}
-              disabled={uploading}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg font-medium transition-colors"
-            >
-              {uploading ? t('recorder.uploading') : t('recorder.useRecording')}
-            </button>
-            <button
-              onClick={onDiscard}
-              disabled={uploading}
-              className="px-6 py-3 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 text-red-400 rounded-lg font-medium transition-colors"
-            >
-              {t('recorder.discard')}
-            </button>
-          </>
+          <div className="flex items-center gap-2 text-sm text-gray-300">
+            <span className="inline-block h-4 w-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+            <span>{t('recorder.uploading')}</span>
+          </div>
         )}
       </div>
     </div>

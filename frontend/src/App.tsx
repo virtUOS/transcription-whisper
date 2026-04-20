@@ -151,6 +151,7 @@ function App() {
   const config = useStore((s) => s.config)
   const setConfig = useStore((s) => s.setConfig)
   const file = useStore((s) => s.file)
+  const resetAll = useStore((s) => s.reset)
   const uploading = useStore((s) => s.uploading)
   const currentView = useStore((s) => s.currentView)
   const setCurrentView = useStore((s) => s.setCurrentView)
@@ -584,6 +585,15 @@ function App() {
                   label={transcribeLabel}
                   submitting={submitting}
                   variant={pendingTranscription || (uploading && !file) ? 'pending' : 'primary'}
+                  onDiscard={file ? async () => {
+                    if (transcriptionId) {
+                      try {
+                        await api.deleteTranscription(transcriptionId)
+                      } catch { /* ignore — reset still proceeds */ }
+                    }
+                    resetAll()
+                  } : undefined}
+                  discardLabel={t('recorder.discard')}
                 />
               )}
             </>

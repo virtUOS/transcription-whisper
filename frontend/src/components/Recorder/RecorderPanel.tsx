@@ -12,20 +12,7 @@ export function RecorderPanel() {
   const { t } = useTranslation()
   const file = useStore((s) => s.file)
   const setFile = useStore((s) => s.setFile)
-  const transcriptionId = useStore((s) => s.transcriptionId)
   const transcriptionTitle = useStore((s) => s.transcriptionTitle)
-  const reset = useStore((s) => s.reset)
-
-  const handleDelete = useCallback(async () => {
-    if (transcriptionId) {
-      try {
-        await api.deleteTranscription(transcriptionId)
-      } catch (e) {
-        console.error('Delete failed:', e)
-      }
-    }
-    reset()
-  }, [transcriptionId, reset])
 
   const [audioDeviceId, setAudioDeviceId] = useState('')
   const [videoDeviceId, setVideoDeviceId] = useState('')
@@ -91,6 +78,20 @@ export function RecorderPanel() {
     }
   }, [blob, useCamera, setFile, t])
 
+  // Auto-upload once the recording is captured — avoids a second "Transcribe"
+  // press on an intermediate page. The settings panel + Transcribe / Discard
+  // buttons take over once `file` is set.
+  const autoUploadedRef = useRef(false)
+  useEffect(() => {
+    if (state === 'stopped' && blob && !uploading && !uploadError && !file && !autoUploadedRef.current) {
+      autoUploadedRef.current = true
+      handleUseRecording()
+    }
+    if (state !== 'stopped' || !blob) {
+      autoUploadedRef.current = false
+    }
+  }, [state, blob, uploading, uploadError, file, handleUseRecording])
+
   const handleStart = useCallback(async () => {
     // Play a short beep tone to signal recording start
     try {
@@ -121,9 +122,6 @@ export function RecorderPanel() {
           {transcriptionTitle ? <>{transcriptionTitle} <span className="text-gray-500">[{file.original_filename}]</span></> : file.original_filename}
         </span>
         <span className="text-gray-500">({formatFileSize(file.file_size)})</span>
-        <button onClick={handleDelete} className="text-red-400 hover:text-red-300">
-          {t('upload.deleteFile')}
-        </button>
       </div>
     )
   }
@@ -186,8 +184,6 @@ export function RecorderPanel() {
         onResume={resume}
         onStop={stop}
         onDiscard={discard}
-        onUseRecording={handleUseRecording}
-        uploading={uploading}
         startDisabled={!sourcesValid}
         startDisabledReason={!sourcesValid ? t('recorder.sourcesAtLeastOne') : undefined}
       />
@@ -198,9 +194,21 @@ export function RecorderPanel() {
       )}
       {uploadError && (
         <div className="p-4 bg-red-900/30 rounded-lg border border-red-700">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <span className="text-red-400 text-lg" aria-hidden="true">!</span>
-            <span className="text-red-300 text-sm">{uploadError}</span>
+            <span className="text-red-300 text-sm flex-1">{uploadError}</span>
+            <button
+              onClick={() => { setUploadError(null); autoUploadedRef.current = false }}
+              className="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white text-xs rounded"
+            >
+              {t('recorder.permissionRetry')}
+            </button>
+            <button
+              onClick={discard}
+              className="px-3 py-1 border border-gray-600 hover:border-red-500 text-red-400 text-xs rounded"
+            >
+              {t('recorder.discard')}
+            </button>
           </div>
         </div>
       )}
