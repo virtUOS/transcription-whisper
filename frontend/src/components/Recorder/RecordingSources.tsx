@@ -139,19 +139,25 @@ export function RecordingSources(props: RecordingSourcesProps) {
       >
         <div className="flex flex-col gap-1 min-w-0 sm:flex-row sm:items-center sm:gap-3">
           <label className="text-xs text-gray-400 sm:min-w-24 sm:shrink-0">{t('recorder.selectMic')}</label>
-          <select
-            value={audioDeviceId}
-            onChange={(e) => onAudioDeviceChange(e.target.value)}
-            disabled={recording}
-            className="flex-1 min-w-0 bg-gray-700 text-white rounded px-3 py-1.5 text-sm disabled:opacity-50"
-          >
-            {audioDevices.map((d) => (
-              <option key={d.deviceId} value={d.deviceId}>
-                {d.label || `Microphone ${d.deviceId.slice(0, 8)}`}
-              </option>
-            ))}
-            {audioDevices.length === 0 && <option value="">—</option>}
-          </select>
+          {audioDevices.length === 1 ? (
+            <output className="flex-1 min-w-0 bg-gray-700 text-white rounded px-3 py-1.5 text-sm">
+              {audioDevices[0].label || `Microphone ${audioDevices[0].deviceId.slice(0, 8)}`}
+            </output>
+          ) : (
+            <select
+              value={audioDeviceId}
+              onChange={(e) => onAudioDeviceChange(e.target.value)}
+              disabled={recording}
+              className="flex-1 min-w-0 bg-gray-700 text-white rounded px-3 py-1.5 text-sm disabled:opacity-50"
+            >
+              {audioDevices.map((d) => (
+                <option key={d.deviceId} value={d.deviceId}>
+                  {d.label || `Microphone ${d.deviceId.slice(0, 8)}`}
+                </option>
+              ))}
+              {audioDevices.length === 0 && <option value="">—</option>}
+            </select>
+          )}
         </div>
       </SourceCard>
 
