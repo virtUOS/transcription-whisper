@@ -10,6 +10,7 @@
     "confirmLeave": "Ein Upload läuft gerade. Wenn Sie die Seite verlassen, wird er abgebrochen. Fortfahren?"
   },
   "settings": {
+    "title": "Einstellungen",
     "language": "Sprache für die Transkription",
     "model": "Qualität",
     "detectSpeakers": "Sprecher erkennen",
@@ -33,6 +34,33 @@
       "large-v3-turbo": "Ausgewogen",
       "large-v3": "Beste Qualität",
       "large-v2": "Beste Qualität"
+    },
+    "apiTokens": {
+      "title": "API-Tokens",
+      "createButton": "Token erstellen",
+      "nameLabel": "Name",
+      "expiresLabel": "Läuft ab",
+      "expiry30": "30 Tage",
+      "expiry90": "90 Tage",
+      "expiry365": "365 Tage",
+      "expiryNever": "Nie",
+      "createCta": "Erstellen",
+      "cancel": "Abbrechen",
+      "revoke": "Widerrufen",
+      "statusActive": "Aktiv",
+      "statusExpired": "Abgelaufen",
+      "statusRevoked": "Widerrufen",
+      "createdHeader": "Token erstellt",
+      "saveNowWarning": "Jetzt speichern — Sie sehen ihn nicht erneut.",
+      "copy": "Kopieren",
+      "copied": "Kopiert!",
+      "done": "Fertig",
+      "prefixSuffix": "…",
+      "revoking": "Wird widerrufen…",
+      "creating": "Wird erstellt…",
+      "expiresOnTmpl": "läuft ab am {{date}}",
+      "lastUsedTmpl": "zuletzt verwendet {{date}}",
+      "empty": "Noch keine API-Tokens. Erstellen Sie einen, um zu beginnen."
     }
   },
   "transcription": {
@@ -405,36 +433,6 @@
     "presets": "Voreinstellungen",
     "settings": "Einstellungen",
     "menu": "Menü"
-  },
-  "settings": {
-    "title": "Einstellungen",
-    "apiTokens": {
-      "title": "API-Tokens",
-      "createButton": "Token erstellen",
-      "nameLabel": "Name",
-      "expiresLabel": "Läuft ab",
-      "expiry30": "30 Tage",
-      "expiry90": "90 Tage",
-      "expiry365": "365 Tage",
-      "expiryNever": "Nie",
-      "createCta": "Erstellen",
-      "cancel": "Abbrechen",
-      "revoke": "Widerrufen",
-      "statusActive": "Aktiv",
-      "statusExpired": "Abgelaufen",
-      "statusRevoked": "Widerrufen",
-      "createdHeader": "Token erstellt",
-      "saveNowWarning": "Jetzt speichern — Sie sehen ihn nicht erneut.",
-      "copy": "Kopieren",
-      "copied": "Kopiert!",
-      "done": "Fertig",
-      "prefixSuffix": "…",
-      "revoking": "Wird widerrufen…",
-      "creating": "Wird erstellt…",
-      "expiresOnTmpl": "läuft ab am {{date}}",
-      "lastUsedTmpl": "zuletzt verwendet {{date}}",
-      "empty": "Noch keine API-Tokens. Erstellen Sie einen, um zu beginnen."
-    }
   },
   "common": {
     "loading": "Laden...",
