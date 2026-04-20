@@ -212,10 +212,12 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
           try {
             cameraStream = await navigator.mediaDevices.getUserMedia({ video: videoConstraint })
           } catch (err) {
-            micStream.getTracks().forEach((t) => t.stop())
-            streamRef.current = null
+            // Camera isn't usable (denied, missing, or otherwise). Since the mic
+            // already opened successfully, continue with audio-only recording
+            // rather than aborting the whole session — matches what the user
+            // asked for in #139 ("if I can still record audio … record audio").
             setError(inferFromError(err) === 'denied' ? 'cameraDenied' : 'cameraFailed')
-            return
+            cameraStream = null
           }
         }
 
@@ -309,7 +311,7 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
 
       setStream(recordingStream)
 
-      const hasVideo = !!options.useCamera && !options.captureSystemAudio
+      const hasVideo = !!options.useCamera && !options.captureSystemAudio && !!recordingStream.getVideoTracks().length
       const mimeType = getPreferredMimeType(hasVideo)
       const recorder = new MediaRecorder(recordingStream, mimeType ? { mimeType } : undefined)
 

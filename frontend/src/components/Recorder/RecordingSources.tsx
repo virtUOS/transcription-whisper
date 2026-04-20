@@ -50,7 +50,15 @@ export function RecordingSources(props: RecordingSourcesProps) {
 
   const cameraDisabled = captureSystemAudio
   const validMic = useMicrophone && micPermission.state !== 'denied'
-  const validCamera = useCamera && !cameraDisabled && cameraPermission.state !== 'denied'
+  // Camera only contributes to "something to record" if the toggle is on, it's
+  // not suppressed by system audio, permission isn't denied, AND at least one
+  // physical device was enumerated. Permission in 'prompt' state still counts —
+  // enumeration is allowed to resolve in the background — but a 'granted'
+  // permission with zero devices means the hardware genuinely isn't there.
+  const cameraDevicePresent =
+    videoDevices.length > 0 || cameraPermission.state === 'prompt'
+  const validCamera =
+    useCamera && !cameraDisabled && cameraPermission.state !== 'denied' && cameraDevicePresent
   const valid = validMic || captureSystemAudio || validCamera
 
   useEffect(() => {
@@ -217,28 +225,31 @@ export function RecordingSources(props: RecordingSourcesProps) {
         permission={cameraPermission.state}
         deniedBanner={makeDeniedBanner(t('recorder.sourceCamera'), cameraPermission.refresh)}
       >
-        <div className="flex flex-col gap-1 min-w-0 sm:flex-row sm:items-center sm:gap-3">
-          <label className="text-xs text-gray-400 sm:min-w-24 sm:shrink-0">{t('recorder.selectCamera')}</label>
-          {videoDevices.length === 1 ? (
-            <output className="flex-1 min-w-0 bg-gray-700 text-white rounded px-3 py-1.5 text-sm">
-              {videoDevices[0].label || `Camera ${videoDevices[0].deviceId.slice(0, 8)}`}
-            </output>
-          ) : (
-            <select
-              value={videoDeviceId}
-              onChange={(e) => onVideoDeviceChange(e.target.value)}
-              disabled={recording}
-              className="flex-1 min-w-0 bg-gray-700 text-white rounded px-3 py-1.5 text-sm disabled:opacity-50"
-            >
-              {videoDevices.map((d) => (
-                <option key={d.deviceId} value={d.deviceId}>
-                  {d.label || `Camera ${d.deviceId.slice(0, 8)}`}
-                </option>
-              ))}
-              {videoDevices.length === 0 && <option value="">—</option>}
-            </select>
-          )}
-        </div>
+        {videoDevices.length === 0 ? (
+          <p className="text-xs text-gray-400">{t('recorder.noCameraDetected')}</p>
+        ) : (
+          <div className="flex flex-col gap-1 min-w-0 sm:flex-row sm:items-center sm:gap-3">
+            <label className="text-xs text-gray-400 sm:min-w-24 sm:shrink-0">{t('recorder.selectCamera')}</label>
+            {videoDevices.length === 1 ? (
+              <output className="flex-1 min-w-0 bg-gray-700 text-white rounded px-3 py-1.5 text-sm">
+                {videoDevices[0].label || `Camera ${videoDevices[0].deviceId.slice(0, 8)}`}
+              </output>
+            ) : (
+              <select
+                value={videoDeviceId}
+                onChange={(e) => onVideoDeviceChange(e.target.value)}
+                disabled={recording}
+                className="flex-1 min-w-0 bg-gray-700 text-white rounded px-3 py-1.5 text-sm disabled:opacity-50"
+              >
+                {videoDevices.map((d) => (
+                  <option key={d.deviceId} value={d.deviceId}>
+                    {d.label || `Camera ${d.deviceId.slice(0, 8)}`}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+        )}
       </SourceCard>
 
       {!valid && (
