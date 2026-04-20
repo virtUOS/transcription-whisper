@@ -459,6 +459,7 @@ function App() {
     (transcriptionId !== null && transcriptionStatus !== 'completed')
     || pendingTranscription
     || submitError !== null
+    || submitting
 
   const transcribeLabel = (() => {
     if (pendingTranscription || (uploading && !file)) {
