@@ -175,24 +175,33 @@ export function RecordingSources(props: RecordingSourcesProps) {
                 {t(warningKey[systemAudioSupport])}
               </div>
             )}
-            {systemAudioSupport === 'dual-device' && (
-              <div className="flex flex-col gap-1 min-w-0 sm:flex-row sm:items-center sm:gap-3">
-                <label className="text-xs text-gray-400 sm:min-w-24 sm:shrink-0">{t('recorder.selectSecondDevice')}</label>
-                <select
-                  value={secondAudioDeviceId}
-                  onChange={(e) => onSecondAudioDeviceChange(e.target.value)}
-                  disabled={recording}
-                  className="flex-1 min-w-0 bg-gray-700 text-white rounded px-3 py-1.5 text-sm disabled:opacity-50"
-                >
-                  {audioDevices.filter((d) => d.deviceId !== audioDeviceId).map((d) => (
-                    <option key={d.deviceId} value={d.deviceId}>
-                      {d.label || `Device ${d.deviceId.slice(0, 8)}`}
-                    </option>
-                  ))}
-                  {audioDevices.length === 0 && <option value="">—</option>}
-                </select>
-              </div>
-            )}
+            {systemAudioSupport === 'dual-device' && (() => {
+              const secondDeviceCandidates = audioDevices.filter((d) => d.deviceId !== audioDeviceId)
+              return (
+                <div className="flex flex-col gap-1 min-w-0 sm:flex-row sm:items-center sm:gap-3">
+                  <label className="text-xs text-gray-400 sm:min-w-24 sm:shrink-0">{t('recorder.selectSecondDevice')}</label>
+                  {secondDeviceCandidates.length === 1 ? (
+                    <output className="flex-1 min-w-0 bg-gray-700 text-white rounded px-3 py-1.5 text-sm">
+                      {secondDeviceCandidates[0].label || `Device ${secondDeviceCandidates[0].deviceId.slice(0, 8)}`}
+                    </output>
+                  ) : (
+                    <select
+                      value={secondAudioDeviceId}
+                      onChange={(e) => onSecondAudioDeviceChange(e.target.value)}
+                      disabled={recording}
+                      className="flex-1 min-w-0 bg-gray-700 text-white rounded px-3 py-1.5 text-sm disabled:opacity-50"
+                    >
+                      {secondDeviceCandidates.map((d) => (
+                        <option key={d.deviceId} value={d.deviceId}>
+                          {d.label || `Device ${d.deviceId.slice(0, 8)}`}
+                        </option>
+                      ))}
+                      {secondDeviceCandidates.length === 0 && <option value="">—</option>}
+                    </select>
+                  )}
+                </div>
+              )
+            })()}
           </div>
         </SourceCard>
       )}
@@ -210,19 +219,25 @@ export function RecordingSources(props: RecordingSourcesProps) {
       >
         <div className="flex flex-col gap-1 min-w-0 sm:flex-row sm:items-center sm:gap-3">
           <label className="text-xs text-gray-400 sm:min-w-24 sm:shrink-0">{t('recorder.selectCamera')}</label>
-          <select
-            value={videoDeviceId}
-            onChange={(e) => onVideoDeviceChange(e.target.value)}
-            disabled={recording}
-            className="flex-1 min-w-0 bg-gray-700 text-white rounded px-3 py-1.5 text-sm disabled:opacity-50"
-          >
-            {videoDevices.map((d) => (
-              <option key={d.deviceId} value={d.deviceId}>
-                {d.label || `Camera ${d.deviceId.slice(0, 8)}`}
-              </option>
-            ))}
-            {videoDevices.length === 0 && <option value="">—</option>}
-          </select>
+          {videoDevices.length === 1 ? (
+            <output className="flex-1 min-w-0 bg-gray-700 text-white rounded px-3 py-1.5 text-sm">
+              {videoDevices[0].label || `Camera ${videoDevices[0].deviceId.slice(0, 8)}`}
+            </output>
+          ) : (
+            <select
+              value={videoDeviceId}
+              onChange={(e) => onVideoDeviceChange(e.target.value)}
+              disabled={recording}
+              className="flex-1 min-w-0 bg-gray-700 text-white rounded px-3 py-1.5 text-sm disabled:opacity-50"
+            >
+              {videoDevices.map((d) => (
+                <option key={d.deviceId} value={d.deviceId}>
+                  {d.label || `Camera ${d.deviceId.slice(0, 8)}`}
+                </option>
+              ))}
+              {videoDevices.length === 0 && <option value="">—</option>}
+            </select>
+          )}
         </div>
       </SourceCard>
 
