@@ -22,9 +22,6 @@ const MediaPlayer = lazy(() =>
 const SubtitleEditor = lazy(() =>
   import('./components/SubtitleEditor').then((m) => ({ default: m.SubtitleEditor }))
 )
-const SpeakerMapping = lazy(() =>
-  import('./components/SpeakerMapping').then((m) => ({ default: m.SpeakerMapping }))
-)
 const FormatViewer = lazy(() =>
   import('./components/FormatViewer').then((m) => ({ default: m.FormatViewer }))
 )
@@ -163,8 +160,6 @@ function App() {
   const transcriptionResult = useStore((s) => s.transcriptionResult)
   const activeTab = useStore((s) => s.activeTab)
   const helpOpen = useStore((s) => s.helpOpen)
-  const [speakerModalOpen, setSpeakerModalOpen] = useState(false)
-  const [focusSpeaker, setFocusSpeaker] = useState<string | undefined>(undefined)
   const [playerCollapsed, setPlayerCollapsed] = useState(false)
 
   useBeforeUnloadWarning()
@@ -202,11 +197,6 @@ function App() {
   if (file?.id !== prevFileId) {
     setPrevFileId(file?.id)
     setPlayerCollapsed(false)
-  }
-
-  const handleOpenSpeakerModal = (speakerId?: string) => {
-    setFocusSpeaker(speakerId)
-    setSpeakerModalOpen(true)
   }
 
   const bundles = useStore((s) => s.bundles)
@@ -658,12 +648,10 @@ function App() {
                   hasVideo={file.has_video}
                   onCollapsedChange={setPlayerCollapsed}
                 />
-                <TabBar onSpeakerNamesClick={() => handleOpenSpeakerModal()} />
-
-                <SpeakerMapping isOpen={speakerModalOpen} onClose={() => { setSpeakerModalOpen(false); setFocusSpeaker(undefined) }} focusSpeaker={focusSpeaker} />
+                <TabBar />
 
                 <div className={`mx-6 my-2 ${!file.has_video || playerCollapsed ? 'max-h-[calc(100vh-14rem)]' : 'max-h-[calc(100vh-22rem)]'} overflow-auto`}>
-                  {activeTab === 'subtitles' && <SubtitleEditor onOpenSpeakerModal={handleOpenSpeakerModal} />}
+                  {activeTab === 'subtitles' && <SubtitleEditor />}
                   {activeTab === 'analysis' && <AnalysisView />}
                   {['srt', 'vtt', 'json', 'txt'].includes(activeTab) && (
                     <FormatViewer format={activeTab} />

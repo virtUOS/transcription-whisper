@@ -5,11 +5,8 @@ import { api } from '../../api/client'
 import { SubtitleRow } from './SubtitleRow'
 import { LanguageSelect } from '../LanguageSelect'
 import { PresetSelect } from '../PresetSelect/PresetSelect'
+import { SpeakerMapping } from '../SpeakerMapping'
 import type { Utterance } from '../../api/types'
-
-interface SubtitleEditorProps {
-  onOpenSpeakerModal?: (speakerId?: string) => void
-}
 
 type SearchScope = 'text' | 'speaker' | 'both'
 
@@ -17,7 +14,7 @@ type DisplayEntry =
   | { type: 'utterance'; originalIndex: number; utterance: Utterance; isMatch: boolean }
   | { type: 'separator'; hiddenCount: number }
 
-export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
+export function SubtitleEditor() {
   const { t } = useTranslation()
   const result = useStore((s) => s.transcriptionResult)
   const transcriptionId = useStore((s) => s.transcriptionId)
@@ -58,6 +55,8 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
   const [refineContext, setRefineContext] = useState('')
   const [refining, setRefining] = useState(false)
   const [selectedRefinementPresetId, setSelectedRefinementPresetId] = useState<string | null>(null)
+  const [speakerPanelOpen, setSpeakerPanelOpen] = useState(false)
+  const [focusSpeaker, setFocusSpeaker] = useState<string | undefined>(undefined)
 
   const handleLoadRefinementPreset = (presetId: string | null) => {
     setSelectedRefinementPresetId(presetId)
@@ -252,8 +251,14 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
   }, [editingCell, utterances, setSeekTo])
 
   const handleEditSpeaker = useCallback((speakerId: string) => {
-    onOpenSpeakerModal?.(speakerId)
-  }, [onOpenSpeakerModal])
+    setFocusSpeaker(speakerId)
+    setSpeakerPanelOpen(true)
+  }, [])
+
+  const handleCloseSpeakerPanel = useCallback(() => {
+    setSpeakerPanelOpen(false)
+    setFocusSpeaker(undefined)
+  }, [])
 
   const handleUpdate = useCallback((index: number, field: keyof Utterance, value: string | number) => {
     if (!result) return
@@ -528,24 +533,37 @@ export function SubtitleEditor({ onOpenSpeakerModal }: SubtitleEditorProps) {
             <span>{t('editor.hotkeyEscape')}</span>
           </div>
         </details>
-        {dirty && (
-          <div className="ml-auto flex items-center gap-2">
-            <button
-              onClick={handleRestore}
-              className="px-3 py-1 text-gray-400 text-xs rounded border border-gray-600 hover:text-white hover:border-gray-400"
-            >
-              {t('editor.restoreOriginal')}
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-500 disabled:opacity-50"
-            >
-              {saving ? t('common.loading') : t('editor.saveChanges')}
-            </button>
-          </div>
-        )}
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            onClick={() => { setFocusSpeaker(undefined); setSpeakerPanelOpen((open) => !open) }}
+            className={`px-3 py-1 text-xs rounded border ${speakerPanelOpen ? 'bg-blue-600 text-white border-blue-500' : 'text-gray-300 border-gray-600 hover:text-white hover:border-gray-400'}`}
+          >
+            {t('editor.speakerNames')}
+          </button>
+          {dirty && (
+            <>
+              <button
+                onClick={handleRestore}
+                className="px-3 py-1 text-gray-400 text-xs rounded border border-gray-600 hover:text-white hover:border-gray-400"
+              >
+                {t('editor.restoreOriginal')}
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-500 disabled:opacity-50"
+              >
+                {saving ? t('common.loading') : t('editor.saveChanges')}
+              </button>
+            </>
+          )}
+        </div>
       </div>
+      <SpeakerMapping
+        isOpen={speakerPanelOpen}
+        onClose={handleCloseSpeakerPanel}
+        focusSpeaker={focusSpeaker}
+      />
       {(llmAvailable || refinementMetadata || translatedUtterances) && (
       <div className="flex flex-wrap items-center gap-2 px-3 py-2 bg-gray-800 border-b border-gray-700">
         {llmAvailable && !refinementMetadata && (

@@ -1,11 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { useStore } from '../store'
 
-interface Props {
-  onSpeakerNamesClick: () => void
-}
-
-export function TabBar({ onSpeakerNamesClick }: Props) {
+export function TabBar() {
   const { t } = useTranslation()
   const activeTab = useStore((s) => s.activeTab)
   const setActiveTab = useStore((s) => s.setActiveTab)
@@ -35,11 +31,6 @@ export function TabBar({ onSpeakerNamesClick }: Props) {
           {tab.label}
         </button>
       ))}
-      <div className="ml-auto flex gap-2">
-        <button onClick={onSpeakerNamesClick} className="px-3 py-1 text-sm text-gray-400 hover:text-white hover:bg-gray-700 rounded">
-          {t('editor.speakerNames')}
-        </button>
-      </div>
     </div>
   )
 }
