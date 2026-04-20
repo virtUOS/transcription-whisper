@@ -6,21 +6,21 @@ Analysis sends your transcript to a language model to produce a higher-level art
 
 ## Built-in templates
 
-Three templates are available out of the box:
+Three templates are available out of the box, plus a **Custom** option for your own prompt:
 
-- **General summary** — a concise overview of the recording content
-- **Meeting protocol** — structured output with participants, decisions, and action items
-- **Chapter markers** — time-coded sections with titles, useful for long recordings
+- **Summary with chapters** — an overall summary plus time-coded chapter breakdown, useful for long recordings
+- **Meeting protocol** — structured notes with key points, decisions, and action items
+- **Agenda-based notes** — notes structured around a provided meeting agenda
 
 Pick the template that matches the nature of your content.
 
 ## Custom prompts
 
-Instead of a template, write your own prompt. The model receives the full transcript text plus your prompt and returns whatever you ask for. Keep prompts direct and concrete. Avoid asking for information the transcript does not contain — the model will fill in gaps with guesses if pushed.
+Select **Custom** to write your own prompt. The model receives the full transcript text plus your prompt and returns whatever you ask for. Keep prompts direct and concrete. Avoid asking for information the transcript does not contain — the model will fill in gaps with guesses if pushed.
 
 ## Chapter hints and agenda
 
-For long recordings with a known agenda, paste the agenda into the chapter hints field (one topic per line). The model uses this as context to produce more accurate chapter markers and to map discussion to the right agenda items.
+The **Summary with chapters** template shows an optional **Define chapters** field where you can pre-declare chapter titles and descriptions (one per line) to guide segmentation. The **Agenda-based notes** template shows an **Agenda** field — paste your agenda there and the model will structure the output around those items.
 
 ## Running multiple analyses
 

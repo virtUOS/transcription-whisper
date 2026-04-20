@@ -2,11 +2,11 @@
 
 ## Transkriptions-Voreinstellungen
 
-Eine Transkriptions-Voreinstellung speichert deine bevorzugte Kombination aus Sprache, Qualitätsstufe, Diarisierung, initialem Prompt und Hotwords. Wähle eine gespeicherte Voreinstellung in der Upload- oder Aufnahme-Ansicht aus, anstatt jede Option jedes Mal manuell einzustellen. Voreinstellungen erstellst und verwaltest du auf der **Voreinstellungen**-Seite, die du über die Kopfzeile erreichst.
+Eine Transkriptions-Voreinstellung speichert deine bevorzugte Kombination aus Sprache, Modell (Qualitätsstufe), Sprechererkennungs-Einstellungen, initialem Prompt und Hotwords. Wähle eine gespeicherte Voreinstellung in der Upload- oder Aufnahme-Ansicht aus, anstatt jede Option jedes Mal manuell einzustellen. Voreinstellungen erstellst und verwaltest du auf der **Voreinstellungen**-Seite, die du über die Kopfzeile erreichst.
 
 ## Analyse-Voreinstellungen
 
-Eine Analyse-Voreinstellung speichert eine Vorlage oder einen eigenen Prompt zusammen mit der Ausgabesprache, Kapitelhinweisen und einer Agenda. Praktisch für wiederkehrende Analysemuster — zum Beispiel „Besprechungsprotokoll auf Deutsch mit fester Agenda erstellen". Wähle die Voreinstellung beim Ausführen einer Analyse aus.
+Eine Analyse-Voreinstellung speichert eine Vorlage (oder einen eigenen Prompt) zusammen mit der Ausgabesprache. Praktisch für wiederkehrende Analysemuster — zum Beispiel „Besprechungsprotokoll auf Deutsch erstellen". Kapiteltitel und Agenda-Punkte werden bei jeder Analyse einzeln eingegeben und nicht in der Voreinstellung gespeichert. Wähle die Voreinstellung beim Ausführen einer Analyse aus.
 
 ## Verfeinerungs-Voreinstellungen
 

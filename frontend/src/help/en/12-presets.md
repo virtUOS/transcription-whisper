@@ -2,11 +2,11 @@
 
 ## Transcription presets
 
-A transcription preset saves your preferred combination of language, quality level, diarization toggle, initial prompt, and hotwords. Select a saved preset from the Upload or Record view instead of configuring each option manually every time. Create and manage presets on the **Presets** page, accessible from the header.
+A transcription preset saves your preferred combination of language, model (quality tier), speaker detection settings, initial prompt, and hotwords. Select a saved preset from the Upload or Record view instead of configuring each option manually every time. Create and manage presets on the **Presets** page, accessible from the header.
 
 ## Analysis presets
 
-An analysis preset stores a template or custom prompt together with the output language, chapter hints, and agenda. Useful for repeated analysis patterns — for example, "generate a meeting protocol in English using a fixed agenda". Select the preset when running analysis on any transcription.
+An analysis preset stores a template (or a custom prompt) together with the output language. Useful for repeated analysis patterns — for example, "generate a meeting protocol in English". Chapter titles and agenda items are entered per-run on the analysis form, not stored in the preset. Select the preset when running analysis on any transcription.
 
 ## Refinement presets
 
