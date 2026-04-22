@@ -11,6 +11,12 @@ interface Props {
   focusSpeaker?: string
 }
 
+interface Identity {
+  key: string
+  display: string
+  ids: string[]
+}
+
 export function SpeakerMapping({ isOpen, onClose, focusSpeaker }: Props) {
   const { t } = useTranslation()
   const result = useStore((s) => s.transcriptionResult)
@@ -18,74 +24,110 @@ export function SpeakerMapping({ isOpen, onClose, focusSpeaker }: Props) {
   const setSpeakerMappings = useStore((s) => s.setSpeakerMappings)
   const transcriptionId = useStore((s) => s.transcriptionId)
 
-  const speakers = useMemo(() => {
+  // Group source speaker IDs by their current display name, so utterances
+  // that already share a display name (whether via mapping or via in-row
+  // rename) are represented as a single identity row. Renaming the row then
+  // applies to every underlying source ID at once.
+  const identities = useMemo<Identity[]>(() => {
     if (!result) return []
-    const set = new Set<string>()
-    result.utterances.forEach((u) => { if (u.speaker) set.add(u.speaker) })
-    return Array.from(set).sort()
-  }, [result])
+    const groups = new Map<string, string[]>()
+    result.utterances.forEach((u) => {
+      if (!u.speaker) return
+      const display = speakerMappings[u.speaker] || u.speaker
+      const ids = groups.get(display)
+      if (ids) {
+        if (!ids.includes(u.speaker)) ids.push(u.speaker)
+      } else {
+        groups.set(display, [u.speaker])
+      }
+    })
+    return Array.from(groups.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([display, ids]) => ({ key: display, display, ids }))
+  }, [result, speakerMappings])
 
-  const [localMappings, setLocalMappings] = useState<Record<string, string>>(speakerMappings)
+  // Fresh edit state (always starts empty) — the current name is shown as a
+  // placeholder, so pressing Apply without typing is a no-op instead of
+  // renaming "Lars" to "Lars".
+  const [edits, setEdits] = useState<Record<string, string>>({})
 
-  // Sync local mappings when store mappings change (e.g. on reopen)
-  const [prevIsOpen, setPrevIsOpen] = useState(isOpen)
-  const [prevSpeakerMappings, setPrevSpeakerMappings] = useState(speakerMappings)
-  if (isOpen !== prevIsOpen || speakerMappings !== prevSpeakerMappings) {
-    setPrevIsOpen(isOpen)
-    setPrevSpeakerMappings(speakerMappings)
-    if (isOpen) setLocalMappings(speakerMappings)
+  const prevIsOpenRef = useRef(isOpen)
+  if (isOpen !== prevIsOpenRef.current) {
+    prevIsOpenRef.current = isOpen
+    if (isOpen) setEdits({})
   }
 
-  // Collect custom (non-placeholder) names for datalist suggestions
-  const customNames = useMemo(() => {
-    const names = new Set<string>()
-    Object.values(localMappings).forEach((name) => {
-      if (name && !SPEAKER_PLACEHOLDER_RE.test(name)) names.add(name)
-    })
-    return Array.from(names).sort()
-  }, [localMappings])
-
-  // Auto-focus the input for the focused speaker
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({})
   useEffect(() => {
-    if (isOpen && focusSpeaker && inputRefs.current[focusSpeaker]) {
-      // Small delay to let the modal render
-      requestAnimationFrame(() => {
-        inputRefs.current[focusSpeaker!]?.focus()
-        inputRefs.current[focusSpeaker!]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      })
-    }
-  }, [isOpen, focusSpeaker])
+    if (!isOpen || !focusSpeaker) return
+    const target = identities.find((i) => i.ids.includes(focusSpeaker))
+    if (!target) return
+    const el = inputRefs.current[target.key]
+    if (!el) return
+    requestAnimationFrame(() => {
+      el.focus()
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+  }, [isOpen, focusSpeaker, identities])
+
+  const customNames = useMemo(() => {
+    const names = new Set<string>()
+    identities.forEach((i) => {
+      if (!SPEAKER_PLACEHOLDER_RE.test(i.display)) names.add(i.display)
+    })
+    return Array.from(names).sort()
+  }, [identities])
 
   const handleApply = async () => {
     if (!transcriptionId) return
-    await api.updateSpeakers(transcriptionId, localMappings)
-    setSpeakerMappings(localMappings)
+    const next = { ...speakerMappings }
+    let changed = false
+    for (const identity of identities) {
+      const raw = edits[identity.key]
+      if (raw === undefined) continue
+      const trimmed = raw.trim()
+      if (!trimmed) continue
+      if (trimmed === identity.display) continue
+      for (const id of identity.ids) {
+        if (next[id] !== trimmed) {
+          next[id] = trimmed
+          changed = true
+        }
+      }
+    }
+    if (changed) {
+      await api.updateSpeakers(transcriptionId, next)
+      setSpeakerMappings(next)
+    }
     onClose()
   }
 
   if (!isOpen) return null
 
   return (
-    <section className="mx-6 mb-4 bg-gray-800 rounded-lg p-6">
+    <section className="mx-2 sm:mx-6 mb-4 bg-gray-800 rounded-lg p-3 sm:p-6">
       <h2 className="text-lg font-medium text-white mb-4">{t('editor.speakerNames')}</h2>
       <div className="space-y-3">
-        {speakers.map((speaker) => {
-          const mappedName = localMappings[speaker] || ''
-          const isAutoName = !mappedName || SPEAKER_PLACEHOLDER_RE.test(mappedName)
+        {identities.map((identity) => {
+          const isPlaceholder = SPEAKER_PLACEHOLDER_RE.test(identity.display)
           return (
-            <div key={speaker} className="flex items-center gap-3">
-              <span className={`text-sm w-24 shrink-0 ${isAutoName ? 'text-gray-500 italic' : 'text-gray-200 font-medium'}`}>
-                {mappedName || speaker}
+            <div key={identity.key} className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 min-w-0">
+              <span className={`text-sm sm:w-32 sm:shrink-0 break-words ${isPlaceholder ? 'text-gray-500 italic' : 'text-gray-200 font-medium'}`}>
+                {identity.display}
+                {identity.ids.length > 1 && (
+                  <span className="ml-2 text-xs text-gray-500 font-normal not-italic">
+                    ({t('editor.speakerMergedCount', { count: identity.ids.length })})
+                  </span>
+                )}
               </span>
-              <span className="text-gray-500">{'\u2192'}</span>
+              <span className="hidden sm:inline text-gray-500">{'→'}</span>
               <input
-                ref={(el) => { inputRefs.current[speaker] = el }}
-                value={localMappings[speaker] || ''}
-                onChange={(e) => setLocalMappings({ ...localMappings, [speaker]: e.target.value })}
-                placeholder={speaker}
+                ref={(el) => { inputRefs.current[identity.key] = el }}
+                value={edits[identity.key] ?? ''}
+                onChange={(e) => setEdits((prev) => ({ ...prev, [identity.key]: e.target.value }))}
+                placeholder={t('editor.speakerRenamePlaceholder')}
                 list="speaker-name-suggestions"
-                className="flex-1 bg-gray-700 text-white text-sm rounded px-3 py-1.5"
+                className="flex-1 min-w-0 bg-gray-700 text-white text-sm rounded px-3 py-1.5"
               />
             </div>
           )
@@ -96,8 +138,11 @@ export function SpeakerMapping({ isOpen, onClose, focusSpeaker }: Props) {
           <option key={name} value={name} />
         ))}
       </datalist>
-      {speakers.length === 0 && (
+      {identities.length === 0 && (
         <p className="text-gray-500 text-sm">{t('editor.noSpeakers')}</p>
+      )}
+      {identities.length > 1 && (
+        <p className="text-gray-500 text-xs mt-3">{t('editor.speakerMergeHint')}</p>
       )}
       <div className="flex justify-end gap-3 mt-6">
         <button onClick={onClose} className="px-4 py-1.5 text-sm text-gray-300 hover:text-white">
