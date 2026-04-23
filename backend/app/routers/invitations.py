@@ -1,4 +1,5 @@
 import asyncio
+import smtplib
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
@@ -89,8 +90,12 @@ async def post_invitation(
             to_email=req.email,
             invite_url=_invite_url(inv["token"]),
         )
-    except EmailConfigError as e:
-        raise HTTPException(status_code=503, detail=f"SMTP not configured: {e}")
+    except (EmailConfigError, smtplib.SMTPException, OSError) as e:
+        # Roll back the invitation row so admins can retry cleanly.
+        async with get_db() as db:
+            await db.execute("DELETE FROM invitations WHERE id = ?", (inv["id"],))
+            await db.commit()
+        raise HTTPException(status_code=503, detail=f"Invitation email failed: {e}")
 
     inc(invitations_created_total)
     return InvitationCreated(**inv)

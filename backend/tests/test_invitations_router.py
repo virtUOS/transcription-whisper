@@ -219,3 +219,31 @@ async def test_create_invitation_duplicate_returns_409():
                 headers=_admin_headers(),
             )
     assert resp.status_code == 409
+
+
+@pytest.mark.asyncio
+async def test_smtp_failure_rolls_back_invitation():
+    import smtplib
+    with patch(
+        "app.routers.invitations.KeycloakAdminClient.create_user",
+        new=AsyncMock(return_value="kc-uuid-smtp"),
+    ), patch(
+        "app.routers.invitations.KeycloakAdminClient.send_setup_email",
+        new=AsyncMock(return_value=None),
+    ), patch(
+        "app.routers.invitations.send_invitation_email",
+        side_effect=smtplib.SMTPException("boom"),
+    ):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://t") as c:
+            resp = await c.post(
+                "/api/invitations",
+                json={"email": "smtpfail@example.com"},
+                headers=_admin_headers(),
+            )
+    assert resp.status_code == 503
+    # DB row must have been rolled back so a retry would not hit 409.
+    async with get_db() as db:
+        cursor = await db.execute(
+            "SELECT id FROM invitations WHERE email = ?", ("smtpfail@example.com",)
+        )
+        assert await cursor.fetchone() is None
