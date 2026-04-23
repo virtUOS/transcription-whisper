@@ -159,6 +159,9 @@ app.include_router(translation.router)
 app.include_router(presets.router)
 if settings.ENABLE_API_TOKENS:
     app.include_router(tokens.router)
+# Invitations router is mounted unconditionally; its `_require_invitation_mode`
+# dependency returns 404 when INVITATION_MODE=false. This avoids coupling the
+# mount to a startup-time flag that tests reload.
 app.include_router(invitations_router.router)
 
 # Serve frontend static files (only when built files exist, i.e., in Docker)

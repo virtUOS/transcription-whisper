@@ -150,6 +150,9 @@ CREATE INDEX IF NOT EXISTS idx_invitations_status ON invitations(status);
 _db_path: str = ""
 
 
+# SCHEMA holds CREATE TABLE / CREATE INDEX statements (idempotent via
+# IF NOT EXISTS). New tables go here. MIGRATIONS is only for adding
+# *columns* to existing tables on old databases.
 MIGRATIONS = [
     # (column_name, table, column_def)
     ("refined_utterances_json", "transcriptions", "refined_utterances_json TEXT"),
