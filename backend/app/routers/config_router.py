@@ -13,7 +13,7 @@ async def health():
 
 
 @router.get("/api/config", response_model=ConfigResponse)
-async def get_config(_user: UserInfo = Depends(get_current_user)):
+async def get_config(user: UserInfo = Depends(get_current_user)):
     return ConfigResponse(
         asr_backend=settings.ASR_BACKEND,
         whisper_models=settings.WHISPER_MODELS,
@@ -25,6 +25,8 @@ async def get_config(_user: UserInfo = Depends(get_current_user)):
         api_tokens_enabled=settings.ENABLE_API_TOKENS,
         api_token_default_expiry_days=settings.API_TOKEN_DEFAULT_EXPIRY_DAYS,
         contact_email=settings.CONTACT_EMAIL,
+        is_admin=user.is_admin,
+        invitation_mode=settings.INVITATION_MODE,
     )
 
 
