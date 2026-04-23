@@ -97,7 +97,7 @@ async def list_invitations(db: Connection) -> list[dict]:
         """
         SELECT id, email, status, created_at, expires_at, created_by, accepted_at
         FROM invitations
-        ORDER BY created_at DESC, rowid DESC
+        ORDER BY created_at DESC
         """
     )
     rows = await cursor.fetchall()

@@ -1,3 +1,4 @@
+import asyncio
 import pytest
 from app.database import get_db
 from app.services.invitations import (
@@ -55,6 +56,7 @@ async def test_create_invitation_rejects_duplicate_pending():
 async def test_list_returns_newest_first():
     async with get_db() as db:
         a = await create_invitation(db, email="a@example.com", created_by="admin@example.com")
+        await asyncio.sleep(1.1)  # Ensure different timestamps (rounded to seconds)
         b = await create_invitation(db, email="b@example.com", created_by="admin@example.com")
         items = await list_invitations(db)
     assert [i["email"] for i in items][0:2] == ["b@example.com", "a@example.com"]
