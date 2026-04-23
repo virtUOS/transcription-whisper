@@ -154,3 +154,24 @@ async def test_cleanup_old_invitations_deletes_30_day_terminal_rows():
         assert deleted == 1
         cursor = await db.execute("SELECT id FROM invitations WHERE id = ?", (inv["id"],))
         assert await cursor.fetchone() is None
+
+
+@pytest.mark.asyncio
+async def test_accept_invitation_loses_race_to_revoke():
+    async with get_db() as db:
+        inv = await create_invitation(
+            db, email="race@example.com", created_by="admin@example.com",
+        )
+        # Simulate the row being revoked between resolve and update
+        await db.execute(
+            "UPDATE invitations SET status = 'revoked' WHERE id = ?", (inv["id"],)
+        )
+        await db.commit()
+        with pytest.raises(InvitationRevokedError):
+            await accept_invitation(db, raw_token=inv["token"], user_id="kc-sub-race")
+        # Confirm the status was NOT clobbered to 'accepted'
+        cursor = await db.execute(
+            "SELECT status FROM invitations WHERE id = ?", (inv["id"],)
+        )
+        row = await cursor.fetchone()
+        assert row["status"] == "revoked"

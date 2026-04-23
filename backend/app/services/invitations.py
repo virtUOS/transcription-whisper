@@ -93,6 +93,7 @@ async def create_invitation(
 
 
 async def list_invitations(db: Connection) -> list[dict]:
+    """Return all invitations newest-first as plain dicts."""
     cursor = await db.execute(
         """
         SELECT id, email, status, created_at, expires_at, created_by, accepted_at
@@ -116,6 +117,7 @@ async def list_invitations(db: Connection) -> list[dict]:
 
 
 async def revoke_invitation(db: Connection, *, invitation_id: str) -> bool:
+    """Revoke a pending invitation. Returns True if a row was transitioned."""
     cursor = await db.execute(
         "UPDATE invitations SET status = 'revoked' WHERE id = ? AND status = 'pending'",
         (invitation_id,),
@@ -125,6 +127,7 @@ async def revoke_invitation(db: Connection, *, invitation_id: str) -> bool:
 
 
 async def resolve_invitation_token(db: Connection, *, raw_token: str) -> dict:
+    """Resolve a raw token, raising the specific error for revoked/accepted/expired rows (in that precedence) before the token's expiry check."""
     token_hash = _hash_token(raw_token)
     cursor = await db.execute(
         "SELECT id, email, status, expires_at FROM invitations WHERE token_hash = ?",
@@ -151,22 +154,33 @@ async def resolve_invitation_token(db: Connection, *, raw_token: str) -> dict:
 async def accept_invitation(
     db: Connection, *, raw_token: str, user_id: str,
 ) -> dict:
-    """Mark the invitation accepted. Returns the invitation row."""
+    """Mark a pending invitation as accepted.
+
+    Race-safe: the UPDATE clauses on ``status = 'pending'``, so if the row was
+    revoked, expired, or accepted between the initial resolve call and this
+    UPDATE, the UPDATE affects 0 rows and we re-resolve to raise the specific
+    error that now applies.
+    """
     inv = await resolve_invitation_token(db, raw_token=raw_token)
     now = _now_str()
-    await db.execute(
+    cursor = await db.execute(
         """
         UPDATE invitations
         SET status = 'accepted', accepted_at = ?, accepted_by_user_id = ?
-        WHERE id = ?
+        WHERE id = ? AND status = 'pending'
         """,
         (now, user_id, inv["id"]),
     )
     await db.commit()
+    if cursor.rowcount == 0:
+        # State changed under us (revoked / expired / accepted). Re-resolve to
+        # surface the specific error.
+        await resolve_invitation_token(db, raw_token=raw_token)
     return inv
 
 
 async def expire_pending_invitations(db: Connection) -> int:
+    """Transition pending rows past their expires_at to status='expired'. Returns the rowcount."""
     now = _now_str()
     cursor = await db.execute(
         "UPDATE invitations SET status = 'expired' WHERE status = 'pending' AND expires_at <= ?",
@@ -194,6 +208,7 @@ async def cleanup_old_invitations(db: Connection) -> int:
 
 
 async def email_has_accepted_invitation(db: Connection, *, email: str) -> bool:
+    """Return True iff there is at least one accepted invitation for this (normalised) email."""
     email_norm = _normalize_email(email)
     cursor = await db.execute(
         "SELECT 1 FROM invitations WHERE email = ? AND status = 'accepted' LIMIT 1",
