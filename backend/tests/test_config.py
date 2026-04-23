@@ -78,6 +78,8 @@ def test_invitation_config_defaults(monkeypatch):
     assert s.KEYCLOAK_ADMIN_CLIENT_ID == "admin-cli"
     assert s.KEYCLOAK_ADMIN_CLIENT_SECRET == ""
     assert s.SMTP_HOST == ""
+    assert s.SMTP_USER == ""
+    assert s.SMTP_PASSWORD == ""
     assert s.SMTP_PORT == 587
     assert s.SMTP_FROM == ""
     assert s.APP_PUBLIC_URL == ""
