@@ -445,7 +445,8 @@
     "close": "Close",
     "logout": "Logout",
     "loadError": "Failed to load this view. Please reload the page.",
-    "reload": "Reload"
+    "reload": "Reload",
+    "submitting": "Submitting…"
   },
   "help": {
     "open": "Open help",
@@ -471,5 +472,26 @@
       "bundles": "Bundles",
       "api-access": "API Access"
     }
+  },
+  "invitations": {
+    "title": "Invitations",
+    "create_button": "Invite user",
+    "create_title": "Invite a user",
+    "email_placeholder": "user@example.com",
+    "send": "Send invitation",
+    "empty": "No invitations yet.",
+    "revoke": "Revoke",
+    "confirm_revoke": "Revoke this invitation? The link will stop working.",
+    "status": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "expired": "Expired",
+      "revoked": "Revoked"
+    }
+  },
+  "invite": {
+    "verifying": "Verifying invitation…",
+    "redirecting": "Redirecting to set up your account…",
+    "error_title": "This invitation link is not valid"
   }
 }

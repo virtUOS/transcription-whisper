@@ -1,0 +1,44 @@
+{$APP_HOST} {
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+    }
+
+    handle /oauth2/* {
+        reverse_proxy oauth2-proxy:80
+    }
+
+    @api_bearer {
+        path /api/*
+        header_regexp Authorization ^Bearer\s+tw_
+    }
+    handle @api_bearer {
+        request_header -X-Auth-Request-User
+        request_header -X-Auth-Request-Email
+        request_header -X-Auth-Request-Access-Token
+        reverse_proxy transcription:8000
+    }
+
+    @api_ws_token {
+        path /api/ws/*
+        expression `{query.token}.startsWith("tw_")`
+    }
+    handle @api_ws_token {
+        request_header -X-Auth-Request-User
+        request_header -X-Auth-Request-Email
+        request_header -X-Auth-Request-Access-Token
+        reverse_proxy transcription:8000
+    }
+
+    handle {
+        forward_auth oauth2-proxy:80 {
+            uri /oauth2/auth
+            @unauthorized status 401
+            handle_response @unauthorized {
+                redir * /oauth2/sign_in?rd={http.request.uri}
+            }
+            copy_headers X-Auth-Request-Preferred-Username>X-Auth-Request-User X-Auth-Request-Email X-Auth-Request-Access-Token
+        }
+        reverse_proxy transcription:8000
+    }
+}

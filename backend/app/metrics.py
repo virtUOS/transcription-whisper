@@ -141,7 +141,7 @@ storage_bytes = (
 # --- Auth ---
 auth_failures_total = _counter(
     "transcription_auth_failures_total", "Authentication failures",
-    ["reason"],  # reason: missing_headers | ws_missing_headers | invalid_token
+    ["reason"],  # reason: missing_headers | ws_missing_headers | invalid_token | no_invitation
 )
 
 # --- API tokens ---
@@ -152,6 +152,12 @@ api_token_auth_total = _counter(
     ["result"],  # result: success | failure
 )
 api_tokens_active = _gauge("transcription_api_tokens_active", "Active (non-revoked, non-expired) API tokens")
+
+# --- Invitations ---
+invitations_created_total = _counter("transcription_invitations_created_total", "Invitations created")
+invitations_accepted_total = _counter("transcription_invitations_accepted_total", "Invitations accepted on first login")
+invitations_expired_total = _counter("transcription_invitations_expired_total", "Invitations that transitioned to expired")
+invitations_revoked_total = _counter("transcription_invitations_revoked_total", "Invitations revoked by an admin")
 
 
 # --- Helper for safe instrumentation ---

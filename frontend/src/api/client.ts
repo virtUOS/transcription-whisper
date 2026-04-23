@@ -8,6 +8,7 @@ import type {
   RefinementPreset, RefinementPresetCreate,
   PresetBundle, PresetBundleCreate, PresetBundleExpanded,
   ApiToken, ApiTokenCreated,
+  Invitation, InvitationCreated, InvitationAcceptResponse,
   TranslationResult, UtteranceSource,
 } from './types'
 
@@ -224,4 +225,27 @@ export const api = {
       throw new Error(response.statusText)
     }
   },
+
+  // --- Invitations ---
+
+  listInvitations: () => request<Invitation[]>('/api/invitations'),
+
+  createInvitation: (email: string) =>
+    request<InvitationCreated>('/api/invitations', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+
+  revokeInvitation: async (id: string): Promise<void> => {
+    const response = await fetch(`${BASE}/api/invitations/${id}`, { method: 'DELETE' })
+    if (!response.ok) {
+      throw new Error(response.statusText)
+    }
+  },
+
+  acceptInvitation: (token: string) =>
+    request<InvitationAcceptResponse>('/api/invitations/accept', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    }),
 }

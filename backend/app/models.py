@@ -11,6 +11,7 @@ class ErrorResponse(BaseModel):
 class UserInfo(BaseModel):
     id: str
     email: str | None = None
+    is_admin: bool = False
 
 
 class FileInfo(BaseModel):
@@ -226,6 +227,36 @@ class ConfigResponse(BaseModel):
     api_tokens_enabled: bool = False
     api_token_default_expiry_days: int = 90
     contact_email: str = ""
+    is_admin: bool = False
+    invitation_mode: bool = False
+
+
+# --- Invitations ---
+
+class InvitationCreate(BaseModel):
+    email: str
+
+
+class InvitationListItem(BaseModel):
+    id: str
+    email: str
+    status: str
+    created_at: str
+    expires_at: str
+    created_by: str
+    accepted_at: str | None = None
+
+
+class InvitationCreated(InvitationListItem):
+    token: str  # raw token, returned only on creation
+
+
+class InvitationAcceptRequest(BaseModel):
+    token: str
+
+
+class InvitationAcceptResponse(BaseModel):
+    redirect_url: str  # Keycloak account-setup URL
 
 
 # --- Presets ---

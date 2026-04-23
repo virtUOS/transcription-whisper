@@ -7,8 +7,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import init_db, get_db
-from app.routers import config_router, upload, transcription, refinement, analysis, translation, presets, tokens
-from app.metrics import inc, gauge_set, cleanup_runs_total, cleanup_items_deleted_total, storage_bytes, api_tokens_active
+from app.routers import config_router, upload, transcription, refinement, analysis, translation, presets, tokens, invitations as invitations_router
+from app.metrics import inc, gauge_set, cleanup_runs_total, cleanup_items_deleted_total, storage_bytes, api_tokens_active, invitations_expired_total
 from app.services.audio import has_video_stream
 from app.services.api_tokens import cleanup_stale_tokens, count_active_tokens
 
@@ -89,6 +89,11 @@ async def cleanup_old_files():
                 await db.commit()
                 tokens_deleted = await cleanup_stale_tokens(db)
                 active_tokens = await count_active_tokens(db)
+                from app.services.invitations import (
+                    expire_pending_invitations, cleanup_old_invitations,
+                )
+                invitations_expired = await expire_pending_invitations(db)
+                invitations_deleted = await cleanup_old_invitations(db)
 
             inc(cleanup_runs_total, "success")
             inc(cleanup_items_deleted_total, "file", amount=files_deleted + db_files_deleted)
@@ -96,6 +101,9 @@ async def cleanup_old_files():
             inc(cleanup_items_deleted_total, "analysis", amount=analyses_deleted)
             inc(cleanup_items_deleted_total, "speaker_mapping", amount=mappings_deleted)
             inc(cleanup_items_deleted_total, "api_token", amount=tokens_deleted)
+            inc(cleanup_items_deleted_total, "invitation", amount=invitations_deleted)
+            for _ in range(invitations_expired):
+                inc(invitations_expired_total)
             gauge_set(api_tokens_active, active_tokens)
             _refresh_storage_gauge()
         except Exception as e:
@@ -151,6 +159,10 @@ app.include_router(translation.router)
 app.include_router(presets.router)
 if settings.ENABLE_API_TOKENS:
     app.include_router(tokens.router)
+# Invitations router is mounted unconditionally; its `_require_invitation_mode`
+# dependency returns 404 when INVITATION_MODE=false. This avoids coupling the
+# mount to a startup-time flag that tests reload.
+app.include_router(invitations_router.router)
 
 # Serve frontend static files (only when built files exist, i.e., in Docker)
 from fastapi.staticfiles import StaticFiles

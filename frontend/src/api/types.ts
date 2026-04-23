@@ -133,6 +133,8 @@ export interface ConfigResponse {
   api_tokens_enabled?: boolean
   api_token_default_expiry_days?: number
   contact_email?: string
+  is_admin?: boolean
+  invitation_mode?: boolean
 }
 
 export interface AnalysisTemplate {
@@ -277,4 +279,28 @@ export interface ApiTokenCreateRequest {
 
 export interface ApiTokenCreated extends ApiToken {
   token: string
+}
+
+// --- Invitations ---
+
+export interface Invitation {
+  id: string
+  email: string
+  status: 'pending' | 'accepted' | 'expired' | 'revoked'
+  created_at: string
+  expires_at: string
+  created_by: string
+  accepted_at: string | null
+}
+
+export interface InvitationCreated extends Invitation {
+  token: string
+}
+
+export interface InvitationCreateRequest {
+  email: string
+}
+
+export interface InvitationAcceptResponse {
+  redirect_url: string
 }

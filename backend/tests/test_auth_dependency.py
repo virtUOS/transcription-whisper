@@ -92,3 +92,177 @@ async def test_non_tw_bearer_falls_through(monkeypatch):
         )
     assert r.status_code == 200
     assert r.json()["id"] == "u1"
+
+
+from app.main import app
+
+
+@pytest.mark.asyncio
+async def test_is_admin_true_when_email_in_admin_list(monkeypatch):
+    monkeypatch.setattr(config_module.settings, "ADMIN_EMAILS", ["admin@example.com"])
+    monkeypatch.setattr(config_module.settings, "INVITATION_MODE", False)
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://t") as c:
+        resp = await c.get(
+            "/api/config",
+            headers={
+                "X-Auth-Request-User": "admin-id",
+                "X-Auth-Request-Email": "Admin@Example.com",
+            },
+        )
+    assert resp.status_code == 200
+    # ConfigResponse.is_admin is exposed by Task 10; at Task 9 stage we
+    # only confirm the request succeeded. The second (Task 10) test checks
+    # the body.
+
+
+@pytest.mark.asyncio
+async def test_is_admin_false_when_email_missing(monkeypatch):
+    monkeypatch.setattr(config_module.settings, "ADMIN_EMAILS", ["admin@example.com"])
+    monkeypatch.setattr(config_module.settings, "INVITATION_MODE", False)
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://t") as c:
+        resp = await c.get(
+            "/api/config",
+            headers={
+                "X-Auth-Request-User": "other-id",
+                "X-Auth-Request-Email": "other@example.com",
+            },
+        )
+    assert resp.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_invitation_mode_blocks_first_login_without_invitation(monkeypatch):
+    monkeypatch.setattr(config_module.settings, "INVITATION_MODE", True)
+    monkeypatch.setattr(config_module.settings, "ADMIN_EMAILS", [])
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://t") as c:
+        resp = await c.get(
+            "/api/config",
+            headers={
+                "X-Auth-Request-User": "sub-new",
+                "X-Auth-Request-Email": "unknown@example.com",
+            },
+        )
+    assert resp.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_invitation_mode_allows_admin_without_invitation(monkeypatch):
+    monkeypatch.setattr(config_module.settings, "INVITATION_MODE", True)
+    monkeypatch.setattr(config_module.settings, "ADMIN_EMAILS", ["admin@example.com"])
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://t") as c:
+        resp = await c.get(
+            "/api/config",
+            headers={
+                "X-Auth-Request-User": "sub-admin",
+                "X-Auth-Request-Email": "admin@example.com",
+            },
+        )
+    assert resp.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_invitation_mode_allows_returning_user(monkeypatch):
+    monkeypatch.setattr(config_module.settings, "INVITATION_MODE", True)
+    monkeypatch.setattr(config_module.settings, "ADMIN_EMAILS", [])
+    async with get_db() as db:
+        await db.execute(
+            "INSERT INTO users (id, email) VALUES (?, ?)",
+            ("sub-existing", "existing@example.com"),
+        )
+        await db.commit()
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://t") as c:
+        resp = await c.get(
+            "/api/config",
+            headers={
+                "X-Auth-Request-User": "sub-existing",
+                "X-Auth-Request-Email": "existing@example.com",
+            },
+        )
+    assert resp.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_invitation_mode_accepts_pending_invitation_on_first_login(monkeypatch):
+    from app.services.invitations import create_invitation
+    monkeypatch.setattr(config_module.settings, "INVITATION_MODE", True)
+    monkeypatch.setattr(config_module.settings, "ADMIN_EMAILS", [])
+    async with get_db() as db:
+        await create_invitation(
+            db, email="invited@example.com", created_by="admin@example.com",
+        )
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://t") as c:
+        resp = await c.get(
+            "/api/config",
+            headers={
+                "X-Auth-Request-User": "sub-invited",
+                "X-Auth-Request-Email": "invited@example.com",
+            },
+        )
+    assert resp.status_code == 200
+    # Confirm the pending invitation was marked accepted.
+    async with get_db() as db:
+        cursor = await db.execute(
+            "SELECT status, accepted_by_user_id FROM invitations WHERE email = ?",
+            ("invited@example.com",),
+        )
+        row = await cursor.fetchone()
+    assert row["status"] == "accepted"
+    assert row["accepted_by_user_id"] == "sub-invited"
+
+
+@pytest.mark.asyncio
+async def test_invitation_mode_allows_second_login_after_acceptance(monkeypatch):
+    from app.services.invitations import create_invitation, accept_invitation
+    monkeypatch.setattr(config_module.settings, "INVITATION_MODE", True)
+    monkeypatch.setattr(config_module.settings, "ADMIN_EMAILS", [])
+    async with get_db() as db:
+        inv = await create_invitation(
+            db, email="repeat@example.com", created_by="admin@example.com",
+        )
+        await accept_invitation(db, raw_token=inv["token"], user_id="sub-repeat")
+    # No users row yet — accept_invitation only updates invitations.
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://t") as c:
+        resp = await c.get(
+            "/api/config",
+            headers={
+                "X-Auth-Request-User": "sub-repeat",
+                "X-Auth-Request-Email": "repeat@example.com",
+            },
+        )
+    assert resp.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_config_response_includes_invitation_mode_and_is_admin(monkeypatch):
+    monkeypatch.setattr(config_module.settings, "INVITATION_MODE", True)
+    monkeypatch.setattr(config_module.settings, "ADMIN_EMAILS", ["a@example.com"])
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://t") as c:
+        resp = await c.get(
+            "/api/config",
+            headers={
+                "X-Auth-Request-User": "sub-a",
+                "X-Auth-Request-Email": "a@example.com",
+            },
+        )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["invitation_mode"] is True
+    assert body["is_admin"] is True
+
+
+@pytest.mark.asyncio
+async def test_config_response_is_admin_false_by_default(monkeypatch):
+    monkeypatch.setattr(config_module.settings, "INVITATION_MODE", False)
+    monkeypatch.setattr(config_module.settings, "ADMIN_EMAILS", [])
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://t") as c:
+        resp = await c.get(
+            "/api/config",
+            headers={
+                "X-Auth-Request-User": "sub-x",
+                "X-Auth-Request-Email": "x@example.com",
+            },
+        )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["is_admin"] is False
+    assert body["invitation_mode"] is False

@@ -131,11 +131,28 @@ CREATE TABLE IF NOT EXISTS api_tokens (
 );
 CREATE INDEX IF NOT EXISTS idx_api_tokens_user ON api_tokens(user_id);
 CREATE INDEX IF NOT EXISTS idx_api_tokens_hash ON api_tokens(token_hash);
+
+CREATE TABLE IF NOT EXISTS invitations (
+    id TEXT PRIMARY KEY,
+    email TEXT NOT NULL,
+    token_hash TEXT NOT NULL UNIQUE,
+    created_by TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    accepted_at TIMESTAMP,
+    accepted_by_user_id TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_invitations_email ON invitations(email);
+CREATE INDEX IF NOT EXISTS idx_invitations_status ON invitations(status);
 """
 
 _db_path: str = ""
 
 
+# SCHEMA holds CREATE TABLE / CREATE INDEX statements (idempotent via
+# IF NOT EXISTS). New tables go here. MIGRATIONS is only for adding
+# *columns* to existing tables on old databases.
 MIGRATIONS = [
     # (column_name, table, column_def)
     ("refined_utterances_json", "transcriptions", "refined_utterances_json TEXT"),
