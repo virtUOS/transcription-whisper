@@ -92,3 +92,39 @@ async def test_execute_actions_email_posts_required_actions():
     import json as _json
     body = _json.loads(req.content)
     assert body == ["UPDATE_PASSWORD", "VERIFY_EMAIL"]
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_acquire_admin_token_wraps_connect_error():
+    import httpx
+    respx.post(
+        "https://kc.example.com/realms/master/protocol/openid-connect/token"
+    ).mock(side_effect=httpx.ConnectError("boom"))
+    client = KeycloakAdminClient(
+        base_url="https://kc.example.com",
+        admin_realm="master",
+        target_realm="app",
+        client_id="admin-cli",
+        client_secret="s3cret",
+    )
+    with pytest.raises(KeycloakAdminError) as exc:
+        await client._get_admin_token()
+    assert "ConnectError" in str(exc.value) or "boom" in str(exc.value).lower()
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_acquire_admin_token_wraps_malformed_json():
+    respx.post(
+        "https://kc.example.com/realms/master/protocol/openid-connect/token"
+    ).mock(return_value=Response(200, text="not json"))
+    client = KeycloakAdminClient(
+        base_url="https://kc.example.com",
+        admin_realm="master",
+        target_realm="app",
+        client_id="admin-cli",
+        client_secret="s3cret",
+    )
+    with pytest.raises(KeycloakAdminError):
+        await client._get_admin_token()
