@@ -12,6 +12,7 @@ import { api } from './api/client'
 import { useBeforeUnloadWarning } from './hooks/useBeforeUnloadWarning'
 import { LoadingFallback } from './components/LoadingFallback'
 import { ChunkErrorBoundary } from './components/ChunkErrorBoundary'
+import { InviteLanding } from './components/InviteLanding'
 
 const RecorderPanel = lazy(() =>
   import('./components/Recorder').then((m) => ({ default: m.RecorderPanel }))
@@ -147,6 +148,11 @@ function DetailActions() {
 }
 
 function App() {
+  const pathMatch = window.location.pathname.match(/\/invite\/([^/]+)$/)
+  if (pathMatch) {
+    return <InviteLanding token={pathMatch[1]} />
+  }
+
   const { t } = useTranslation()
   const config = useStore((s) => s.config)
   const setConfig = useStore((s) => s.setConfig)
