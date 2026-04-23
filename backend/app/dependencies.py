@@ -65,6 +65,11 @@ async def _invitation_gate_allows(user_id: str, email: str | None) -> bool:
         )
         pending = await cursor.fetchone()
         if pending is not None:
+            # Race note: two concurrent first-logins for the same email can both reach
+            # here; the second UPDATE overwrites accepted_at/accepted_by_user_id. The
+            # gate still allows both users through, so the functional outcome is correct;
+            # only the audit trail reflects the later login. Acceptable given invitations
+            # are admin-issued one-per-email.
             await db.execute(
                 """
                 UPDATE invitations
@@ -124,6 +129,9 @@ async def get_current_user(request: Request) -> UserInfo:
         inc(auth_failures_total, "missing_headers")
         raise HTTPException(status_code=401, detail="Missing authentication headers")
 
+    # NOTE: when DEV_MODE and INVITATION_MODE are both true, the synthesised
+    # dev-user has no users row and no invitation, so requests will 403 unless
+    # `dev@localhost` is added to ADMIN_EMAILS. This combination is uncommon.
     if settings.INVITATION_MODE:
         allowed = await _invitation_gate_allows(resolved.id, resolved.email)
         if not allowed:
