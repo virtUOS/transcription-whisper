@@ -35,6 +35,26 @@ class Settings:
     API_TOKEN_MAX_PER_USER: int = int(os.getenv("API_TOKEN_MAX_PER_USER", "10"))
     API_TOKEN_DEFAULT_EXPIRY_DAYS: int = int(os.getenv("API_TOKEN_DEFAULT_EXPIRY_DAYS", "90"))
 
+    INVITATION_MODE: bool = os.getenv("INVITATION_MODE", "false").lower() in ("true", "1", "yes")
+    ADMIN_EMAILS: list[str] = [
+        e.strip().lower() for e in os.getenv("ADMIN_EMAILS", "").split(",") if e.strip()
+    ]
+    INVITATION_EXPIRY_DAYS: int = int(os.getenv("INVITATION_EXPIRY_DAYS", "7"))
+
+    KEYCLOAK_ADMIN_URL: str = os.getenv("KEYCLOAK_ADMIN_URL", "")
+    KEYCLOAK_ADMIN_REALM: str = os.getenv("KEYCLOAK_ADMIN_REALM", "master")
+    KEYCLOAK_TARGET_REALM: str = os.getenv("KEYCLOAK_TARGET_REALM", "")
+    KEYCLOAK_ADMIN_CLIENT_ID: str = os.getenv("KEYCLOAK_ADMIN_CLIENT_ID", "admin-cli")
+    KEYCLOAK_ADMIN_CLIENT_SECRET: str = os.getenv("KEYCLOAK_ADMIN_CLIENT_SECRET", "")
+
+    SMTP_HOST: str = os.getenv("SMTP_HOST", "")
+    SMTP_PORT: int = int(os.getenv("SMTP_PORT", "587"))
+    SMTP_USER: str = os.getenv("SMTP_USER", "")
+    SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
+    SMTP_FROM: str = os.getenv("SMTP_FROM", "")
+
+    APP_PUBLIC_URL: str = os.getenv("APP_PUBLIC_URL", "")
+
     @property
     def db_path(self) -> str:
         if self.DATABASE_PATH:
