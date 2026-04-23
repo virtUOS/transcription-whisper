@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import init_db, get_db
-from app.routers import config_router, upload, transcription, refinement, analysis, translation, presets, tokens
+from app.routers import config_router, upload, transcription, refinement, analysis, translation, presets, tokens, invitations as invitations_router
 from app.metrics import inc, gauge_set, cleanup_runs_total, cleanup_items_deleted_total, storage_bytes, api_tokens_active
 from app.services.audio import has_video_stream
 from app.services.api_tokens import cleanup_stale_tokens, count_active_tokens
@@ -151,6 +151,7 @@ app.include_router(translation.router)
 app.include_router(presets.router)
 if settings.ENABLE_API_TOKENS:
     app.include_router(tokens.router)
+app.include_router(invitations_router.router)
 
 # Serve frontend static files (only when built files exist, i.e., in Docker)
 from fastapi.staticfiles import StaticFiles
