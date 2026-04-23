@@ -64,7 +64,7 @@ def test_invitation_config_defaults(monkeypatch):
         "KEYCLOAK_ADMIN_URL", "KEYCLOAK_ADMIN_REALM",
         "KEYCLOAK_TARGET_REALM", "KEYCLOAK_ADMIN_CLIENT_ID",
         "KEYCLOAK_ADMIN_CLIENT_SECRET",
-        "SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASSWORD", "SMTP_FROM",
+        "SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASSWORD", "SMTP_FROM", "SMTP_STARTTLS",
         "APP_PUBLIC_URL", "INVITATION_EXPIRY_DAYS",
     ]:
         monkeypatch.delenv(key, raising=False)
@@ -82,6 +82,7 @@ def test_invitation_config_defaults(monkeypatch):
     assert s.SMTP_PASSWORD == ""
     assert s.SMTP_PORT == 587
     assert s.SMTP_FROM == ""
+    assert s.SMTP_STARTTLS is True
     assert s.APP_PUBLIC_URL == ""
     assert s.INVITATION_EXPIRY_DAYS == 7
 
