@@ -442,7 +442,8 @@
     "close": "Schließen",
     "logout": "Abmelden",
     "loadError": "Diese Ansicht konnte nicht geladen werden. Bitte laden Sie die Seite neu.",
-    "reload": "Neu laden"
+    "reload": "Neu laden",
+    "submitting": "Wird gesendet…"
   },
   "help": {
     "open": "Hilfe öffnen",
@@ -468,5 +469,26 @@
       "bundles": "Bundles",
       "api-access": "API-Zugriff"
     }
+  },
+  "invitations": {
+    "title": "Einladungen",
+    "create_button": "Benutzer einladen",
+    "create_title": "Benutzer einladen",
+    "email_placeholder": "benutzer@example.com",
+    "send": "Einladung senden",
+    "empty": "Noch keine Einladungen.",
+    "revoke": "Zurückziehen",
+    "confirm_revoke": "Einladung zurückziehen? Der Link funktioniert dann nicht mehr.",
+    "status": {
+      "pending": "Ausstehend",
+      "accepted": "Angenommen",
+      "expired": "Abgelaufen",
+      "revoked": "Zurückgezogen"
+    }
+  },
+  "invite": {
+    "verifying": "Einladung wird geprüft…",
+    "redirecting": "Weiterleitung zur Kontoeinrichtung…",
+    "error_title": "Diese Einladung ist ungültig"
   }
 }
