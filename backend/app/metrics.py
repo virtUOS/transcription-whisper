@@ -75,7 +75,7 @@ transcription_queue_wait_seconds = _histogram(
 active_transcriptions = _gauge("transcription_active_jobs", "Active transcription jobs")
 diarization_speakers_detected = _histogram(
     "transcription_diarization_speakers_detected", "Number of speakers detected per job",
-    buckets=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    buckets=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
 )
 
 # --- Editing ---
