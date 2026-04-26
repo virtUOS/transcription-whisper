@@ -54,13 +54,11 @@ async def cleanup_old_files():
                     (now,),
                 )
                 rows = await cursor.fetchall()
-                files_deleted = 0
                 for row in rows:
                     for path in [row["file_path"], row["mp3_path"]]:
                         if path and os.path.exists(path):
                             try:
                                 os.unlink(path)
-                                files_deleted += 1
                             except OSError:
                                 pass
 
@@ -96,7 +94,7 @@ async def cleanup_old_files():
                 invitations_deleted = await cleanup_old_invitations(db)
 
             inc(cleanup_runs_total, "success")
-            inc(cleanup_items_deleted_total, "file", amount=files_deleted + db_files_deleted)
+            inc(cleanup_items_deleted_total, "file", amount=db_files_deleted)
             inc(cleanup_items_deleted_total, "transcription", amount=transcriptions_deleted)
             inc(cleanup_items_deleted_total, "analysis", amount=analyses_deleted)
             inc(cleanup_items_deleted_total, "speaker_mapping", amount=mappings_deleted)
