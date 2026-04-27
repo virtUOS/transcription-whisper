@@ -25,7 +25,7 @@ from app.metrics import (
     transcriptions_total, transcription_duration_seconds, active_transcriptions,
     transcription_audio_duration_seconds, transcription_realtime_factor,
     transcription_queue_depth, transcription_queue_wait_seconds,
-    diarization_speakers_detected, edits_saved_total, speaker_renames_total,
+    diarization_speakers_total, edits_saved_total, speaker_renames_total,
     downloads_total, deletions_total, errors_total,
     websocket_connections_active, websocket_connections_total,
     websocket_messages_sent_total, websocket_disconnects_total,
@@ -120,10 +120,9 @@ async def _run_transcription(transcription_id: str, file_path: str, req: Transcr
         if audio_duration and audio_duration > 0:
             observe(transcription_realtime_factor, duration / audio_duration, backend_name, model_label)
 
-        # Track number of unique speakers detected
         speakers = {u.speaker for u in result.utterances if u.speaker}
         if speakers:
-            observe(diarization_speakers_detected, len(speakers))
+            inc(diarization_speakers_total, str(min(len(speakers), 20)))
 
         async with get_db() as db:
             await db.execute(

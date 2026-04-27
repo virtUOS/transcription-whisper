@@ -73,9 +73,10 @@ transcription_queue_wait_seconds = _histogram(
     buckets=[0.1, 0.5, 1, 5, 15, 30, 60, 300, 900],
 )
 active_transcriptions = _gauge("transcription_active_jobs", "Active transcription jobs")
-diarization_speakers_detected = _histogram(
-    "transcription_diarization_speakers_detected", "Number of speakers detected per job",
-    buckets=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+diarization_speakers_total = _counter(
+    "transcription_diarization_speakers_total",
+    "Completed jobs by exact diarized speaker count (capped at 20, the product limit)",
+    ["count"],
 )
 
 # --- Editing ---
