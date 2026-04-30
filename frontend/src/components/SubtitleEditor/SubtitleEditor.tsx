@@ -121,6 +121,7 @@ export function SubtitleEditor() {
       if (u.speaker && !(u.speaker in map)) {
         const display = speakerMappings[u.speaker] || u.speaker
         map[u.speaker] = nameToIndex[display]
+        map[display] = nameToIndex[display]
       }
     })
     return map
