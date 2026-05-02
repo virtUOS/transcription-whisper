@@ -1,3 +1,5 @@
+import importlib
+
 import pytest
 from httpx import AsyncClient, ASGITransport
 from app.main import app
@@ -21,10 +23,6 @@ async def test_metrics_endpoint():
         response = await client.get("/metrics")
     assert response.status_code == 200
     assert "transcription_app_info" in response.text
-
-
-import importlib
-import os
 
 
 def test_api_token_settings_defaults(monkeypatch):

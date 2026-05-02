@@ -28,7 +28,7 @@ class WhisperXBackend(ASRBackend):
                 result = await self._call_whisperx(file_path, ts)
                 _results[job_id] = result
                 _statuses[job_id] = "completed"
-            except Exception as e:
+            except Exception:
                 _statuses[job_id] = "failed"
                 _results[job_id] = TranscriptionResult(
                     id=job_id, status="failed", text="", utterances=[], language=None

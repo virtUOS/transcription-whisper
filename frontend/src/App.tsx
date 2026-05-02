@@ -152,7 +152,10 @@ function App() {
   if (pathMatch) {
     return <InviteLanding token={pathMatch[1]} />
   }
+  return <MainApp />
+}
 
+function MainApp() {
   const { t } = useTranslation()
   const config = useStore((s) => s.config)
   const setConfig = useStore((s) => s.setConfig)

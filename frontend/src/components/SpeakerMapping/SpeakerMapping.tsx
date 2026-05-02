@@ -51,9 +51,12 @@ export function SpeakerMapping({ isOpen, onClose, focusSpeaker }: Props) {
   // renaming "Lars" to "Lars".
   const [edits, setEdits] = useState<Record<string, string>>({})
 
-  const prevIsOpenRef = useRef(isOpen)
-  if (isOpen !== prevIsOpenRef.current) {
-    prevIsOpenRef.current = isOpen
+  // Reset draft edits whenever the dialog (re-)opens. Tracking the previous
+  // value as state and adjusting during render is the React-recommended way
+  // to derive state from a prop change without a redundant effect.
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen)
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen)
     if (isOpen) setEdits({})
   }
 

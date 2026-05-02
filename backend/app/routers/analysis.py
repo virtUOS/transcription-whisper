@@ -13,7 +13,6 @@ from app.services.llm.prompt import (
     build_analysis_system_prompt,
     list_analysis_templates,
     chunk_transcript,
-    build_consolidation_prompt,
 )
 from app.metrics import inc, observe, track_llm_tokens, llm_requests_total, llm_duration_seconds, llm_errors_total, deletions_total, errors_total
 
