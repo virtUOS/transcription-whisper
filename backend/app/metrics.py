@@ -1,3 +1,4 @@
+import os
 import time
 from contextlib import asynccontextmanager
 
@@ -36,7 +37,7 @@ def _gauge(name, desc):
 # --- App info ---
 if _enabled:
     app_info = Info("transcription_app_info", "Application info")
-    app_info.info({"version": "1.0.0", "name": "transcription-whisper"})
+    app_info.info({"version": os.getenv("APP_VERSION", "dev"), "name": "transcription-whisper"})
 
 # --- Uploads ---
 file_uploads_total = _counter("transcription_file_uploads_total", "Total file uploads", ["file_type", "status"])
