@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import init_db, get_db
 from app.routers import config_router, upload, transcription, refinement, analysis, translation, presets, tokens, invitations as invitations_router
-from app.metrics import inc, gauge_set, cleanup_runs_total, cleanup_items_deleted_total, storage_bytes, api_tokens_active, invitations_expired_total
+from app.metrics import inc, gauge_set, cleanup_runs_total, cleanup_items_deleted_total, storage_bytes, api_tokens_active, invitations_expired_total, init_label_series
 from app.services.audio import has_video_stream
 from app.services.api_tokens import cleanup_stale_tokens, count_active_tokens
 
@@ -133,6 +133,7 @@ async def lifespan(app: FastAPI):
     _refresh_storage_gauge()
     async with get_db() as db:
         gauge_set(api_tokens_active, await count_active_tokens(db))
+    init_label_series()
     cleanup_task = asyncio.create_task(cleanup_old_files())
     yield
     cleanup_task.cancel()

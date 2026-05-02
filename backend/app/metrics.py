@@ -246,3 +246,20 @@ async def measure_llm_operation(operation: str):
 
 def metrics_response() -> Response:
     return Response(content=generate_latest(), media_type=CONTENT_TYPE)
+
+
+def init_label_series() -> None:
+    """Pre-create label combinations at value 0 so `increase()` sees a 0→N
+    transition on the first job. Without this, a counter that records exactly
+    one job during a process lifetime is reported by Prometheus as a constant
+    series at 1, and `increase()` returns 0.
+    """
+    if not _enabled or transcriptions_total is None:
+        return
+    backend = settings.ASR_BACKEND
+    languages = {"auto", *settings.POPULAR_LANGUAGES, *settings.ENABLED_LANGUAGES}
+    models = {"default", *settings.WHISPER_MODELS}
+    for language in languages:
+        for model in models:
+            for status in ("completed", "failed"):
+                transcriptions_total.labels(backend, language, model, status).inc(0)
