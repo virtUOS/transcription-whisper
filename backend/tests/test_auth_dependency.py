@@ -3,6 +3,7 @@ from httpx import AsyncClient, ASGITransport
 from fastapi import FastAPI, Depends
 
 from app.dependencies import get_current_user
+from app.main import app
 from app.models import UserInfo
 from app.database import get_db
 from app.services.api_tokens import create_token
@@ -92,9 +93,6 @@ async def test_non_tw_bearer_falls_through(monkeypatch):
         )
     assert r.status_code == 200
     assert r.json()["id"] == "u1"
-
-
-from app.main import app
 
 
 @pytest.mark.asyncio

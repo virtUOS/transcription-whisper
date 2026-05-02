@@ -19,7 +19,9 @@ from app.models import (
 )
 from app.services.email import send_invitation_email, EmailConfigError
 from app.services.idp_admin import (
-    KeycloakAdminClient, KeycloakAdminError, build_default_client,
+    KeycloakAdminClient,  # noqa: F401  re-exported for test monkeypatching
+    KeycloakAdminError,
+    build_default_client,
 )
 from app.services.invitations import (
     create_invitation, list_invitations, revoke_invitation,

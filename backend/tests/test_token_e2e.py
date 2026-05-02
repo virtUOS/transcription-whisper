@@ -12,7 +12,6 @@ async def test_upload_works_with_bearer_token(monkeypatch):
     # captured reference, to survive importlib.reload side-effects from other
     # tests.
     from app import dependencies as dep
-    from app.routers import upload as upload_router
     monkeypatch.setattr(config_module.settings, "ENABLE_API_TOKENS", True)
     monkeypatch.setattr(dep.settings, "ENABLE_API_TOKENS", True)
     monkeypatch.setattr(config_module.settings, "DEV_MODE", False)  # force token path

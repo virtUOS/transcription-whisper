@@ -6,7 +6,7 @@ import asyncio
 import tempfile
 import pytest
 import pytest_asyncio
-from app.database import init_db, get_db
+from app.database import init_db
 
 
 @pytest.fixture

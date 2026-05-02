@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.config import settings
 from app.dependencies import get_current_user
 from app.router_helpers import ensure_transcription_owned, reset_translation_state
-from app.models import UserInfo, TranslationRequest, Utterance
+from app.models import UserInfo, TranslationRequest
 from app.database import get_db
 from app.services.llm import get_llm_provider
 from app.services.llm.prompt import (

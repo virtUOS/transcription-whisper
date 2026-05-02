@@ -121,8 +121,7 @@ async def test_delete_preset_nullifies_bundle_reference(client):
     # Create preset and bundle referencing it
     resp = await client.post("/api/presets/transcription", json={"name": "T1"}, headers=DEV_HEADERS)
     t_id = resp.json()["id"]
-    resp = await client.post("/api/presets/bundles", json={"name": "Bundle", "transcription_preset_id": t_id}, headers=DEV_HEADERS)
-    bundle_id = resp.json()["id"]
+    await client.post("/api/presets/bundles", json={"name": "Bundle", "transcription_preset_id": t_id}, headers=DEV_HEADERS)
 
     # Delete the preset
     await client.delete(f"/api/presets/transcription/{t_id}", headers=DEV_HEADERS)

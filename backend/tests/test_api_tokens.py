@@ -11,7 +11,6 @@ from app.services.api_tokens import (
     resolve_token,
     touch_last_used,
     cleanup_stale_tokens,
-    count_active_tokens,
     TokenLimitError,
     DuplicateTokenNameError,
 )

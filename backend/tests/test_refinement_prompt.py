@@ -1,5 +1,4 @@
 import json
-import pytest
 from app.services.llm.prompt import (
     REFINEMENT_SCHEMA,
     build_refinement_system_prompt,
