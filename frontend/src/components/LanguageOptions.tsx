@@ -12,16 +12,19 @@ interface Props {
  * `<select>`, after any caller-supplied placeholder option.
  */
 export function LanguageOptions({ enabled, popular }: Props) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const codes = filterEnabledLanguages(LANGUAGES, enabled)
   const { popular: promoted, rest } = partitionPopular(codes, popular)
+  const sortedRest = [...rest].sort((a, b) =>
+    t(`languages.${a}`, a).localeCompare(t(`languages.${b}`, b), i18n.language),
+  )
   return (
     <>
       {promoted.map((code) => (
         <option key={code} value={code}>{t(`languages.${code}`, code)}</option>
       ))}
-      {promoted.length > 0 && rest.length > 0 && <option disabled>{'───────────'}</option>}
-      {rest.map((code) => (
+      {promoted.length > 0 && sortedRest.length > 0 && <option disabled>{'───────────'}</option>}
+      {sortedRest.map((code) => (
         <option key={code} value={code}>{t(`languages.${code}`, code)}</option>
       ))}
     </>
