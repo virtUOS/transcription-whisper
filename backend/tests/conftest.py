@@ -1,6 +1,7 @@
 import os
 os.environ.setdefault("ENABLE_API_TOKENS", "true")
 os.environ.setdefault("DEV_MODE", "true")
+os.environ.setdefault("ENABLE_METRICS", "true")
 
 import asyncio
 import tempfile

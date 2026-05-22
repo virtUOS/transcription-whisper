@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from app.config import settings
 from app.database import init_db, get_db
 from app.routers import config_router, upload, transcription, refinement, analysis, translation, presets, tokens, invitations as invitations_router
-from app.metrics import inc, gauge_set, cleanup_runs_total, cleanup_items_deleted_total, storage_bytes, api_tokens_active, invitations_expired_total, init_label_series
+from app.metrics import inc, gauge_set, cleanup_runs_total, cleanup_items_deleted_total, storage_bytes, api_tokens_active, invitations_expired_total, init_label_series, users_total, users_with_transcriptions, users_new
 from app.services.audio import has_video_stream
 from app.services.api_tokens import cleanup_stale_tokens, count_active_tokens
 
@@ -31,6 +31,31 @@ def _refresh_storage_gauge():
         gauge_set(storage_bytes, _dir_size_bytes(settings.TEMP_PATH), settings.TEMP_PATH)
     except Exception:
         pass
+
+
+async def refresh_user_gauges(db) -> None:
+    """Recompute the user-population gauges from the live DB.
+
+    Cheap: four COUNT queries on small/bounded tables. Called at startup and
+    once per cleanup cycle, alongside the storage and api-tokens gauge refreshes.
+    """
+    cursor = await db.execute("SELECT COUNT(*) FROM users")
+    total = (await cursor.fetchone())[0]
+    gauge_set(users_total, total)
+
+    cursor = await db.execute(
+        "SELECT COUNT(DISTINCT user_id) FROM transcriptions WHERE user_id IS NOT NULL"
+    )
+    with_t = (await cursor.fetchone())[0]
+    gauge_set(users_with_transcriptions, with_t)
+
+    for window, days in (("7d", 7), ("30d", 30)):
+        cursor = await db.execute(
+            "SELECT COUNT(*) FROM users WHERE first_seen >= datetime('now', ?)",
+            (f"-{days} days",),
+        )
+        n = (await cursor.fetchone())[0]
+        gauge_set(users_new, n, window)
 
 
 async def cleanup_old_files():
@@ -94,6 +119,8 @@ async def cleanup_old_files():
                 )
                 invitations_expired = await expire_pending_invitations(db)
                 invitations_deleted = await cleanup_old_invitations(db)
+                gauge_set(api_tokens_active, active_tokens)
+                await refresh_user_gauges(db)
 
             inc(cleanup_runs_total, "success")
             inc(cleanup_items_deleted_total, "file", amount=db_files_deleted)
@@ -104,7 +131,6 @@ async def cleanup_old_files():
             inc(cleanup_items_deleted_total, "invitation", amount=invitations_deleted)
             for _ in range(invitations_expired):
                 inc(invitations_expired_total)
-            gauge_set(api_tokens_active, active_tokens)
             _refresh_storage_gauge()
         except Exception as e:
             inc(cleanup_runs_total, "failed")
@@ -135,6 +161,7 @@ async def lifespan(app: FastAPI):
     _refresh_storage_gauge()
     async with get_db() as db:
         gauge_set(api_tokens_active, await count_active_tokens(db))
+        await refresh_user_gauges(db)
     init_label_series()
     cleanup_task = asyncio.create_task(cleanup_old_files())
     yield
