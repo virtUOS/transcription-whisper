@@ -162,7 +162,7 @@ users_total = _gauge(
 )
 users_with_transcriptions = _gauge(
     "transcription_users_with_transcriptions",
-    "Distinct users with at least one un-expired transcription",
+    "Distinct users with at least one transcription record on file",
 )
 users_new = (
     Gauge(
