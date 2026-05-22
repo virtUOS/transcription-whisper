@@ -227,7 +227,19 @@ The application includes comprehensive Prometheus metrics for monitoring usage a
   - `transcription_storage_bytes` — Disk usage of the media/DB volume, refreshed at startup and after each cleanup run (labelled by `path`)
 
 - **Auth**:
-  - `transcription_auth_failures_total` — Authentication failures by reason (`missing_headers`, `ws_missing_headers`)
+  - `transcription_auth_failures_total` — Authentication failures by reason (`missing_headers`, `ws_missing_headers`, `invalid_token`, `no_invitation`)
+
+- **API Tokens**:
+  - `transcription_api_tokens_active` — Active (non-revoked, non-expired) API tokens, refreshed at startup and after each cleanup run
+  - `transcription_api_tokens_created_total` — API tokens created
+  - `transcription_api_tokens_revoked_total` — API tokens revoked
+  - `transcription_api_token_auth_total` — API token authentication attempts by `result` (`success`/`failure`)
+
+- **Invitations**:
+  - `transcription_invitations_created_total` — Invitations created
+  - `transcription_invitations_accepted_total` — Invitations accepted on first login
+  - `transcription_invitations_expired_total` — Invitations transitioned to expired
+  - `transcription_invitations_revoked_total` — Invitations revoked by an admin
 
 - **Users**:
   - `transcription_users_total` — Total registered users
