@@ -155,6 +155,24 @@ api_token_auth_total = _counter(
 )
 api_tokens_active = _gauge("transcription_api_tokens_active", "Active (non-revoked, non-expired) API tokens")
 
+# --- Users ---
+users_total = _gauge(
+    "transcription_users_total",
+    "Total registered users",
+)
+users_with_transcriptions = _gauge(
+    "transcription_users_with_transcriptions",
+    "Distinct users with at least one un-expired transcription",
+)
+users_new = (
+    Gauge(
+        "transcription_users_new",
+        "New user registrations within a rolling window",
+        ["window"],
+    )
+    if _enabled else None
+)
+
 # --- Invitations ---
 invitations_created_total = _counter("transcription_invitations_created_total", "Invitations created")
 invitations_accepted_total = _counter("transcription_invitations_accepted_total", "Invitations accepted on first login")
@@ -264,3 +282,7 @@ def init_label_series() -> None:
         for model in models:
             for status in ("completed", "failed"):
                 transcriptions_total.labels(backend, language, model, status).inc(0)
+
+    if users_new is not None:
+        users_new.labels("7d").set(0)
+        users_new.labels("30d").set(0)
