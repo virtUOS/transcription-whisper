@@ -229,6 +229,11 @@ The application includes comprehensive Prometheus metrics for monitoring usage a
 - **Auth**:
   - `transcription_auth_failures_total` — Authentication failures by reason (`missing_headers`, `ws_missing_headers`)
 
+- **Users**:
+  - `transcription_users_total` — Total registered users
+  - `transcription_users_with_transcriptions` — Distinct users with at least one transcription record on file
+  - `transcription_users_new` — New user registrations within a rolling window, labelled by `window` (`7d`, `30d`)
+
 - **Cleanup**:
   - `transcription_cleanup_runs_total` — Cleanup job runs by status (success/failed)
   - `transcription_cleanup_items_deleted_total` — Items deleted by resource type
