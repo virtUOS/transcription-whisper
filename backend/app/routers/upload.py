@@ -106,7 +106,7 @@ async def get_media(
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="File not found on disk")
 
-    media_types = {"mp3": "audio/mpeg", "wav": "audio/wav", "mp4": "video/mp4", "webm": "video/webm", "m4a": "audio/mp4", "mov": "video/quicktime", "aac": "audio/aac", "opus": "audio/opus", "ogg": "audio/ogg"}
+    media_types = {"mp3": "audio/mpeg", "wav": "audio/wav", "mp4": "video/mp4", "webm": "video/webm", "m4a": "audio/mp4", "mov": "video/quicktime", "aac": "audio/aac", "opus": "audio/ogg", "ogg": "audio/ogg"}
     return FileResponse(file_path, media_type=media_types.get(row["media_type"], "application/octet-stream"))
 
 

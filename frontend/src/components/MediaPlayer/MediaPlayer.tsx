@@ -15,7 +15,7 @@ const mimeTypes: Record<string, string> = {
   wav: 'audio/wav',
   m4a: 'audio/mp4',
   aac: 'audio/aac',
-  opus: 'audio/opus',
+  opus: 'audio/ogg',
   ogg: 'audio/ogg',
 }
 
@@ -205,7 +205,7 @@ export function MediaPlayer({ fileId, mediaType, hasVideo, onCollapsedChange }: 
   }
 
   return (
-    <div className={`mx-6 my-2 ${hasVideo && !collapsed ? 'flex flex-col items-center' : hasVideo ? '' : 'max-h-16'}`}>
+    <div className={`mx-6 my-2 ${hasVideo && !collapsed ? 'flex flex-col items-center' : hasVideo ? '' : 'max-h-16 overflow-hidden'}`}>
       {playbackErrorKey && (
         <div className="p-4 bg-gray-800 rounded-lg border border-gray-700 text-center">
           <p className="text-gray-400 text-sm">{t(playbackErrorKey)}</p>
