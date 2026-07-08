@@ -15,7 +15,7 @@ const mimeTypes: Record<string, string> = {
   wav: 'audio/wav',
   m4a: 'audio/mp4',
   aac: 'audio/aac',
-  opus: 'audio/opus',
+  opus: 'audio/ogg',
   ogg: 'audio/ogg',
 }
 
