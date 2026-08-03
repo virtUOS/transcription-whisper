@@ -188,11 +188,13 @@ function MainApp() {
 
   const configModelApplied = useRef(false)
   useEffect(() => {
-    if (config?.default_model && !configModelApplied.current) {
-      configModelApplied.current = true
-      setSettings((s) => ({ ...s, model: config.default_model }))
-    }
-  }, [config?.default_model])
+    if (!config || configModelApplied.current) return
+    const models = config.whisper_models ?? []
+    const model = models.length === 1 ? models[0] : config.default_model
+    if (!model) return
+    configModelApplied.current = true
+    setSettings((s) => ({ ...s, model }))
+  }, [config])
 
   const updateSettings = useCallback((patch: Partial<SettingsPanelValues>) => {
     setSettings((s) => ({ ...s, ...patch }))
@@ -396,13 +398,15 @@ function MainApp() {
     const bundleId = state.activeBundleId
     const bundleList = state.bundles
     const bundleName = bundleId ? bundleList.find((b) => b.id === bundleId)?.name : undefined
+    const configuredModels = state.config?.whisper_models ?? []
+    const model = configuredModels.length === 1 ? configuredModels[0] : settings.model
 
     if (!f && !isUploading) return
 
     const summary: SubmittedSummary = {
       filename: f?.original_filename || t('transcription.statusUploading'),
       fileSize: f?.file_size || 0,
-      model: settings.model,
+      model,
       language: settings.language === 'auto' ? null : settings.language,
       detectSpeakers: settings.detectSpeakers,
       minSpeakers: settings.minSpeakers,
@@ -423,7 +427,7 @@ function MainApp() {
       const result = await api.startTranscription({
         file_id: f.id,
         language: settings.language === 'auto' ? null : settings.language,
-        model: settings.model,
+        model,
         min_speakers: settings.detectSpeakers ? settings.minSpeakers : 0,
         max_speakers: settings.detectSpeakers ? settings.maxSpeakers : 0,
         initial_prompt: settings.initialPrompt || null,

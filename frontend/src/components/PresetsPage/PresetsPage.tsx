@@ -39,7 +39,7 @@ function TranscriptionPresetsList() {
 
   const openNew = () => {
     setEditingId(null)
-    setForm({ ...emptyForm, model: defaultModel })
+    setForm({ ...emptyForm, model: singleModel ?? defaultModel })
     setShowForm(true)
   }
 
