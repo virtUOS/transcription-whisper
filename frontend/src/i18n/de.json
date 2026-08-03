@@ -12,6 +12,7 @@
     "title": "Einstellungen",
     "language": "Sprache für die Transkription",
     "model": "Qualität",
+    "modelName": "Modell",
     "detectSpeakers": "Sprecher erkennen",
     "minSpeakers": "Minimale Sprecher",
     "maxSpeakers": "Maximale Sprecher",

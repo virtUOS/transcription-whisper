@@ -2,7 +2,7 @@
 
 ## Transkriptions-Voreinstellungen
 
-Eine Transkriptions-Voreinstellung speichert deine bevorzugte Kombination aus Sprache, Modell (Qualitätsstufe), Sprechererkennungs-Einstellungen, initialem Prompt und Hotwords. Wähle eine gespeicherte Voreinstellung in der Upload- oder Aufnahme-Ansicht aus, anstatt jede Option jedes Mal manuell einzustellen. Voreinstellungen erstellst und verwaltest du auf der **Voreinstellungen**-Seite, die du über die Kopfzeile erreichst.
+Eine Transkriptions-Voreinstellung speichert deine bevorzugte Kombination aus Sprache, Modell, Sprechererkennungs-Einstellungen, initialem Prompt und Hotwords. Wähle eine gespeicherte Voreinstellung in der Upload- oder Aufnahme-Ansicht aus, anstatt jede Option jedes Mal manuell einzustellen. Voreinstellungen erstellst und verwaltest du auf der **Voreinstellungen**-Seite, die du über die Kopfzeile erreichst.
 
 ## Analyse-Voreinstellungen
 
