@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { useStore } from '../../store'
 import i18n from '../../i18n'
@@ -24,7 +24,7 @@ function buildConfig(whisper_models: string[]): ConfigResponse {
   return {
     asr_backend: 'whisperx',
     whisper_models,
-    default_model: whisper_models[0],
+    default_model: whisper_models[0] ?? '',
     llm_available: false,
     logout_url: '',
     popular_languages: [],
@@ -43,11 +43,10 @@ function renderPanel(models: string[], overrides: Partial<SettingsPanelValues> =
 
 const initialState = useStore.getState()
 
-beforeEach(() => {
+beforeEach(async () => {
   useStore.setState(initialState, true)
+  await i18n.changeLanguage('en')
 })
-
-afterEach(() => i18n.changeLanguage('en'))
 
 describe('SettingsPanel — model field', () => {
   it('shows the bare model name with a "Model" label when exactly one model is configured', () => {
@@ -73,8 +72,6 @@ describe('SettingsPanel — model field', () => {
     const combobox = screen.getByRole('combobox', { name: 'Quality' })
     const options = within(combobox).getAllByRole('option').map((o) => o.textContent)
     expect(options).toEqual(['Standard (base)', 'Balanced (large-v3-turbo)', 'Best quality (large-v3)'])
-    const selectedOption = within(combobox).getByRole('option', { name: 'Balanced (large-v3-turbo)' }) as HTMLOptionElement
-    expect(selectedOption.selected).toBe(true)
     expect(combobox).toHaveValue('large-v3-turbo')
   })
 

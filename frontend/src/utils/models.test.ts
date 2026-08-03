@@ -13,6 +13,14 @@ describe('singleConfiguredModel', () => {
   it('returns null when no models are configured', () => {
     expect(singleConfiguredModel([])).toBeNull()
   })
+
+  // WHISPER_MODELS="" (set but empty) makes backend/app/config.py's
+  // split(",") yield [""], the one input where this returns a non-null
+  // but falsy value. Consumers branch on truthiness, so a blank
+  // configured model must not silently fall back.
+  it('returns the blank string, not null, when the sole configured model is blank', () => {
+    expect(singleConfiguredModel([''])).toBe('')
+  })
 })
 
 describe('resolveModel', () => {
@@ -26,5 +34,11 @@ describe('resolveModel', () => {
 
   it('uses the fallback when no models are configured', () => {
     expect(resolveModel([], 'base')).toBe('base')
+  })
+
+  // Same blank-model case as above: the fallback must not mask a
+  // deliberately (if oddly) configured blank model.
+  it('does not fall back when the sole configured model is blank', () => {
+    expect(resolveModel([''], 'base')).toBe('')
   })
 })
