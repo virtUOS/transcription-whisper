@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { useStore } from '../../store'
 import i18n from '../../i18n'
@@ -32,17 +32,26 @@ function buildConfig(whisper_models: string[]): ConfigResponse {
   }
 }
 
+// Sets the store's model list and renders the panel with those models
+// (plus any values that vary for a given test). Returns the onChange spy.
+function renderPanel(models: string[], overrides: Partial<SettingsPanelValues> = {}) {
+  const onChange = vi.fn()
+  useStore.setState({ config: buildConfig(models) })
+  render(<SettingsPanel values={buildValues(overrides)} onChange={onChange} />)
+  return onChange
+}
+
 const initialState = useStore.getState()
 
 beforeEach(() => {
   useStore.setState(initialState, true)
 })
 
+afterEach(() => i18n.changeLanguage('en'))
+
 describe('SettingsPanel — model field', () => {
   it('shows the bare model name with a "Model" label when exactly one model is configured', () => {
-    useStore.setState({ config: buildConfig(['large-v3-turbo']) })
-
-    render(<SettingsPanel values={buildValues()} onChange={vi.fn()} />)
+    renderPanel(['large-v3-turbo'])
 
     const field = screen.getByRole('status', { name: 'Model' })
     expect(field.textContent).toBe('large-v3-turbo')
@@ -52,20 +61,14 @@ describe('SettingsPanel — model field', () => {
   it('shows the "Modell" label in German, still with the bare model name', async () => {
     await i18n.changeLanguage('de')
 
-    useStore.setState({ config: buildConfig(['large-v3-turbo']) })
-
-    render(<SettingsPanel values={buildValues()} onChange={vi.fn()} />)
+    renderPanel(['large-v3-turbo'])
 
     const field = screen.getByRole('status', { name: 'Modell' })
     expect(field.textContent).toBe('large-v3-turbo')
-
-    await i18n.changeLanguage('en')
   })
 
   it('shows a "Quality" combobox with labeled options when several models are configured', () => {
-    useStore.setState({ config: buildConfig(['base', 'large-v3-turbo', 'large-v3']) })
-
-    render(<SettingsPanel values={buildValues({ model: 'large-v3-turbo' })} onChange={vi.fn()} />)
+    renderPanel(['base', 'large-v3-turbo', 'large-v3'], { model: 'large-v3-turbo' })
 
     const combobox = screen.getByRole('combobox', { name: 'Quality' })
     const options = within(combobox).getAllByRole('option').map((o) => o.textContent)
@@ -76,10 +79,7 @@ describe('SettingsPanel — model field', () => {
   })
 
   it('calls onChange with the selected model when a different option is picked', () => {
-    const onChange = vi.fn()
-    useStore.setState({ config: buildConfig(['base', 'large-v3-turbo', 'large-v3']) })
-
-    render(<SettingsPanel values={buildValues({ model: 'large-v3-turbo' })} onChange={onChange} />)
+    const onChange = renderPanel(['base', 'large-v3-turbo', 'large-v3'], { model: 'large-v3-turbo' })
 
     fireEvent.change(screen.getByRole('combobox', { name: 'Quality' }), { target: { value: 'large-v3' } })
 
