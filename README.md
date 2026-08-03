@@ -173,9 +173,11 @@ Install Node.js dependencies and start the Vite dev server:
 cd frontend
 npm install
 npm run dev           # start the dev server
+npm run build         # production build (type-checks first)
 npm test              # run the test suite once
 npm run test:watch    # run tests in watch mode
-npm run typecheck     # type-check without emitting
+npm run typecheck     # type-check the project references
+npm run lint          # eslint
 ```
 
 The Vite dev server runs on `http://localhost:5173` and proxies API requests to the backend at `http://localhost:8000`.
