@@ -12,6 +12,7 @@
     "title": "Settings",
     "language": "Transcription language",
     "model": "Quality",
+    "modelName": "Model",
     "detectSpeakers": "Detect speakers",
     "minSpeakers": "Min speakers",
     "maxSpeakers": "Max speakers",

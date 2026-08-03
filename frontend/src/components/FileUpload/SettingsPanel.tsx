@@ -25,6 +25,8 @@ interface SettingsPanelProps {
 export function SettingsPanel({ values, onChange, saveError = null }: SettingsPanelProps) {
   const { t } = useTranslation()
   const config = useStore((s) => s.config)
+  const models = config?.whisper_models || []
+  const singleModel = models.length === 1 ? models[0] : null
   const transcriptionPresets = useStore((s) => s.transcriptionPresets)
   const setTranscriptionPresets = useStore((s) => s.setTranscriptionPresets)
   const bundles = useStore((s) => s.bundles)
@@ -138,32 +140,26 @@ export function SettingsPanel({ values, onChange, saveError = null }: SettingsPa
             />
           </div>
           <div className="min-w-0">
-            <label htmlFor="upload-model-field" className="block text-xs text-gray-400 mb-1">{t('settings.model')}</label>
-            {(() => {
-              const models = config?.whisper_models || []
-              if (models.length === 1) {
-                const m = models[0]
-                const label = t(`settings.modelLabels.${m}`, '')
-                return (
-                  <output id="upload-model-field" className="block w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5">
-                    {label ? `${label} (${m})` : m}
-                  </output>
-                )
-              }
-              return (
-                <select
-                  id="upload-model-field"
-                  value={values.model}
-                  onChange={(e) => onChange({ model: e.target.value })}
-                  className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5"
-                >
-                  {models.map((m) => {
-                    const label = t(`settings.modelLabels.${m}`, '')
-                    return <option key={m} value={m}>{label ? `${label} (${m})` : m}</option>
-                  })}
-                </select>
-              )
-            })()}
+            <label htmlFor="upload-model-field" className="block text-xs text-gray-400 mb-1">
+              {singleModel ? t('settings.modelName') : t('settings.model')}
+            </label>
+            {singleModel ? (
+              <output id="upload-model-field" className="block w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5">
+                {singleModel}
+              </output>
+            ) : (
+              <select
+                id="upload-model-field"
+                value={values.model}
+                onChange={(e) => onChange({ model: e.target.value })}
+                className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5"
+              >
+                {models.map((m) => {
+                  const label = t(`settings.modelLabels.${m}`, '')
+                  return <option key={m} value={m}>{label ? `${label} (${m})` : m}</option>
+                })}
+              </select>
+            )}
           </div>
         </fieldset>
 
