@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useStore } from '../../store'
 import { api } from '../../api/client'
 import { isLanguageEnabled } from '../../utils/languages'
+import { resolveModel, singleConfiguredModel } from '../../utils/models'
 import { LanguageOptions } from '../LanguageOptions'
 import type {
   TranscriptionPreset,
@@ -32,7 +33,7 @@ function TranscriptionPresetsList() {
   const [saving, setSaving] = useState(false)
 
   const models = config?.whisper_models ?? []
-  const singleModel = models.length === 1 ? models[0] : null
+  const singleModel = singleConfiguredModel(models)
   const defaultModel = config?.default_model ?? ''
   const enabledLanguages = config?.enabled_languages ?? []
   const popularLanguages = config?.popular_languages ?? []
@@ -45,7 +46,7 @@ function TranscriptionPresetsList() {
 
   const openEdit = (p: TranscriptionPreset) => {
     setEditingId(p.id)
-    const model = models.length === 1 ? models[0] : p.model
+    const model = resolveModel(models, p.model)
     const language = p.language && !isLanguageEnabled(p.language, enabledLanguages) ? null : p.language
     setForm({ name: p.name, language, model, initial_prompt: p.initial_prompt, hotwords: p.hotwords })
     setShowForm(true)

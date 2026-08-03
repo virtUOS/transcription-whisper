@@ -13,6 +13,7 @@ import { useBeforeUnloadWarning } from './hooks/useBeforeUnloadWarning'
 import { LoadingFallback } from './components/LoadingFallback'
 import { ChunkErrorBoundary } from './components/ChunkErrorBoundary'
 import { InviteLanding } from './components/InviteLanding'
+import { resolveModel } from './utils/models'
 
 const RecorderPanel = lazy(() =>
   import('./components/Recorder').then((m) => ({ default: m.RecorderPanel }))
@@ -190,7 +191,7 @@ function MainApp() {
   useEffect(() => {
     if (!config || configModelApplied.current) return
     const models = config.whisper_models ?? []
-    const model = models.length === 1 ? models[0] : config.default_model
+    const model = resolveModel(models, config.default_model)
     if (!model) return
     configModelApplied.current = true
     setSettings((s) => ({ ...s, model }))
@@ -399,7 +400,7 @@ function MainApp() {
     const bundleList = state.bundles
     const bundleName = bundleId ? bundleList.find((b) => b.id === bundleId)?.name : undefined
     const configuredModels = state.config?.whisper_models ?? []
-    const model = configuredModels.length === 1 ? configuredModels[0] : settings.model
+    const model = resolveModel(configuredModels, settings.model)
 
     if (!f && !isUploading) return
 

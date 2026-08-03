@@ -3,6 +3,7 @@ import { useStore } from '../../store'
 import { api } from '../../api/client'
 import { LanguageSelect } from '../LanguageSelect'
 import { PresetSelect } from '../PresetSelect/PresetSelect'
+import { singleConfiguredModel } from '../../utils/models'
 
 export interface SettingsPanelValues {
   language: string
@@ -26,7 +27,7 @@ export function SettingsPanel({ values, onChange, saveError = null }: SettingsPa
   const { t } = useTranslation()
   const config = useStore((s) => s.config)
   const models = config?.whisper_models || []
-  const singleModel = models.length === 1 ? models[0] : null
+  const singleModel = singleConfiguredModel(models)
   const transcriptionPresets = useStore((s) => s.transcriptionPresets)
   const setTranscriptionPresets = useStore((s) => s.setTranscriptionPresets)
   const bundles = useStore((s) => s.bundles)
