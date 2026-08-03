@@ -2,7 +2,7 @@
 
 ## Transcription presets
 
-A transcription preset saves your preferred combination of language, model (quality tier), speaker detection settings, initial prompt, and hotwords. Select a saved preset from the Upload or Record view instead of configuring each option manually every time. Create and manage presets on the **Presets** page, accessible from the header.
+A transcription preset saves your preferred combination of language, model, speaker detection settings, initial prompt, and hotwords. Select a saved preset from the Upload or Record view instead of configuring each option manually every time. Create and manage presets on the **Presets** page, accessible from the header.
 
 ## Analysis presets
 

@@ -53,7 +53,7 @@ export function SettingsPanel({ values, onChange, saveError = null }: SettingsPa
     const preset = await api.createTranscriptionPreset({
       name,
       language: values.language === 'auto' ? null : values.language,
-      model: values.model,
+      model: singleModel ?? values.model,
       min_speakers: values.detectSpeakers ? values.minSpeakers : 0,
       max_speakers: values.detectSpeakers ? values.maxSpeakers : 0,
       initial_prompt: values.initialPrompt || null,
