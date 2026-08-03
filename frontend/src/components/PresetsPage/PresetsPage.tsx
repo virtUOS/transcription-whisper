@@ -32,6 +32,7 @@ function TranscriptionPresetsList() {
   const [saving, setSaving] = useState(false)
 
   const models = config?.whisper_models ?? []
+  const singleModel = models.length === 1 ? models[0] : null
   const defaultModel = config?.default_model ?? ''
   const enabledLanguages = config?.enabled_languages ?? []
   const popularLanguages = config?.popular_languages ?? []
@@ -135,16 +136,14 @@ function TranscriptionPresetsList() {
             </select>
           </div>
           <div>
-            <label htmlFor="transcription-preset-model-field" className="block text-xs text-gray-400 mb-1">{t('settings.model')}</label>
-            {models.length === 1 ? (() => {
-              const m = models[0]
-              const label = t(`settings.modelLabels.${m}`, '')
-              return (
-                <output id="transcription-preset-model-field" className="block w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5">
-                  {label ? `${label} (${m})` : m}
-                </output>
-              )
-            })() : (
+            <label htmlFor="transcription-preset-model-field" className="block text-xs text-gray-400 mb-1">
+              {singleModel ? t('settings.modelName') : t('settings.model')}
+            </label>
+            {singleModel ? (
+              <output id="transcription-preset-model-field" className="block w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5">
+                {singleModel}
+              </output>
+            ) : (
               <select
                 id="transcription-preset-model-field"
                 value={form.model ?? defaultModel}
