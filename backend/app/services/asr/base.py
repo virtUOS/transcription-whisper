@@ -1,5 +1,13 @@
+import asyncio
 from abc import ABC, abstractmethod
+from app.config import settings
 from app.models import TranscriptionStatus, TranscriptionResult
+
+# Shared across all ASR backends so ASR_MAX_CONCURRENT actually caps in-flight jobs
+# regardless of which backend is selected. Backends whose submit() returns immediately
+# (murmurai) must hold this for the whole submit-through-completion window, not just
+# the submit call — otherwise the limit caps nothing.
+asr_semaphore = asyncio.Semaphore(settings.ASR_MAX_CONCURRENT)
 
 
 class TranscriptionSettings:

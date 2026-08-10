@@ -1,11 +1,8 @@
-import asyncio
 import uuid
 import httpx
 from app.config import settings
 from app.services.asr.base import ASRBackend, TranscriptionSettings
 from app.models import TranscriptionStatus, TranscriptionResult, Utterance
-
-_semaphore = asyncio.Semaphore(settings.ASR_MAX_CONCURRENT)
 
 # In-memory cache for WhisperX results. WhisperX is synchronous, so submit() blocks
 # until complete — the result is stored in the DB by _run_transcription() immediately
@@ -20,20 +17,22 @@ class WhisperXBackend(ASRBackend):
         self.base_url = settings.ASR_URL
 
     async def submit(self, file_path: str, ts: TranscriptionSettings) -> str:
+        # Concurrency is capped by the caller (_run_transcription holds asr_semaphore
+        # across submit and polling). Acquiring it again here would deadlock once more
+        # jobs than permits are in flight.
         job_id = str(uuid.uuid4())
         _statuses[job_id] = "processing"
 
-        async with _semaphore:
-            try:
-                result = await self._call_whisperx(file_path, ts)
-                _results[job_id] = result
-                _statuses[job_id] = "completed"
-            except Exception:
-                _statuses[job_id] = "failed"
-                _results[job_id] = TranscriptionResult(
-                    id=job_id, status="failed", text="", utterances=[], language=None
-                )
-                raise
+        try:
+            result = await self._call_whisperx(file_path, ts)
+            _results[job_id] = result
+            _statuses[job_id] = "completed"
+        except Exception:
+            _statuses[job_id] = "failed"
+            _results[job_id] = TranscriptionResult(
+                id=job_id, status="failed", text="", utterances=[], language=None
+            )
+            raise
 
         return job_id
 

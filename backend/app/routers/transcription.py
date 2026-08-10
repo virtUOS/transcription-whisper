@@ -17,7 +17,7 @@ from app.models import (
 from app.database import get_db
 from app.services.asr import get_asr_backend
 from app.services.api_tokens import resolve_token
-from app.services.asr.base import TranscriptionSettings
+from app.services.asr.base import TranscriptionSettings, asr_semaphore
 from app.services.audio import get_media_duration
 from app.services.formats import generate_srt, generate_vtt, generate_txt
 from app.metrics import (
@@ -70,6 +70,45 @@ async def start_transcription(
     return {"id": transcription_id, "status": "pending"}
 
 
+def _job_timeout_for(audio_duration: float | None) -> float:
+    """Ceiling for how long an ASR job may stay unfinished.
+
+    Long audio legitimately takes longer, so scale with duration while keeping a
+    floor for short files and for when duration probing failed.
+    """
+    job_timeout = float(settings.ASR_JOB_TIMEOUT_MIN)
+    if audio_duration and audio_duration > 0:
+        job_timeout = max(job_timeout, audio_duration * settings.ASR_JOB_TIMEOUT_FACTOR)
+    return job_timeout
+
+
+async def _poll_until_done(backend, asr_job_id: str, audio_duration: float | None) -> None:
+    """Poll the ASR backend until the job finishes, or give up.
+
+    Raises RuntimeError if the backend reports failure, or TimeoutError if the job
+    stays unfinished past its ceiling. Without the ceiling a backend that keeps
+    reporting "processing" with no error would be polled forever.
+    """
+    job_timeout = _job_timeout_for(audio_duration)
+    poll_started = time.monotonic()
+
+    while True:
+        status = await backend.get_status(asr_job_id)
+        if status.status == "completed":
+            return
+        elif status.status == "failed":
+            raise RuntimeError(status.error or "Transcription failed")
+
+        elapsed = time.monotonic() - poll_started
+        if elapsed > job_timeout:
+            inc(errors_total, "transcription_timeout", "asr")
+            raise TimeoutError(
+                f"ASR job {asr_job_id} stuck in '{status.status}' after "
+                f"{int(elapsed)}s (limit {int(job_timeout)}s)"
+            )
+        await asyncio.sleep(5)
+
+
 async def _run_transcription(transcription_id: str, file_path: str, req: TranscriptionSettingsModel, submitted_at: float):
     backend = get_asr_backend()
     backend_name = settings.ASR_BACKEND
@@ -96,21 +135,19 @@ async def _run_transcription(transcription_id: str, file_path: str, req: Transcr
             await db.execute("UPDATE transcriptions SET status = ? WHERE id = ?", ("processing", transcription_id))
             await db.commit()
 
-        asr_job_id = await backend.submit(file_path, ts)
+        # Held across submit *and* the poll loop: backends whose submit() returns
+        # immediately do their real work while we poll, so releasing after submit
+        # would let unlimited jobs pile onto the ASR service.
+        async with asr_semaphore:
+            asr_job_id = await backend.submit(file_path, ts)
 
-        async with get_db() as db:
-            await db.execute("UPDATE transcriptions SET asr_job_id = ? WHERE id = ?", (asr_job_id, transcription_id))
-            await db.commit()
+            async with get_db() as db:
+                await db.execute("UPDATE transcriptions SET asr_job_id = ? WHERE id = ?", (asr_job_id, transcription_id))
+                await db.commit()
 
-        while True:
-            status = await backend.get_status(asr_job_id)
-            if status.status == "completed":
-                break
-            elif status.status == "failed":
-                raise RuntimeError(status.error or "Transcription failed")
-            await asyncio.sleep(5)
+            await _poll_until_done(backend, asr_job_id, audio_duration)
 
-        result = await backend.get_result(asr_job_id)
+            result = await backend.get_result(asr_job_id)
 
         duration = time.monotonic() - start_time
         lang_label = req.language or "auto"

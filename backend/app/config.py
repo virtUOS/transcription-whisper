@@ -9,6 +9,11 @@ class Settings:
     ASR_URL: str = os.getenv("ASR_URL", "http://localhost:8880")
     ASR_API_KEY: str = os.getenv("ASR_API_KEY", "")
     ASR_MAX_CONCURRENT: int = int(os.getenv("ASR_MAX_CONCURRENT", "3"))
+    # Poll-loop ceiling: a backend job stuck in "processing" is failed once it exceeds
+    # max(ASR_JOB_TIMEOUT_MIN, audio_duration * ASR_JOB_TIMEOUT_FACTOR) seconds, so a
+    # wedged backend surfaces as a retryable error instead of polling forever.
+    ASR_JOB_TIMEOUT_MIN: int = int(os.getenv("ASR_JOB_TIMEOUT_MIN", "1800"))
+    ASR_JOB_TIMEOUT_FACTOR: float = float(os.getenv("ASR_JOB_TIMEOUT_FACTOR", "10"))
 
     WHISPER_MODELS: list[str] = os.getenv("WHISPER_MODELS", "base,large-v3,large-v3-turbo").split(",")
     DEFAULT_WHISPER_MODEL: str = os.getenv("DEFAULT_WHISPER_MODEL", "base")
