@@ -286,3 +286,15 @@ def init_label_series() -> None:
     if users_new is not None:
         users_new.labels("7d").set(0)
         users_new.labels("30d").set(0)
+
+    # LLM counters are emitted per (provider, model, operation). Without seeding,
+    # an operation that is never invoked publishes no series at all, which is
+    # indistinguishable from "the feature is broken and nobody reached it" —
+    # alerts on the ratio cannot fire because the denominator does not exist.
+    if llm_requests_total is not None and llm_errors_total is not None:
+        provider = settings.LLM_PROVIDER
+        model = settings.LLM_MODEL
+        if provider:
+            for operation in ("analysis", "translation", "refinement", "title"):
+                llm_requests_total.labels(provider, model, operation).inc(0)
+                llm_errors_total.labels(provider, model, operation).inc(0)

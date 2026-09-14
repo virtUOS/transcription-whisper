@@ -449,10 +449,13 @@ def build_analysis_system_prompt(
     schema = template["schema"]
 
     # Handle template-specific formatting
-    if template_name == "agenda" and agenda:
+    if template_name == "agenda":
+        # Route on the template, not on whether agenda text was supplied: the
+        # prompt carries a literal {agenda} placeholder either way, so falling
+        # through to the generic .format() below raises KeyError.
         system_prompt = system_prompt.format(
             language_instruction=language_instruction,
-            agenda=agenda,
+            agenda=agenda or "No agenda was supplied. Infer the agenda items from the transcript itself.",
             schema=json.dumps(schema, indent=2),
         )
     elif template_name == "summary":
@@ -461,9 +464,16 @@ def build_analysis_system_prompt(
     elif template_name == "protocol":
         return build_protocol_system_prompt(language), schema
     else:
-        system_prompt = system_prompt.format(
+        # format_map with a defaulting lookup so a template that gains a new
+        # placeholder degrades to an empty value instead of raising KeyError
+        # and surfacing as a 500.
+        class _Defaults(dict):
+            def __missing__(self, key):
+                return ""
+
+        system_prompt = system_prompt.format_map(_Defaults(
             language_instruction=language_instruction,
             schema=json.dumps(schema, indent=2),
-        )
+        ))
 
     return system_prompt, schema

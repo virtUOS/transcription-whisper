@@ -1,5 +1,7 @@
 import json
+import logging
 import time
+import traceback
 import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from app.config import settings
@@ -125,7 +127,12 @@ async def generate_analysis(
             result_data["template"] = template_name
             result_data["custom_prompt"] = custom_prompt
             result_data["language"] = analysis_language
-    except Exception:
+    except Exception as e:
+        logging.error(
+            "Analysis %s failed for transcription %s (template=%s): %s: %s",
+            analysis_id, transcription_id, template_name, type(e).__name__, e,
+        )
+        logging.error("Traceback: %s", traceback.format_exc())
         inc(llm_errors_total, settings.LLM_PROVIDER, settings.LLM_MODEL, "analysis")
         inc(errors_total, "llm_failed", "analysis")
         # Remove placeholder on failure so user can retry
@@ -199,7 +206,16 @@ async def _call_llm(provider, user_content: str, system_prompt: str) -> dict:
         )
         track_llm_tokens(settings.LLM_PROVIDER, provider._model, "analysis", getattr(response, "usage", None))
         content = response.choices[0].message.content or "{}"
-        return json.loads(content)
+        try:
+            return json.loads(content)
+        except json.JSONDecodeError as e:
+            # A truncated or non-JSON completion is a model failure, not a bug in
+            # the caller — surface it as such instead of a bare 500.
+            logging.error(
+                "LLM returned non-JSON for analysis (finish_reason=%s): %s | first 200 chars: %r",
+                getattr(response.choices[0], "finish_reason", None), e, content[:200],
+            )
+            raise ValueError("The language model returned a malformed response. Please try again.") from e
     elif hasattr(provider, "_base_url"):
         # Ollama provider
         import httpx
