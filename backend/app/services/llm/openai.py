@@ -4,7 +4,7 @@ from openai import AsyncOpenAI
 
 from app.config import settings
 from app.metrics import track_llm_tokens
-from app.services.llm.base import LLMProvider
+from app.services.llm.base import LLMProvider, reject_schema_echo
 from app.services.llm.prompt import REFINEMENT_CONSOLIDATION_PROMPT
 
 
@@ -13,6 +13,7 @@ class OpenAIProvider(LLMProvider):
         self._client = AsyncOpenAI(
             api_key=settings.LLM_API_KEY,
             base_url=settings.LLM_BASE_URL or None,
+            timeout=settings.LLM_TIMEOUT,
         )
         self._model = settings.LLM_MODEL or "gpt-4o"
 
@@ -27,7 +28,7 @@ class OpenAIProvider(LLMProvider):
             response_format={"type": "json_object"},
         )
         track_llm_tokens("openai", self._model, operation, getattr(response, "usage", None))
-        return json.loads(response.choices[0].message.content or "{}")
+        return reject_schema_echo(json.loads(response.choices[0].message.content or "{}"))
 
     async def _consolidate_refinement_summaries(self, summaries: list[str]) -> str:
         response = await self._client.chat.completions.create(

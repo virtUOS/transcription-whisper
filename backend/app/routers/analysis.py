@@ -10,6 +10,7 @@ from app.router_helpers import ensure_transcription_owned, load_speaker_mappings
 from app.models import UserInfo, AnalysisRequest, AnalysisListItem
 from app.database import get_db
 from app.services.llm import get_llm_provider
+from app.services.llm.base import reject_schema_echo
 from app.services.llm.prompt import (
     format_transcript_for_llm,
     build_analysis_system_prompt,
@@ -207,7 +208,7 @@ async def _call_llm(provider, user_content: str, system_prompt: str) -> dict:
         track_llm_tokens(settings.LLM_PROVIDER, provider._model, "analysis", getattr(response, "usage", None))
         content = response.choices[0].message.content or "{}"
         try:
-            return json.loads(content)
+            return reject_schema_echo(json.loads(content))
         except json.JSONDecodeError as e:
             # A truncated or non-JSON completion is a model failure, not a bug in
             # the caller — surface it as such instead of a bare 500.

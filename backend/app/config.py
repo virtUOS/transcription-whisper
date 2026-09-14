@@ -22,6 +22,9 @@ class Settings:
     LLM_MODEL: str = os.getenv("LLM_MODEL", "")
     LLM_API_KEY: str = os.getenv("LLM_API_KEY", "")
     LLM_BASE_URL: str = os.getenv("LLM_BASE_URL", "")
+    # Per-request ceiling for LLM calls. Without it the OpenAI SDK applies its own
+    # 600s default, so a slow model leaves the user on a spinner for ten minutes.
+    LLM_TIMEOUT: float = float(os.getenv("LLM_TIMEOUT", "180"))
 
     TEMP_PATH: str = os.getenv("TEMP_PATH", "tmp/transcription-files")
     FFMPEG_PATH: str = os.getenv("FFMPEG_PATH", "ffmpeg")
