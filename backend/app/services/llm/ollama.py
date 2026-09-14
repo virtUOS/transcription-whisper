@@ -14,7 +14,7 @@ class OllamaProvider(LLMProvider):
         self._model = settings.LLM_MODEL or "llama3"
 
     async def _chat(self, system: str, user: str, operation: str = "analysis") -> str:
-        async with httpx.AsyncClient(timeout=300) as client:
+        async with httpx.AsyncClient(timeout=settings.LLM_TIMEOUT) as client:
             response = await client.post(
                 f"{self._base_url}/api/chat",
                 json={

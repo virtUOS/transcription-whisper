@@ -110,6 +110,25 @@ class LLMProvider(ABC):
         )
 
 
+def reject_schema_echo(data):
+    """Raise if the model returned the JSON schema instead of an instance of it.
+
+    Some models answer a "respond with JSON matching this schema" prompt by
+    echoing the schema back. The parsers below then find neither "summary" nor
+    "chapters" and produce an empty result, so the user gets a blank analysis
+    with no error recorded anywhere — the failure is invisible in logs and
+    metrics alike. Detect it at the boundary and fail loudly instead.
+    """
+    if not isinstance(data, dict):
+        return data
+    if data.get("type") == "object" and isinstance(data.get("properties"), dict):
+        raise ValueError(
+            "The language model returned the JSON schema instead of a response "
+            "matching it. Try again, or configure a different LLM_MODEL."
+        )
+    return data
+
+
 def _parse_summary(data: dict) -> SummaryResult:
     return SummaryResult(
         summary=data.get("summary", ""),
