@@ -40,6 +40,20 @@ class Settings:
     # The app's retry is the one worth keeping: it re-validates the returned
     # utterance count, which a blind SDK re-send does not.
     LLM_MAX_RETRIES: int = int(os.getenv("LLM_MAX_RETRIES", "0"))
+    # Ornith is a reasoning model: it emits reasoning tokens before any answer.
+    # That is wasted work for refinement and translation, where the task is to
+    # echo back utterances with small corrections rather than to solve anything,
+    # and it is expensive — one real 50-utterance chunk failed after 900s with
+    # reasoning on and completed in 113s with it off. Ten chunks of a 1489-
+    # utterance refinement timed out against a 600s ceiling before this.
+    #
+    # Nondeterministic reasoning length is also the best explanation for the
+    # latency variance that looked inexplicable: 108s and 237s for the same
+    # chunk on identical input.
+    #
+    # Sent as chat_template_kwargs, which is how vLLM exposes it. Set to false
+    # for a model whose template does not accept the flag.
+    LLM_DISABLE_THINKING: bool = os.getenv("LLM_DISABLE_THINKING", "true").lower() in ("1", "true", "yes")
     # Parallel chunk requests per transcript for refinement and translation. The
     # LLM endpoint is shared with other services, so this is the setting that
     # determines our peak footprint on everyone else. Kept deliberately low: the
