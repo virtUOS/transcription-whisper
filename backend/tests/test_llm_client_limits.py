@@ -23,11 +23,15 @@ def test_timeout_is_applied(provider):
 
 def test_retries_are_configured_explicitly(provider):
     """Pinned rather than left to the SDK default, so the value is a decision
-    someone made. Retries are backed off and jittered by the SDK, so they cost a
-    busy endpoint far less than parallel requests do — and finishing a long job
-    late beats failing it, since the UI already warns that it takes a while."""
+    someone made.
+
+    That decision is now zero. Retrying a failed chunk moved up into
+    chunked_utterance_call, which re-validates the returned utterance count; the
+    SDK's blind re-send does not, and layering the two multiplies worst-case
+    wall clock instead of adding to it. See test_retry_amplification.py.
+    """
     assert provider._client.max_retries == settings.LLM_MAX_RETRIES
-    assert settings.LLM_MAX_RETRIES >= 1
+    assert settings.LLM_MAX_RETRIES == 0
 
 
 def test_peak_requests_per_operation_stays_small():
