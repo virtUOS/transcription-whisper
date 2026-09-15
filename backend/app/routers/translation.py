@@ -1,59 +1,29 @@
-import asyncio
 import json
 import logging
 import traceback
 from fastapi import APIRouter, Depends, HTTPException
-from app.config import settings
 from app.dependencies import get_current_user
 from app.router_helpers import ensure_transcription_owned, reset_translation_state
 from app.models import UserInfo, TranslationRequest
 from app.database import get_db
 from app.services.llm import get_llm_provider
-from app.services.llm.base import LLM_CHUNK_MAX_CONCURRENT, reject_schema_echo
-from app.services.llm.prompt import (
-    build_translation_system_prompt,
-    build_translation_user_prompt,
-    chunk_utterances_for_refinement,
-)
-from app.metrics import inc, measure_llm_operation, track_llm_tokens, deletions_total
+from app.services.llm.base import chunked_utterance_call
+from app.services.llm.prompt import build_translation_system_prompt
+from app.metrics import inc, measure_llm_operation, deletions_total
 
 router = APIRouter()
 
 
 async def _call_llm_translation(provider, utterances: list[dict], target_language: str) -> list[dict]:
     """Call LLM to translate utterances, chunking if needed."""
-    chunks = chunk_utterances_for_refinement(utterances)
-
-    # Use provider's internal chat method depending on type
-    from app.services.llm.openai import OpenAIProvider
-    from app.services.llm.ollama import OllamaProvider
-
-    if not isinstance(provider, (OpenAIProvider, OllamaProvider)):
-        raise HTTPException(status_code=503, detail="Unsupported LLM provider for translation")
-
-    # Like refinement, translation returns every utterance rewritten, so latency
-    # scales with the chunk and a sequential loop waits for the sum of them all.
-    # Chunks are independent; run them concurrently under the same bound.
-    semaphore = asyncio.Semaphore(LLM_CHUNK_MAX_CONCURRENT)
-
-    async def translate(chunk: list[dict]) -> dict:
-        system = build_translation_system_prompt(target_language)
-        user = build_translation_user_prompt(chunk)
-        async with semaphore:
-            if isinstance(provider, OpenAIProvider):
-                resp = await provider._client.chat.completions.create(
-                    model=provider._model,
-                    messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
-                    temperature=0.3,
-                    response_format={"type": "json_object"},
-                )
-                track_llm_tokens(settings.LLM_PROVIDER, provider._model, "translation", getattr(resp, "usage", None))
-                return reject_schema_echo(json.loads(resp.choices[0].message.content or "{}"))
-            content = await provider._chat(system, user, operation="translation")
-            return reject_schema_echo(json.loads(content))
-
-    # gather preserves input order, so utterances reassemble in transcript order.
-    results = await asyncio.gather(*(translate(chunk) for chunk in chunks))
+    # Goes through the provider's own _json_chat rather than reaching into its
+    # client: that is what applies the schema-echo guard and token tracking, and
+    # translation previously had to reimplement both per provider type.
+    results = await chunked_utterance_call(
+        provider, utterances,
+        build_system=lambda: build_translation_system_prompt(target_language),
+        operation="translation",
+    )
 
     all_translated: list[dict] = []
     for data in results:

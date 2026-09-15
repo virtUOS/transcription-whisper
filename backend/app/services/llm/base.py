@@ -11,7 +11,7 @@ from app.services.llm.prompt import (
     build_system_prompt, build_user_prompt, chunk_transcript, build_consolidation_prompt,
     build_protocol_system_prompt, build_protocol_user_prompt,
     PROTOCOL_CONSOLIDATION_PROMPT, PROTOCOL_SCHEMA,
-    build_refinement_system_prompt, build_refinement_user_prompt,
+    build_refinement_system_prompt,
     chunk_utterances_for_refinement,
     _language_name,
 )
@@ -20,6 +20,39 @@ from app.services.llm.prompt import (
 # utterance (refinement and translation). Chunks are independent, but this bounds
 # how many a single long transcript can open against the LLM endpoint at once.
 LLM_CHUNK_MAX_CONCURRENT = 4
+
+
+async def chunked_utterance_call(
+    provider: "LLMProvider",
+    utterances: list[dict],
+    build_system,
+    operation: str,
+) -> list[dict]:
+    """Send utterances to the LLM in chunks, concurrently, in input order.
+
+    Shared by the operations that rewrite every utterance — refinement and
+    translation. Both make the model echo the whole chunk back, so latency
+    scales with chunk size and a sequential loop waits for the sum of every
+    chunk. Each of these grew its own copy of this logic, and each copy had to
+    be fixed separately for chunk size, concurrency and schema-echo handling.
+
+    `build_system` is called per chunk to produce the system prompt. Results
+    come back in input order, so callers can concatenate them directly.
+    """
+    chunks = chunk_utterances_for_refinement(utterances)
+    semaphore = asyncio.Semaphore(LLM_CHUNK_MAX_CONCURRENT)
+
+    async def one(chunk: list[dict]) -> dict:
+        async with semaphore:
+            return await provider._json_chat(
+                build_system(),
+                json.dumps(chunk, ensure_ascii=False),
+                operation,
+            )
+
+    # gather preserves input order, so utterances reassemble in transcript order
+    # regardless of which chunk finishes first.
+    return list(await asyncio.gather(*(one(chunk) for chunk in chunks)))
 
 
 class LLMProvider(ABC):
@@ -91,25 +124,11 @@ class LLMProvider(ABC):
         self, transcript: str, context: str | None = None
     ) -> LLMRefinementResponse:
         utterances = json.loads(transcript)
-        chunks = chunk_utterances_for_refinement(utterances)
-
-        # Chunks are independent, so send them concurrently: run sequentially a
-        # long transcript waits for the sum of every chunk's latency, which is
-        # minutes. Bounded so a long transcript cannot open dozens of parallel
-        # requests against the LLM endpoint at once.
-        semaphore = asyncio.Semaphore(LLM_CHUNK_MAX_CONCURRENT)
-
-        async def refine(chunk: list[dict]) -> dict:
-            async with semaphore:
-                return await self._json_chat(
-                    build_refinement_system_prompt(context),
-                    build_refinement_user_prompt(chunk),
-                    "refinement",
-                )
-
-        # gather preserves input order, so utterances reassemble in transcript
-        # order regardless of which chunk finishes first.
-        results = await asyncio.gather(*(refine(chunk) for chunk in chunks))
+        results = await chunked_utterance_call(
+            self, utterances,
+            build_system=lambda: build_refinement_system_prompt(context),
+            operation="refinement",
+        )
 
         all_refined: list[dict] = []
         summaries: list[str] = []
