@@ -22,9 +22,14 @@ class Settings:
     LLM_MODEL: str = os.getenv("LLM_MODEL", "")
     LLM_API_KEY: str = os.getenv("LLM_API_KEY", "")
     LLM_BASE_URL: str = os.getenv("LLM_BASE_URL", "")
-    # Per-request ceiling for LLM calls. Without it the OpenAI SDK applies its own
-    # 600s default, so a slow model leaves the user on a spinner for ten minutes.
-    LLM_TIMEOUT: float = float(os.getenv("LLM_TIMEOUT", "180"))
+    # Per-request ceiling for one chunk, not for a whole job. The shared endpoint's
+    # latency varies widely: the same 50-utterance refinement chunk was measured at
+    # 108s and at 237s, so the ceiling has to clear the slow draws rather than the
+    # typical one. 360s left only 1.5x headroom over the worst measured chunk and
+    # timed out a 248-utterance refinement outright. A chunk that does exceed this
+    # is now retried rather than discarding the job, so a generous ceiling costs
+    # nothing in the common case and finishing slowly beats failing fast.
+    LLM_TIMEOUT: float = float(os.getenv("LLM_TIMEOUT", "600"))
     # Retries per LLM request. The SDK spaces these with exponential backoff and
     # jitter, so they are far gentler on a busy endpoint than parallel requests
     # are. Keeping the default of 2 favours finishing a long job over failing it,

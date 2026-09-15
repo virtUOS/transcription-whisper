@@ -27,6 +27,14 @@ LLM_CHUNK_MAX_CONCURRENT = settings.LLM_CHUNK_CONCURRENCY
 # utterances. Cheap compared with discarding every other chunk's work.
 CHUNK_COUNT_RETRIES = 2
 
+# Re-attempts for a chunk whose request failed outright — a timeout, a dropped
+# connection, a transient endpoint error. The shared endpoint's latency varies
+# widely: the same 50-utterance chunk was measured at 108s and at 237s against a
+# 360s timeout, so a slow draw is a dice roll rather than a broken request. A
+# long transcript rolls those dice once per chunk (1489 utterances is 30 chunks),
+# and without this a single unlucky draw discards every other chunk's work.
+CHUNK_ERROR_RETRIES = 2
+
 
 async def chunked_utterance_call(
     provider: "LLMProvider",
@@ -49,6 +57,35 @@ async def chunked_utterance_call(
     chunks = chunk_utterances_for_refinement(utterances)
     semaphore = asyncio.Semaphore(LLM_CHUNK_MAX_CONCURRENT)
 
+    async def _attempt(chunk: list[dict]) -> dict:
+        """One request for one chunk, retried if the request itself fails.
+
+        Finishing slowly is preferred over failing fast here: the user is
+        already waiting minutes and would rather wait longer than lose the
+        whole job to one slow chunk.
+        """
+        for attempt in range(CHUNK_ERROR_RETRIES + 1):
+            try:
+                async with semaphore:
+                    return await provider._json_chat(
+                        build_system(),
+                        json.dumps(chunk, ensure_ascii=False),
+                        operation,
+                    )
+            except asyncio.CancelledError:
+                # A sibling chunk failed and we are being torn down; never
+                # swallow this into a retry.
+                raise
+            except Exception as e:
+                if attempt == CHUNK_ERROR_RETRIES:
+                    raise
+                logging.warning(
+                    "%s chunk request failed (%s: %s), retrying (attempt %d/%d)",
+                    operation, type(e).__name__, e, attempt + 1,
+                    CHUNK_ERROR_RETRIES + 1,
+                )
+        raise AssertionError("unreachable")
+
     async def one(chunk: list[dict]) -> dict:
         # Refinement and translation must return one utterance per input, but
         # models do not honour that reliably — one short chunk used to discard
@@ -56,12 +93,7 @@ async def chunked_utterance_call(
         # Retry just the offending chunk instead.
         last_count = None
         for attempt in range(CHUNK_COUNT_RETRIES + 1):
-            async with semaphore:
-                data = await provider._json_chat(
-                    build_system(),
-                    json.dumps(chunk, ensure_ascii=False),
-                    operation,
-                )
+            data = await _attempt(chunk)
             if not expect_same_count:
                 return data
             last_count = len(data.get("utterances", []))
@@ -77,8 +109,16 @@ async def chunked_utterance_call(
         )
 
     # gather preserves input order, so utterances reassemble in transcript order
-    # regardless of which chunk finishes first.
-    return list(await asyncio.gather(*(one(chunk) for chunk in chunks)))
+    # regardless of which chunk finishes first. On failure, cancel the siblings
+    # rather than leaving them generating into a job nobody is waiting for.
+    tasks = [asyncio.ensure_future(one(chunk)) for chunk in chunks]
+    try:
+        return list(await asyncio.gather(*tasks))
+    except BaseException:
+        for t in tasks:
+            t.cancel()
+        await asyncio.gather(*tasks, return_exceptions=True)
+        raise
 
 
 class LLMProvider(ABC):
