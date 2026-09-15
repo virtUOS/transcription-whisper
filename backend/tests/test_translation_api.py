@@ -141,3 +141,61 @@ async def test_get_translation_reports_source_unavailable_after_refinement_delet
     data = resp.json()
     assert data["source"] == "refined"
     assert data["source_available"] is False
+
+
+@pytest.mark.asyncio
+async def test_translate_rejects_the_transcripts_own_language():
+    """Translating into the language the transcript is already in is a
+    degenerate request. The model has nothing to do and may return something
+    unusable — in production it echoed the schema back — which surfaced to the
+    user as an opaque 500. Reject it up front instead."""
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        txn_id, _ = await _setup(client, txn_id="test-translate-same-lang")
+        from app.database import get_db
+        async with get_db() as db:
+            await db.execute(
+                "UPDATE transcriptions SET language = 'de' WHERE id = ?", (txn_id,)
+            )
+            await db.commit()
+
+        with patch("app.routers.translation.get_llm_provider", return_value=AsyncMock()):
+            resp = await client.post(f"/api/translate/{txn_id}", json={"target_language": "de"})
+
+    assert resp.status_code == 400
+    assert "already" in resp.json()["detail"].lower()
+
+
+@pytest.mark.asyncio
+async def test_translate_allows_a_different_language():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        txn_id, _ = await _setup(client, txn_id="test-translate-other-lang")
+        from app.database import get_db
+        async with get_db() as db:
+            await db.execute(
+                "UPDATE transcriptions SET language = 'de' WHERE id = ?", (txn_id,)
+            )
+            await db.commit()
+
+        translated = _translated(["Hello world", "How are you"])
+        with patch("app.routers.translation.get_llm_provider", return_value=AsyncMock()), \
+             patch("app.routers.translation._call_llm_translation", return_value=translated):
+            resp = await client.post(f"/api/translate/{txn_id}", json={"target_language": "en"})
+
+    assert resp.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_translate_allows_same_language_when_source_language_unknown():
+    """`language` is NULL for some transcriptions, so an unknown source language
+    must not block translation."""
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        txn_id, _ = await _setup(client, txn_id="test-translate-null-lang")
+        translated = _translated(["Hallo Welt", "Wie geht es dir"])
+        with patch("app.routers.translation.get_llm_provider", return_value=AsyncMock()), \
+             patch("app.routers.translation._call_llm_translation", return_value=translated):
+            resp = await client.post(f"/api/translate/{txn_id}", json={"target_language": "de"})
+
+    assert resp.status_code == 200
