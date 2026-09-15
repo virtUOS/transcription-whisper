@@ -1,4 +1,6 @@
 import json
+import logging
+import traceback
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from app.config import settings
@@ -78,7 +80,12 @@ async def refine_transcription(
             )
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
+        logging.error(
+            "Refinement failed for transcription %s: %s: %s",
+            transcription_id, type(e).__name__, e,
+        )
+        logging.error("Traceback: %s", traceback.format_exc())
         await reset_refinement_state(transcription_id, user.id)
         raise HTTPException(status_code=500, detail="Refinement failed")
 

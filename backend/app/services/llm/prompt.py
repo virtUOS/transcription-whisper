@@ -315,7 +315,10 @@ def build_refinement_user_prompt(utterances: list[dict]) -> str:
 
 
 def chunk_utterances_for_refinement(
-    utterances: list[dict], max_utterances: int = 200
+    # Refinement returns every utterance rewritten, so output size — and
+    # therefore latency — scales with the chunk. At roughly 178 tok/s a
+    # 50-utterance chunk takes about 79s; 200 needed over 300s and timed out.
+    utterances: list[dict], max_utterances: int = 50
 ) -> list[list[dict]]:
     if len(utterances) <= max_utterances:
         return [utterances]

@@ -1,5 +1,10 @@
+import asyncio
 import json
 from abc import ABC, abstractmethod
+
+# Parallel refinement requests per transcript. Chunks are independent, but this
+# bounds how many a single long transcript can open against the LLM endpoint.
+REFINEMENT_MAX_CONCURRENT = 4
 
 from app.models import (
     SummaryResult, SummaryChapter,
@@ -87,15 +92,27 @@ class LLMProvider(ABC):
         utterances = json.loads(transcript)
         chunks = chunk_utterances_for_refinement(utterances)
 
+        # Chunks are independent, so send them concurrently: run sequentially a
+        # long transcript waits for the sum of every chunk's latency, which is
+        # minutes. Bounded so a long transcript cannot open dozens of parallel
+        # requests against the LLM endpoint at once.
+        semaphore = asyncio.Semaphore(REFINEMENT_MAX_CONCURRENT)
+
+        async def refine(chunk: list[dict]) -> dict:
+            async with semaphore:
+                return await self._json_chat(
+                    build_refinement_system_prompt(context),
+                    build_refinement_user_prompt(chunk),
+                    "refinement",
+                )
+
+        # gather preserves input order, so utterances reassemble in transcript
+        # order regardless of which chunk finishes first.
+        results = await asyncio.gather(*(refine(chunk) for chunk in chunks))
+
         all_refined: list[dict] = []
         summaries: list[str] = []
-
-        for chunk in chunks:
-            data = await self._json_chat(
-                build_refinement_system_prompt(context),
-                build_refinement_user_prompt(chunk),
-                "refinement",
-            )
+        for data in results:
             all_refined.extend(data.get("utterances", []))
             summaries.append(data.get("changes_summary", ""))
 
