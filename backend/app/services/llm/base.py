@@ -2,6 +2,7 @@ import asyncio
 import json
 from abc import ABC, abstractmethod
 
+from app.config import settings
 from app.models import (
     SummaryResult, SummaryChapter,
     ProtocolResult, ProtocolKeyPoint, ProtocolDecision, ProtocolActionItem,
@@ -17,9 +18,9 @@ from app.services.llm.prompt import (
 )
 
 # Parallel chunk requests per transcript, for the operations that rewrite every
-# utterance (refinement and translation). Chunks are independent, but this bounds
-# how many a single long transcript can open against the LLM endpoint at once.
-LLM_CHUNK_MAX_CONCURRENT = 4
+# utterance (refinement and translation). See config.LLM_CHUNK_CONCURRENCY for
+# why this is deliberately small.
+LLM_CHUNK_MAX_CONCURRENT = settings.LLM_CHUNK_CONCURRENCY
 
 
 async def chunked_utterance_call(

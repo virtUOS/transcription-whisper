@@ -14,6 +14,7 @@ class OpenAIProvider(LLMProvider):
             api_key=settings.LLM_API_KEY,
             base_url=settings.LLM_BASE_URL or None,
             timeout=settings.LLM_TIMEOUT,
+            max_retries=settings.LLM_MAX_RETRIES,
         )
         self._model = settings.LLM_MODEL or "gpt-4o"
 
