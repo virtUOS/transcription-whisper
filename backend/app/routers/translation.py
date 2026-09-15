@@ -8,7 +8,7 @@ from app.models import UserInfo, TranslationRequest
 from app.database import get_db
 from app.services.llm import get_llm_provider
 from app.services.llm.base import chunked_utterance_call
-from app.services.llm.prompt import build_translation_system_prompt
+from app.services.llm.prompt import build_translation_system_prompt, _language_name
 from app.metrics import inc, measure_llm_operation, deletions_total
 
 router = APIRouter()
@@ -46,7 +46,7 @@ async def translate_transcription(
 
     async with get_db() as db:
         cursor = await db.execute(
-            """SELECT status, result_json, refined_utterances_json,
+            """SELECT status, language, result_json, refined_utterances_json,
                       translated_utterances_json, translation_language,
                       translation_source, translation_source_hash
                FROM transcriptions WHERE id = ? AND user_id = ?""",
@@ -89,6 +89,18 @@ async def translate_transcription(
 
         if status != "completed":
             raise HTTPException(status_code=400, detail="Transcription not completed")
+
+        # Translating into the transcript's own language leaves the model with
+        # nothing to do, and it may return something unusable rather than the
+        # text unchanged — in production it echoed the schema back, which reached
+        # the user as an opaque 500. A NULL source language means we do not know,
+        # so only reject when the two are known to match.
+        source_language = row["language"]
+        if source_language and source_language == body.target_language:
+            raise HTTPException(
+                status_code=400,
+                detail=f"The transcript is already in {_language_name(source_language)}.",
+            )
 
         try:
             chosen_source = select_source(
