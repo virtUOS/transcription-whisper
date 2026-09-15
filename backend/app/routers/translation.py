@@ -1,4 +1,7 @@
+import asyncio
 import json
+import logging
+import traceback
 from fastapi import APIRouter, Depends, HTTPException
 from app.config import settings
 from app.dependencies import get_current_user
@@ -6,6 +9,7 @@ from app.router_helpers import ensure_transcription_owned, reset_translation_sta
 from app.models import UserInfo, TranslationRequest
 from app.database import get_db
 from app.services.llm import get_llm_provider
+from app.services.llm.base import LLM_CHUNK_MAX_CONCURRENT, reject_schema_echo
 from app.services.llm.prompt import (
     build_translation_system_prompt,
     build_translation_user_prompt,
@@ -19,31 +23,40 @@ router = APIRouter()
 async def _call_llm_translation(provider, utterances: list[dict], target_language: str) -> list[dict]:
     """Call LLM to translate utterances, chunking if needed."""
     chunks = chunk_utterances_for_refinement(utterances)
-    all_translated: list[dict] = []
 
-    for chunk in chunks:
+    # Use provider's internal chat method depending on type
+    from app.services.llm.openai import OpenAIProvider
+    from app.services.llm.ollama import OllamaProvider
+
+    if not isinstance(provider, (OpenAIProvider, OllamaProvider)):
+        raise HTTPException(status_code=503, detail="Unsupported LLM provider for translation")
+
+    # Like refinement, translation returns every utterance rewritten, so latency
+    # scales with the chunk and a sequential loop waits for the sum of them all.
+    # Chunks are independent; run them concurrently under the same bound.
+    semaphore = asyncio.Semaphore(LLM_CHUNK_MAX_CONCURRENT)
+
+    async def translate(chunk: list[dict]) -> dict:
         system = build_translation_system_prompt(target_language)
         user = build_translation_user_prompt(chunk)
-
-        # Use provider's internal chat method depending on type
-        from app.services.llm.openai import OpenAIProvider
-        from app.services.llm.ollama import OllamaProvider
-
-        if isinstance(provider, OpenAIProvider):
-            resp = await provider._client.chat.completions.create(
-                model=provider._model,
-                messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
-                temperature=0.3,
-                response_format={"type": "json_object"},
-            )
-            track_llm_tokens(settings.LLM_PROVIDER, provider._model, "translation", getattr(resp, "usage", None))
-            data = json.loads(resp.choices[0].message.content or "{}")
-        elif isinstance(provider, OllamaProvider):
+        async with semaphore:
+            if isinstance(provider, OpenAIProvider):
+                resp = await provider._client.chat.completions.create(
+                    model=provider._model,
+                    messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
+                    temperature=0.3,
+                    response_format={"type": "json_object"},
+                )
+                track_llm_tokens(settings.LLM_PROVIDER, provider._model, "translation", getattr(resp, "usage", None))
+                return reject_schema_echo(json.loads(resp.choices[0].message.content or "{}"))
             content = await provider._chat(system, user, operation="translation")
-            data = json.loads(content)
-        else:
-            raise HTTPException(status_code=503, detail="Unsupported LLM provider for translation")
+            return reject_schema_echo(json.loads(content))
 
+    # gather preserves input order, so utterances reassemble in transcript order.
+    results = await asyncio.gather(*(translate(chunk) for chunk in chunks))
+
+    all_translated: list[dict] = []
+    for data in results:
         all_translated.extend(data.get("utterances", []))
 
     return all_translated
@@ -132,7 +145,12 @@ async def translate_transcription(
             translated = await _call_llm_translation(provider, source_utterances, body.target_language)
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
+        logging.error(
+            "Translation to %s failed for transcription %s: %s: %s",
+            body.target_language, transcription_id, type(e).__name__, e,
+        )
+        logging.error("Traceback: %s", traceback.format_exc())
         await reset_translation_state(transcription_id, user.id)
         raise HTTPException(status_code=500, detail="Translation failed")
 
