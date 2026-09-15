@@ -2,10 +2,6 @@ import asyncio
 import json
 from abc import ABC, abstractmethod
 
-# Parallel refinement requests per transcript. Chunks are independent, but this
-# bounds how many a single long transcript can open against the LLM endpoint.
-REFINEMENT_MAX_CONCURRENT = 4
-
 from app.models import (
     SummaryResult, SummaryChapter,
     ProtocolResult, ProtocolKeyPoint, ProtocolDecision, ProtocolActionItem,
@@ -19,6 +15,11 @@ from app.services.llm.prompt import (
     chunk_utterances_for_refinement,
     _language_name,
 )
+
+# Parallel chunk requests per transcript, for the operations that rewrite every
+# utterance (refinement and translation). Chunks are independent, but this bounds
+# how many a single long transcript can open against the LLM endpoint at once.
+LLM_CHUNK_MAX_CONCURRENT = 4
 
 
 class LLMProvider(ABC):
@@ -96,7 +97,7 @@ class LLMProvider(ABC):
         # long transcript waits for the sum of every chunk's latency, which is
         # minutes. Bounded so a long transcript cannot open dozens of parallel
         # requests against the LLM endpoint at once.
-        semaphore = asyncio.Semaphore(REFINEMENT_MAX_CONCURRENT)
+        semaphore = asyncio.Semaphore(LLM_CHUNK_MAX_CONCURRENT)
 
         async def refine(chunk: list[dict]) -> dict:
             async with semaphore:
