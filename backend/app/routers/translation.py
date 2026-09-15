@@ -23,6 +23,7 @@ async def _call_llm_translation(provider, utterances: list[dict], target_languag
         provider, utterances,
         build_system=lambda: build_translation_system_prompt(target_language),
         operation="translation",
+        expect_same_count=True,
     )
 
     all_translated: list[dict] = []

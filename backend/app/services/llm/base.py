@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 from abc import ABC, abstractmethod
 
 from app.config import settings
@@ -22,12 +23,17 @@ from app.services.llm.prompt import (
 # why this is deliberately small.
 LLM_CHUNK_MAX_CONCURRENT = settings.LLM_CHUNK_CONCURRENCY
 
+# Re-attempts for a single chunk that comes back with the wrong number of
+# utterances. Cheap compared with discarding every other chunk's work.
+CHUNK_COUNT_RETRIES = 2
+
 
 async def chunked_utterance_call(
     provider: "LLMProvider",
     utterances: list[dict],
     build_system,
     operation: str,
+    expect_same_count: bool = False,
 ) -> list[dict]:
     """Send utterances to the LLM in chunks, concurrently, in input order.
 
@@ -44,12 +50,31 @@ async def chunked_utterance_call(
     semaphore = asyncio.Semaphore(LLM_CHUNK_MAX_CONCURRENT)
 
     async def one(chunk: list[dict]) -> dict:
-        async with semaphore:
-            return await provider._json_chat(
-                build_system(),
-                json.dumps(chunk, ensure_ascii=False),
-                operation,
+        # Refinement and translation must return one utterance per input, but
+        # models do not honour that reliably — one short chunk used to discard
+        # every other chunk's work and surface as a 500 after several minutes.
+        # Retry just the offending chunk instead.
+        last_count = None
+        for attempt in range(CHUNK_COUNT_RETRIES + 1):
+            async with semaphore:
+                data = await provider._json_chat(
+                    build_system(),
+                    json.dumps(chunk, ensure_ascii=False),
+                    operation,
+                )
+            if not expect_same_count:
+                return data
+            last_count = len(data.get("utterances", []))
+            if last_count == len(chunk):
+                return data
+            logging.warning(
+                "%s chunk returned %d utterances, expected %d (attempt %d/%d)",
+                operation, last_count, len(chunk), attempt + 1, CHUNK_COUNT_RETRIES + 1,
             )
+        raise ValueError(
+            f"The language model returned {last_count} utterances for a chunk of "
+            f"{len(chunk)} after {CHUNK_COUNT_RETRIES + 1} attempts."
+        )
 
     # gather preserves input order, so utterances reassemble in transcript order
     # regardless of which chunk finishes first.
@@ -129,6 +154,7 @@ class LLMProvider(ABC):
             self, utterances,
             build_system=lambda: build_refinement_system_prompt(context),
             operation="refinement",
+            expect_same_count=True,
         )
 
         all_refined: list[dict] = []
