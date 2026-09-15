@@ -18,6 +18,18 @@ class OpenAIProvider(LLMProvider):
         )
         self._model = settings.LLM_MODEL or "gpt-4o"
 
+    @property
+    def _extra_body(self) -> dict:
+        """Provider-specific request fields.
+
+        Reasoning models spend tokens thinking before answering, which is wasted
+        on the utterance paths and slow enough to blow the request timeout. vLLM
+        turns it off through the chat template rather than a top-level field.
+        """
+        if not settings.LLM_DISABLE_THINKING:
+            return {}
+        return {"chat_template_kwargs": {"enable_thinking": False}}
+
     async def _json_chat(self, system: str, user: str, operation: str) -> dict:
         response = await self._client.chat.completions.create(
             model=self._model,
@@ -27,6 +39,7 @@ class OpenAIProvider(LLMProvider):
             ],
             temperature=0.3,
             response_format={"type": "json_object"},
+            extra_body=self._extra_body,
         )
         track_llm_tokens("openai", self._model, operation, getattr(response, "usage", None))
         return reject_schema_echo(json.loads(response.choices[0].message.content or "{}"))
