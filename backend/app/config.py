@@ -25,6 +25,16 @@ class Settings:
     # Per-request ceiling for LLM calls. Without it the OpenAI SDK applies its own
     # 600s default, so a slow model leaves the user on a spinner for ten minutes.
     LLM_TIMEOUT: float = float(os.getenv("LLM_TIMEOUT", "180"))
+    # Retries per LLM request. The SDK spaces these with exponential backoff and
+    # jitter, so they are far gentler on a busy endpoint than parallel requests
+    # are. Keeping the default of 2 favours finishing a long job over failing it,
+    # which matters because the UI already warns that these take a while.
+    LLM_MAX_RETRIES: int = int(os.getenv("LLM_MAX_RETRIES", "2"))
+    # Parallel chunk requests per transcript for refinement and translation. The
+    # LLM endpoint is shared with other services, so this is the setting that
+    # determines our peak footprint on everyone else. Kept deliberately low: the
+    # wall-clock saving from going wider is not worth degrading interactive users.
+    LLM_CHUNK_CONCURRENCY: int = int(os.getenv("LLM_CHUNK_CONCURRENCY", "2"))
 
     TEMP_PATH: str = os.getenv("TEMP_PATH", "tmp/transcription-files")
     FFMPEG_PATH: str = os.getenv("FFMPEG_PATH", "ffmpeg")
