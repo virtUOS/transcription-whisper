@@ -30,11 +30,16 @@ class Settings:
     # is now retried rather than discarding the job, so a generous ceiling costs
     # nothing in the common case and finishing slowly beats failing fast.
     LLM_TIMEOUT: float = float(os.getenv("LLM_TIMEOUT", "600"))
-    # Retries per LLM request. The SDK spaces these with exponential backoff and
-    # jitter, so they are far gentler on a busy endpoint than parallel requests
-    # are. Keeping the default of 2 favours finishing a long job over failing it,
-    # which matters because the UI already warns that these take a while.
-    LLM_MAX_RETRIES: int = int(os.getenv("LLM_MAX_RETRIES", "2"))
+    # Retries the OpenAI SDK performs inside a single request. Zero on purpose:
+    # chunked_utterance_call does its own per-chunk retry, and the two layers
+    # multiply rather than add — at a 600s timeout, 3 SDK attempts under 3 app
+    # attempts is 90 minutes for one chunk. A chunk call was measured raising
+    # APITimeoutError only after 1082s against a 360s timeout for exactly this
+    # reason, which also inflates every latency measured through the app.
+    #
+    # The app's retry is the one worth keeping: it re-validates the returned
+    # utterance count, which a blind SDK re-send does not.
+    LLM_MAX_RETRIES: int = int(os.getenv("LLM_MAX_RETRIES", "0"))
     # Parallel chunk requests per transcript for refinement and translation. The
     # LLM endpoint is shared with other services, so this is the setting that
     # determines our peak footprint on everyone else. Kept deliberately low: the
