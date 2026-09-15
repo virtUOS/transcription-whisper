@@ -4,7 +4,7 @@ import httpx
 
 from app.config import settings
 from app.metrics import track_llm_tokens
-from app.services.llm.base import LLMProvider
+from app.services.llm.base import LLMProvider, reject_schema_echo
 from app.services.llm.prompt import REFINEMENT_CONSOLIDATION_PROMPT
 
 
@@ -33,7 +33,7 @@ class OllamaProvider(LLMProvider):
             return payload["message"]["content"]
 
     async def _json_chat(self, system: str, user: str, operation: str) -> dict:
-        return json.loads(await self._chat(system, user, operation))
+        return reject_schema_echo(json.loads(await self._chat(system, user, operation)))
 
     async def _consolidate_refinement_summaries(self, summaries: list[str]) -> str:
         return await self._chat(
