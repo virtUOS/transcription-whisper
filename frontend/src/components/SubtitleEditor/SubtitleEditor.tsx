@@ -708,11 +708,12 @@ export function SubtitleEditor() {
               <button
                 onClick={handleRetryFailedChunks}
                 disabled={retryingChunks}
+                aria-busy={retryingChunks}
                 className="px-2 py-0.5 rounded border border-amber-600/60 text-amber-300 hover:bg-amber-800/30 disabled:opacity-50"
               >
                 {retryingChunks ? t('editor.retryingSections') : t('editor.retryFailedSections')}
               </button>
-              {retryError && <span className="text-red-400">{t('editor.retryFailed')}</span>}
+              {retryError && <span role="status" className="text-red-400">{t('editor.retryFailed')}</span>}
             </div>
           )}
           {!summaryCollapsed && (
