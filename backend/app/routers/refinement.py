@@ -15,6 +15,7 @@ from app.models import (
 )
 from app.database import get_db
 from app.services.llm import get_llm_provider
+from app.services.source_tracking import hash_utterance_texts
 from app.metrics import inc, measure_llm_operation, deletions_total
 
 router = APIRouter()
@@ -45,6 +46,17 @@ async def _load_mapped_utterances(db, transcription_id: str, result_json: str | 
     return mapped
 
 
+def _refinement_is_stale(metadata: RefinementMetadata, original_utterances: list[dict]) -> bool:
+    """Whether the original's texts changed since this refinement was made.
+
+    Mirrors translation's source-hash check. Rows without a source_hash predate
+    the field and are never reported stale.
+    """
+    if not metadata.source_hash:
+        return False
+    return hash_utterance_texts(original_utterances) != metadata.source_hash
+
+
 @router.post("/api/refine/{transcription_id}")
 async def refine_transcription(
     transcription_id: str,
@@ -68,9 +80,11 @@ async def refine_transcription(
         status, result_json, refined_json, metadata_json = row
 
         if metadata_json is not None:
+            metadata = RefinementMetadata(**json.loads(metadata_json))
             return RefinementResult(
                 utterances=[Utterance(**u) for u in json.loads(refined_json)],
-                metadata=RefinementMetadata(**json.loads(metadata_json)),
+                metadata=metadata,
+                stale=_refinement_is_stale(metadata, json.loads(result_json or "[]")),
             )
         if refined_json is not None:
             raise HTTPException(status_code=429, detail="Refinement already in progress")
@@ -126,6 +140,7 @@ async def refine_transcription(
         llm_model=settings.LLM_MODEL,
         created_at=datetime.now(timezone.utc).isoformat(),
         failed_ranges=llm_result.failed_ranges,
+        source_hash=hash_utterance_texts(original_utterances),
     )
 
     refined_data = [u.model_dump() for u in llm_result.utterances]
@@ -234,7 +249,11 @@ async def retry_failed_refinement_chunks(
     finally:
         _retries_in_flight.discard(transcription_id)
 
-    return RefinementResult(utterances=[Utterance(**u) for u in refined], metadata=updated)
+    return RefinementResult(
+        utterances=[Utterance(**u) for u in refined],
+        metadata=updated,
+        stale=_refinement_is_stale(updated, original_utterances),
+    )
 
 
 @router.get("/api/refine/{transcription_id}")
@@ -244,7 +263,7 @@ async def get_refinement(
 ):
     async with get_db() as db:
         cursor = await db.execute(
-            """SELECT refined_utterances_json, refinement_metadata_json
+            """SELECT result_json, refined_utterances_json, refinement_metadata_json
                FROM transcriptions WHERE id = ? AND user_id = ?""",
             (transcription_id, user.id),
         )
@@ -253,9 +272,11 @@ async def get_refinement(
     if not result or not result["refinement_metadata_json"]:
         raise HTTPException(status_code=404, detail="No refinement found")
 
+    metadata = RefinementMetadata(**json.loads(result["refinement_metadata_json"]))
     return RefinementResult(
         utterances=[Utterance(**u) for u in json.loads(result["refined_utterances_json"])],
-        metadata=RefinementMetadata(**json.loads(result["refinement_metadata_json"])),
+        metadata=metadata,
+        stale=_refinement_is_stale(metadata, json.loads(result["result_json"] or "[]")),
     )
 
 

@@ -182,12 +182,20 @@ class RefinementMetadata(BaseModel):
     # chunk failed. Empty for complete refinements and for rows written before
     # this field existed. POST /api/refine/{id}/retry re-runs exactly these.
     failed_ranges: list[tuple[int, int]] = []
+    # sha256 of the original utterance texts when this refinement was made
+    # (source_tracking.hash_utterance_texts). Lets a read report `stale` when
+    # the original was edited afterwards, the way translation does. None on
+    # rows written before this field existed — those never report stale.
+    source_hash: str | None = None
 
 
 class RefinementResult(BaseModel):
     """Full response returned to the frontend."""
     utterances: list[Utterance]
     metadata: RefinementMetadata
+    # True when the original's texts no longer match metadata.source_hash:
+    # this refinement was made from an older original.
+    stale: bool = False
 
 
 class AnalysisListItem(BaseModel):

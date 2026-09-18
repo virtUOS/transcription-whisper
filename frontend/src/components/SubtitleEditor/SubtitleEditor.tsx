@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useStore } from '../../store'
-import { api } from '../../api/client'
+import { api, ApiError } from '../../api/client'
 import { SubtitleRow } from './SubtitleRow'
 import { LanguageSelect } from '../LanguageSelect'
 import { PresetSelect } from '../PresetSelect/PresetSelect'
@@ -29,6 +29,8 @@ export function SubtitleEditor() {
   const activeView = useStore((s) => s.activeView)
   const setRefinedUtterances = useStore((s) => s.setRefinedUtterances)
   const setRefinementMetadata = useStore((s) => s.setRefinementMetadata)
+  const refinementStale = useStore((s) => s.refinementStale)
+  const setRefinementStale = useStore((s) => s.setRefinementStale)
   const setActiveView = useStore((s) => s.setActiveView)
   const clearRefinement = useStore((s) => s.clearRefinement)
   const translatedUtterances = useStore((s) => s.translatedUtterances)
@@ -55,7 +57,9 @@ export function SubtitleEditor() {
   const [showRefineModal, setShowRefineModal] = useState(false)
   const [refineContext, setRefineContext] = useState('')
   const [retryingChunks, setRetryingChunks] = useState(false)
-  const [retryError, setRetryError] = useState(false)
+  const [retryError, setRetryError] = useState<'stale' | 'generic' | null>(null)
+  const [refineError, setRefineError] = useState(false)
+  const [translateError, setTranslateError] = useState(false)
   const [refining, setRefining] = useState(false)
   const [selectedRefinementPresetId, setSelectedRefinementPresetId] = useState<string | null>(null)
   const [speakerPanelOpen, setSpeakerPanelOpen] = useState(false)
@@ -396,6 +400,11 @@ export function SubtitleEditor() {
     try {
       await api.saveTranscription(transcriptionId, result.utterances)
       setDirty(false)
+      if (refinementMetadata) {
+        // Staleness is decided server-side from the saved texts; refresh it so
+        // the badge appears without a reload.
+        api.getRefinement(transcriptionId).then((r) => setRefinementStale(r.stale)).catch(() => {})
+      }
     } catch (e) {
       console.error('Save failed:', e)
     } finally {
@@ -406,15 +415,17 @@ export function SubtitleEditor() {
   const handleRefine = async () => {
     if (!transcriptionId) return
     setRefining(true)
+    setRefineError(false)
     try {
       const refinementResult = await api.generateRefinement(transcriptionId, refineContext || undefined)
       setRefinedUtterances(refinementResult.utterances)
       setRefinementMetadata(refinementResult.metadata)
+      setRefinementStale(refinementResult.stale)
       setActiveView('refined')
       setShowRefineModal(false)
       setRefineContext('')
     } catch {
-      console.error('Refinement failed')
+      setRefineError(true)
     } finally {
       setRefining(false)
     }
@@ -423,13 +434,14 @@ export function SubtitleEditor() {
   const handleRetryFailedChunks = async () => {
     if (!transcriptionId) return
     setRetryingChunks(true)
-    setRetryError(false)
+    setRetryError(null)
     try {
       const refinementResult = await api.retryRefinement(transcriptionId)
       setRefinedUtterances(refinementResult.utterances)
       setRefinementMetadata(refinementResult.metadata)
-    } catch {
-      setRetryError(true)
+      setRefinementStale(refinementResult.stale)
+    } catch (e) {
+      setRetryError(e instanceof ApiError && e.status === 409 ? 'stale' : 'generic')
     } finally {
       setRetryingChunks(false)
     }
@@ -448,6 +460,7 @@ export function SubtitleEditor() {
   const handleTranslate = async () => {
     if (!transcriptionId) return
     setTranslating(true)
+    setTranslateError(false)
     try {
       const translationResult = await api.translateTranscription(
         transcriptionId,
@@ -464,7 +477,7 @@ export function SubtitleEditor() {
       setActiveView('translated')
       setShowTranslateModal(false)
     } catch {
-      console.error('Translation failed')
+      setTranslateError(true)
     } finally {
       setTranslating(false)
     }
@@ -637,6 +650,17 @@ export function SubtitleEditor() {
               )}
             </div>
             <div className="ml-auto flex items-center gap-1">
+              {refinementMetadata && refinementStale && (
+                <span
+                  className="flex items-center gap-1 px-2 py-1 text-xs text-amber-400 border border-amber-700/40 rounded"
+                  title={t('editor.refinementStale')}
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582M20 20v-5h-.581M5.635 19.364A9 9 0 0120 12" />
+                  </svg>
+                  {t('editor.refinementStale')}
+                </span>
+              )}
               {translatedUtterances && (translationStale || !translationSourceAvailable) && (
                 <button
                   onClick={() => setShowTranslateModal(true)}
@@ -713,7 +737,11 @@ export function SubtitleEditor() {
               >
                 {retryingChunks ? t('editor.retryingSections') : t('editor.retryFailedSections')}
               </button>
-              {retryError && <span role="status" className="text-red-400">{t('editor.retryFailed')}</span>}
+              {retryError && (
+                <span role="status" className="text-red-400">
+                  {t(retryError === 'stale' ? 'editor.retryStaleTranscript' : 'editor.retryFailed')}
+                </span>
+              )}
             </div>
           )}
           {!summaryCollapsed && (
@@ -820,9 +848,12 @@ export function SubtitleEditor() {
                 {t('editor.refinementWarningLong', { count: baseUtterances.length })}
               </p>
             )}
+            {refineError && (
+              <p role="alert" className="text-xs text-red-400 mt-2">{t('editor.refinementFailed')}</p>
+            )}
             <div className="flex justify-end gap-2 mt-4">
               <button
-                onClick={() => { setShowRefineModal(false); setRefineContext('') }}
+                onClick={() => { setShowRefineModal(false); setRefineContext(''); setRefineError(false) }}
                 disabled={refining}
                 className="px-3 py-1.5 text-xs text-gray-400 border border-gray-600 rounded hover:border-gray-500 hover:text-gray-200 disabled:opacity-50"
               >
@@ -887,9 +918,12 @@ export function SubtitleEditor() {
                 {t('editor.translationWarningLong', { count: baseUtterances.length })}
               </p>
             )}
+            {translateError && (
+              <p role="alert" className="text-xs text-red-400 mt-2">{t('editor.translationFailed')}</p>
+            )}
             <div className="flex justify-end gap-2 mt-4">
               <button
-                onClick={() => setShowTranslateModal(false)}
+                onClick={() => { setShowTranslateModal(false); setTranslateError(false) }}
                 disabled={translating}
                 className="px-3 py-1.5 text-xs text-gray-400 border border-gray-600 rounded hover:border-gray-500 hover:text-gray-200 disabled:opacity-50"
               >

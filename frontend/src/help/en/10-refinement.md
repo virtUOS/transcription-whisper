@@ -2,7 +2,7 @@
 
 ## What refinement does
 
-Refinement runs a language model cleanup pass over your transcript. It removes filler words (um, uh, you know), fixes speaker attribution errors where the wrong speaker was tagged mid-sentence, and smooths fragmented or run-on sentences into readable prose. The original transcript is fully preserved — refinement produces a separate view, not an in-place edit. It stays in the source language; it is not a translation.
+Refinement runs a language model cleanup pass over your transcript. It removes filler words (um, uh, you know), fixes speaker attribution errors where the wrong speaker was tagged mid-sentence, and smooths fragmented or run-on sentences into readable prose. The original transcript is fully preserved — refinement produces a separate view, not an in-place edit. It stays in the source language; it is not a translation. If you edit the original after refining, the toolbar shows **original was edited – delete and refine again**; the refined view keeps the older text until you do.
 
 ## When it helps
 

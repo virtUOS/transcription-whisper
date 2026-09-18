@@ -14,6 +14,17 @@ import type {
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '')
 
+/** A non-2xx API response. `message` is the server's `detail`; `status` lets callers branch on it. */
+export class ApiError extends Error {
+  readonly status: number
+
+  constructor(status: number, detail: string) {
+    super(detail)
+    this.name = 'ApiError'
+    this.status = status
+  }
+}
+
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   let response: Response
   try {
@@ -41,7 +52,7 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
       throw new Error('Authentication required')
     }
     const error = await response.json().catch(() => ({ detail: response.statusText }))
-    throw new Error(error.detail || response.statusText)
+    throw new ApiError(response.status, error.detail || response.statusText)
   }
   return response.json()
 }
@@ -55,7 +66,7 @@ export const api = {
     const response = await fetch(`${BASE}/api/upload`, { method: 'POST', body: formData, signal })
     if (!response.ok) {
       const error = await response.json().catch(() => ({ detail: response.statusText }))
-      throw new Error(error.detail || response.statusText)
+      throw new ApiError(response.status, error.detail || response.statusText)
     }
     return response.json()
   },

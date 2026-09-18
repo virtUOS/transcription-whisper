@@ -40,6 +40,8 @@ interface AppState {
   activeView: 'original' | 'refined' | 'translated'
   setRefinedUtterances: (utterances: Utterance[] | null) => void
   setRefinementMetadata: (metadata: RefinementMetadata | null) => void
+  refinementStale: boolean
+  setRefinementStale: (stale: boolean) => void
   setActiveView: (view: 'original' | 'refined' | 'translated') => void
   translatedUtterances: Utterance[] | null
   translationLanguage: string | null
@@ -133,6 +135,8 @@ export const useStore = create<AppState>((set, get) => ({
   activeView: 'original' as const,
   setRefinedUtterances: (utterances) => set({ refinedUtterances: utterances }),
   setRefinementMetadata: (metadata) => set({ refinementMetadata: metadata }),
+  refinementStale: false,
+  setRefinementStale: (stale) => set({ refinementStale: stale }),
   setActiveView: (view) => set({ activeView: view }),
   translatedUtterances: null,
   translationLanguage: null,
@@ -174,13 +178,13 @@ export const useStore = create<AppState>((set, get) => ({
   setHelpOpen: (open, initialSection) =>
     set({ helpOpen: open, helpInitialSection: initialSection ?? null }),
   closeHelp: () => set({ helpOpen: false }),
-  clearRefinement: () => set({ refinedUtterances: null, refinementMetadata: null, activeView: 'original' as const }),
+  clearRefinement: () => set({ refinedUtterances: null, refinementMetadata: null, refinementStale: false, activeView: 'original' as const }),
   reset: () => set({
     currentView: 'archive' as const,
     file: null, uploading: false, uploadAbortController: null, transcriptionId: null, transcriptionTitle: null, transcriptionStatus: null,
     transcriptionResult: null, speakerMappings: {},
     currentTime: 0, seekTo: null, activeTab: 'subtitles', unsavedEdits: false,
-    refinedUtterances: null, refinementMetadata: null, activeView: 'original' as const,
+    refinedUtterances: null, refinementMetadata: null, refinementStale: false, activeView: 'original' as const,
     translatedUtterances: null, translationLanguage: null,
     translationSource: null, translationStale: false, translationSourceAvailable: true,
     analyses: [],

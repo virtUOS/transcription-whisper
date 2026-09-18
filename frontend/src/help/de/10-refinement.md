@@ -2,7 +2,7 @@
 
 ## Was Verfeinerung bewirkt
 
-Die Verfeinerung führt einen Bereinigungsdurchlauf mit einem Sprachmodell über dein Transkript aus. Sie entfernt Füllwörter (äh, ähm, also), behebt Sprecherzuordnungsfehler, bei denen mitten im Satz der falsche Sprecher getaggt wurde, und glättet fragmentierte oder zu lange Sätze zu lesbarem Text. Das Original-Transkript bleibt vollständig erhalten — die Verfeinerung erzeugt eine eigene Ansicht, keine direkte Bearbeitung. Sie bleibt in der Ausgangssprache; sie ist keine Übersetzung.
+Die Verfeinerung führt einen Bereinigungsdurchlauf mit einem Sprachmodell über dein Transkript aus. Sie entfernt Füllwörter (äh, ähm, also), behebt Sprecherzuordnungsfehler, bei denen mitten im Satz der falsche Sprecher getaggt wurde, und glättet fragmentierte oder zu lange Sätze zu lesbarem Text. Das Original-Transkript bleibt vollständig erhalten — die Verfeinerung erzeugt eine eigene Ansicht, keine direkte Bearbeitung. Sie bleibt in der Ausgangssprache; sie ist keine Übersetzung. Bearbeitest du das Original nach der Verfeinerung, zeigt die Werkzeugleiste **Original wurde bearbeitet – löschen und erneut verfeinern**; die verfeinerte Ansicht behält bis dahin den älteren Text.
 
 ## Wann sie hilft
 

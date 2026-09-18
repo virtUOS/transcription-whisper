@@ -117,11 +117,15 @@ export interface RefinementMetadata {
   created_at: string | null
   /** Half-open, 0-based ranges still holding original text because their chunk failed. */
   failed_ranges: [number, number][]
+  /** sha256 of the original texts when refined; null on rows from before this existed. */
+  source_hash: string | null
 }
 
 export interface RefinementResult {
   utterances: Utterance[]
   metadata: RefinementMetadata
+  /** The original's texts changed since this refinement was made. */
+  stale: boolean
 }
 
 export interface ConfigResponse {
