@@ -43,7 +43,9 @@ async def chunked_utterance_call(
     build_system,
     operation: str,
     expect_same_count: bool = False,
-) -> list[dict]:
+    tolerate_failures: bool = False,
+    chunks: list[list[dict]] | None = None,
+) -> list[dict | None]:
     """Send utterances to the LLM in chunks, concurrently, in input order.
 
     Shared by the operations that rewrite every utterance — refinement and
@@ -54,8 +56,17 @@ async def chunked_utterance_call(
 
     `build_system` is called per chunk to produce the system prompt. Results
     come back in input order, so callers can concatenate them directly.
+
+    `chunks`, when given, is sent as-is instead of chunking `utterances`; the
+    refinement retry passes exactly the ranges that failed before.
+
+    `tolerate_failures` makes a chunk that exhausts its retries resolve to None
+    in its slot instead of raising and cancelling its siblings. Refinement opts
+    in because an unrefined range is still correct text; translation must not,
+    because an untranslated range is not.
     """
-    chunks = chunk_utterances_for_refinement(utterances)
+    if chunks is None:
+        chunks = chunk_utterances_for_refinement(utterances)
     semaphore = asyncio.Semaphore(LLM_CHUNK_MAX_CONCURRENT)
 
     async def _attempt(chunk: list[dict]) -> dict:
@@ -110,10 +121,25 @@ async def chunked_utterance_call(
             f"{len(chunk)} after {CHUNK_COUNT_RETRIES + 1} attempts."
         )
 
+    async def one_or_none(chunk: list[dict]) -> dict | None:
+        try:
+            return await one(chunk)
+        except asyncio.CancelledError:
+            raise
+        except Exception as e:
+            logging.warning(
+                "%s chunk of %d utterances gave up after retries (%s: %s); keeping original text",
+                operation, len(chunk), type(e).__name__, e,
+            )
+            return None
+
     # gather preserves input order, so utterances reassemble in transcript order
     # regardless of which chunk finishes first. On failure, cancel the siblings
-    # rather than leaving them generating into a job nobody is waiting for.
-    tasks = [asyncio.ensure_future(one(chunk)) for chunk in chunks]
+    # rather than leaving them generating into a job nobody is waiting for —
+    # unless the caller tolerates failures, in which case a dead chunk is a
+    # None slot and the siblings finish.
+    runner = one_or_none if tolerate_failures else one
+    tasks = [asyncio.ensure_future(runner(chunk)) for chunk in chunks]
     try:
         return list(await asyncio.gather(*tasks))
     except BaseException:
