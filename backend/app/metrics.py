@@ -109,6 +109,14 @@ llm_tokens_total = _counter(
     ["provider", "model", "operation", "kind"],  # kind: prompt | completion
 )
 
+# A chunk that exhausted its retries no longer fails the job — refinement keeps
+# the original text for that range and reports it. Without this the failure
+# that used to trip the LLM error-rate alert would become a silent success.
+refinement_failed_chunks_total = _counter(
+    "transcription_refinement_failed_chunks_total",
+    "Refinement chunks that exhausted their retries and kept original text",
+)
+
 # --- Errors ---
 errors_total = _counter("transcription_errors_total", "Errors", ["error_type", "component"])
 

@@ -165,6 +165,9 @@ class LLMRefinementResponse(BaseModel):
     """Raw response from LLM provider — no provider/model metadata."""
     utterances: list[Utterance]
     changes_summary: str
+    # Half-open, 0-based utterance index ranges whose chunk failed every
+    # retry. Those utterances are the input text, unrefined.
+    failed_ranges: list[tuple[int, int]] = []
 
 
 class RefinementMetadata(BaseModel):
@@ -175,6 +178,10 @@ class RefinementMetadata(BaseModel):
     llm_provider: str | None = None
     llm_model: str | None = None
     created_at: str | None = None
+    # Half-open, 0-based ranges still holding original text because their
+    # chunk failed. Empty for complete refinements and for rows written before
+    # this field existed. POST /api/refine/{id}/retry re-runs exactly these.
+    failed_ranges: list[tuple[int, int]] = []
 
 
 class RefinementResult(BaseModel):
