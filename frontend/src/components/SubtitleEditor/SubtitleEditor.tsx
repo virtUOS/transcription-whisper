@@ -58,6 +58,8 @@ export function SubtitleEditor() {
   const [refineContext, setRefineContext] = useState('')
   const [retryingChunks, setRetryingChunks] = useState(false)
   const [retryError, setRetryError] = useState(false)
+  const [refineError, setRefineError] = useState(false)
+  const [translateError, setTranslateError] = useState(false)
   const [refining, setRefining] = useState(false)
   const [selectedRefinementPresetId, setSelectedRefinementPresetId] = useState<string | null>(null)
   const [speakerPanelOpen, setSpeakerPanelOpen] = useState(false)
@@ -413,6 +415,7 @@ export function SubtitleEditor() {
   const handleRefine = async () => {
     if (!transcriptionId) return
     setRefining(true)
+    setRefineError(false)
     try {
       const refinementResult = await api.generateRefinement(transcriptionId, refineContext || undefined)
       setRefinedUtterances(refinementResult.utterances)
@@ -422,7 +425,7 @@ export function SubtitleEditor() {
       setShowRefineModal(false)
       setRefineContext('')
     } catch {
-      console.error('Refinement failed')
+      setRefineError(true)
     } finally {
       setRefining(false)
     }
@@ -457,6 +460,7 @@ export function SubtitleEditor() {
   const handleTranslate = async () => {
     if (!transcriptionId) return
     setTranslating(true)
+    setTranslateError(false)
     try {
       const translationResult = await api.translateTranscription(
         transcriptionId,
@@ -473,7 +477,7 @@ export function SubtitleEditor() {
       setActiveView('translated')
       setShowTranslateModal(false)
     } catch {
-      console.error('Translation failed')
+      setTranslateError(true)
     } finally {
       setTranslating(false)
     }
@@ -840,9 +844,12 @@ export function SubtitleEditor() {
                 {t('editor.refinementWarningLong', { count: baseUtterances.length })}
               </p>
             )}
+            {refineError && (
+              <p role="alert" className="text-xs text-red-400 mt-2">{t('editor.refinementFailed')}</p>
+            )}
             <div className="flex justify-end gap-2 mt-4">
               <button
-                onClick={() => { setShowRefineModal(false); setRefineContext('') }}
+                onClick={() => { setShowRefineModal(false); setRefineContext(''); setRefineError(false) }}
                 disabled={refining}
                 className="px-3 py-1.5 text-xs text-gray-400 border border-gray-600 rounded hover:border-gray-500 hover:text-gray-200 disabled:opacity-50"
               >
@@ -907,9 +914,12 @@ export function SubtitleEditor() {
                 {t('editor.translationWarningLong', { count: baseUtterances.length })}
               </p>
             )}
+            {translateError && (
+              <p role="alert" className="text-xs text-red-400 mt-2">{t('editor.translationFailed')}</p>
+            )}
             <div className="flex justify-end gap-2 mt-4">
               <button
-                onClick={() => setShowTranslateModal(false)}
+                onClick={() => { setShowTranslateModal(false); setTranslateError(false) }}
                 disabled={translating}
                 className="px-3 py-1.5 text-xs text-gray-400 border border-gray-600 rounded hover:border-gray-500 hover:text-gray-200 disabled:opacity-50"
               >

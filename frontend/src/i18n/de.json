@@ -168,6 +168,7 @@
     "confirmDeleteRefinement": "Sind Sie sicher, dass Sie die Verfeinerung löschen möchten? Dies stellt die ursprüngliche Transkription wieder her.",
     "refinementDeleted": "Verfeinerung gelöscht",
     "refinementFailed": "Verfeinerung fehlgeschlagen. Bitte versuchen Sie es erneut.",
+    "translationFailed": "Übersetzung fehlgeschlagen. Bitte versuchen Sie es erneut.",
     "refinementPartial": "Nicht verfeinert (Originaltext beibehalten): Äußerungen {{ranges}}",
     "retryFailedSections": "Fehlgeschlagene Abschnitte erneut verfeinern",
     "retryingSections": "Wird wiederholt…",

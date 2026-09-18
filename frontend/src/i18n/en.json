@@ -168,6 +168,7 @@
     "confirmDeleteRefinement": "Are you sure you want to delete the refinement? This will revert to the original transcription.",
     "refinementDeleted": "Refinement deleted",
     "refinementFailed": "Refinement failed. Please try again.",
+    "translationFailed": "Translation failed. Please try again.",
     "refinementPartial": "Not refined (original text kept): utterances {{ranges}}",
     "retryFailedSections": "Retry failed sections",
     "retryingSections": "Retrying…",
