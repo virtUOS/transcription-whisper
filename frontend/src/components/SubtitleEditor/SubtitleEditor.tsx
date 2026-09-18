@@ -6,6 +6,7 @@ import { SubtitleRow } from './SubtitleRow'
 import { LanguageSelect } from '../LanguageSelect'
 import { PresetSelect } from '../PresetSelect/PresetSelect'
 import { SpeakerMapping } from '../SpeakerMapping'
+import { formatUtteranceRange, isInAnyRange } from '../../utils/utteranceRanges'
 import type { Utterance } from '../../api/types'
 
 type SearchScope = 'text' | 'speaker' | 'both'
@@ -53,6 +54,8 @@ export function SubtitleEditor() {
   const [searchScope, setSearchScope] = useState<SearchScope>('both')
   const [showRefineModal, setShowRefineModal] = useState(false)
   const [refineContext, setRefineContext] = useState('')
+  const [retryingChunks, setRetryingChunks] = useState(false)
+  const [retryError, setRetryError] = useState(false)
   const [refining, setRefining] = useState(false)
   const [selectedRefinementPresetId, setSelectedRefinementPresetId] = useState<string | null>(null)
   const [speakerPanelOpen, setSpeakerPanelOpen] = useState(false)
@@ -417,6 +420,21 @@ export function SubtitleEditor() {
     }
   }
 
+  const handleRetryFailedChunks = async () => {
+    if (!transcriptionId) return
+    setRetryingChunks(true)
+    setRetryError(false)
+    try {
+      const refinementResult = await api.retryRefinement(transcriptionId)
+      setRefinedUtterances(refinementResult.utterances)
+      setRefinementMetadata(refinementResult.metadata)
+    } catch {
+      setRetryError(true)
+    } finally {
+      setRetryingChunks(false)
+    }
+  }
+
   const handleDeleteRefinement = async () => {
     if (!transcriptionId || !confirm(t('editor.confirmDeleteRefinement'))) return
     try {
@@ -680,6 +698,23 @@ export function SubtitleEditor() {
               </span>
             )}
           </div>
+          {refinementMetadata.failed_ranges.length > 0 && (
+            <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-amber-200/90">
+              <span>
+                {t('editor.refinementPartial', {
+                  ranges: refinementMetadata.failed_ranges.map(formatUtteranceRange).join(', '),
+                })}
+              </span>
+              <button
+                onClick={handleRetryFailedChunks}
+                disabled={retryingChunks}
+                className="px-2 py-0.5 rounded border border-amber-600/60 text-amber-300 hover:bg-amber-800/30 disabled:opacity-50"
+              >
+                {retryingChunks ? t('editor.retryingSections') : t('editor.retryFailedSections')}
+              </button>
+              {retryError && <span className="text-red-400">{t('editor.retryFailed')}</span>}
+            </div>
+          )}
           {!summaryCollapsed && (
             <div className="mt-1.5 space-y-1">
               <p className="text-xs text-amber-200/70">{refinementMetadata.changes_summary}</p>
@@ -739,6 +774,7 @@ export function SubtitleEditor() {
                     highlightTerms={debouncedQuery || undefined}
                     highlightScope={searchScope}
                     isChanged={activeView === 'refined' && (refinementMetadata?.changed_indices.includes(entry.originalIndex) ?? false)}
+                    isUnrefined={activeView === 'refined' && isInAnyRange(entry.originalIndex, refinementMetadata?.failed_ranges ?? [])}
                     originalText={activeView === 'refined' ? result?.utterances[entry.originalIndex]?.text : undefined}
                     readOnly={activeView === 'refined' || activeView === 'translated'}
                     editingField={editingCell?.index === entry.originalIndex ? editingCell.field : undefined}
