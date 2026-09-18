@@ -14,6 +14,7 @@ from app.services.llm.prompt import (
     build_protocol_system_prompt, build_protocol_user_prompt,
     PROTOCOL_CONSOLIDATION_PROMPT, PROTOCOL_SCHEMA,
     build_refinement_system_prompt,
+    REFINEMENT_OUTPUT_TOKEN_CAP,
     chunk_utterances_for_refinement,
     _language_name,
 )
@@ -71,6 +72,7 @@ async def chunked_utterance_call(
                         build_system(),
                         json.dumps(chunk, ensure_ascii=False),
                         operation,
+                        max_tokens=REFINEMENT_OUTPUT_TOKEN_CAP,
                     )
             except asyncio.CancelledError:
                 # A sibling chunk failed and we are being torn down; never
@@ -123,8 +125,15 @@ async def chunked_utterance_call(
 
 class LLMProvider(ABC):
     @abstractmethod
-    async def _json_chat(self, system: str, user: str, operation: str) -> dict:
-        """Run a JSON-returning chat completion and return the parsed object."""
+    async def _json_chat(
+        self, system: str, user: str, operation: str, max_tokens: int | None = None
+    ) -> dict:
+        """Run a JSON-returning chat completion and return the parsed object.
+
+        `max_tokens` bounds the reply. The utterance paths pass it because their
+        output is bounded by their input; analysis leaves it None because a
+        consolidation is not, and a cap sized for a chunk would truncate it.
+        """
 
     @abstractmethod
     async def _consolidate_refinement_summaries(self, summaries: list[str]) -> str:

@@ -24,7 +24,7 @@ class _FakeProvider(LLMProvider):
         self.concurrent = 0
         self.max_concurrent = 0
 
-    async def _json_chat(self, system, user, operation):
+    async def _json_chat(self, system, user, operation, max_tokens=None):
         self.calls += 1
         self.concurrent += 1
         self.max_concurrent = max(self.max_concurrent, self.concurrent)

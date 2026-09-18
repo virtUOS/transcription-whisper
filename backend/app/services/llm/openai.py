@@ -30,7 +30,9 @@ class OpenAIProvider(LLMProvider):
             return {}
         return {"chat_template_kwargs": {"enable_thinking": False}}
 
-    async def _json_chat(self, system: str, user: str, operation: str) -> dict:
+    async def _json_chat(
+        self, system: str, user: str, operation: str, max_tokens: int | None = None
+    ) -> dict:
         response = await self._client.chat.completions.create(
             model=self._model,
             messages=[
@@ -40,6 +42,7 @@ class OpenAIProvider(LLMProvider):
             temperature=0.3,
             response_format={"type": "json_object"},
             extra_body=self._extra_body,
+            **({"max_tokens": max_tokens} if max_tokens is not None else {}),
         )
         track_llm_tokens("openai", self._model, operation, getattr(response, "usage", None))
         return reject_schema_echo(json.loads(response.choices[0].message.content or "{}"))
