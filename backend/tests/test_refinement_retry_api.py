@@ -186,6 +186,33 @@ async def test_concurrent_retry_is_rejected_with_409():
 
 
 @pytest.mark.asyncio
+async def test_retry_409_when_transcript_was_edited_since_the_partial_was_saved():
+    """An edit to the original transcript (rows deleted via the editable view)
+    between the partial run and the retry must not let the splice shrink the
+    stored refined list. The stored partial stays exactly as it was."""
+    refined, metadata = _partial_state()
+    # The provider will be handed the *edited* 3-utterance transcript and, being
+    # full-length relative to its input, returns 3 utterances.
+    provider = _provider_returning(["line 0", "line 1", "LINE 2"])
+    async with _client() as client:
+        txn = await _setup(client, refined=refined, metadata=metadata)
+        async with get_db() as db:
+            await db.execute(
+                "UPDATE transcriptions SET result_json = ? WHERE id = ?",
+                (json.dumps(_orig()[:3]), txn),
+            )
+            await db.commit()
+        with patch(PROVIDER, return_value=provider):
+            resp = await client.post(f"/api/refine/{txn}/retry")
+        assert resp.status_code == 409
+        get = await client.get(f"/api/refine/{txn}")
+    assert get.status_code == 200
+    assert [u["text"] for u in get.json()["utterances"]] == ["LINE 0", "LINE 1", "line 2", "line 3"]
+    assert get.json()["metadata"]["failed_ranges"] == [[2, 4]]
+    assert txn not in refinement_router._retries_in_flight
+
+
+@pytest.mark.asyncio
 async def test_retry_does_not_resurrect_a_refinement_deleted_mid_flight():
     refined, metadata = _partial_state()
 

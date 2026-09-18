@@ -198,6 +198,12 @@ async def retry_failed_refinement_chunks(
             )
             raise HTTPException(status_code=500, detail="Refinement retry failed")
 
+        if len(llm_result.utterances) != len(refined):
+            raise HTTPException(
+                status_code=409,
+                detail="Transcript changed since this refinement was saved; delete the refinement and refine again.",
+            )
+
         still_failed = set(llm_result.failed_ranges)
         new_utterances = [u.model_dump() for u in llm_result.utterances]
         for a, b in metadata.failed_ranges:
@@ -206,7 +212,7 @@ async def retry_failed_refinement_chunks(
 
         updated = metadata.model_copy(update={
             "changed_indices": [
-                i for i, (orig, ref) in enumerate(zip(original_utterances, refined))
+                i for i, (orig, ref) in enumerate(zip(original_utterances, refined, strict=True))
                 if orig["text"] != ref["text"]
             ],
             "changes_summary": llm_result.changes_summary,
