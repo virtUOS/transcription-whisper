@@ -173,6 +173,7 @@
     "retryingSections": "Retrying…",
     "retryFailed": "Retry failed. Please try again.",
     "unrefinedRow": "Not refined – original text",
+    "refinementStale": "original was edited – delete and refine again",
     "refinementWarningLong": "This transcription has {{count}} utterances. Refinement may take several minutes.",
     "translationWarningLong": "This transcription has {{count}} utterances. Translation may take several minutes.",
     "originalText": "Original",

@@ -29,6 +29,8 @@ export function SubtitleEditor() {
   const activeView = useStore((s) => s.activeView)
   const setRefinedUtterances = useStore((s) => s.setRefinedUtterances)
   const setRefinementMetadata = useStore((s) => s.setRefinementMetadata)
+  const refinementStale = useStore((s) => s.refinementStale)
+  const setRefinementStale = useStore((s) => s.setRefinementStale)
   const setActiveView = useStore((s) => s.setActiveView)
   const clearRefinement = useStore((s) => s.clearRefinement)
   const translatedUtterances = useStore((s) => s.translatedUtterances)
@@ -396,6 +398,11 @@ export function SubtitleEditor() {
     try {
       await api.saveTranscription(transcriptionId, result.utterances)
       setDirty(false)
+      if (refinementMetadata) {
+        // Staleness is decided server-side from the saved texts; refresh it so
+        // the badge appears without a reload.
+        api.getRefinement(transcriptionId).then((r) => setRefinementStale(r.stale)).catch(() => {})
+      }
     } catch (e) {
       console.error('Save failed:', e)
     } finally {
@@ -410,6 +417,7 @@ export function SubtitleEditor() {
       const refinementResult = await api.generateRefinement(transcriptionId, refineContext || undefined)
       setRefinedUtterances(refinementResult.utterances)
       setRefinementMetadata(refinementResult.metadata)
+      setRefinementStale(refinementResult.stale)
       setActiveView('refined')
       setShowRefineModal(false)
       setRefineContext('')
@@ -428,6 +436,7 @@ export function SubtitleEditor() {
       const refinementResult = await api.retryRefinement(transcriptionId)
       setRefinedUtterances(refinementResult.utterances)
       setRefinementMetadata(refinementResult.metadata)
+      setRefinementStale(refinementResult.stale)
     } catch {
       setRetryError(true)
     } finally {
@@ -637,6 +646,17 @@ export function SubtitleEditor() {
               )}
             </div>
             <div className="ml-auto flex items-center gap-1">
+              {refinementMetadata && refinementStale && (
+                <span
+                  className="flex items-center gap-1 px-2 py-1 text-xs text-amber-400 border border-amber-700/40 rounded"
+                  title={t('editor.refinementStale')}
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582M20 20v-5h-.581M5.635 19.364A9 9 0 0120 12" />
+                  </svg>
+                  {t('editor.refinementStale')}
+                </span>
+              )}
               {translatedUtterances && (translationStale || !translationSourceAvailable) && (
                 <button
                   onClick={() => setShowTranslateModal(true)}

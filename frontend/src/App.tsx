@@ -272,6 +272,7 @@ function MainApp() {
 
   const setRefinedUtterances = useStore((s) => s.setRefinedUtterances)
   const setRefinementMetadata = useStore((s) => s.setRefinementMetadata)
+  const setRefinementStale = useStore((s) => s.setRefinementStale)
   const setActiveView = useStore((s) => s.setActiveView)
   const addAnalysis = useStore((s) => s.addAnalysis)
   const setTranslatedUtterances = useStore((s) => s.setTranslatedUtterances)
@@ -338,6 +339,7 @@ function MainApp() {
           const result = await api.generateRefinement(transcriptionId, hasRefinement.context || undefined)
           setRefinedUtterances(result.utterances)
           setRefinementMetadata(result.metadata)
+          setRefinementStale(result.stale)
           setActiveView('refined')
         } catch (e) {
           errors.push(`${t('editor.refineTranscription')}: ${e instanceof Error ? e.message : String(e)}`)
@@ -390,7 +392,7 @@ function MainApp() {
     }
 
     run()
-  }, [transcriptionStatus, transcriptionResult, setRefinedUtterances, setRefinementMetadata, setActiveView, addAnalysis, setTranslatedUtterances, setTranslationLanguage, setTranslationMetadata, t])
+  }, [transcriptionStatus, transcriptionResult, setRefinedUtterances, setRefinementMetadata, setRefinementStale, setActiveView, addAnalysis, setTranslatedUtterances, setTranslationLanguage, setTranslationMetadata, t])
 
   const handleTranscribe = useCallback(async () => {
     const state = useStore.getState()
