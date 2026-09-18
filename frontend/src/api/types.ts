@@ -115,6 +115,8 @@ export interface RefinementMetadata {
   llm_provider: string | null
   llm_model: string | null
   created_at: string | null
+  /** Half-open, 0-based ranges still holding original text because their chunk failed. */
+  failed_ranges: [number, number][]
 }
 
 export interface RefinementResult {
