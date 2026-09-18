@@ -92,7 +92,8 @@ deletions_total = _counter("transcription_deletions_total", "Resource deletions"
 
 # --- LLM (summaries + protocols) ---
 llm_requests_total = _counter(
-    "transcription_llm_requests_total", "LLM requests",
+    "transcription_llm_requests_total",
+    "LLM requests attempted, failures included (transcription_llm_errors_total is the failed subset)",
     ["provider", "model", "operation"],
 )
 llm_duration_seconds = _histogram(
@@ -246,8 +247,14 @@ def track_llm_tokens(provider: str, model: str, operation: str, usage) -> None:
 async def measure_llm_operation(operation: str):
     """Time an LLM call and emit request/duration/error metrics.
 
-    HTTPException passes through without counting as an LLM error (it signals a
-    caller-side failure like an unsupported provider, not a model failure).
+    Every attempt counts as a request and a failed attempt additionally counts
+    as an error, so errors / requests is the failure ratio directly. (Until
+    2026-09 only successes were counted as requests, which forced the alert
+    rule to use requests + errors as its denominator; the rule and dashboard
+    in transcription-whisper-ansible were changed together with this.)
+
+    HTTPException passes through without counting at all: it signals a
+    caller-side failure like an unsupported provider, not a model call.
     """
     start = time.monotonic()
     try:
@@ -255,6 +262,7 @@ async def measure_llm_operation(operation: str):
     except HTTPException:
         raise
     except Exception:
+        inc(llm_requests_total, settings.LLM_PROVIDER, settings.LLM_MODEL, operation)
         inc(llm_errors_total, settings.LLM_PROVIDER, settings.LLM_MODEL, operation)
         inc(errors_total, "llm_failed", operation)
         raise
