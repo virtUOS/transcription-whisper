@@ -173,6 +173,7 @@
     "retryFailedSections": "Retry failed sections",
     "retryingSections": "Retrying…",
     "retryFailed": "Retry failed. Please try again.",
+    "retryStaleTranscript": "Utterances were added or removed since this refinement was saved. Delete the refinement and refine again.",
     "unrefinedRow": "Not refined – original text",
     "refinementStale": "original was edited – delete and refine again",
     "refinementWarningLong": "This transcription has {{count}} utterances. Refinement may take several minutes.",

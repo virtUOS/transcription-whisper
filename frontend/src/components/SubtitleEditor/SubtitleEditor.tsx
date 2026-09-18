@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useStore } from '../../store'
-import { api } from '../../api/client'
+import { api, ApiError } from '../../api/client'
 import { SubtitleRow } from './SubtitleRow'
 import { LanguageSelect } from '../LanguageSelect'
 import { PresetSelect } from '../PresetSelect/PresetSelect'
@@ -57,7 +57,7 @@ export function SubtitleEditor() {
   const [showRefineModal, setShowRefineModal] = useState(false)
   const [refineContext, setRefineContext] = useState('')
   const [retryingChunks, setRetryingChunks] = useState(false)
-  const [retryError, setRetryError] = useState(false)
+  const [retryError, setRetryError] = useState<'stale' | 'generic' | null>(null)
   const [refineError, setRefineError] = useState(false)
   const [translateError, setTranslateError] = useState(false)
   const [refining, setRefining] = useState(false)
@@ -434,14 +434,14 @@ export function SubtitleEditor() {
   const handleRetryFailedChunks = async () => {
     if (!transcriptionId) return
     setRetryingChunks(true)
-    setRetryError(false)
+    setRetryError(null)
     try {
       const refinementResult = await api.retryRefinement(transcriptionId)
       setRefinedUtterances(refinementResult.utterances)
       setRefinementMetadata(refinementResult.metadata)
       setRefinementStale(refinementResult.stale)
-    } catch {
-      setRetryError(true)
+    } catch (e) {
+      setRetryError(e instanceof ApiError && e.status === 409 ? 'stale' : 'generic')
     } finally {
       setRetryingChunks(false)
     }
@@ -737,7 +737,11 @@ export function SubtitleEditor() {
               >
                 {retryingChunks ? t('editor.retryingSections') : t('editor.retryFailedSections')}
               </button>
-              {retryError && <span role="status" className="text-red-400">{t('editor.retryFailed')}</span>}
+              {retryError && (
+                <span role="status" className="text-red-400">
+                  {t(retryError === 'stale' ? 'editor.retryStaleTranscript' : 'editor.retryFailed')}
+                </span>
+              )}
             </div>
           )}
           {!summaryCollapsed && (

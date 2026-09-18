@@ -173,6 +173,7 @@
     "retryFailedSections": "Fehlgeschlagene Abschnitte erneut verfeinern",
     "retryingSections": "Wird wiederholt…",
     "retryFailed": "Wiederholung fehlgeschlagen. Bitte versuchen Sie es erneut.",
+    "retryStaleTranscript": "Seit dem Speichern dieser Verfeinerung wurden Äußerungen hinzugefügt oder entfernt. Löschen Sie die Verfeinerung und verfeinern Sie erneut.",
     "unrefinedRow": "Nicht verfeinert – Originaltext",
     "refinementStale": "Original wurde bearbeitet – löschen und erneut verfeinern",
     "refinementWarningLong": "Diese Transkription hat {{count}} Äußerungen. Die Verfeinerung kann mehrere Minuten dauern.",
