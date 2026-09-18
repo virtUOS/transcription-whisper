@@ -27,7 +27,7 @@ class _DropsOnce(LLMProvider):
         self.attempts = 0
         self.dropped_once = False
 
-    async def _json_chat(self, system, user, operation):
+    async def _json_chat(self, system, user, operation, max_tokens=None):
         self.attempts += 1
         chunk = json.loads(user)
         await asyncio.sleep(0)
@@ -44,7 +44,7 @@ class _DropsOnce(LLMProvider):
 
 
 class _AlwaysDrops(_DropsOnce):
-    async def _json_chat(self, system, user, operation):
+    async def _json_chat(self, system, user, operation, max_tokens=None):
         self.attempts += 1
         chunk = json.loads(user)
         await asyncio.sleep(0)

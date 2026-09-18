@@ -327,6 +327,19 @@ def build_refinement_user_prompt(utterances: list[dict]) -> str:
     return json.dumps(utterances, ensure_ascii=False)
 
 
+# Refinement and translation echo the chunk back, so output is bounded by input:
+# real 50-utterance chunks measured 2275-3615 completion tokens. Nothing in the
+# request said so, and vLLM serves the model with --max-model-len 262144, so a
+# chunk that fails to stop generates until it hits the context window. Eleven
+# requests on the deployed endpoint finished with reason "length", the same
+# eleven that exceeded 600s; six emitted over 200k tokens. At 79 tok/s that is
+# 21 minutes, which no chunk size can rescue because the runaway is unrelated to
+# input size. 16384 clears the largest measured chunk 4x over while turning a
+# runaway into a fast, retryable failure instead of ten GPU-minutes taken from
+# every other tenant of the shared endpoint.
+REFINEMENT_OUTPUT_TOKEN_CAP = 16384
+
+
 def chunk_utterances_for_refinement(
     # Refinement returns every utterance rewritten, so output size — and
     # therefore latency — scales with the chunk. At roughly 178 tok/s a

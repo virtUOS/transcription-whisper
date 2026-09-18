@@ -31,7 +31,7 @@ class _TimesOutOnce(LLMProvider):
         self.attempts = 0
         self.failed_once = False
 
-    async def _json_chat(self, system, user, operation):
+    async def _json_chat(self, system, user, operation, max_tokens=None):
         self.attempts += 1
         chunk = json.loads(user)
         await asyncio.sleep(0)
@@ -48,7 +48,7 @@ class _TimesOutOnce(LLMProvider):
 
 
 class _AlwaysTimesOut(_TimesOutOnce):
-    async def _json_chat(self, system, user, operation):
+    async def _json_chat(self, system, user, operation, max_tokens=None):
         self.attempts += 1
         await asyncio.sleep(0)
         raise self.exc
@@ -117,7 +117,7 @@ async def test_sibling_chunks_are_not_left_running_when_one_fails():
     finished = []
 
     class _SlowSibling(LLMProvider):
-        async def _json_chat(self, system, user, operation):
+        async def _json_chat(self, system, user, operation, max_tokens=None):
             chunk = json.loads(user)
             started.append(chunk[0]["start"])
             if chunk[0]["start"] == 0:

@@ -22,7 +22,7 @@ class _Recorder(LLMProvider):
         self.max_concurrent = 0
         self.operations = []
 
-    async def _json_chat(self, system, user, operation):
+    async def _json_chat(self, system, user, operation, max_tokens=None):
         self.calls += 1
         self.operations.append(operation)
         self.concurrent += 1
