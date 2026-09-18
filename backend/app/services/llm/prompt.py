@@ -340,18 +340,25 @@ def build_refinement_user_prompt(utterances: list[dict]) -> str:
 REFINEMENT_OUTPUT_TOKEN_CAP = 16384
 
 
+def chunk_ranges(n: int, max_utterances: int = 50) -> list[tuple[int, int]]:
+    """Half-open, 0-based index ranges sent as one request each on the utterance paths.
+
+    Refinement stores the ranges whose chunk failed and later retries exactly
+    those, so boundaries must be reproducible from the utterance count alone.
+    Every caller derives them here rather than slicing on its own.
+    """
+    if n <= 0:
+        return []
+    return [(i, min(i + max_utterances, n)) for i in range(0, n, max_utterances)]
+
+
 def chunk_utterances_for_refinement(
     # Refinement returns every utterance rewritten, so output size — and
     # therefore latency — scales with the chunk. At roughly 178 tok/s a
     # 50-utterance chunk takes about 79s; 200 needed over 300s and timed out.
     utterances: list[dict], max_utterances: int = 50
 ) -> list[list[dict]]:
-    if len(utterances) <= max_utterances:
-        return [utterances]
-    chunks = []
-    for i in range(0, len(utterances), max_utterances):
-        chunks.append(utterances[i:i + max_utterances])
-    return chunks
+    return [utterances[a:b] for a, b in chunk_ranges(len(utterances), max_utterances)]
 
 
 REFINEMENT_CONSOLIDATION_PROMPT = """You received multiple changes_summary strings from refining different chunks of the same transcript. Combine them into a single concise summary.

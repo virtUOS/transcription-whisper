@@ -127,6 +127,9 @@ export const api = {
   getRefinement: (id: string) =>
     request<RefinementResult>(`/api/refine/${id}`),
 
+  retryRefinement: (id: string) =>
+    request<RefinementResult>(`/api/refine/${id}/retry`, { method: 'POST' }),
+
   deleteRefinement: (id: string) =>
     request<{ status: string }>(`/api/refine/${id}`, { method: 'DELETE' }),
 

@@ -54,6 +54,7 @@ interface Props {
   highlightTerms?: string
   highlightScope?: 'text' | 'speaker' | 'both'
   isChanged?: boolean
+  isUnrefined?: boolean
   originalText?: string
   readOnly?: boolean
   editingField?: string
@@ -65,7 +66,7 @@ interface Props {
   isLast?: boolean
 }
 
-export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function SubtitleRow({ index, utterance, isActive, isContext, speakerMappings, onUpdate, onEditSpeaker, speakerColorIndex, highlightTerms, highlightScope, isChanged, originalText, readOnly, editingField, onStartEditing, onStopEditing, onMergeWithNext, onAddRow, onDeleteRow, isLast }, ref) {
+export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function SubtitleRow({ index, utterance, isActive, isContext, speakerMappings, onUpdate, onEditSpeaker, speakerColorIndex, highlightTerms, highlightScope, isChanged, isUnrefined, originalText, readOnly, editingField, onStartEditing, onStopEditing, onMergeWithNext, onAddRow, onDeleteRow, isLast }, ref) {
   const { t } = useTranslation()
   const setSeekTo = useStore((s) => s.setSeekTo)
   const [editValue, setEditValue] = useState('')
@@ -182,13 +183,16 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
       <tr
         ref={ref}
         onClick={handleRowClick}
-        className={`group block sm:table-row border-b border-gray-700 text-xs ${isActive ? 'bg-blue-900/30' : 'hover:bg-gray-800'} ${isContext ? 'opacity-50' : ''} ${isChanged ? 'border-l-2 border-l-amber-500' : ''} ${isChanged ? 'cursor-pointer' : ''}`}
+        className={`group block sm:table-row border-b border-gray-700 text-xs ${isActive ? 'bg-blue-900/30' : 'hover:bg-gray-800'} ${isContext ? 'opacity-50' : ''} ${isChanged ? 'border-l-2 border-l-amber-500' : isUnrefined ? 'border-l-2 border-dashed border-l-gray-500' : ''} ${isChanged ? 'cursor-pointer' : ''}`}
       >
         <td className="hidden sm:table-cell px-3 py-2 text-gray-500">
           <span className="inline-flex items-center gap-0.5">
             {index + 1}
             {isChanged && (
               <span className="ml-1 inline-block w-1.5 h-1.5 rounded-full bg-amber-500 align-middle" title={t('editor.utteranceChanged')} />
+            )}
+            {!isChanged && isUnrefined && (
+              <span className="ml-1 inline-block w-1.5 h-1.5 rounded-full border border-gray-500 align-middle" title={t('editor.unrefinedRow')} />
             )}
             {!readOnly && (
               <>

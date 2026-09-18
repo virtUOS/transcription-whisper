@@ -4,6 +4,7 @@ import logging
 from abc import ABC, abstractmethod
 
 from app.config import settings
+from app.metrics import inc, refinement_failed_chunks_total
 from app.models import (
     SummaryResult, SummaryChapter,
     ProtocolResult, ProtocolKeyPoint, ProtocolDecision, ProtocolActionItem,
@@ -16,6 +17,7 @@ from app.services.llm.prompt import (
     build_refinement_system_prompt,
     REFINEMENT_OUTPUT_TOKEN_CAP,
     chunk_utterances_for_refinement,
+    chunk_ranges,
     _language_name,
 )
 
@@ -43,7 +45,9 @@ async def chunked_utterance_call(
     build_system,
     operation: str,
     expect_same_count: bool = False,
-) -> list[dict]:
+    tolerate_failures: bool = False,
+    chunks: list[list[dict]] | None = None,
+) -> list[dict | None]:
     """Send utterances to the LLM in chunks, concurrently, in input order.
 
     Shared by the operations that rewrite every utterance — refinement and
@@ -54,8 +58,17 @@ async def chunked_utterance_call(
 
     `build_system` is called per chunk to produce the system prompt. Results
     come back in input order, so callers can concatenate them directly.
+
+    `chunks`, when given, is sent as-is instead of chunking `utterances`; the
+    refinement retry passes exactly the ranges that failed before.
+
+    `tolerate_failures` makes a chunk that exhausts its retries resolve to None
+    in its slot instead of raising and cancelling its siblings. Refinement opts
+    in because an unrefined range is still correct text; translation must not,
+    because an untranslated range is not.
     """
-    chunks = chunk_utterances_for_refinement(utterances)
+    if chunks is None:
+        chunks = chunk_utterances_for_refinement(utterances)
     semaphore = asyncio.Semaphore(LLM_CHUNK_MAX_CONCURRENT)
 
     async def _attempt(chunk: list[dict]) -> dict:
@@ -110,10 +123,25 @@ async def chunked_utterance_call(
             f"{len(chunk)} after {CHUNK_COUNT_RETRIES + 1} attempts."
         )
 
+    async def one_or_none(chunk: list[dict]) -> dict | None:
+        try:
+            return await one(chunk)
+        except asyncio.CancelledError:
+            raise
+        except Exception as e:
+            logging.warning(
+                "%s chunk of %d utterances gave up after retries (%s: %s); keeping original text",
+                operation, len(chunk), type(e).__name__, e,
+            )
+            return None
+
     # gather preserves input order, so utterances reassemble in transcript order
     # regardless of which chunk finishes first. On failure, cancel the siblings
-    # rather than leaving them generating into a job nobody is waiting for.
-    tasks = [asyncio.ensure_future(one(chunk)) for chunk in chunks]
+    # rather than leaving them generating into a job nobody is waiting for —
+    # unless the caller tolerates failures, in which case a dead chunk is a
+    # None slot and the siblings finish.
+    runner = one_or_none if tolerate_failures else one
+    tasks = [asyncio.ensure_future(runner(chunk)) for chunk in chunks]
     try:
         return list(await asyncio.gather(*tasks))
     except BaseException:
@@ -196,30 +224,71 @@ class LLMProvider(ABC):
         return _parse_protocol(data)
 
     async def generate_refinement(
-        self, transcript: str, context: str | None = None
+        self,
+        transcript: str,
+        context: str | None = None,
+        ranges: list[tuple[int, int]] | None = None,
+        previous_summary: str | None = None,
     ) -> LLMRefinementResponse:
+        """Refine `transcript` (a JSON list of utterances) chunk by chunk.
+
+        A chunk that fails every retry is tolerated: its utterances come back
+        as sent and its range is reported in `failed_ranges`, so one slow chunk
+        on a busy endpoint no longer discards the rest of the transcript. On an
+        initial run where no chunk succeeds the call raises, since nothing
+        useful was produced and the caller's failure path already handles that.
+
+        `ranges` restricts the call to those half-open index ranges — the retry
+        path passes what a previous run reported as failed. The result is still
+        full-length; utterances outside `ranges` are returned as sent, and the
+        caller splices in only what recovered. `previous_summary` is folded into
+        the consolidated summary so a retry yields one summary rather than two.
+        If everything fails again on a retry the previous summary is returned
+        unchanged rather than raising: the stored partial is still intact.
+        """
         utterances = json.loads(transcript)
+        initial_run = ranges is None
+        if initial_run:
+            ranges = chunk_ranges(len(utterances))
+        chunks = [utterances[a:b] for a, b in ranges]
+
         results = await chunked_utterance_call(
             self, utterances,
             build_system=lambda: build_refinement_system_prompt(context),
             operation="refinement",
             expect_same_count=True,
+            tolerate_failures=True,
+            chunks=chunks,
         )
 
-        all_refined: list[dict] = []
+        refined = [dict(u) for u in utterances]
+        failed_ranges: list[tuple[int, int]] = []
         summaries: list[str] = []
-        for data in results:
-            all_refined.extend(data.get("utterances", []))
+        for (a, b), data in zip(ranges, results):
+            if data is None:
+                failed_ranges.append((a, b))
+                continue
+            refined[a:b] = data.get("utterances", [])
             summaries.append(data.get("changes_summary", ""))
 
+        inc(refinement_failed_chunks_total, amount=len(failed_ranges))
+
+        if initial_run and ranges and not summaries:
+            raise RuntimeError(
+                f"Refinement failed: all {len(ranges)} chunks exhausted their retries."
+            )
+
+        if previous_summary:
+            summaries = [previous_summary] + summaries
         if len(summaries) > 1:
             combined_summary = await self._consolidate_refinement_summaries(summaries)
         else:
             combined_summary = summaries[0] if summaries else "No changes needed"
 
         return LLMRefinementResponse(
-            utterances=[Utterance(**u) for u in all_refined],
+            utterances=[Utterance(**u) for u in refined],
             changes_summary=combined_summary,
+            failed_ranges=failed_ranges,
         )
 
 

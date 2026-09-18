@@ -12,6 +12,10 @@ Die Verfeinerung ist am nützlichsten bei rauschreichen Quellen: informellen Ges
 
 Bei sauberen Einzelsprecher-Aufnahmen — Vorlesungen, Kommentaren, vorbereiteten Reden — ist die rohe ASR-Ausgabe in der Regel bereits von hoher Qualität. Die Verfeinerung verursacht dann LLM-Kosten und Verarbeitungszeit ohne nennenswerten Gewinn. Überspringe sie, wenn das Original bereits gut lesbar ist.
 
+## Wenn einzelne Abschnitte nicht verfeinert werden konnten
+
+Die Verfeinerung wird dem Sprachmodell abschnittsweise übergeben. Schlägt ein Abschnitt fehl — meist, weil der Modell-Endpunkt ausgelastet war und die Anfrage abgelaufen ist — wird der Rest des Transkripts trotzdem verfeinert und gespeichert. Fehlgeschlagene Abschnitte behalten ihren Originaltext: In der verfeinerten Ansicht haben ihre Zeilen einen gestrichelten grauen Rand und einen hohlen grauen Punkt, und ein Hinweis über der Tabelle nennt ihre Äußerungsnummern. Mit **Fehlgeschlagene Abschnitte erneut verfeinern** in diesem Hinweis werden nur diese Abschnitte mit demselben Kontext wie ursprünglich erneut verarbeitet. Bereits erfolgreiche Abschnitte werden nicht erneut gesendet.
+
 ## Reihenfolge mit anderen Schritten
 
 In einer Bundle-Pipeline läuft die Verfeinerung immer vor Analyse und Übersetzung. Sobald eine Verfeinerung vorhanden ist, verwenden Analyse und Übersetzung standardmäßig diese als Eingabe — ein Bundle mit Verfeinerungsschritt reicht den bereinigten Text also automatisch an die nachfolgenden Stufen weiter. Du kannst dies pro Durchlauf über den **Quelle**-Umschalter in den Dialogen „Übersetzen" und „Analysieren" überschreiben oder den Verfeinerungsschritt im Bundle weglassen, wenn nachgelagerte Stufen auf dem Original arbeiten sollen. Die verfeinerte Fassung bleibt zudem als eigenständige Ansicht nutzbar — lesbar, bearbeitbar und herunterladbar neben dem Original. Mehr dazu unter **Analyse**, **Übersetzung** und **Bundles**.
