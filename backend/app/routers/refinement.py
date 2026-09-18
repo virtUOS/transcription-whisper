@@ -19,6 +19,31 @@ from app.metrics import inc, measure_llm_operation, deletions_total
 
 router = APIRouter()
 
+# Transcription ids with a retry in flight. In-process on purpose: the app
+# runs one uvicorn worker (Dockerfile ENTRYPOINT sets no --workers), so this
+# set is authoritative, clears itself on restart, and leaves the stored
+# partial intact if the process dies mid-retry. The DB sentinel the initial
+# run uses ('' in refined_utterances_json) would instead orphan the row, and
+# nulling the metadata as a lock would make GET 404 on a reload mid-retry.
+# Revisit if the app ever runs more than one worker.
+_retries_in_flight: set[str] = set()
+
+
+async def _load_mapped_utterances(db, transcription_id: str, result_json: str | None) -> list[dict]:
+    """Original utterances with the user's speaker names applied — what the LLM is sent.
+
+    Shared by the initial refinement and the retry so both send the model the
+    same text for the same utterance.
+    """
+    speaker_map = await load_speaker_mappings(db, transcription_id)
+    mapped = []
+    for u in json.loads(result_json or "[]"):
+        m = dict(u)
+        if m.get("speaker") and m["speaker"] in speaker_map:
+            m["speaker"] = speaker_map[m["speaker"]]
+        mapped.append(m)
+    return mapped
+
 
 @router.post("/api/refine/{transcription_id}")
 async def refine_transcription(
@@ -54,21 +79,13 @@ async def refine_transcription(
             raise HTTPException(status_code=400, detail="Transcription not completed")
 
         original_utterances = json.loads(result_json or "[]")
-
-        speaker_map = await load_speaker_mappings(db, transcription_id)
+        mapped_utterances = await _load_mapped_utterances(db, transcription_id, result_json)
 
         await db.execute(
             "UPDATE transcriptions SET refined_utterances_json = '' WHERE id = ? AND user_id = ?",
             (transcription_id, user.id),
         )
         await db.commit()
-
-    mapped_utterances = []
-    for u in original_utterances:
-        mapped = dict(u)
-        if mapped.get("speaker") and mapped["speaker"] in speaker_map:
-            mapped["speaker"] = speaker_map[mapped["speaker"]]
-        mapped_utterances.append(mapped)
 
     context = body.context if body else None
     transcript_json = json.dumps(mapped_utterances, ensure_ascii=False)
@@ -108,6 +125,7 @@ async def refine_transcription(
         llm_provider=settings.LLM_PROVIDER,
         llm_model=settings.LLM_MODEL,
         created_at=datetime.now(timezone.utc).isoformat(),
+        failed_ranges=llm_result.failed_ranges,
     )
 
     refined_data = [u.model_dump() for u in llm_result.utterances]
@@ -124,6 +142,93 @@ async def refine_transcription(
         await db.commit()
 
     return RefinementResult(utterances=llm_result.utterances, metadata=metadata)
+
+
+@router.post("/api/refine/{transcription_id}/retry")
+async def retry_failed_refinement_chunks(
+    transcription_id: str,
+    user: UserInfo = Depends(get_current_user),
+):
+    """Re-run refinement on the ranges the last run reported as failed.
+
+    The stored partial is the source of truth: only ranges that recover are
+    spliced in, the context is reused from the saved metadata, and a range
+    that fails again simply stays in failed_ranges for another attempt.
+    """
+    provider = get_llm_provider()
+    if not provider:
+        raise HTTPException(status_code=503, detail="LLM provider not configured")
+
+    async with get_db() as db:
+        cursor = await db.execute(
+            """SELECT result_json, refined_utterances_json, refinement_metadata_json
+               FROM transcriptions WHERE id = ? AND user_id = ?""",
+            (transcription_id, user.id),
+        )
+        row = await cursor.fetchone()
+        if not row or not row["refinement_metadata_json"]:
+            raise HTTPException(status_code=404, detail="No refinement found")
+
+        metadata = RefinementMetadata(**json.loads(row["refinement_metadata_json"]))
+        if not metadata.failed_ranges:
+            raise HTTPException(status_code=400, detail="Nothing to retry")
+
+        original_utterances = json.loads(row["result_json"] or "[]")
+        refined = json.loads(row["refined_utterances_json"])
+        mapped_utterances = await _load_mapped_utterances(db, transcription_id, row["result_json"])
+
+    if transcription_id in _retries_in_flight:
+        raise HTTPException(status_code=409, detail="Retry already in progress")
+    _retries_in_flight.add(transcription_id)
+    try:
+        try:
+            async with measure_llm_operation("refinement"):
+                llm_result: LLMRefinementResponse = await provider.generate_refinement(
+                    json.dumps(mapped_utterances, ensure_ascii=False),
+                    context=metadata.context,
+                    ranges=metadata.failed_ranges,
+                    previous_summary=metadata.changes_summary,
+                )
+        except HTTPException:
+            raise
+        except Exception as e:
+            logging.error(
+                "Refinement retry failed for transcription %s: %s: %s",
+                transcription_id, type(e).__name__, e,
+            )
+            raise HTTPException(status_code=500, detail="Refinement retry failed")
+
+        still_failed = set(llm_result.failed_ranges)
+        new_utterances = [u.model_dump() for u in llm_result.utterances]
+        for a, b in metadata.failed_ranges:
+            if (a, b) not in still_failed:
+                refined[a:b] = new_utterances[a:b]
+
+        updated = metadata.model_copy(update={
+            "changed_indices": [
+                i for i, (orig, ref) in enumerate(zip(original_utterances, refined))
+                if orig["text"] != ref["text"]
+            ],
+            "changes_summary": llm_result.changes_summary,
+            "failed_ranges": llm_result.failed_ranges,
+        })
+
+        async with get_db() as db:
+            # The IS NOT NULL predicate makes this a no-op if the user deleted
+            # the refinement while the retry was running.
+            await db.execute(
+                """UPDATE transcriptions
+                   SET refined_utterances_json = ?, refinement_metadata_json = ?
+                   WHERE id = ? AND user_id = ? AND refinement_metadata_json IS NOT NULL""",
+                (json.dumps(refined, ensure_ascii=False),
+                 json.dumps(updated.model_dump(), ensure_ascii=False),
+                 transcription_id, user.id),
+            )
+            await db.commit()
+    finally:
+        _retries_in_flight.discard(transcription_id)
+
+    return RefinementResult(utterances=[Utterance(**u) for u in refined], metadata=updated)
 
 
 @router.get("/api/refine/{transcription_id}")
