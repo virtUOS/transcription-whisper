@@ -307,6 +307,9 @@ def init_label_series() -> None:
     # an operation that is never invoked publishes no series at all, which is
     # indistinguishable from "the feature is broken and nobody reached it" —
     # alerts on the ratio cannot fire because the denominator does not exist.
+    # The duration histogram is seeded for the same reason: its _sum and _count
+    # otherwise appear at their first value, and increase() over a series with
+    # no earlier sample is 0, so the first call after a restart never shows.
     if llm_requests_total is not None and llm_errors_total is not None:
         provider = settings.LLM_PROVIDER
         model = settings.LLM_MODEL
@@ -314,3 +317,5 @@ def init_label_series() -> None:
             for operation in ("analysis", "translation", "refinement", "title"):
                 llm_requests_total.labels(provider, model, operation).inc(0)
                 llm_errors_total.labels(provider, model, operation).inc(0)
+                if llm_duration_seconds is not None:
+                    llm_duration_seconds.labels(provider, model, operation)
