@@ -37,7 +37,7 @@ class OllamaProvider(LLMProvider):
             )
             response.raise_for_status()
             payload = response.json()
-            track_llm_tokens("ollama", self._model, operation, payload)
+            track_llm_tokens(settings.LLM_PROVIDER, self._model, operation, payload)
             return payload["message"]["content"]
 
     async def _json_chat(

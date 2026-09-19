@@ -44,7 +44,7 @@ class OpenAIProvider(LLMProvider):
             extra_body=self._extra_body,
             **({"max_tokens": max_tokens} if max_tokens is not None else {}),
         )
-        track_llm_tokens("openai", self._model, operation, getattr(response, "usage", None))
+        track_llm_tokens(settings.LLM_PROVIDER, self._model, operation, getattr(response, "usage", None))
         return reject_schema_echo(json.loads(response.choices[0].message.content or "{}"))
 
     async def _consolidate_refinement_summaries(self, summaries: list[str]) -> str:
@@ -58,7 +58,7 @@ class OpenAIProvider(LLMProvider):
             }],
             temperature=0.3,
         )
-        track_llm_tokens("openai", self._model, "refinement", getattr(response, "usage", None))
+        track_llm_tokens(settings.LLM_PROVIDER, self._model, "refinement", getattr(response, "usage", None))
         return (response.choices[0].message.content or "").strip()
 
     async def generate_title(self, transcript: str) -> str:
@@ -70,5 +70,5 @@ class OpenAIProvider(LLMProvider):
             ],
             temperature=0.3,
         )
-        track_llm_tokens("openai", self._model, "title", getattr(response, "usage", None))
+        track_llm_tokens(settings.LLM_PROVIDER, self._model, "title", getattr(response, "usage", None))
         return (response.choices[0].message.content or "").strip().strip('"\'')
