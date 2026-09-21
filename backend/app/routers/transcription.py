@@ -30,6 +30,7 @@ from app.metrics import (
     websocket_connections_active, websocket_connections_total,
     websocket_messages_sent_total, websocket_disconnects_total,
     auth_failures_total, api_token_auth_total,
+    measure_llm_operation,
 )
 
 router = APIRouter()
@@ -109,6 +110,16 @@ async def _poll_until_done(backend, asr_job_id: str, audio_duration: float | Non
         await asyncio.sleep(5)
 
 
+async def _generate_title(provider, transcript_text: str) -> str:
+    """Ask the LLM for a title, counted as an LLM operation like the others.
+
+    The provider was called directly before, so title calls recorded tokens but
+    no request, error or duration; the failure ratio alert never saw them.
+    """
+    async with measure_llm_operation("title"):
+        return await provider.generate_title(transcript_text)
+
+
 async def _run_transcription(transcription_id: str, file_path: str, req: TranscriptionSettingsModel, submitted_at: float):
     backend = get_asr_backend()
     backend_name = settings.ASR_BACKEND
@@ -175,7 +186,7 @@ async def _run_transcription(transcription_id: str, file_path: str, req: Transcr
             provider = get_llm_provider()
             if provider and result.utterances:
                 transcript_text = " ".join(u.text for u in result.utterances)
-                title = await provider.generate_title(transcript_text)
+                title = await _generate_title(provider, transcript_text)
                 if title:
                     async with get_db() as db:
                         await db.execute(
