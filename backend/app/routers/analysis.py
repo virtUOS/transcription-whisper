@@ -1,6 +1,5 @@
 import json
 import logging
-import time
 import traceback
 import uuid
 from fastapi import APIRouter, Depends, HTTPException
@@ -17,7 +16,7 @@ from app.services.llm.prompt import (
     list_analysis_templates,
     chunk_transcript,
 )
-from app.metrics import inc, observe, track_llm_tokens, llm_requests_total, llm_duration_seconds, llm_errors_total, deletions_total, errors_total
+from app.metrics import inc, measure_llm_operation, track_llm_tokens, deletions_total
 
 router = APIRouter()
 
@@ -103,48 +102,42 @@ async def generate_analysis(
 
     # For built-in templates (summary, protocol), delegate to existing provider methods
     # which handle chunking and consolidation internally
-    start_time = time.monotonic()
     try:
-        if not custom_prompt and template_name == "summary":
-            result_obj = await provider.generate_summary(transcript, chapter_hints, analysis_language)
-            result_data = result_obj.model_dump()
-            result_data["template"] = "summary"
-            result_data["language"] = analysis_language
-        elif not custom_prompt and template_name == "protocol":
-            result_obj = await provider.generate_protocol(transcript, None, analysis_language)
-            result_data = result_obj.model_dump()
-            result_data["template"] = "protocol"
-            result_data["language"] = analysis_language
-        else:
-            # Custom prompt or other templates — call LLM directly
-            system_prompt, schema = build_analysis_system_prompt(
-                template_name=template_name,
-                custom_prompt=custom_prompt,
-                language=analysis_language,
-                chapter_hints=chapter_hints,
-                agenda=agenda,
-            )
-            result_data = await _generate_with_chunking(provider, transcript, system_prompt, schema, analysis_language)
-            result_data["template"] = template_name
-            result_data["custom_prompt"] = custom_prompt
-            result_data["language"] = analysis_language
+        async with measure_llm_operation("analysis"):
+            if not custom_prompt and template_name == "summary":
+                result_obj = await provider.generate_summary(transcript, chapter_hints, analysis_language)
+                result_data = result_obj.model_dump()
+                result_data["template"] = "summary"
+                result_data["language"] = analysis_language
+            elif not custom_prompt and template_name == "protocol":
+                result_obj = await provider.generate_protocol(transcript, None, analysis_language)
+                result_data = result_obj.model_dump()
+                result_data["template"] = "protocol"
+                result_data["language"] = analysis_language
+            else:
+                # Custom prompt or other templates — call LLM directly
+                system_prompt, schema = build_analysis_system_prompt(
+                    template_name=template_name,
+                    custom_prompt=custom_prompt,
+                    language=analysis_language,
+                    chapter_hints=chapter_hints,
+                    agenda=agenda,
+                )
+                result_data = await _generate_with_chunking(provider, transcript, system_prompt, schema, analysis_language)
+                result_data["template"] = template_name
+                result_data["custom_prompt"] = custom_prompt
+                result_data["language"] = analysis_language
     except Exception as e:
         logging.error(
             "Analysis %s failed for transcription %s (template=%s): %s: %s",
             analysis_id, transcription_id, template_name, type(e).__name__, e,
         )
         logging.error("Traceback: %s", traceback.format_exc())
-        inc(llm_errors_total, settings.LLM_PROVIDER, settings.LLM_MODEL, "analysis")
-        inc(errors_total, "llm_failed", "analysis")
         # Remove placeholder on failure so user can retry
         async with get_db() as db:
             await db.execute("DELETE FROM analyses WHERE id = ? AND analysis_json IS NULL", (analysis_id,))
             await db.commit()
         raise
-
-    duration = time.monotonic() - start_time
-    inc(llm_requests_total, settings.LLM_PROVIDER, settings.LLM_MODEL, "analysis")
-    observe(llm_duration_seconds, duration, settings.LLM_PROVIDER, settings.LLM_MODEL, "analysis")
 
     # Store completed analysis
     async with get_db() as db:
