@@ -71,6 +71,7 @@ def test_flag_is_omitted_when_disabled(provider, monkeypatch):
     # object it actually closed over rather than the one imported at top level.
     from app.services.llm import openai as openai_module
     monkeypatch.setattr(openai_module.settings, "LLM_DISABLE_THINKING", False)
+    monkeypatch.setattr(openai_module.settings, "LLM_STOP_ON_REPETITION", False)
     seen = {}
 
     async def fake_create(**kwargs):

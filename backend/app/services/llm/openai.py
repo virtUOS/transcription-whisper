@@ -8,6 +8,13 @@ from app.services.llm.base import LLMProvider, reject_schema_echo
 from app.services.llm.prompt import REFINEMENT_CONSOLIDATION_PROMPT
 
 
+# Pattern bounds for vLLM's repetition detector. The whitespace loop repeats a
+# 1-3 token pattern; legitimate JSON never repeats any pattern of up to eight
+# tokens thirty times in a row, so this trips only on a runaway, and does so
+# within about a hundred tokens rather than at the context window.
+REPETITION_DETECTION = {"max_pattern_size": 8, "min_pattern_size": 1, "min_count": 30}
+
+
 class OpenAIProvider(LLMProvider):
     def __init__(self):
         self._client = AsyncOpenAI(
@@ -25,10 +32,18 @@ class OpenAIProvider(LLMProvider):
         Reasoning models spend tokens thinking before answering, which is wasted
         on the utterance paths and slow enough to blow the request timeout. vLLM
         turns it off through the chat template rather than a top-level field.
+
+        repetition_detection makes vLLM end a completion that has fallen into a
+        token loop (see config.LLM_STOP_ON_REPETITION). litellm rewrites the
+        resulting finish_reason to "stop", so a caught loop is only visible as
+        JSON that fails to parse; callers retry on that.
         """
-        if not settings.LLM_DISABLE_THINKING:
-            return {}
-        return {"chat_template_kwargs": {"enable_thinking": False}}
+        body: dict = {}
+        if settings.LLM_DISABLE_THINKING:
+            body["chat_template_kwargs"] = {"enable_thinking": False}
+        if settings.LLM_STOP_ON_REPETITION:
+            body["repetition_detection"] = REPETITION_DETECTION
+        return body
 
     async def _json_chat(
         self, system: str, user: str, operation: str, max_tokens: int | None = None
@@ -45,7 +60,14 @@ class OpenAIProvider(LLMProvider):
             **({"max_tokens": max_tokens} if max_tokens is not None else {}),
         )
         track_llm_tokens(settings.LLM_PROVIDER, self._model, operation, getattr(response, "usage", None))
-        return reject_schema_echo(json.loads(response.choices[0].message.content or "{}"))
+        choice = response.choices[0]
+        if getattr(choice, "finish_reason", None) == "length":
+            # The output cap cut the reply. The JSON is incomplete even when it
+            # happens to parse, so refuse it here rather than in a parser.
+            raise ValueError(
+                f"The language model's {operation} reply was truncated at the output limit."
+            )
+        return reject_schema_echo(json.loads(choice.message.content or "{}"))
 
     async def _consolidate_refinement_summaries(self, summaries: list[str]) -> str:
         response = await self._client.chat.completions.create(

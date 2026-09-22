@@ -23,9 +23,9 @@ shared deployment, this app averaged 17167 output tokens per request against
 tokens on the model while making 20% of the requests. Capping turns a runaway
 into a fast, retryable failure instead of ten GPU-minutes taken from everyone.
 
-The ceiling belongs only on the utterance paths. Analysis consolidates rather
-than echoes, so its output is not bounded by its input and a cap sized for
-refinement would silently truncate a summary.
+The utterance cap is sized for a chunk echo. Analysis consolidates rather than
+echoes, so it must not inherit this cap from _json_chat; it carries its own,
+larger ANALYSIS_OUTPUT_TOKEN_CAP via analysis_json_chat (test_analysis_retry).
 """
 import asyncio
 import importlib
@@ -96,8 +96,9 @@ def test_openai_utterance_call_sends_the_cap(provider, monkeypatch):
     )
 
 
-def test_openai_analysis_call_is_left_uncapped(provider, monkeypatch):
-    """Analysis consolidates rather than echoes; a refinement-sized cap truncates it."""
+def test_openai_analysis_call_does_not_inherit_the_utterance_cap(provider, monkeypatch):
+    """Analysis consolidates rather than echoes; a refinement-sized cap truncates it.
+    Its own cap is applied by analysis_json_chat, not by _json_chat."""
     seen = {}
     monkeypatch.setattr(provider._client.chat.completions, "create", _fake_create(seen))
 
