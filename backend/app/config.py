@@ -54,6 +54,19 @@ class Settings:
     # Sent as chat_template_kwargs, which is how vLLM exposes it. Set to false
     # for a model whose template does not accept the flag.
     LLM_DISABLE_THINKING: bool = os.getenv("LLM_DISABLE_THINKING", "true").lower() in ("1", "true", "yes")
+    # Ornith in vLLM JSON mode falls into an endless whitespace loop on roughly
+    # a quarter of analysis requests (2026-09-22, same transcript: 1/1, 1/4,
+    # 2/5). Whitespace is always valid in the JSON grammar, so the loop only
+    # ends at the context window: one request generated for 27 minutes and
+    # ~260k tokens after the app had given up at 600s. vLLM's per-request
+    # repetition_detection ends generation after a short repeated pattern
+    # instead, so a loop comes back within seconds as truncated JSON and the
+    # caller retries. The server-wide alternative (disable_any_whitespace) is a
+    # vLLM deploy flag; its per-request spelling is ignored by v0.28.
+    #
+    # Sent as a vLLM extra body field (litellm forwards it). Set to false for a
+    # server that rejects unknown request fields.
+    LLM_STOP_ON_REPETITION: bool = os.getenv("LLM_STOP_ON_REPETITION", "true").lower() in ("1", "true", "yes")
     # Parallel chunk requests per transcript for refinement and translation. The
     # LLM endpoint is shared with other services, so this is the setting that
     # determines our peak footprint on everyone else. Kept deliberately low: the

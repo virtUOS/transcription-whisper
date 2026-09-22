@@ -9,14 +9,14 @@ from app.router_helpers import ensure_transcription_owned, load_speaker_mappings
 from app.models import UserInfo, AnalysisRequest, AnalysisListItem
 from app.database import get_db
 from app.services.llm import get_llm_provider
-from app.services.llm.base import reject_schema_echo
+from app.services.llm.base import analysis_json_chat
 from app.services.llm.prompt import (
     format_transcript_for_llm,
     build_analysis_system_prompt,
     list_analysis_templates,
     chunk_transcript,
 )
-from app.metrics import inc, measure_llm_operation, track_llm_tokens, deletions_total
+from app.metrics import inc, measure_llm_operation, deletions_total
 
 router = APIRouter()
 
@@ -185,53 +185,13 @@ Consolidate these into a single unified result. {language_instruction}Respond ON
 
 
 async def _call_llm(provider, user_content: str, system_prompt: str) -> dict:
-    """Make a raw LLM call through the provider's underlying client."""
-    # Access the provider's client directly for custom analysis calls
-    if hasattr(provider, "_client"):
-        # OpenAI-compatible provider
-        response = await provider._client.chat.completions.create(
-            model=provider._model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_content},
-            ],
-            temperature=0.3,
-            response_format={"type": "json_object"},
-        )
-        track_llm_tokens(settings.LLM_PROVIDER, provider._model, "analysis", getattr(response, "usage", None))
-        content = response.choices[0].message.content or "{}"
-        try:
-            return reject_schema_echo(json.loads(content))
-        except json.JSONDecodeError as e:
-            # A truncated or non-JSON completion is a model failure, not a bug in
-            # the caller — surface it as such instead of a bare 500.
-            logging.error(
-                "LLM returned non-JSON for analysis (finish_reason=%s): %s | first 200 chars: %r",
-                getattr(response.choices[0], "finish_reason", None), e, content[:200],
-            )
-            raise ValueError("The language model returned a malformed response. Please try again.") from e
-    elif hasattr(provider, "_base_url"):
-        # Ollama provider
-        import httpx
-        async with httpx.AsyncClient(timeout=300) as client:
-            resp = await client.post(
-                f"{provider._base_url}/api/chat",
-                json={
-                    "model": provider._model,
-                    "messages": [
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_content},
-                    ],
-                    "stream": False,
-                    "format": "json",
-                },
-            )
-            resp.raise_for_status()
-            data = resp.json()
-            track_llm_tokens(settings.LLM_PROVIDER, provider._model, "analysis", data)
-            return json.loads(data["message"]["content"])
-    else:
-        raise HTTPException(status_code=503, detail="Unsupported LLM provider for analysis")
+    """One custom-template analysis request, through the provider's JSON chat.
+
+    Goes through analysis_json_chat like the summary and protocol paths, so it
+    gets the same output cap, truncation check and retry; it used to build its
+    own uncapped request against the provider's raw client.
+    """
+    return await analysis_json_chat(provider, system_prompt, user_content)
 
 
 @router.get("/api/analysis/{transcription_id}")

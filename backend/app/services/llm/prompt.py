@@ -339,6 +339,14 @@ def build_refinement_user_prompt(utterances: list[dict]) -> str:
 # every other tenant of the shared endpoint.
 REFINEMENT_OUTPUT_TOKEN_CAP = 16384
 
+# Output ceiling for one analysis request (summary, protocol, custom template,
+# or a consolidation of chunk results). Analysis consolidates rather than
+# echoes, so its output is not bounded by its input, but it is bounded in
+# practice: real summaries of a 34-minute transcript measured 1350-2150
+# completion tokens. Without a cap a looping completion runs to the 262144
+# context window (27 minutes, measured 2026-09-22).
+ANALYSIS_OUTPUT_TOKEN_CAP = 8192
+
 
 def chunk_ranges(n: int, max_utterances: int = 50) -> list[tuple[int, int]]:
     """Half-open, 0-based index ranges sent as one request each on the utterance paths.

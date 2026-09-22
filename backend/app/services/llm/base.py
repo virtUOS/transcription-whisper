@@ -16,6 +16,7 @@ from app.services.llm.prompt import (
     PROTOCOL_CONSOLIDATION_PROMPT, PROTOCOL_SCHEMA,
     build_refinement_system_prompt,
     REFINEMENT_OUTPUT_TOKEN_CAP,
+    ANALYSIS_OUTPUT_TOKEN_CAP,
     chunk_utterances_for_refinement,
     chunk_ranges,
     _language_name,
@@ -37,6 +38,43 @@ CHUNK_COUNT_RETRIES = 2
 # long transcript rolls those dice once per chunk (1489 utterances is 30 chunks),
 # and without this a single unlucky draw discards every other chunk's work.
 CHUNK_ERROR_RETRIES = 2
+
+# Re-attempts for an analysis request whose reply was unusable: truncated by the
+# output cap, cut short by the server's repetition detector (which arrives as
+# JSON that does not parse), or the schema echoed back. All three are
+# nondeterministic model failures — the whitespace loop hits about one request
+# in four — so one fresh draw usually succeeds within seconds.
+ANALYSIS_RETRIES = 1
+
+
+async def analysis_json_chat(provider: "LLMProvider", system: str, user: str) -> dict:
+    """One analysis request with the output cap applied and a retry on a bad reply.
+
+    Every analysis call goes through here so the cap and the retry cannot be
+    forgotten on one path — the summary, protocol and custom-template paths
+    each used to build their own request. Transport errors (timeouts,
+    connection failures) are not retried: the caller's error path handles
+    them, and a blind re-send would double the wait.
+    """
+    for attempt in range(ANALYSIS_RETRIES + 1):
+        try:
+            return await provider._json_chat(
+                system, user, "analysis", max_tokens=ANALYSIS_OUTPUT_TOKEN_CAP,
+            )
+        except (json.JSONDecodeError, ValueError) as e:
+            if attempt == ANALYSIS_RETRIES:
+                logging.error(
+                    "analysis reply unusable after %d attempts: %s: %s",
+                    ANALYSIS_RETRIES + 1, type(e).__name__, e,
+                )
+                raise ValueError(
+                    "The language model returned a malformed response. Please try again."
+                ) from e
+            logging.warning(
+                "analysis reply unusable (%s: %s), retrying (attempt %d/%d)",
+                type(e).__name__, e, attempt + 1, ANALYSIS_RETRIES + 1,
+            )
+    raise AssertionError("unreachable")
 
 
 async def chunked_utterance_call(
@@ -158,9 +196,13 @@ class LLMProvider(ABC):
     ) -> dict:
         """Run a JSON-returning chat completion and return the parsed object.
 
-        `max_tokens` bounds the reply. The utterance paths pass it because their
-        output is bounded by their input; analysis leaves it None because a
-        consolidation is not, and a cap sized for a chunk would truncate it.
+        `max_tokens` bounds the reply. The utterance paths pass
+        REFINEMENT_OUTPUT_TOKEN_CAP because their output is bounded by their
+        input; analysis passes the larger ANALYSIS_OUTPUT_TOKEN_CAP through
+        analysis_json_chat, since a consolidation is not bounded by its input
+        but a runaway must still stop short of the context window. A reply
+        that hits the cap (finish_reason "length") must raise rather than be
+        parsed.
         """
 
     @abstractmethod
@@ -178,18 +220,18 @@ class LLMProvider(ABC):
         system = build_system_prompt(chapter_hints, language)
 
         if len(chunks) == 1:
-            data = await self._json_chat(system, build_user_prompt(chunks[0]), "analysis")
+            data = await analysis_json_chat(self, system, build_user_prompt(chunks[0]))
             return _parse_summary(data)
 
         chunk_summaries: list[str] = []
         for chunk in chunks:
-            data = await self._json_chat(system, build_user_prompt(chunk), "analysis")
+            data = await analysis_json_chat(self, system, build_user_prompt(chunk))
             chunk_summaries.append(json.dumps(data))
 
         prompt = build_consolidation_prompt(
             "\n\n---\n\n".join(chunk_summaries), chapter_hints, language,
         )
-        data = await self._json_chat(system, prompt, "analysis")
+        data = await analysis_json_chat(self, system, prompt)
         return _parse_summary(data)
 
     async def generate_protocol(
@@ -199,15 +241,15 @@ class LLMProvider(ABC):
         system = build_protocol_system_prompt(language)
 
         if len(chunks) == 1:
-            data = await self._json_chat(
-                system, build_protocol_user_prompt(chunks[0], summary_context), "analysis",
+            data = await analysis_json_chat(
+                self, system, build_protocol_user_prompt(chunks[0], summary_context),
             )
             return _parse_protocol(data)
 
         chunk_protocols: list[str] = []
         for chunk in chunks:
-            data = await self._json_chat(
-                system, build_protocol_user_prompt(chunk, summary_context), "analysis",
+            data = await analysis_json_chat(
+                self, system, build_protocol_user_prompt(chunk, summary_context),
             )
             chunk_protocols.append(json.dumps(data))
 
@@ -220,7 +262,7 @@ class LLMProvider(ABC):
             schema=json.dumps(PROTOCOL_SCHEMA, indent=2),
             language_instruction=language_instruction,
         )
-        data = await self._json_chat(system, prompt, "analysis")
+        data = await analysis_json_chat(self, system, prompt)
         return _parse_protocol(data)
 
     async def generate_refinement(
