@@ -64,8 +64,9 @@ class Settings:
     # caller retries. The server-wide alternative (disable_any_whitespace) is a
     # vLLM deploy flag; its per-request spelling is ignored by v0.28.
     #
-    # Sent as a vLLM extra body field (litellm forwards it). Set to false for a
-    # server that rejects unknown request fields.
+    # Sent as a vLLM extra body field (litellm forwards it), on analysis
+    # requests only (openai.REPETITION_DETECTION_OPERATIONS). Set to false for
+    # a server that rejects unknown request fields.
     LLM_STOP_ON_REPETITION: bool = os.getenv("LLM_STOP_ON_REPETITION", "true").lower() in ("1", "true", "yes")
     # Parallel chunk requests per transcript for refinement and translation. The
     # LLM endpoint is shared with other services, so this is the setting that

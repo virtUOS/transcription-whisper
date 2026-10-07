@@ -68,6 +68,27 @@ def test_json_chat_sends_repetition_detection(provider, monkeypatch):
     assert rd["min_pattern_size"] <= rd["max_pattern_size"]
 
 
+@pytest.mark.parametrize("operation", ["translation", "refinement"])
+def test_utterance_echo_paths_do_not_send_repetition_detection(provider, monkeypatch, operation):
+    """Translation and refinement echo every utterance back, so a transcript
+    with a hallucination loop ("Thank you." sixty times) makes a legitimate
+    reply repeat a short pattern well past min_count. On 2026-10-07 the
+    detector cut such a translation mid-string on every retry and the whole
+    translation failed; refinement keeps the original text in that case, so it
+    lost the chunk silently. Their output is already bounded by
+    REFINEMENT_OUTPUT_TOKEN_CAP, so a runaway there cannot reach the context
+    window anyway."""
+    seen = {}
+
+    async def fake_create(**kwargs):
+        seen.update(kwargs)
+        return _response("{}")
+
+    monkeypatch.setattr(provider._client.chat.completions, "create", fake_create)
+    asyncio.run(provider._json_chat("sys", "user", operation, max_tokens=100))
+    assert "repetition_detection" not in (seen.get("extra_body") or {})
+
+
 def test_repetition_detection_is_omitted_when_disabled(provider, monkeypatch):
     from app.services.llm import openai as openai_module
     monkeypatch.setattr(openai_module.settings, "LLM_STOP_ON_REPETITION", False)

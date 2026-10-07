@@ -14,6 +14,13 @@ from app.services.llm.prompt import REFINEMENT_CONSOLIDATION_PROMPT
 # within about a hundred tokens rather than at the context window.
 REPETITION_DETECTION = {"max_pattern_size": 8, "min_pattern_size": 1, "min_count": 30}
 
+# Only analysis composes new text; translation and refinement echo every
+# utterance back, and an ASR hallucination loop in the source ("Thank you."
+# sixty times) is a legitimate reply that trips the detector on every retry.
+# Their output is already capped by REFINEMENT_OUTPUT_TOKEN_CAP, so a runaway
+# there cannot reach the context window anyway.
+REPETITION_DETECTION_OPERATIONS = frozenset({"analysis"})
+
 
 class OpenAIProvider(LLMProvider):
     def __init__(self):
@@ -25,8 +32,7 @@ class OpenAIProvider(LLMProvider):
         )
         self._model = settings.LLM_MODEL or "gpt-4o"
 
-    @property
-    def _extra_body(self) -> dict:
+    def _extra_body(self, operation: str) -> dict:
         """Provider-specific request fields.
 
         Reasoning models spend tokens thinking before answering, which is wasted
@@ -36,12 +42,13 @@ class OpenAIProvider(LLMProvider):
         repetition_detection makes vLLM end a completion that has fallen into a
         token loop (see config.LLM_STOP_ON_REPETITION). litellm rewrites the
         resulting finish_reason to "stop", so a caught loop is only visible as
-        JSON that fails to parse; callers retry on that.
+        JSON that fails to parse; callers retry on that. Sent only for
+        REPETITION_DETECTION_OPERATIONS.
         """
         body: dict = {}
         if settings.LLM_DISABLE_THINKING:
             body["chat_template_kwargs"] = {"enable_thinking": False}
-        if settings.LLM_STOP_ON_REPETITION:
+        if settings.LLM_STOP_ON_REPETITION and operation in REPETITION_DETECTION_OPERATIONS:
             body["repetition_detection"] = REPETITION_DETECTION
         return body
 
@@ -56,7 +63,7 @@ class OpenAIProvider(LLMProvider):
             ],
             temperature=0.3,
             response_format={"type": "json_object"},
-            extra_body=self._extra_body,
+            extra_body=self._extra_body(operation),
             **({"max_tokens": max_tokens} if max_tokens is not None else {}),
         )
         track_llm_tokens(settings.LLM_PROVIDER, self._model, operation, getattr(response, "usage", None))
