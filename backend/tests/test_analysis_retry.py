@@ -5,6 +5,9 @@ against a 600s app timeout (see test_repetition_detection). Even with the
 server cutting loops short, the caught loop arrives as truncated JSON, and the
 loop is nondeterministic (about 1 in 4), so one retry turns most failures into
 a result a few seconds later.
+
+A reply that reached the output cap is the exception: the same request needs
+the same output, so it is not retried (2026-10-08: 4 of 4 attempts hit it).
 """
 import json
 
@@ -12,7 +15,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock
 
 from app.config import settings
-from app.services.llm.base import analysis_json_chat, ANALYSIS_RETRIES, LLMProvider
+from app.services.llm.base import analysis_json_chat, ANALYSIS_RETRIES, LLMProvider, OutputLimitExceeded
 from app.services.llm.openai import OpenAIProvider
 from app.services.llm.prompt import ANALYSIS_OUTPUT_TOKEN_CAP
 
@@ -54,11 +57,23 @@ async def test_retries_once_after_malformed_json():
 
 
 @pytest.mark.asyncio
-async def test_retries_once_after_truncation():
+async def test_retries_once_after_a_rejected_reply():
     provider = MagicMock(spec=LLMProvider)
-    provider._json_chat = AsyncMock(side_effect=[ValueError("truncated"), {"summary": "ok"}])
+    provider._json_chat = AsyncMock(side_effect=[ValueError("schema echoed back"), {"summary": "ok"}])
     assert await analysis_json_chat(provider, "sys", "user") == {"summary": "ok"}
     assert provider._json_chat.await_count == 2
+
+
+@pytest.mark.asyncio
+async def test_a_reply_that_reached_the_output_cap_is_not_retried():
+    """The repetition detector stops the known loop long before the cap, so a
+    reply that reaches it was asked for that much output; a retry hits the cap
+    again and doubles a wait of several minutes."""
+    provider = MagicMock(spec=LLMProvider)
+    provider._json_chat = AsyncMock(side_effect=[OutputLimitExceeded("cap"), {"summary": "ok"}])
+    with pytest.raises(OutputLimitExceeded):
+        await analysis_json_chat(provider, "sys", "user")
+    assert provider._json_chat.await_count == 1
 
 
 @pytest.mark.asyncio

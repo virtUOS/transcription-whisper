@@ -22,6 +22,14 @@ from app.services.llm.prompt import (
     _language_name,
 )
 
+class OutputLimitExceeded(ValueError):
+    """The reply reached the request's output-token cap and is incomplete.
+
+    A ValueError so the utterance paths, which retry any failed chunk, treat
+    it as before; analysis_json_chat handles it separately.
+    """
+
+
 # Parallel chunk requests per transcript, for the operations that rewrite every
 # utterance (refinement and translation). See config.LLM_CHUNK_CONCURRENCY for
 # why this is deliberately small.
@@ -39,11 +47,12 @@ CHUNK_COUNT_RETRIES = 2
 # and without this a single unlucky draw discards every other chunk's work.
 CHUNK_ERROR_RETRIES = 2
 
-# Re-attempts for an analysis request whose reply was unusable: truncated by the
-# output cap, cut short by the server's repetition detector (which arrives as
-# JSON that does not parse), or the schema echoed back. All three are
-# nondeterministic model failures — the whitespace loop hits about one request
-# in four — so one fresh draw usually succeeds within seconds.
+# Re-attempts for an analysis request whose reply was unusable: cut short by the
+# server's repetition detector (which arrives as JSON that does not parse), or
+# the schema echoed back. Both are nondeterministic model failures — the
+# whitespace loop hits about one request in four — so one fresh draw usually
+# succeeds within seconds. A reply that reached the output cap is not retried
+# (see OutputLimitExceeded in analysis_json_chat).
 ANALYSIS_RETRIES = 1
 
 
@@ -61,6 +70,13 @@ async def analysis_json_chat(provider: "LLMProvider", system: str, user: str) ->
             return await provider._json_chat(
                 system, user, "analysis", max_tokens=ANALYSIS_OUTPUT_TOKEN_CAP,
             )
+        except OutputLimitExceeded:
+            # The repetition detector stops the known loop long before the
+            # cap, so a reply that reaches it was asked for that much output.
+            # The same request hits the cap again (4 of 4 attempts on
+            # 2026-10-08), and a retry doubles a wait of several minutes.
+            logging.error("analysis reply reached the %d-token output cap", ANALYSIS_OUTPUT_TOKEN_CAP)
+            raise
         except (json.JSONDecodeError, ValueError) as e:
             if attempt == ANALYSIS_RETRIES:
                 logging.error(

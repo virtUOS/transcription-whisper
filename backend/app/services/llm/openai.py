@@ -4,7 +4,7 @@ from openai import AsyncOpenAI
 
 from app.config import settings
 from app.metrics import track_llm_tokens
-from app.services.llm.base import LLMProvider, reject_schema_echo
+from app.services.llm.base import LLMProvider, OutputLimitExceeded, reject_schema_echo
 from app.services.llm.prompt import REFINEMENT_CONSOLIDATION_PROMPT
 
 
@@ -71,7 +71,7 @@ class OpenAIProvider(LLMProvider):
         if getattr(choice, "finish_reason", None) == "length":
             # The output cap cut the reply. The JSON is incomplete even when it
             # happens to parse, so refuse it here rather than in a parser.
-            raise ValueError(
+            raise OutputLimitExceeded(
                 f"The language model's {operation} reply was truncated at the output limit."
             )
         return reject_schema_echo(json.loads(choice.message.content or "{}"))

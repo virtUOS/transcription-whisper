@@ -110,5 +110,6 @@ def test_json_chat_rejects_a_truncated_completion(provider, monkeypatch):
         return _response('{"summary": "abc', finish_reason="length")
 
     monkeypatch.setattr(provider._client.chat.completions, "create", fake_create)
-    with pytest.raises(ValueError, match="truncated|length"):
+    from app.services.llm.base import OutputLimitExceeded
+    with pytest.raises(OutputLimitExceeded):
         asyncio.run(provider._json_chat("sys", "user", "analysis", max_tokens=100))

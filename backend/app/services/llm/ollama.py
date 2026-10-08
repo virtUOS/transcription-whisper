@@ -4,7 +4,7 @@ import httpx
 
 from app.config import settings
 from app.metrics import track_llm_tokens
-from app.services.llm.base import LLMProvider, reject_schema_echo
+from app.services.llm.base import LLMProvider, OutputLimitExceeded, reject_schema_echo
 from app.services.llm.prompt import REFINEMENT_CONSOLIDATION_PROMPT
 
 
@@ -38,6 +38,11 @@ class OllamaProvider(LLMProvider):
             response.raise_for_status()
             payload = response.json()
             track_llm_tokens(settings.LLM_PROVIDER, self._model, operation, payload)
+            if max_tokens is not None and payload.get("done_reason") == "length":
+                # num_predict cut the reply; refuse it before a parser does.
+                raise OutputLimitExceeded(
+                    f"The language model's {operation} reply was truncated at the output limit."
+                )
             return payload["message"]["content"]
 
     async def _json_chat(

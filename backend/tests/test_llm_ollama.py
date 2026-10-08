@@ -105,3 +105,27 @@ async def test_generate_refinement():
     assert len(result.utterances) == 2
     assert result.utterances[0].text == "Hello world"
     assert result.changes_summary == "Fixed typo in first utterance"
+
+
+@pytest.mark.asyncio
+async def test_a_reply_cut_by_num_predict_raises_output_limit_exceeded():
+    """Ollama reports the cap as done_reason "length". Without this check the
+    cut-off JSON reached the parser and was retried as malformed, so the
+    analysis path could not tell a reply that needed more room from a loop."""
+    from app.services.llm.base import OutputLimitExceeded
+    provider = OllamaProvider()
+
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"message": {"content": '{"summary": "abc'}, "done_reason": "length"}
+    mock_response.raise_for_status = MagicMock()
+
+    with patch("app.services.llm.ollama.httpx.AsyncClient") as MockClient:
+        mock_client = AsyncMock()
+        mock_client.post.return_value = mock_response
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock(return_value=False)
+        MockClient.return_value = mock_client
+
+        with pytest.raises(OutputLimitExceeded):
+            await provider._json_chat("sys", "user", "analysis", max_tokens=100)
