@@ -16,7 +16,6 @@ from app.services.llm.prompt import (
     PROTOCOL_CONSOLIDATION_PROMPT, PROTOCOL_SCHEMA,
     build_refinement_system_prompt,
     REFINEMENT_OUTPUT_TOKEN_CAP,
-    ANALYSIS_OUTPUT_TOKEN_CAP,
     chunk_utterances_for_refinement,
     chunk_ranges,
     _language_name,
@@ -68,14 +67,14 @@ async def analysis_json_chat(provider: "LLMProvider", system: str, user: str) ->
     for attempt in range(ANALYSIS_RETRIES + 1):
         try:
             return await provider._json_chat(
-                system, user, "analysis", max_tokens=ANALYSIS_OUTPUT_TOKEN_CAP,
+                system, user, "analysis", max_tokens=settings.LLM_ANALYSIS_MAX_TOKENS,
             )
         except OutputLimitExceeded:
             # The repetition detector stops the known loop long before the
             # cap, so a reply that reaches it was asked for that much output.
             # The same request hits the cap again (4 of 4 attempts on
             # 2026-10-08), and a retry doubles a wait of several minutes.
-            logging.error("analysis reply reached the %d-token output cap", ANALYSIS_OUTPUT_TOKEN_CAP)
+            logging.error("analysis reply reached the %d-token output cap", settings.LLM_ANALYSIS_MAX_TOKENS)
             raise
         except (json.JSONDecodeError, ValueError) as e:
             if attempt == ANALYSIS_RETRIES:
@@ -214,8 +213,8 @@ class LLMProvider(ABC):
 
         `max_tokens` bounds the reply. The utterance paths pass
         REFINEMENT_OUTPUT_TOKEN_CAP because their output is bounded by their
-        input; analysis passes the larger ANALYSIS_OUTPUT_TOKEN_CAP through
-        analysis_json_chat, since a consolidation is not bounded by its input
+        input; analysis passes the larger settings.LLM_ANALYSIS_MAX_TOKENS
+        through analysis_json_chat, since a consolidation is not bounded by its input
         but a runaway must still stop short of the context window. A reply
         that hits the cap (finish_reason "length") must raise rather than be
         parsed.

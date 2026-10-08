@@ -339,23 +339,6 @@ def build_refinement_user_prompt(utterances: list[dict]) -> str:
 # every other tenant of the shared endpoint.
 REFINEMENT_OUTPUT_TOKEN_CAP = 16384
 
-# Output ceiling for one analysis request (summary, protocol, custom template,
-# or a consolidation of chunk results). The model has no default limit: its
-# generation config sets none, so without max_tokens vLLM allows whatever is
-# left of the 262144 context window, and a looping completion ran there for 27
-# minutes (2026-09-22). The repetition detector now stops that loop early, so
-# this is the backstop for loops it cannot see.
-#
-# Analysis consolidates rather than echoes, so its output is not bounded by its
-# input, and a custom prompt can ask for far more than a template: real
-# summaries of a 34-minute transcript measured 1350-2150 completion tokens, but
-# a custom-prompt analysis of an 85-minute transcript hit the former 8192 cap on
-# 4 of 4 attempts (2026-10-08). The ceiling is what can still arrive within
-# LLM_TIMEOUT at the slowest measured throughput (79 tok/s, ~47k tokens); past
-# that the app has given up, and the GPU keeps generating for nobody because
-# litellm does not pass the disconnect on.
-ANALYSIS_OUTPUT_TOKEN_CAP = 32768
-
 
 def chunk_ranges(n: int, max_utterances: int = 50) -> list[tuple[int, int]]:
     """Half-open, 0-based index ranges sent as one request each on the utterance paths.

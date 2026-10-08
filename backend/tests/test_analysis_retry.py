@@ -14,38 +14,61 @@ import json
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 
-from app.config import settings
+from app.services.llm import base
 from app.services.llm.base import analysis_json_chat, ANALYSIS_RETRIES, LLMProvider, OutputLimitExceeded
 from app.services.llm.openai import OpenAIProvider
-from app.services.llm.prompt import ANALYSIS_OUTPUT_TOKEN_CAP
+
+
+def _cap():
+    # base's settings object, the one analysis_json_chat reads; some tests
+    # reload app.config, which leaves the module-level name pointing elsewhere.
+    return base.settings.LLM_ANALYSIS_MAX_TOKENS
 
 
 def test_cap_clears_a_real_summary_by_a_wide_margin():
     """Real summaries of a 34-minute transcript measured 1350-2150 completion
     tokens; protocols and multi-chunk consolidations run longer."""
-    assert ANALYSIS_OUTPUT_TOKEN_CAP >= 2150 * 3
+    assert _cap() >= 2150 * 3
 
 
 def test_cap_clears_a_long_custom_prompt_analysis():
     """A custom prompt sets the output size, not the template. On 2026-10-08 a
     custom-prompt analysis of an 85-minute transcript reached 8192 output
     tokens on 4 of 4 attempts, with the repetition detector on."""
-    assert ANALYSIS_OUTPUT_TOKEN_CAP > 8192
+    assert _cap() > 8192
 
 
 def test_a_capped_reply_still_arrives_before_the_request_timeout():
     """Output past LLM_TIMEOUT is generated for nobody: the app has given up,
     and litellm does not pass the disconnect on to vLLM. 79 tok/s is the
     slowest throughput measured on the shared endpoint (2026-09-18)."""
-    assert ANALYSIS_OUTPUT_TOKEN_CAP / 79 < settings.LLM_TIMEOUT
+    assert _cap() / 79 < base.settings.LLM_TIMEOUT
+
+
+def test_the_cap_is_read_from_the_environment():
+    """Deployments tune it through LLM_ANALYSIS_MAX_TOKENS in .env, without a
+    release; the name is the contract with the ansible env template. Read in a
+    fresh interpreter: reloading app.config here would swap the settings
+    object out from under every later test."""
+    import os
+    import subprocess
+    import sys
+    out = subprocess.run(
+        [sys.executable, "-c", "from app.config import settings; print(settings.LLM_ANALYSIS_MAX_TOKENS)"],
+        env={**os.environ, "LLM_ANALYSIS_MAX_TOKENS": "4096"},
+        cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        capture_output=True, text=True, check=True,
+    )
+    assert out.stdout.strip() == "4096"
 
 
 @pytest.mark.asyncio
-async def test_passes_the_cap_to_json_chat():
+async def test_passes_the_configured_cap_to_json_chat(monkeypatch):
+    monkeypatch.setattr(base.settings, "LLM_ANALYSIS_MAX_TOKENS", 1234)
     provider = MagicMock(spec=LLMProvider)
     provider._json_chat = AsyncMock(return_value={"ok": True})
     assert await analysis_json_chat(provider, "sys", "user") == {"ok": True}
-    provider._json_chat.assert_awaited_once_with("sys", "user", "analysis", max_tokens=ANALYSIS_OUTPUT_TOKEN_CAP)
+    provider._json_chat.assert_awaited_once_with("sys", "user", "analysis", max_tokens=1234)
 
 
 @pytest.mark.asyncio
@@ -104,4 +127,4 @@ async def test_generate_summary_recovers_from_one_bad_reply():
     result = await provider.generate_summary("[00:00:00] Hello world")
     assert result.summary == "Fine."
     assert provider._json_chat.await_count == 2
-    assert provider._json_chat.await_args.kwargs["max_tokens"] == ANALYSIS_OUTPUT_TOKEN_CAP
+    assert provider._json_chat.await_args.kwargs["max_tokens"] == _cap()

@@ -25,7 +25,7 @@ into a fast, retryable failure instead of ten GPU-minutes taken from everyone.
 
 The utterance cap is sized for a chunk echo. Analysis consolidates rather than
 echoes, so it must not inherit this cap from _json_chat; it carries its own,
-larger ANALYSIS_OUTPUT_TOKEN_CAP via analysis_json_chat (test_analysis_retry).
+larger LLM_ANALYSIS_MAX_TOKENS via analysis_json_chat (test_analysis_retry).
 """
 import asyncio
 import importlib
