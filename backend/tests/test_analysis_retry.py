@@ -11,6 +11,7 @@ import json
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 
+from app.config import settings
 from app.services.llm.base import analysis_json_chat, ANALYSIS_RETRIES, LLMProvider
 from app.services.llm.openai import OpenAIProvider
 from app.services.llm.prompt import ANALYSIS_OUTPUT_TOKEN_CAP
@@ -18,10 +19,22 @@ from app.services.llm.prompt import ANALYSIS_OUTPUT_TOKEN_CAP
 
 def test_cap_clears_a_real_summary_by_a_wide_margin():
     """Real summaries of a 34-minute transcript measured 1350-2150 completion
-    tokens; protocols and multi-chunk consolidations run longer. The cap must
-    not truncate those while still bounding a runaway far below 262144."""
+    tokens; protocols and multi-chunk consolidations run longer."""
     assert ANALYSIS_OUTPUT_TOKEN_CAP >= 2150 * 3
-    assert ANALYSIS_OUTPUT_TOKEN_CAP <= 32768
+
+
+def test_cap_clears_a_long_custom_prompt_analysis():
+    """A custom prompt sets the output size, not the template. On 2026-10-08 a
+    custom-prompt analysis of an 85-minute transcript reached 8192 output
+    tokens on 4 of 4 attempts, with the repetition detector on."""
+    assert ANALYSIS_OUTPUT_TOKEN_CAP > 8192
+
+
+def test_a_capped_reply_still_arrives_before_the_request_timeout():
+    """Output past LLM_TIMEOUT is generated for nobody: the app has given up,
+    and litellm does not pass the disconnect on to vLLM. 79 tok/s is the
+    slowest throughput measured on the shared endpoint (2026-09-18)."""
+    assert ANALYSIS_OUTPUT_TOKEN_CAP / 79 < settings.LLM_TIMEOUT
 
 
 @pytest.mark.asyncio
