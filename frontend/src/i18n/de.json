@@ -237,6 +237,7 @@
     "generating": "Analyse wird erstellt...",
     "generatingType": "{{type}} wird erstellt...",
     "generationFailed": "Analyse-Erstellung fehlgeschlagen",
+    "outputLimitExceeded": "Die Analyse hat das Ausgabelimit des Sprachmodells erreicht, bevor sie vollständig war. Versuchen Sie einen gezielteren Prompt.",
     "copyResult": "Ergebnis kopieren",
     "downloadResult": "Ergebnis herunterladen",
     "newAnalysis": "+ Neue Analyse",

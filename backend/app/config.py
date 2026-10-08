@@ -68,6 +68,23 @@ class Settings:
     # requests only (openai.REPETITION_DETECTION_OPERATIONS). Set to false for
     # a server that rejects unknown request fields.
     LLM_STOP_ON_REPETITION: bool = os.getenv("LLM_STOP_ON_REPETITION", "true").lower() in ("1", "true", "yes")
+    # Output ceiling for one analysis request (summary, protocol, custom
+    # template, or a consolidation of chunk results). The model has no default
+    # limit: its generation config sets none, so without max_tokens vLLM allows
+    # whatever is left of the 262144 context window, and a looping completion
+    # ran there for 27 minutes (2026-09-22). The repetition detector now stops
+    # that loop early, so this is the backstop for loops it cannot see.
+    #
+    # Analysis consolidates rather than echoes, so its output is not bounded by
+    # its input, and a custom prompt can ask for far more than a template: real
+    # summaries of a 34-minute transcript measured 1350-2150 completion tokens,
+    # but a custom-prompt analysis of an 85-minute transcript hit a cap of 8192
+    # on 4 of 4 attempts (2026-10-08). Keep it below what can still arrive
+    # within LLM_TIMEOUT at the endpoint's slowest throughput (79 tok/s
+    # measured, ~47k tokens at 600s): past that the app has given up, and the
+    # GPU keeps generating for nobody because litellm does not pass the
+    # disconnect on.
+    LLM_ANALYSIS_MAX_TOKENS: int = int(os.getenv("LLM_ANALYSIS_MAX_TOKENS", "32768"))
     # Parallel chunk requests per transcript for refinement and translation. The
     # LLM endpoint is shared with other services, so this is the setting that
     # determines our peak footprint on everyone else. Kept deliberately low: the

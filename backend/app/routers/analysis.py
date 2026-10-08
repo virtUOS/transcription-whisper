@@ -9,7 +9,7 @@ from app.router_helpers import ensure_transcription_owned, load_speaker_mappings
 from app.models import UserInfo, AnalysisRequest, AnalysisListItem
 from app.database import get_db
 from app.services.llm import get_llm_provider
-from app.services.llm.base import analysis_json_chat
+from app.services.llm.base import analysis_json_chat, OutputLimitExceeded
 from app.services.llm.prompt import (
     format_transcript_for_llm,
     build_analysis_system_prompt,
@@ -137,6 +137,15 @@ async def generate_analysis(
         async with get_db() as db:
             await db.execute("DELETE FROM analyses WHERE id = ? AND analysis_json IS NULL", (analysis_id,))
             await db.commit()
+        if isinstance(e, OutputLimitExceeded):
+            # A property of the request, not a server fault: the same request
+            # reaches the cap again, so the user needs to change it. The
+            # frontend shows its own localized text for this status.
+            raise HTTPException(
+                status_code=422,
+                detail="The analysis reached the language model's output limit before it was complete. "
+                       "Try a more focused prompt.",
+            ) from e
         raise
 
     # Store completed analysis

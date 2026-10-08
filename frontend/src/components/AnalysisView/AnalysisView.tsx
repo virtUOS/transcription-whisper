@@ -5,6 +5,7 @@ import { api } from '../../api/client'
 import { ChapterCard } from '../SummaryView/ChapterCard'
 import { ProtocolCard } from '../ProtocolView/ProtocolCard'
 import { formatTime, downloadText, downloadMarkdown } from '../../utils/format'
+import { analysisErrorMessage } from '../../utils/analysisError'
 import { LanguageSelect } from '../LanguageSelect'
 import { PresetSelect } from '../PresetSelect/PresetSelect'
 import type { AnalysisTemplate, ChapterHint, SummaryChapter } from '../../api/types'
@@ -493,7 +494,7 @@ export function AnalysisView() {
       })
       setShowForm(false)
     } catch (e) {
-      setError(e instanceof Error ? e.message : t('analysis.generationFailed'))
+      setError(analysisErrorMessage(e, t))
     } finally {
       setLoading(false)
     }
