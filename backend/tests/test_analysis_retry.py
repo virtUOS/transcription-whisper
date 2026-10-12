@@ -1,10 +1,10 @@
-"""Analysis LLM calls carry an output cap and retry once on a bad reply.
+"""Analysis LLM calls carry an output cap and retry on a bad reply.
 
 Analysis had no max_tokens at all, so a looping completion ran for 27 minutes
 against a 600s app timeout (see test_repetition_detection). Even with the
 server cutting loops short, the caught loop arrives as truncated JSON, and the
-loop is nondeterministic (about 1 in 4), so one retry turns most failures into
-a result a few seconds later.
+loop is nondeterministic (about 1 in 4), so a retry turns most failures into a
+result a few seconds later.
 
 A reply that reached the output cap is the exception: the same request needs
 the same output, so it is not retried (2026-10-08: 4 of 4 attempts hit it).
@@ -77,6 +77,21 @@ async def test_retries_once_after_malformed_json():
     provider._json_chat = AsyncMock(side_effect=[json.JSONDecodeError("x", "{", 1), {"summary": "ok"}])
     assert await analysis_json_chat(provider, "sys", "user") == {"summary": "ok"}
     assert provider._json_chat.await_count == 2
+
+
+@pytest.mark.asyncio
+async def test_survives_two_caught_loops_in_a_row():
+    """2026-10-12: a summary's first two attempts were both cut by the
+    repetition detector (vLLM counted exactly two `repetition` stops), so the
+    user got an error; their manual retry 26 seconds later succeeded."""
+    provider = MagicMock(spec=LLMProvider)
+    provider._json_chat = AsyncMock(side_effect=[
+        json.JSONDecodeError("Expecting ',' delimiter", "{" + "\n" * 185, 186),
+        json.JSONDecodeError("Expecting ':' delimiter", "{" + "\n" * 75, 76),
+        {"summary": "ok"},
+    ])
+    assert await analysis_json_chat(provider, "sys", "user") == {"summary": "ok"}
+    assert provider._json_chat.await_count == 3
 
 
 @pytest.mark.asyncio
