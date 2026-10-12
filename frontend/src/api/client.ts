@@ -14,14 +14,20 @@ import type {
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '')
 
-/** A non-2xx API response. `message` is the server's `detail`; `status` lets callers branch on it. */
+/**
+ * A non-2xx API response. `message` is the server's `detail`; `status` lets callers branch on it.
+ * `code`, when the server sends one, names the failure where the status alone cannot — a 502 also
+ * comes from the proxy when the app is down.
+ */
 export class ApiError extends Error {
   readonly status: number
+  readonly code?: string
 
-  constructor(status: number, detail: string) {
+  constructor(status: number, detail: string, code?: string) {
     super(detail)
     this.name = 'ApiError'
     this.status = status
+    this.code = code
   }
 }
 
@@ -52,7 +58,7 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
       throw new Error('Authentication required')
     }
     const error = await response.json().catch(() => ({ detail: response.statusText }))
-    throw new ApiError(response.status, error.detail || response.statusText)
+    throw new ApiError(response.status, error.detail || response.statusText, error.code)
   }
   return response.json()
 }

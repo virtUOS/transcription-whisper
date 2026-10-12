@@ -15,7 +15,9 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock
 
 from app.services.llm import base
-from app.services.llm.base import analysis_json_chat, ANALYSIS_RETRIES, LLMProvider, OutputLimitExceeded
+from app.services.llm.base import (
+    analysis_json_chat, ANALYSIS_RETRIES, LLMProvider, MalformedReply, OutputLimitExceeded,
+)
 from app.services.llm.openai import OpenAIProvider
 
 
@@ -118,7 +120,7 @@ async def test_a_reply_that_reached_the_output_cap_is_not_retried():
 async def test_gives_up_after_the_retries_with_a_user_facing_error():
     provider = MagicMock(spec=LLMProvider)
     provider._json_chat = AsyncMock(side_effect=json.JSONDecodeError("x", "{", 1))
-    with pytest.raises(ValueError, match="malformed"):
+    with pytest.raises(MalformedReply, match="malformed"):
         await analysis_json_chat(provider, "sys", "user")
     assert provider._json_chat.await_count == ANALYSIS_RETRIES + 1
 

@@ -29,6 +29,14 @@ class OutputLimitExceeded(ValueError):
     """
 
 
+class MalformedReply(ValueError):
+    """Every attempt at an analysis reply was unusable (see analysis_json_chat).
+
+    Its own type so the router can tell the user, distinct from a server fault:
+    each attempt is a fresh draw, so trying again can succeed.
+    """
+
+
 # Parallel chunk requests per transcript, for the operations that rewrite every
 # utterance (refinement and translation). See config.LLM_CHUNK_CONCURRENCY for
 # why this is deliberately small.
@@ -85,7 +93,7 @@ async def analysis_json_chat(provider: "LLMProvider", system: str, user: str) ->
                     "analysis reply unusable after %d attempts: %s: %s",
                     ANALYSIS_RETRIES + 1, type(e).__name__, e,
                 )
-                raise ValueError(
+                raise MalformedReply(
                     "The language model returned a malformed response. Please try again."
                 ) from e
             logging.warning(

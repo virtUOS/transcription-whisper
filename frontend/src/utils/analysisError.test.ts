@@ -19,6 +19,25 @@ describe('analysisErrorMessage', () => {
     }
   })
 
+  // The server sends code "malformed_reply" when every attempt at a reply was
+  // unusable. Trying again can help, so the user hears that, in their language.
+  it('explains a malformed reply, in every UI language', async () => {
+    for (const lng of ['en', 'de']) {
+      await i18n.changeLanguage(lng)
+      const message = analysisErrorMessage(new ApiError(502, 'server detail', 'malformed_reply'), t)
+      expect(message).not.toBe('analysis.malformedReply')
+      expect(message).not.toBe('server detail')
+      expect(message).toBe(i18n.getResource(lng, 'translation', 'analysis.malformedReply'))
+    }
+  })
+
+  // The proxy answers 502 itself when the app is down. That is not a model
+  // reply, so the status alone must not produce the malformed-reply text.
+  it('does not call a 502 without the code a malformed reply', async () => {
+    await i18n.changeLanguage('en')
+    expect(analysisErrorMessage(new ApiError(502, 'Bad Gateway'), t)).toBe('Bad Gateway')
+  })
+
   it('shows the server detail for any other API error', () => {
     expect(analysisErrorMessage(new ApiError(429, 'Analysis generation already in progress'), t))
       .toBe('Analysis generation already in progress')
