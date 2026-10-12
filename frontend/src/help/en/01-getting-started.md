@@ -2,7 +2,7 @@
 
 ## What this app does
 
-Transcription Whisper turns audio and video recordings into editable transcripts. Once a transcription is ready, you can run optional LLM-powered steps: generate a summary, translate the transcript into another language, or refine the text to clean up filler words and formatting. You feed the app content in one of two ways — upload an existing file, or record directly in the browser using your microphone and optionally a camera or system audio.
+transkribierBAR turns audio and video recordings into editable transcripts. Once a transcription is ready, you can run optional LLM-powered steps: generate a summary, translate the transcript into another language, or refine the text to clean up filler words and formatting. You feed the app content in one of two ways — upload an existing file, or record directly in the browser using your microphone and optionally a camera or system audio.
 
 ## The main flow
 

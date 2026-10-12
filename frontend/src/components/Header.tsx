@@ -67,7 +67,7 @@ export function Header() {
   return (
     <header className="relative flex items-center justify-between gap-2 px-6 py-3 bg-gray-900 border-b border-gray-700">
       <div className="flex items-center gap-3 min-w-0">
-        <img src={`${import.meta.env.BASE_URL}whisper-logo.svg`} alt="Transcription Service" className="h-8 w-8 shrink-0" />
+        <img src={`${import.meta.env.BASE_URL}whisper-logo.svg`} alt={t('title')} className="h-8 w-8 shrink-0" />
         <h1 className="text-lg font-semibold text-white truncate">{t('title')}</h1>
       </div>
 

@@ -168,7 +168,7 @@ async def lifespan(app: FastAPI):
     cleanup_task.cancel()
 
 
-app = FastAPI(title="Transcription Service", lifespan=lifespan)
+app = FastAPI(title="transkribierBAR", lifespan=lifespan)
 
 if settings.DEV_MODE:
     app.add_middleware(

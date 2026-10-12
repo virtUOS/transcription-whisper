@@ -2,7 +2,7 @@
 
 ## Was diese App macht
 
-Transcription Whisper wandelt Audio- und Videoaufnahmen in bearbeitbare Transkripte um. Sobald ein Transkript fertig ist, kannst du optionale KI-gestützte Schritte ausführen: eine Zusammenfassung generieren, das Transkript in eine andere Sprache übersetzen oder den Text bereinigen, um Füllwörter und Formatierungsfehler zu entfernen. Du kannst Inhalte auf zwei Arten einbringen — eine vorhandene Datei hochladen oder direkt im Browser aufnehmen, mit Mikrofon und optional Kamera oder Systemton.
+transkribierBAR wandelt Audio- und Videoaufnahmen in bearbeitbare Transkripte um. Sobald ein Transkript fertig ist, kannst du optionale KI-gestützte Schritte ausführen: eine Zusammenfassung generieren, das Transkript in eine andere Sprache übersetzen oder den Text bereinigen, um Füllwörter und Formatierungsfehler zu entfernen. Du kannst Inhalte auf zwei Arten einbringen — eine vorhandene Datei hochladen oder direkt im Browser aufnehmen, mit Mikrofon und optional Kamera oder Systemton.
 
 ## Der Hauptablauf
 

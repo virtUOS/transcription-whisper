@@ -1,10 +1,10 @@
 # Keycloak Setup Guide
 
 This guide gets you from zero to a working Keycloak that can back a
-self-hosted Transcription instance, with registration, login, password
+self-hosted transkribierBAR instance, with registration, login, password
 reset, and optional social login.
 
-The Transcription app does **not** require Keycloak specifically — any OIDC
+transkribierBAR does **not** require Keycloak specifically — any OIDC
 provider that emits an email claim will work. Keycloak is documented here
 because it's open-source, widely deployed in higher education, and supports
 future federation (DFN-AAI / eduGAIN) without application changes.
