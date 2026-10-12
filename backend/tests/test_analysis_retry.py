@@ -1,10 +1,10 @@
-"""Analysis LLM calls carry an output cap and retry once on a bad reply.
+"""Analysis LLM calls carry an output cap and retry on a bad reply.
 
 Analysis had no max_tokens at all, so a looping completion ran for 27 minutes
 against a 600s app timeout (see test_repetition_detection). Even with the
 server cutting loops short, the caught loop arrives as truncated JSON, and the
-loop is nondeterministic (about 1 in 4), so one retry turns most failures into
-a result a few seconds later.
+loop is nondeterministic (about 1 in 4), so a retry turns most failures into a
+result a few seconds later.
 
 A reply that reached the output cap is the exception: the same request needs
 the same output, so it is not retried (2026-10-08: 4 of 4 attempts hit it).
@@ -15,7 +15,9 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock
 
 from app.services.llm import base
-from app.services.llm.base import analysis_json_chat, ANALYSIS_RETRIES, LLMProvider, OutputLimitExceeded
+from app.services.llm.base import (
+    analysis_json_chat, ANALYSIS_RETRIES, LLMProvider, MalformedReply, OutputLimitExceeded,
+)
 from app.services.llm.openai import OpenAIProvider
 
 
@@ -80,6 +82,21 @@ async def test_retries_once_after_malformed_json():
 
 
 @pytest.mark.asyncio
+async def test_survives_two_caught_loops_in_a_row():
+    """2026-10-12: a summary's first two attempts were both cut by the
+    repetition detector (vLLM counted exactly two `repetition` stops), so the
+    user got an error; their manual retry 26 seconds later succeeded."""
+    provider = MagicMock(spec=LLMProvider)
+    provider._json_chat = AsyncMock(side_effect=[
+        json.JSONDecodeError("Expecting ',' delimiter", "{" + "\n" * 185, 186),
+        json.JSONDecodeError("Expecting ':' delimiter", "{" + "\n" * 75, 76),
+        {"summary": "ok"},
+    ])
+    assert await analysis_json_chat(provider, "sys", "user") == {"summary": "ok"}
+    assert provider._json_chat.await_count == 3
+
+
+@pytest.mark.asyncio
 async def test_retries_once_after_a_rejected_reply():
     provider = MagicMock(spec=LLMProvider)
     provider._json_chat = AsyncMock(side_effect=[ValueError("schema echoed back"), {"summary": "ok"}])
@@ -103,7 +120,7 @@ async def test_a_reply_that_reached_the_output_cap_is_not_retried():
 async def test_gives_up_after_the_retries_with_a_user_facing_error():
     provider = MagicMock(spec=LLMProvider)
     provider._json_chat = AsyncMock(side_effect=json.JSONDecodeError("x", "{", 1))
-    with pytest.raises(ValueError, match="malformed"):
+    with pytest.raises(MalformedReply, match="malformed"):
         await analysis_json_chat(provider, "sys", "user")
     assert provider._json_chat.await_count == ANALYSIS_RETRIES + 1
 

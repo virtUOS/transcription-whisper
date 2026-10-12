@@ -29,6 +29,14 @@ class OutputLimitExceeded(ValueError):
     """
 
 
+class MalformedReply(ValueError):
+    """Every attempt at an analysis reply was unusable (see analysis_json_chat).
+
+    Its own type so the router can tell the user, distinct from a server fault:
+    each attempt is a fresh draw, so trying again can succeed.
+    """
+
+
 # Parallel chunk requests per transcript, for the operations that rewrite every
 # utterance (refinement and translation). See config.LLM_CHUNK_CONCURRENCY for
 # why this is deliberately small.
@@ -49,10 +57,13 @@ CHUNK_ERROR_RETRIES = 2
 # Re-attempts for an analysis request whose reply was unusable: cut short by the
 # server's repetition detector (which arrives as JSON that does not parse), or
 # the schema echoed back. Both are nondeterministic model failures — the
-# whitespace loop hits about one request in four — so one fresh draw usually
-# succeeds within seconds. A reply that reached the output cap is not retried
-# (see OutputLimitExceeded in analysis_json_chat).
-ANALYSIS_RETRIES = 1
+# whitespace loop hits about one request in four — so a fresh draw usually
+# succeeds. One retry was not enough on 2026-10-12: two attempts in a row were
+# cut by the detector and the user's manual retry then succeeded. A caught loop
+# ends within about a hundred tokens of starting, so a failed attempt costs at
+# most what a good reply would. A reply that reached the output cap is not
+# retried (see OutputLimitExceeded in analysis_json_chat).
+ANALYSIS_RETRIES = 2
 
 
 async def analysis_json_chat(provider: "LLMProvider", system: str, user: str) -> dict:
@@ -82,7 +93,7 @@ async def analysis_json_chat(provider: "LLMProvider", system: str, user: str) ->
                     "analysis reply unusable after %d attempts: %s: %s",
                     ANALYSIS_RETRIES + 1, type(e).__name__, e,
                 )
-                raise ValueError(
+                raise MalformedReply(
                     "The language model returned a malformed response. Please try again."
                 ) from e
             logging.warning(

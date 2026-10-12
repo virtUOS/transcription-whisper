@@ -3,13 +3,14 @@ import logging
 import traceback
 import uuid
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import JSONResponse
 from app.config import settings
 from app.dependencies import get_current_user
 from app.router_helpers import ensure_transcription_owned, load_speaker_mappings
 from app.models import UserInfo, AnalysisRequest, AnalysisListItem
 from app.database import get_db
 from app.services.llm import get_llm_provider
-from app.services.llm.base import analysis_json_chat, OutputLimitExceeded
+from app.services.llm.base import analysis_json_chat, MalformedReply, OutputLimitExceeded
 from app.services.llm.prompt import (
     format_transcript_for_llm,
     build_analysis_system_prompt,
@@ -146,6 +147,12 @@ async def generate_analysis(
                 detail="The analysis reached the language model's output limit before it was complete. "
                        "Try a more focused prompt.",
             ) from e
+        if isinstance(e, MalformedReply):
+            # The model's replies were unusable on every attempt; each is a
+            # fresh draw, so the user's next request can succeed. The frontend
+            # shows its own localized text for this code — not for the status,
+            # which the proxy in front also sends when the app is down.
+            return JSONResponse(status_code=502, content={"detail": str(e), "code": "malformed_reply"})
         raise
 
     # Store completed analysis

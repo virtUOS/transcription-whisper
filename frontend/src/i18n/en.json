@@ -238,6 +238,7 @@
     "generatingType": "Generating {{type}}...",
     "generationFailed": "Analysis generation failed",
     "outputLimitExceeded": "The analysis reached the language model's output limit before it was complete. Try a more focused prompt.",
+    "malformedReply": "The language model returned a malformed response. Please try again.",
     "copyResult": "Copy result",
     "downloadResult": "Download result",
     "newAnalysis": "+ New Analysis",
