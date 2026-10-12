@@ -1,6 +1,6 @@
 # Reference Docker Compose Deployment
 
-A minimal stack for running the Transcription app against any OIDC provider.
+A minimal stack for running transkribierBAR against any OIDC provider.
 
 ## What this includes
 

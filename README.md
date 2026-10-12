@@ -1,6 +1,6 @@
-# Transcription Service App
+# transkribierBAR
 
-[Transcription Service App](https://transcription.uni-osnabrueck.de/) is a web app for universities to make simple transcriptions from video or audio files in multiple languages, currently tailored towards OpenAI's Whisper models.
+[transkribierBAR](https://transcription.uni-osnabrueck.de/) is a web app for universities to make simple transcriptions from video or audio files in multiple languages, currently tailored towards OpenAI's Whisper models.
 
 ![screenshot.png](docs/assets/screenshot.png)
 

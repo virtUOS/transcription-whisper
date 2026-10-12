@@ -10,7 +10,7 @@ class EmailConfigError(Exception):
 
 def _body_text(invite_url: str) -> str:
     return (
-        "You have been invited to the Transcription service.\n\n"
+        "You have been invited to transkribierBAR.\n\n"
         f"Click the link below to set up your account:\n\n{invite_url}\n\n"
         "This link expires in 7 days. If you did not expect this email, you can ignore it.\n"
     )
@@ -18,7 +18,7 @@ def _body_text(invite_url: str) -> str:
 
 def _body_html(invite_url: str) -> str:
     return (
-        "<p>You have been invited to the Transcription service.</p>"
+        "<p>You have been invited to transkribierBAR.</p>"
         f'<p><a href="{invite_url}">Click here to set up your account</a></p>'
         f'<p>Or paste this link into your browser:<br><code>{invite_url}</code></p>'
         "<p>This link expires in 7 days. If you did not expect this email, you can ignore it.</p>"
@@ -32,7 +32,7 @@ def send_invitation_email(*, to_email: str, invite_url: str) -> None:
         )
 
     msg = EmailMessage()
-    msg["Subject"] = "You have been invited to the Transcription service"
+    msg["Subject"] = "You have been invited to transkribierBAR"
     msg["From"] = settings.SMTP_FROM
     msg["To"] = to_email
     msg.set_content(_body_text(invite_url))

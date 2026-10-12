@@ -108,7 +108,7 @@ async def get_current_user(request: Request) -> UserInfo:
             raise HTTPException(
                 status_code=401,
                 detail="Invalid or expired API token",
-                headers={"WWW-Authenticate": 'Bearer realm="transcription-whisper"'},
+                headers={"WWW-Authenticate": 'Bearer realm="transkribierBAR"'},
             )
 
     user_id = request.headers.get("X-Auth-Request-User")
