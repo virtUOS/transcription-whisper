@@ -4,3 +4,20 @@ from app.services.asr.base import ASRBackend
 def test_asr_backend_is_abstract():
     with pytest.raises(TypeError):
         ASRBackend()
+
+
+@pytest.mark.asyncio
+async def test_cleanup_defaults_to_noop():
+    """Backends that keep nothing on the remote side inherit a cleanup() that does nothing."""
+
+    class Minimal(ASRBackend):
+        async def submit(self, file_path, settings):
+            return "job"
+
+        async def get_status(self, job_id):
+            raise NotImplementedError
+
+        async def get_result(self, job_id):
+            raise NotImplementedError
+
+    assert await Minimal().cleanup("job") is None

@@ -1,5 +1,7 @@
+import logging
 import httpx
 from app.config import settings
+from app.metrics import inc, errors_total
 from app.services.asr.base import ASRBackend, TranscriptionSettings
 from app.models import TranscriptionStatus, TranscriptionResult, Utterance
 
@@ -77,3 +79,21 @@ class MurmurAIBackend(ASRBackend):
         full_text = result.get("text", " ".join(u.text for u in utterances))
         return TranscriptionResult(id=job_id, status="completed", utterances=utterances,
                                    text=full_text, language=result.get("language"))
+
+    async def cleanup(self, job_id: str) -> None:
+        """Delete the transcript from the MurmurAI server.
+
+        MurmurAI keeps every transcript until a client deletes it. The app holds
+        its own copy, so the remote one goes as soon as it has been read. Best
+        effort: a failure is logged and counted, never raised.
+        """
+        try:
+            async with httpx.AsyncClient(timeout=30) as client:
+                response = await client.delete(
+                    f"{self.base_url}/v1/transcript/{job_id}",
+                    headers=self.headers,
+                )
+                response.raise_for_status()
+        except Exception as e:
+            logging.warning("Could not delete remote transcript %s from MurmurAI: %s", job_id, e)
+            inc(errors_total, "asr_cleanup_failed", "asr")
