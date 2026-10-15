@@ -32,3 +32,13 @@ class ASRBackend(ABC):
     @abstractmethod
     async def get_result(self, job_id: str) -> TranscriptionResult:
         """Get the transcription result."""
+
+    async def cleanup(self, job_id: str) -> None:
+        """Delete whatever the backend still holds for a finished job.
+
+        Called once the app has stored the result, or has given up on the job, so
+        the remote copy of a transcript does not outlive the user's own. Must never
+        raise: a failed cleanup is logged, not surfaced as a transcription failure.
+        Backends that keep nothing remote inherit this no-op.
+        """
+        return None

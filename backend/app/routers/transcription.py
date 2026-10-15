@@ -141,6 +141,7 @@ async def _run_transcription(transcription_id: str, file_path: str, req: Transcr
     if audio_duration is not None:
         observe(transcription_audio_duration_seconds, audio_duration, backend_name)
 
+    asr_job_id: str | None = None
     try:
         async with get_db() as db:
             await db.execute("UPDATE transcriptions SET status = ? WHERE id = ?", ("processing", transcription_id))
@@ -180,6 +181,9 @@ async def _run_transcription(transcription_id: str, file_path: str, req: Transcr
             )
             await db.commit()
 
+        # The result is stored locally; the remote copy is now only a liability.
+        await backend.cleanup(asr_job_id)
+
         # Generate title if LLM is available
         try:
             from app.services.llm import get_llm_provider
@@ -209,6 +213,10 @@ async def _run_transcription(transcription_id: str, file_path: str, req: Transcr
                 ("failed", str(e), transcription_id),
             )
             await db.commit()
+
+        # A job that failed or timed out after submit still left a row remotely.
+        if asr_job_id is not None:
+            await backend.cleanup(asr_job_id)
     finally:
         gauge_dec(active_transcriptions)
 

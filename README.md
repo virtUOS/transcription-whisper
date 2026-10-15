@@ -43,7 +43,7 @@ The application uses a decoupled frontend/backend architecture:
 
 - **Frontend**: React 19 + TypeScript SPA built with Vite, using Zustand for state management and Tailwind CSS for styling.
 - **Backend**: FastAPI (Python 3.12) with async SQLite database, serving the built frontend as static files.
-- **ASR**: Pluggable speech recognition backends — [MurmurAI](https://github.com/namastexlabs/murmurai) or WhisperX.
+- **ASR**: Pluggable speech recognition backends — [MurmurAI](https://github.com/namastexlabs/murmurai) or WhisperX. With MurmurAI, the app deletes the server-side copy of each transcript as soon as it has stored the result, so transcripts on the ASR server do not outlive the app's own retention.
 - **LLM**: Pluggable LLM providers — OpenAI-compatible API (OpenAI, vLLM, etc.) or Ollama.
 - **Deployment**: Multi-stage Docker build combining both frontend and backend into a single image.
 
