@@ -31,6 +31,12 @@ describe('HelpShot', () => {
     expect(button.type).toBe('button')
     expect(button.querySelector('div')).toBeNull()
   })
+
+  it('caps the lightbox image at the natural width', () => {
+    const { container } = render(<HelpShot url="/x.png" alt="Upload form" meta={meta} />)
+    const full = container.querySelector('dialog [data-testid="shot-mark"]')!.parentElement as HTMLElement
+    expect(full.style.maxWidth).toBe('1000px')
+  })
 })
 
 describe('HelpShot sizing and caption', () => {

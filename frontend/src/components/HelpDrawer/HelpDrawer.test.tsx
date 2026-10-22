@@ -89,6 +89,12 @@ describe('HelpDrawer screenshots', () => {
     fireEvent.keyDown(document, { key: 'Escape' })
     expect(useStore.getState().helpOpen).toBe(false)
   })
+
+  it('renders screenshots outside paragraphs', () => {
+    openHelp(buildConfig(), 'archive')
+    expect(document.querySelector('p figure, p dialog, p button')).toBeNull()
+    expect(document.querySelector('figure')).not.toBeNull()
+  })
 })
 
 describe('settingValues', () => {

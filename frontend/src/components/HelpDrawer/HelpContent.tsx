@@ -113,6 +113,12 @@ const components: Components = {
 function makeComponents(lang: 'de' | 'en'): Components {
   return {
     ...components,
+    // A paragraph holding only an image renders figure/dialog markup, which is not allowed inside <p>.
+    p: ({ node, children, ...props }) => {
+      const kids = node?.children ?? []
+      if (kids.length === 1 && kids[0].type === 'element' && kids[0].tagName === 'img') return <>{children}</>
+      return <p className="text-gray-300 leading-relaxed mb-3" {...props}>{children}</p>
+    },
     img: (props) => {
       const src = typeof props.src === 'string' ? props.src : ''
       const shot = shotFor(lang, src)

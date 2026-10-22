@@ -15,8 +15,12 @@ function Overlay({ url, alt, meta, className, size }: HelpShotProps & { classNam
     ? '-top-2 -left-2 h-4 w-4 text-[10px]'
     : '-top-3 -left-3 h-6 w-6 text-xs'
   // Spans, not divs: the inline overlay lives inside a <button>.
+  // The lightbox copy never exceeds the screenshot's natural width.
   return (
-    <span className="relative block">
+    <span
+      className={size === 'full' ? 'relative mx-auto block w-full' : 'relative block'}
+      style={size === 'full' ? { maxWidth: `${meta.width}px` } : undefined}
+    >
       <img src={url} alt={alt} className={className} />
       {meta.marks.map((m) => (
         <span
