@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
+import { readFileSync } from 'node:fs'
 import { renderGuidePage, renderPrivacyShell } from './staticGuide.ts'
 import type { GuidePageInput } from './staticGuide.ts'
 import type { ShotMeta } from '../shotMeta.ts'
@@ -229,6 +230,29 @@ describe('renderGuidePage: links and page frame', () => {
       expect(page).not.toContain('<script')
       for (const url of absoluteUrls(page)) expect(UNIVERSITY_LINKS).toContain(url)
     }
+  })
+})
+
+describe('guide.css', () => {
+  const css = readFileSync(new URL('./guide.css', import.meta.url), 'utf8')
+
+  it('numbers list steps from the list item counter, so start="3" resumes at 3', () => {
+    expect(css).toMatch(/main ol > li::before \{ content: counter\(list-item\)/)
+    expect(css).not.toContain('counter-reset')
+    expect(css).not.toContain('counter(step)')
+    const html = renderGuidePage({ ...input('de'), sections: [{ id: 'upload', tocLabel: 'U', markdown: '3. drei\n4. vier\n' }] })
+    expect(html).toContain('<ol start="3">')
+  })
+
+  it('does not clip marker badges at the image edge', () => {
+    expect(css).not.toMatch(/\.shotbox \{[^}]*overflow: hidden/)
+  })
+
+  it('uses one colour pair for list steps and marker badges in both themes', () => {
+    expect(css).toMatch(/main ol > li::before \{[^}]*background: var\(--badge-bg\); color: var\(--badge-ink\)/)
+    expect(css).toMatch(/\.mark i \{[^}]*background: var\(--badge-bg\); color: var\(--badge-ink\)/)
+    const dark = css.slice(css.indexOf('prefers-color-scheme: dark'), css.indexOf('* { box-sizing'))
+    expect(dark).not.toMatch(/--(mark|badge)/)
   })
 })
 

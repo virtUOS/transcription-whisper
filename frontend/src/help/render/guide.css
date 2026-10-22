@@ -24,8 +24,9 @@
   --paper: #fbfaf8; --panel: #f3f0ec; --line: #e3ddd8;
   --grad: linear-gradient(90deg, #fc4b4b 0%, #fd9a6f 45%, #fefd99 100%);
   --shadow: 0 1px 2px rgba(60,25,20,.08), 0 8px 24px rgba(60,25,20,.08);
-  /* Marker red: the logo's red, darkened so the white badge numbers reach 4.5:1. */
-  --mark: #dc2f26;
+  /* One red for every number: list steps and screenshot markers, in both themes.
+     The logo's red, darkened so white numbers reach 4.5:1; it also holds 3:1 on the dark paper. */
+  --mark: #dc2f26; --badge-bg: var(--mark); --badge-ink: #fff;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -100,10 +101,10 @@ main blockquote p { margin: 0 0 8px; max-width: none; }
 main blockquote p:last-child { margin-bottom: 0; }
 
 /* Numbered steps (ordered lists; after a screenshot one item per marker) */
-main ol { counter-reset: step; list-style: none; padding-left: 0; max-width: 68ch; margin: 0 0 14px; }
-main ol > li { position: relative; padding-left: 40px; margin-bottom: 10px; counter-increment: step; }
-main ol > li::before { content: counter(step); position: absolute; left: 0; top: 2px; width: 26px; height: 26px; border-radius: 50%;
-  background: var(--accent); color: var(--on-accent); font: 600 14px/26px var(--sans); text-align: center; }
+main ol { list-style: none; padding-left: 0; max-width: 68ch; margin: 0 0 14px; }
+main ol > li { position: relative; padding-left: 40px; margin-bottom: 10px; }
+main ol > li::before { content: counter(list-item); position: absolute; left: 0; top: 2px; width: 26px; height: 26px; border-radius: 50%;
+  background: var(--badge-bg); color: var(--badge-ink); font: 700 14px/26px var(--sans); text-align: center; }
 
 /* Tables */
 .table { overflow-x: auto; margin: 6px 0 18px; max-width: 100%; }
@@ -119,10 +120,11 @@ pre code { background: none; border: 0; padding: 0; font-size: .86em; white-spac
 
 /* Screenshots with marker overlays */
 figure.shot { margin: 20px 0 24px; max-width: 780px; }
-.shotbox { display: block; position: relative; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; box-shadow: var(--shadow); }
-.shotbox img { display: block; width: 100%; height: auto; }
+.shotbox { display: block; position: relative; border: 1px solid var(--line); border-radius: 6px; box-shadow: var(--shadow); }
+/* No overflow:hidden on the box, so badges that overhang the image's edge are not clipped. */
+.shotbox img { display: block; width: 100%; height: auto; border-radius: 5px; }
 .mark { position: absolute; display: block; border: 2.5px solid var(--mark); border-radius: 4px; pointer-events: none; }
-.mark i { position: absolute; top: -12px; left: -12px; width: 23px; height: 23px; border-radius: 50%; background: var(--mark); color: #fff;
+.mark i { position: absolute; top: -12px; left: -12px; width: 23px; height: 23px; border-radius: 50%; background: var(--badge-bg); color: var(--badge-ink);
   font: 700 13px/23px var(--sans); font-style: normal; text-align: center; box-shadow: 0 0 0 2px #fff; }
 figure.shot figcaption { font: 14px/1.45 var(--sans); color: var(--ink-3); margin-top: 9px; }
 figure.diagram { margin: 18px 0 22px; max-width: 680px; }
