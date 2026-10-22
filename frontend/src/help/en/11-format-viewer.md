@@ -4,7 +4,7 @@
 
 Next to **Subtitles**, the detail view has the tabs **SRT**, **VTT**, **JSON** and **TXT**. Each shows the transcript in that format. transkribierBAR creates it in your browser from the current text.
 
-- **SRT:** numbered entries with times such as `00:01:30,250 --> 00:01:34,000`, The text starts with the speaker's name in square brackets: `[Name]: Text`.
+- **SRT:** numbered entries with times such as `00:01:30,250 --> 00:01:34,000`. The text starts with the speaker's name in square brackets: `[Name]: Text`.
 - **VTT:** starts with `WEBVTT` and has times with a full stop instead of a comma (`00:01:30.250`). The names are in square brackets as in SRT.
 - **JSON:** a list with `start`, `end`, `text` and `speaker` for each utterance. Start and end are milliseconds.
 - **TXT:** one line per utterance without times, in the form `Name: Text`.
