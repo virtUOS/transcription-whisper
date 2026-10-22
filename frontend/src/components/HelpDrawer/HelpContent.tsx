@@ -38,8 +38,15 @@ function LightboxImage({ src, alt, lang, ...props }: React.ImgHTMLAttributes<HTM
 
 const components: Components = {
   a: ({ href, children, ...props }) => {
-    const isExternal = href?.startsWith('http://') || href?.startsWith('https://')
-    if (isExternal) {
+    // Guide pages (/handbuch/...) are separate documents: opening them in place would
+    // navigate the SPA away and lose a running upload or recording.
+    const opensInNewTab =
+      !!href &&
+      (href.startsWith('http://') ||
+        href.startsWith('https://') ||
+        href.startsWith('/handbuch/') ||
+        href.startsWith(`${import.meta.env.BASE_URL}handbuch/`))
+    if (opensInNewTab) {
       return (
         <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline" {...props}>
           {children}

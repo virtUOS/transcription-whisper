@@ -106,6 +106,14 @@ describe('HelpDrawer public links', () => {
     expect(link).toHaveAttribute('rel', 'noopener noreferrer')
   })
 
+  it('opens the guide link in the about section in a new tab', () => {
+    openHelp(buildConfig(), 'about')
+    const link = screen.getByRole('link', { name: 'Datenschutzhinweisen' })
+    expect(link).toHaveAttribute('href', '/handbuch/datenschutz/')
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+  })
+
   it('shows the English privacy notice link when enabled', async () => {
     await i18n.changeLanguage('en')
     openHelp(buildConfig({ privacy_notice: true }), 'upload')
