@@ -60,6 +60,7 @@ const TEXT = {
     skip: 'Zum Inhalt springen',
     cta: 'Direkt zu transkribierBAR',
     enlarge: 'Zum Vergrößern klicken',
+    close: 'Schließen',
     contact: 'Fragen oder Probleme? Schreiben Sie an',
     legal: 'Rechtliches',
     privacy: 'Datenschutzhinweise',
@@ -80,6 +81,7 @@ const TEXT = {
     skip: 'Skip to content',
     cta: 'Open transkribierBAR',
     enlarge: 'Click to enlarge',
+    close: 'Close',
     contact: 'Questions or problems? Write to',
     legal: 'Legal',
     privacy: 'Privacy notice',
@@ -154,6 +156,9 @@ interface SectionOptions {
   prefix: string
   shotMeta: (id: string) => ShotMeta | undefined
   enlarge: string
+  close: string
+  /** Occurrences of each shot in this section, for unique anchors. */
+  shotSeen: Map<string, number>
 }
 
 /**
@@ -182,21 +187,32 @@ function pct(part: number, whole: number): string {
 const SHOT_SRC = /^shots\/([\w-]+)\.png$/
 const ASSET_SRC = /^\.\/assets\/([\w-]+\.svg)$/
 
-function shotFigure(id: string, alt: string, o: SectionOptions): Element {
+function shotFigure(id: string, alt: string, o: SectionOptions): Element[] {
   const meta = o.shotMeta(id)
   if (!meta) throw new Error(`Section "${o.sectionId}" (${o.lang}) shows shots/${id}.png, which has no recorded markers`)
   const src = `${o.prefix}static/shots/${o.lang}/${id}.png`
-  const marks = meta.marks.map((m) =>
+  const seen = (o.shotSeen.get(id) ?? 0) + 1
+  o.shotSeen.set(id, seen)
+  const anchor = `shot-${o.sectionId}-${id}${seen > 1 ? `-${seen}` : ''}`
+  const marks = () => meta.marks.map((m) =>
     el('span', {
       className: ['mark'],
       style: `left:${pct(m.x, meta.width)};top:${pct(m.y, meta.height)};width:${pct(m.w, meta.width)};height:${pct(m.h, meta.height)}`,
       ariaHidden: 'true',
     }, [el('i', {}, [{ type: 'text', value: String(m.n) }])]),
   )
-  return el('figure', { className: ['shot'] }, [
-    el('a', { className: ['shotbox'], href: src }, [el('img', { src, width: meta.width, height: meta.height, alt }), ...marks]),
+  const figure = el('figure', { className: ['shot'], id: anchor }, [
+    el('a', { className: ['shotbox'], href: `#${anchor}-zoom` }, [el('img', { src, width: meta.width, height: meta.height, alt }), ...marks()]),
     el('figcaption', {}, [{ type: 'text', value: o.enlarge }]),
   ])
+  // CSS-only enlargement: the link above targets this overlay, which :target reveals.
+  const zoom = el('div', { className: ['zoom'], id: `${anchor}-zoom` }, [
+    el('a', { className: ['zoom-close'], href: `#${anchor}` }, [{ type: 'text', value: o.close }]),
+    el('div', { className: ['zoom-inner'], style: `max-width:${meta.width + 24}px` }, [
+      el('div', { className: ['zoom-box'] }, [el('img', { src, width: meta.width, height: meta.height, alt, loading: 'lazy' }), ...marks()]),
+    ]),
+  ])
+  return [figure, zoom]
 }
 
 function assetSrc(src: string, o: SectionOptions): string | null {
@@ -227,8 +243,9 @@ function rehypeGuide(o: SectionOptions) {
         const alt = String(only.properties.alt ?? '')
         const shot = SHOT_SRC.exec(src)
         if (shot) {
-          parent.children[index] = shotFigure(shot[1], alt, o)
-          return SKIP
+          const nodes = shotFigure(shot[1], alt, o)
+          parent.children.splice(index, 1, ...nodes)
+          return [SKIP, index + nodes.length]
         }
         const asset = assetSrc(src, o)
         if (asset) {
@@ -344,7 +361,7 @@ export function renderGuidePage(input: GuidePageInput): string {
   })
 
   const body = groups.flatMap((g) => g.items).map((s) => {
-    const content = renderSection(s, { sectionId: s.id, lang, prefix: links.root, shotMeta: input.shotMeta, enlarge: t.enlarge })
+    const content = renderSection(s, { sectionId: s.id, lang, prefix: links.root, shotMeta: input.shotMeta, enlarge: t.enlarge, close: t.close, shotSeen: new Map() })
     return gated(s.feature, `<section id="${s.id}">\n${content}\n</section>`)
   })
 

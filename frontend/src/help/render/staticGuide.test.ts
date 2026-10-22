@@ -139,10 +139,30 @@ describe('renderGuidePage: headings', () => {
 describe('renderGuidePage: shots and assets', () => {
   it('renders a shot paragraph as a figure with marker overlays', () => {
     expect(de).not.toMatch(/<p>\s*<figure/)
-    expect(de).toContain('<figure class="shot">')
-    expect(de).toContain('<a class="shotbox" href="static/shots/de/upload.png">')
+    expect(de).toContain('<figure class="shot" id="shot-upload-upload">')
+    expect(de).toContain('<a class="shotbox" href="#shot-upload-upload-zoom">')
     expect(de).toContain('<img src="static/shots/de/upload.png" width="1000" height="300" alt="Die Seite „Hochladen“">')
     expect(de).toContain('<span class="mark" style="left:10%;top:10%;width:20%;height:20%" aria-hidden="true"><i>2</i></span>')
+  })
+
+  it('enlarges a shot with a :target overlay that keeps every marker and needs no script', () => {
+    const start = de.indexOf('<div class="zoom" id="shot-upload-upload-zoom">')
+    expect(start).toBeGreaterThan(-1)
+    const zoom = de.slice(start, de.indexOf('</div></div></div>', start))
+    expect(zoom).toContain('<a class="zoom-close" href="#shot-upload-upload">Schließen</a>')
+    expect(zoom).toContain('style="max-width:1024px"')
+    expect(zoom).toContain('src="static/shots/de/upload.png"')
+    expect(zoom.match(/class="mark"/g)).toHaveLength(META.marks.length)
+    expect(en).toContain('<a class="zoom-close" href="#shot-upload-upload">Close</a>')
+    expect(de).not.toContain('<script')
+  })
+
+  it('gives repeated shots unique anchors', () => {
+    const page = renderGuidePage({ ...input('de'), sections: [
+      { id: 'upload', tocLabel: 'Hochladen', markdown: '![A](shots/upload.png)\n\n![B](shots/upload.png)\n' },
+    ] })
+    const ids = [...page.matchAll(/\bid="(shot-[^"]+)"/g)].map((m) => m[1])
+    expect(ids).toEqual(['shot-upload-upload', 'shot-upload-upload-zoom', 'shot-upload-upload-2', 'shot-upload-upload-2-zoom'])
   })
 
   it('points asset images at static/assets', () => {
