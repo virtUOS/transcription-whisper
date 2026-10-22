@@ -98,7 +98,7 @@ export function HelpDrawer() {
       />
       <div
         ref={drawerRef}
-        className="relative flex flex-col bg-gray-900 border-l border-gray-700 w-full md:w-[35vw] md:min-w-[420px] max-w-[720px] shadow-2xl"
+        className="relative flex flex-col bg-gray-900 border-l border-gray-700 w-full md:w-[50vw] md:min-w-[640px] max-w-[900px] shadow-2xl"
       >
         <div className="flex items-center justify-between px-6 py-3 border-b border-gray-700">
           <h2 id="help-drawer-title" className="text-lg font-semibold text-white">
