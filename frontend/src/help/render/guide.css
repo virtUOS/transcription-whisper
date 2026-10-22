@@ -143,6 +143,8 @@ figure.diagram img { display: block; width: 100%; height: auto; border-radius: 6
 .zoom .mark i { top: -12px; left: -12px; width: 23px; height: 23px; font-size: 13px; line-height: 23px; }
 
 /* Privacy notice (operator-supplied fragment) */
+.notice-note { font: 15px/1.45 var(--sans); color: var(--ink-2); background: var(--panel); border-left: 4px solid var(--accent);
+  padding: 10px 14px; margin: 0 0 22px; max-width: 68ch; }
 .notice h2 { font-size: 30px; font-weight: 700; margin-bottom: 14px; }
 .notice h3 { font-size: 20px; font-weight: 600; margin: 26px 0 8px; }
 .notice p, .notice ul { max-width: 68ch; margin: 0 0 14px; }

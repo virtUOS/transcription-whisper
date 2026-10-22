@@ -313,6 +313,10 @@ describe('renderPrivacyShell', () => {
 
   it('carries the notice sentinels', () => {
     expect(pde).toContain('<article class="notice" lang="__TW_NOTICE_LANG__">__TW_PRIVACY_NOTICE__</article>')
+    for (const page of [pde, pen]) {
+      // The language note sits on its own line before the article, so an empty fill leaves no markup.
+      expect(page).toMatch(/<main id="main">\n__TW_NOTICE_FALLBACK__\n<article/)
+    }
     expect(pen).toContain('__TW_PRIVACY_NOTICE__')
   })
 

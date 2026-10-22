@@ -9,6 +9,7 @@ from app.public_pages import (
     Lang,
     apply_features,
     fill_settings,
+    notice_fallback_note,
     privacy_notice,
     setting_values,
 )
@@ -66,6 +67,7 @@ def _privacy_page(rel: str, lang: Lang) -> Response:
     notice, notice_lang = chosen
     body = fill_settings(apply_features(raw, _features()), setting_values(lang))
     # The notice is trusted operator HTML and is inserted last, unescaped.
+    body = body.replace("__TW_NOTICE_FALLBACK__", notice_fallback_note(lang, notice_lang))
     body = body.replace("__TW_NOTICE_LANG__", notice_lang).replace("__TW_PRIVACY_NOTICE__", notice)
     return HTMLResponse(body, headers=HEADERS)
 

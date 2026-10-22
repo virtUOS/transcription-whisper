@@ -11,6 +11,7 @@ from app.public_pages import (
     fill_settings,
     format_days,
     load_privacy_notices,
+    notice_fallback_note,
     privacy_notice,
 )
 from app.routers import public_pages as router_mod
@@ -30,7 +31,7 @@ GUIDE = """<!doctype html><html lang="{lang}"><body>
 <!--tw-feature:privacy--><a href="/handbuch/datenschutz/">privacy</a><!--/tw-feature:privacy-->
 </body></html>"""
 
-SHELL = '<html lang="{lang}"><body><article class="notice" lang="__TW_NOTICE_LANG__">__TW_PRIVACY_NOTICE__</article></body></html>'
+SHELL = '<html lang="{lang}"><body>\n__TW_NOTICE_FALLBACK__\n<article class="notice" lang="__TW_NOTICE_LANG__">__TW_PRIVACY_NOTICE__</article></body></html>'
 
 
 @pytest.fixture
@@ -164,9 +165,30 @@ async def test_notice_fallback_to_german(guide_dir, monkeypatch):
     assert r.status_code == 200
     assert "Deutscher Text" in r.text
     assert 'lang="de"' in r.text
+    assert '<p class="notice-note">This notice is available in German only.</p>' in r.text
+    assert "__TW_" not in r.text
     assert r.headers["content-security-policy"] == CSP
+    r = await get("/handbuch/datenschutz/")
+    assert "notice-note" not in r.text  # German page, German notice: no note
     r = await get("/handbuch/")
     assert "datenschutz/" in r.text
+
+
+@pytest.mark.asyncio
+async def test_notice_fallback_note_for_german_page_with_english_notice(guide_dir, monkeypatch):
+    monkeypatch.setattr(router_mod, "NOTICES", {"en": "<p>English text</p>"})
+    r = await get("/handbuch/datenschutz/")
+    assert r.status_code == 200
+    assert '<p class="notice-note">Diese Hinweise gibt es nur auf Englisch.</p>' in r.text
+    assert '<article class="notice" lang="en">' in r.text
+    r = await get("/handbuch/en/privacy/")
+    assert "notice-note" not in r.text
+
+
+def test_notice_fallback_note_helper():
+    assert notice_fallback_note("en", "en") == ""
+    assert "German only" in notice_fallback_note("en", "de")
+    assert "nur auf Englisch" in notice_fallback_note("de", "en")
 
 
 def test_privacy_notice_helper():

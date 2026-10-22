@@ -8,7 +8,8 @@
  * - every `{{key}}` becomes `__TW_SETTING_key__`; the masthead has `__TW_SETTING_app_version__`;
  * - gated blocks are wrapped in `<!--tw-feature:X-->…<!--/tw-feature:X-->`, never nested; `contact`
  *   wraps every sentence with the contact address (footer, about section);
- * - the privacy shell has `__TW_PRIVACY_NOTICE__` and `__TW_NOTICE_LANG__`;
+ * - the privacy shell has `__TW_PRIVACY_NOTICE__`, `__TW_NOTICE_LANG__` and `__TW_NOTICE_FALLBACK__`
+ *   (a one-line note when the notice is in the other language, else empty);
  * - asset URLs (css, logo, shots, diagrams) end in `?v=<build date>`; fonts are referenced from the CSS;
  * - no `<script>`, and no absolute URL other than the three university links.
  */
@@ -440,6 +441,7 @@ export function renderPrivacyShell(lang: GuideLang, logoSvg: string, builtOn: st
 ${masthead(lang, logoSvg, t.privacy, null, [`<span>${back}</span>`], links)}
 <div class="wrap single">
 <main id="main">
+__TW_NOTICE_FALLBACK__
 <article class="notice" lang="__TW_NOTICE_LANG__">__TW_PRIVACY_NOTICE__</article>
 </main>
 </div>

@@ -80,3 +80,16 @@ def privacy_notice(lang: Lang, notices: Mapping[Lang, str]) -> tuple[str, Lang] 
     if other in notices:
         return notices[other], other
     return None
+
+
+_FALLBACK_NOTE: dict[Lang, str] = {
+    "de": "Diese Hinweise gibt es nur auf Englisch.",
+    "en": "This notice is available in German only.",
+}
+
+
+def notice_fallback_note(page_lang: Lang, notice_lang: Lang) -> str:
+    """One-line note (HTML) when the notice is not in the page's language, else empty."""
+    if page_lang == notice_lang:
+        return ""
+    return f'<p class="notice-note">{html.escape(_FALLBACK_NOTE[page_lang])}</p>'
