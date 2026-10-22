@@ -5,7 +5,8 @@ import remarkGfm from 'remark-gfm'
 import rehypeSlug from 'rehype-slug'
 import type { Components } from 'react-markdown'
 import type { HelpSectionId } from './helpSections'
-import { loadContent, assetUrls, settingValues, fillSettings } from './helpSections'
+import { loadContent, assetUrls, settingValues, fillSettings, shotFor } from './helpSections'
+import { HelpShot } from './HelpShot'
 import { useStore } from '../../store'
 
 interface HelpContentProps {
@@ -109,6 +110,19 @@ const components: Components = {
   ),
 }
 
+function makeComponents(lang: 'de' | 'en'): Components {
+  return {
+    ...components,
+    img: (props) => {
+      const src = typeof props.src === 'string' ? props.src : ''
+      const shot = shotFor(lang, src)
+      return shot ? <HelpShot url={shot.url} alt={props.alt ?? ''} meta={shot.meta} /> : <LightboxImage {...props} />
+    },
+  }
+}
+
+const componentsByLang = { de: makeComponents('de'), en: makeComponents('en') }
+
 export function HelpContent({ sectionId }: HelpContentProps) {
   const { i18n, t } = useTranslation()
   const lang: 'en' | 'de' = i18n.language === 'de' ? 'de' : 'en'
@@ -134,7 +148,7 @@ export function HelpContent({ sectionId }: HelpContentProps) {
 
   return (
     <div ref={containerRef} className="flex-1 overflow-y-auto p-6">
-      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSlug]} components={components}>
+      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSlug]} components={componentsByLang[lang]}>
         {markdown}
       </ReactMarkdown>
     </div>

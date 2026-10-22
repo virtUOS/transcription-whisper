@@ -13,6 +13,7 @@ import type { HelpSectionId } from '../../help/sectionList.ts'
 export { sections }
 export type { HelpSection, HelpSectionId, HelpFeature } from '../../help/sectionList.ts'
 
+import type { ShotMeta } from '../../help/shotMeta.ts'
 import type { AppView } from '../../store'
 import type { ConfigResponse } from '../../api/types'
 import type { HelpSection } from '../../help/sectionList.ts'
@@ -80,4 +81,26 @@ export function loadContent(id: HelpSectionId, lang: 'en' | 'de'): string | null
   const map = lang === 'en' ? enMarkdown : deMarkdown
   const key = `/src/help/${lang}/${section.filename}`
   return map[key] ?? null
+}
+
+// Screenshots recorded by the screenshot runner: src/help/shots/<lang>/<id>.{png,json}.
+const shotUrls = import.meta.glob('/src/help/shots/*/*.png', {
+  query: '?url',
+  import: 'default',
+  eager: true,
+}) as Record<string, string>
+
+const shotMetas = import.meta.glob('/src/help/shots/*/*.json', {
+  import: 'default',
+  eager: true,
+}) as Record<string, ShotMeta>
+
+/** Resolves a markdown `shots/<id>.png` src to this language's screenshot and marker boxes. */
+export function shotFor(lang: 'de' | 'en', src: string): { url: string; meta: ShotMeta } | null {
+  const m = /^shots\/([\w-]+)\.png$/.exec(src)
+  if (!m) return null
+  const base = `/src/help/shots/${lang}/${m[1]}`
+  const url = shotUrls[`${base}.png`]
+  const meta = shotMetas[`${base}.json`]
+  return url && meta ? { url, meta } : null
 }
