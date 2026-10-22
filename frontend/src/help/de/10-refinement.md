@@ -26,7 +26,7 @@ Klicken Sie im Reiter **Untertitel** über der Tabelle auf **Mit LLM verfeinern*
 
 ![Der Dialog „Mit LLM verfeinern“ mit eingetragenem Kontext; nummerierte Markierungen heben die Bedienelemente hervor](shots/refine.png)
 
-1. **Voreinstellung wählen...** lädt eine Verfeinerungs-Voreinstellung und trägt ihren Kontext ein. **Als Voreinstellung speichern** speichert den aktuellen Kontext als Voreinstellung.
+1. **Voreinstellung wählen...** lädt eine Verfeinerungs-Voreinstellung und trägt ihren Kontext ein. **Als Voreinstellung speichern** fragt nach einem Namen (bestätigen Sie mit dem Häkchen oder der Eingabetaste) und speichert den aktuellen Kontext unter diesem Namen als Voreinstellung.
 2. **Kontext (optional)**: Hinweise, die dem Sprachmodell bei Fachbegriffen und Eigennamen helfen, zum Beispiel „Informatik-Vorlesung, Vortragende Person ist Prof. Müller“.
 3. **Verfeinern** startet die Verfeinerung. **Abbrechen** schließt den Dialog.
 

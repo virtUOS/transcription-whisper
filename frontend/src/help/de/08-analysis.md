@@ -58,7 +58,7 @@ Ein Klick auf einen Eintrag klappt ihn auf.
 
 ![Eine aufgeklappte Zusammenfassung mit Kapiteln; nummerierte Markierungen heben die Bedienelemente hervor](shots/analysis-result.png)
 
-1. Die Kopfzeile zeigt den Namen der Vorlage (oder **Eigene Anweisung**), das Datum und das verwendete Sprachmodell.
+1. Der Name der Vorlage (oder **Eigene Anweisung**). Danach steht das Datum, und das verwendete Sprachmodell steht am rechten Ende der Kopfzeile.
 2. Das Papierkorbsymbol (**Löschen**) löscht den Eintrag nach einer Rückfrage.
 3. **Ergebnis kopieren** legt den Text in die Zwischenablage. **TXT** und **Markdown** laden ihn herunter, als Datei mit dem Namen der Aufnahme und dem Zusatz `_analysis`. Die Schaltflächen stehen über und unter dem Ergebnis.
 4. Bei Kapiteln, Kernpunkten, Entscheidungen und Aufgaben springt der Player nach einem Klick auf die Zeitangabe an diese Stelle.

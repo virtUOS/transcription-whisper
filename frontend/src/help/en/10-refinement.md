@@ -26,7 +26,7 @@ In the **Subtitles** tab, click **Refine with LLM** above the table. The button 
 
 ![The Refine with LLM dialog with a context entered; numbered markers highlight the controls](shots/refine.png)
 
-1. **Select a preset...** loads a refinement preset and fills in its context. **Save as preset** saves the current context as a preset.
+1. **Select a preset...** loads a refinement preset and fills in its context. **Save as preset** asks for a name (confirm with the check mark or Enter) and saves the current context under that name as a preset.
 2. **Context (optional)**: hints that help the language model with technical terms and proper names, for example "Computer science lecture, speaker is Prof. Müller".
 3. **Refine** starts the refinement. **Cancel** closes the dialog.
 

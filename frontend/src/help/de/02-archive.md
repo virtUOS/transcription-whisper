@@ -6,7 +6,7 @@ Nach der Anmeldung sehen Sie die Übersicht. Unter **Meine Transkriptionen** ste
 
 ![Die Übersicht mit zwei Transkriptionen; nummerierte Markierungen heben die Teile einer Zeile hervor](shots/archive.png)
 
-1. Der Titel und darunter der Dateiname, oder nur der Dateiname, wenn es keinen Titel gibt. Die Stifte daneben benennen sie um (siehe „Umbenennen“).
+1. Der Titel und darunter der Dateiname, oder nur der Dateiname, wenn es keinen Titel gibt. Die Stiftsymbole daneben benennen sie um (siehe „Umbenennen“).
 2. Das Modell, der Status, das Erstellungsdatum und, wenn die Transkription archiviert ist, ein Schild-Symbol. Der Status ist grün `completed` (fertig), gelb `pending` oder `processing` (wartet oder läuft) oder rot `failed` (fehlgeschlagen).
 
 Ein Klick auf eine Zeile öffnet die Transkription. Den Titel erzeugt transkribierBAR nach der Transkription automatisch mit dem Sprachmodell. Gelingt das nicht, zeigt die Zeile nur den Dateinamen.
@@ -15,7 +15,7 @@ Haben Sie noch keine Transkription, sehen Sie stattdessen **Neu hier?** mit dem 
 
 ## Umbenennen
 
-Klicken Sie auf den Stift neben dem Titel (**Titel bearbeiten**) oder neben dem Dateinamen (**Dateinamen bearbeiten**). Die Eingabetaste oder ein Klick daneben speichert, Esc bricht ab. Die Dateiendung bleibt unverändert.
+Klicken Sie auf das Stiftsymbol neben dem Titel (**Titel bearbeiten**) oder neben dem Dateinamen (**Dateinamen bearbeiten**). Die Eingabetaste oder ein Klick daneben speichert, Esc bricht ab. Die Dateiendung bleibt unverändert.
 
 ## Frist und Archivieren
 

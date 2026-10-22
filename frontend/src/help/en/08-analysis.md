@@ -58,7 +58,7 @@ Click an entry to expand it.
 
 ![An expanded summary with chapters; numbered markers highlight the controls](shots/analysis-result.png)
 
-1. The header shows the name of the template (or **Custom**), the date and the language model used.
+1. The name of the template (or **Custom**). The date follows it, and the language model used appears at the right end of the header.
 2. The trash icon (**Delete**) deletes the entry after a confirmation prompt.
 3. **Copy result** puts the text on the clipboard. **TXT** and **Markdown** download it, as a file named after the recording with the suffix `_analysis`. The buttons appear above and below the result.
 4. For chapters, key points, decisions and action items, clicking the time makes the player jump to that spot.

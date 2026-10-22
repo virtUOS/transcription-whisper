@@ -93,7 +93,7 @@ docker build --build-arg VITE_BASE_PATH=/test -t transcription-test .
 - The only allowed placeholders are `{{contact_email}}`, `{{retention_days}}`, `{{archive_retention_days}}`, `{{default_model}}` and `{{api_token_expiry_days}}` (see `helpText.ts`). Never hard-code those values.
 - `frontend/src/help/parity.test.ts` must pass: both languages need the same files, heading outline and images.
 - Check every claim against the frontend/backend code, not against README or old help text.
-- Screenshots are regenerated with `cd frontend && PYTHON=/path/to/venv/bin/python npm run help:shots [-- --only <id>]` (needs ffmpeg; specs in `frontend/scripts/help-shots/shots.ts`; the run never contacts the real ASR/LLM hosts).
+- Screenshots are regenerated with `cd frontend && PYTHON=/path/to/venv/bin/python npm run help:shots [-- --only <id>]` (needs ffmpeg and, once per machine, `npx playwright install chromium`; specs in `frontend/scripts/help-shots/shots.ts`; the run never contacts the real ASR/LLM hosts).
 - English help uses American spelling, as `en.json` does ("Customize", "Minimize", "color"); German help names the key "Eingabetaste" and says "KI-Funktionen" (English "AI features") in prose.
 
 ## Observability
