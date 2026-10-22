@@ -1,17 +1,27 @@
 # Speaker Mapping
 
-## Opening the dialog
+## Opening the panel
 
-Open the speaker mapping dialog from the **Speaker Names** button in the tab bar, or by clicking any speaker label directly in the editor. The dialog is only available when diarization has produced speaker labels for the recording.
+In the **Subtitles** tab, open the **Speaker Names** panel: with the button of the same name above the table or with the people icon in the **Speaker** column of a row. The people icon places the cursor straight in the field for that person. Another click on the button closes the panel again. In the **Refined** and **Translated** views the people icon is missing, but the button works.
 
-## Renaming speakers
+If the recording has no detected speakers, the panel shows **No speakers detected.** You decide whether speakers are detected before the transcription (see "Transcription Settings").
 
-Each detected speaker — SPEAKER_00, SPEAKER_01, and so on — has an input field where you can enter a display name. Once saved, the display name replaces the generic label everywhere: in the editor, in all export formats, and in the refined and translated views. Leave a field blank to keep the original generic label for that speaker.
+## Naming speakers
 
-## Re-assigning utterances
+The panel lists each speaker with the name that is currently shown. Without a name of your own, that is the stored label, for example `SPEAKER_00`. Enter a new name in the field to its right and click **Apply**. Fields you leave empty (**New name (leave empty to keep)**) keep their name. transkribierBAR removes spaces at the start and end of the name. **Cancel** closes the panel without any change.
 
-If diarization misattributed an utterance to the wrong speaker, you can re-assign it from the editor without touching the rest of the transcript. Re-assignment is per-utterance. A good workflow is to rename your speakers first so labels are meaningful, then go through any misattributed utterances and reassign them to the correct speaker.
+The new name then appears in the table, for videos in the player's subtitle track and in the **SRT**, **VTT**, **JSON** and **TXT** tabs including their downloads. This holds in every view, including **Refined** and **Translated**. Once you have named speakers, the field suggests those names.
 
-## How mappings are saved
+## Merging speakers
 
-Mappings are saved server-side and persist across sessions. Reloading the page or opening the transcript later will show the same display names. All download formats use the mapped names rather than the raw ASR labels.
+Give two speakers the same name and transkribierBAR treats them as one person. The panel then shows them in one row with a note such as **2 merged**, and their dots have the same colour. This helps when detection split one person into two.
+
+## Changing a single row
+
+If an utterance was assigned to the wrong person, click the pencil icon in the **Speaker** column of the row (**Edit speaker name**). Type the name of the right person and confirm with Enter. Type it exactly as it is already shown, and the row belongs to that person. The pencil icon exists only for rows with a speaker and not in the **Refined** and **Translated** views.
+
+This change applies to that one row only and, like any text change, is only permanent after **Save changes** (see "Subtitle Editor").
+
+## How the names are saved
+
+**Apply** saves the names to the server straight away, independent of **Save changes**. They apply to this transcription only. When you open it again later, the same names are there. The original label stays stored in the transcript itself; the names are added when it is displayed and in the formats.
