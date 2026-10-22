@@ -76,8 +76,17 @@ for (const [path, html] of pages) {
 
 copy(join(helpDir, 'render/guide.css'), join(staticDir, 'guide.css'))
 copy(join(frontendDir, 'public/whisper-logo.svg'), join(staticDir, 'logo.svg'))
-for (const name of readdirSync(join(helpDir, 'assets')).filter((f) => f.endsWith('.svg'))) {
-  copy(join(helpDir, 'assets', name), join(staticDir, 'assets', name))
+for (const lang of LANGS) {
+  for (const name of readdirSync(join(helpDir, 'assets', lang)).filter((f) => f.endsWith('.svg'))) {
+    copy(join(helpDir, 'assets', lang, name), join(staticDir, 'assets', lang, name))
+  }
+}
+// Every diagram a page references must exist in that page's language.
+for (const [path, html] of pages) {
+  for (const [, ref] of html.matchAll(/\bsrc="((?:\.\.\/)*static\/assets\/[^"]+)"/g)) {
+    const file = join(outDir, ref.replace(/^(?:\.\.\/)*/, ''))
+    if (!existsSync(file)) throw new Error(`${path}: diagram ${ref} is missing (${file})`)
+  }
 }
 for (const lang of LANGS) {
   for (const name of readdirSync(join(helpDir, 'shots', lang)).filter((f) => f.endsWith('.png'))) {

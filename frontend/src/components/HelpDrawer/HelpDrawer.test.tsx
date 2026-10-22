@@ -3,7 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { useStore } from '../../store'
 import i18n from '../../i18n'
 import { HelpDrawer } from './HelpDrawer'
-import { settingValues } from './helpSections'
+import { resolveAssetUrl, settingValues } from './helpSections'
 import type { ConfigResponse } from '../../api/types'
 
 function buildConfig(overrides: Partial<ConfigResponse> = {}): ConfigResponse {
@@ -131,6 +131,28 @@ describe('HelpDrawer screenshots', () => {
     openHelp(buildConfig(), 'archive')
     expect(document.querySelector('p figure, p dialog, p button')).toBeNull()
     expect(document.querySelector('figure')).not.toBeNull()
+  })
+})
+
+describe('HelpDrawer diagrams', () => {
+  it.each([
+    ['de', 'Hochladen', 'Upload'],
+    ['en', 'Upload', 'Hochladen'],
+  ])('shows the %s diagram', async (lang, label, other) => {
+    await i18n.changeLanguage(lang)
+    openHelp(buildConfig(), 'getting-started')
+    // Vite inlines small SVGs as data URIs, so check the decoded labels.
+    const svgs = [...document.querySelectorAll('img')]
+      .map((i) => i.getAttribute('src') ?? '')
+      .filter((src) => src.startsWith('data:image/svg+xml;base64,'))
+      .map((src) => decodeURIComponent(escape(atob(src.split(',')[1]))))
+    expect(svgs.length).toBeGreaterThan(0)
+    expect(svgs[0]).toContain(`>${label}<`)
+    expect(svgs[0]).not.toContain(`>${other}<`)
+  })
+
+  it('fails loudly for a diagram without a version in the language', () => {
+    expect(() => resolveAssetUrl('./assets/nope.svg', 'de')).toThrow(/nope\.svg.*de/)
   })
 })
 

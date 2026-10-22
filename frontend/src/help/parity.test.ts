@@ -98,6 +98,19 @@ describe('help content parity', () => {
     }
   })
 
+  it('has every referenced diagram in both languages', () => {
+    for (const s of sections) {
+      for (const lang of ['de', 'en'] as const) {
+        for (const src of imageSrcs(read(lang, s.filename)).filter((x) => x.startsWith('./assets/'))) {
+          expect(src, `${lang}/${s.filename}`).toMatch(/^\.\/assets\/[\w-]+\.svg$/)
+          for (const l of ['de', 'en'] as const) {
+            expect(existsSync(join(here, 'assets', l, src.slice('./assets/'.length))), `${l}: ${src} (from ${lang}/${s.filename})`).toBe(true)
+          }
+        }
+      }
+    }
+  })
+
   it('uses only known placeholders', () => {
     const known: readonly string[] = SETTING_KEYS
     for (const s of sections) {

@@ -5,7 +5,7 @@ import remarkGfm from 'remark-gfm'
 import rehypeSlug from 'rehype-slug'
 import type { Components } from 'react-markdown'
 import type { HelpSectionId } from './helpSections'
-import { loadContent, assetUrls, settingValues, fillSettings, shotFor } from './helpSections'
+import { loadContent, resolveAssetUrl, settingValues, fillSettings, shotFor } from './helpSections'
 import { HelpShot } from './HelpShot'
 import { useStore } from '../../store'
 
@@ -13,21 +13,8 @@ interface HelpContentProps {
   sectionId: HelpSectionId
 }
 
-/**
- * Resolves a markdown image src against Vite's asset URL map.
- * Accepts relative paths like "./assets/main-flow.svg" or "/src/help/assets/main-flow.svg".
- */
-function resolveAssetUrl(src: string | undefined): string | undefined {
-  if (!src) return undefined
-  // Normalize: strip leading "./" and make relative paths absolute from /src/help/
-  let key = src
-  if (key.startsWith('./')) key = '/src/help/' + key.slice(2)
-  if (!key.startsWith('/')) key = '/src/help/' + key
-  return assetUrls[key] ?? src
-}
-
-function LightboxImage({ src, alt, ...props }: React.ImgHTMLAttributes<HTMLImageElement>) {
-  const resolved = resolveAssetUrl(typeof src === 'string' ? src : undefined)
+function LightboxImage({ src, alt, lang, ...props }: React.ImgHTMLAttributes<HTMLImageElement> & { lang: 'de' | 'en' }) {
+  const resolved = resolveAssetUrl(typeof src === 'string' ? src : undefined, lang)
   const dialogRef = useRef<HTMLDialogElement>(null)
   return (
     <>
@@ -96,7 +83,6 @@ const components: Components = {
   li: ({ children, ...props }) => (
     <li className="text-gray-300" {...props}>{children}</li>
   ),
-  img: LightboxImage,
   table: ({ children, ...props }) => (
     <div className="overflow-x-auto my-3">
       <table className="text-sm text-gray-300 border-collapse" {...props}>{children}</table>
@@ -122,7 +108,7 @@ function makeComponents(lang: 'de' | 'en'): Components {
     img: (props) => {
       const src = typeof props.src === 'string' ? props.src : ''
       const shot = shotFor(lang, src)
-      return shot ? <HelpShot url={shot.url} alt={props.alt ?? ''} meta={shot.meta} /> : <LightboxImage {...props} />
+      return shot ? <HelpShot url={shot.url} alt={props.alt ?? ''} meta={shot.meta} /> : <LightboxImage {...props} lang={lang} />
     },
   }
 }

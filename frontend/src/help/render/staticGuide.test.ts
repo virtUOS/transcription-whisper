@@ -146,14 +146,14 @@ describe('renderGuidePage: shots and assets', () => {
   })
 
   it('points asset images at static/assets', () => {
-    expect(de).toContain('src="static/assets/main-flow.svg"')
+    expect(de).toContain('src="static/assets/de/main-flow.svg"')
     expect(de).not.toContain('./assets/')
   })
 
   it('uses ../static/ on the English page', () => {
     expect(en).toContain('href="../static/guide.css"')
     expect(en).toContain('src="../static/shots/en/upload.png"')
-    expect(en).toContain('src="../static/assets/main-flow.svg"')
+    expect(en).toContain('src="../static/assets/en/main-flow.svg"')
     expect(en).not.toMatch(/(src|href)="static\//)
   })
 

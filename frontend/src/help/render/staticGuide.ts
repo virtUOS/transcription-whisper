@@ -201,7 +201,7 @@ function shotFigure(id: string, alt: string, o: SectionOptions): Element {
 
 function assetSrc(src: string, o: SectionOptions): string | null {
   const m = ASSET_SRC.exec(src)
-  return m ? `${o.prefix}static/assets/${m[1]}` : null
+  return m ? `${o.prefix}static/assets/${o.lang}/${m[1]}` : null
 }
 
 /** Shots and assets, heading shift (`#` → h2) and section-prefixed heading ids, scrollable tables. */

@@ -68,12 +68,26 @@ const deMarkdown = import.meta.glob('/src/help/de/*.md', {
 }) as Record<string, string>
 
 // Vite glob: resolve asset URLs for SVG diagrams referenced from markdown.
+// Diagrams are per language: /src/help/assets/<lang>/<name>.svg.
 // These are post-build URLs (e.g. "/assets/main-flow-abc123.svg").
-export const assetUrls = import.meta.glob('/src/help/assets/*.{svg,png}', {
+export const assetUrls = import.meta.glob('/src/help/assets/*/*.{svg,png}', {
   query: '?url',
   import: 'default',
   eager: true,
 }) as Record<string, string>
+
+/**
+ * Resolves a markdown image src like "./assets/main-flow.svg" to this language's
+ * diagram (src/help/assets/<lang>/main-flow.svg). Throws when that file is missing.
+ */
+export function resolveAssetUrl(src: string | undefined, lang: 'de' | 'en'): string | undefined {
+  if (!src) return undefined
+  const m = /^\.\/assets\/([\w-]+\.(?:svg|png))$/.exec(src)
+  if (!m) return src
+  const url = assetUrls[`/src/help/assets/${lang}/${m[1]}`]
+  if (!url) throw new Error(`Help diagram "${m[1]}" has no ${lang} version in src/help/assets/${lang}/`)
+  return url
+}
 
 export function loadContent(id: HelpSectionId, lang: 'en' | 'de'): string | null {
   const section = sections.find((s) => s.id === id)

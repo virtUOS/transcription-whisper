@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 160" role="img" aria-labelledby="bundle-pipeline-title">
-  <title id="bundle-pipeline-title">A bundle composes optional pipeline stages after transcription</title>
+  <title id="bundle-pipeline-title">A bundle adds optional pipeline stages after transcription</title>
   <style>
     .stage { stroke-width: 1.5; }
     .required { fill: #1e3a8a; stroke: #3b82f6; }
@@ -27,5 +27,5 @@
   <polygon class="arrow-head" points="330,77 341,80 330,83" />
   <path class="arrow" d="M 460 80 L 495 80" />
   <polygon class="arrow-head" points="490,77 501,80 490,83" />
-  <text class="sub" x="360" y="30">A bundle is any subset of these stages</text>
+  <text class="sub" x="360" y="30">A bundle adds any of the optional stages</text>
 </svg>
