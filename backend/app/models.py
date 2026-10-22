@@ -244,6 +244,8 @@ class ConfigResponse(BaseModel):
     contact_email: str = ""
     is_admin: bool = False
     invitation_mode: bool = False
+    default_expiry_hours: int = 72
+    archive_expiry_hours: int = 4320
 
 
 # --- Invitations ---

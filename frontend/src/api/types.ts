@@ -141,6 +141,8 @@ export interface ConfigResponse {
   contact_email?: string
   is_admin?: boolean
   invitation_mode?: boolean
+  default_expiry_hours?: number
+  archive_expiry_hours?: number
 }
 
 export interface AnalysisTemplate {
