@@ -14,14 +14,15 @@ function Overlay({ url, alt, meta, className, size }: HelpShotProps & { classNam
   const badge = size === 'inline'
     ? '-top-2 -left-2 h-4 w-4 text-[10px]'
     : '-top-3 -left-3 h-6 w-6 text-xs'
+  // Spans, not divs: the inline overlay lives inside a <button>.
   return (
-    <div className="relative">
+    <span className="relative block">
       <img src={url} alt={alt} className={className} />
       {meta.marks.map((m) => (
-        <div
+        <span
           key={m.n}
           data-testid="shot-mark"
-          className={`absolute ${frame} border-red-500 rounded-sm pointer-events-none`}
+          className={`absolute block ${frame} border-red-500 rounded-sm pointer-events-none`}
           style={{
             left: `${(m.x / meta.width) * 100}%`,
             top: `${(m.y / meta.height) * 100}%`,
@@ -35,9 +36,9 @@ function Overlay({ url, alt, meta, className, size }: HelpShotProps & { classNam
           >
             {m.n}
           </span>
-        </div>
+        </span>
       ))}
-    </div>
+    </span>
   )
 }
 
@@ -45,13 +46,14 @@ export function HelpShot({ url, alt, meta }: HelpShotProps) {
   const { t } = useTranslation()
   const dialogRef = useRef<HTMLDialogElement>(null)
   return (
-    <figure aria-label={alt} className="my-4">
-      <div
-        className="cursor-pointer rounded border border-gray-700 p-2 transition-colors hover:border-gray-500"
+    <figure className="my-4">
+      <button
+        type="button"
+        className="block w-full cursor-pointer rounded border border-gray-700 p-2 transition-colors hover:border-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
         onClick={() => dialogRef.current?.showModal()}
       >
         <Overlay url={url} alt={alt} meta={meta} className="block w-full rounded" size="inline" />
-      </div>
+      </button>
       <figcaption className="mt-1 text-center text-xs text-gray-400">{t('help.enlarge')}</figcaption>
       <dialog
         ref={dialogRef}

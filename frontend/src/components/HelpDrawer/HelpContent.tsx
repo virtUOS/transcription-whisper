@@ -31,13 +31,13 @@ function LightboxImage({ src, alt, ...props }: React.ImgHTMLAttributes<HTMLImage
   const dialogRef = useRef<HTMLDialogElement>(null)
   return (
     <>
-      <img
-        src={resolved}
-        alt={alt ?? ''}
-        className="my-4 w-full rounded border border-gray-700 bg-gray-800/40 p-2 cursor-pointer hover:border-gray-500 transition-colors"
+      <button
+        type="button"
+        className="my-4 block w-full cursor-pointer rounded border border-gray-700 bg-gray-800/40 p-2 transition-colors hover:border-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
         onClick={() => dialogRef.current?.showModal()}
-        {...props}
-      />
+      >
+        <img src={resolved} alt={alt ?? ''} className="block w-full" {...props} />
+      </button>
       <dialog
         ref={dialogRef}
         onClick={(e) => { if (e.target === e.currentTarget) dialogRef.current?.close() }}

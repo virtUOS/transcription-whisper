@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { useStore } from '../../store'
 import i18n from '../../i18n'
 import { HelpDrawer } from './HelpDrawer'
@@ -74,6 +74,20 @@ describe('HelpDrawer', () => {
       expect(link).toHaveAttribute('target', '_blank')
       expect(link).toHaveAttribute('rel', 'noopener noreferrer')
     }
+  })
+})
+
+describe('HelpDrawer screenshots', () => {
+  it('keeps the drawer open on Escape while a lightbox is open, closes it otherwise', () => {
+    openHelp(buildConfig(), 'archive')
+    const dialog = document.querySelector('dialog') as HTMLDialogElement
+    expect(dialog).not.toBeNull()
+    dialog.setAttribute('open', '')
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(useStore.getState().helpOpen).toBe(true)
+    dialog.removeAttribute('open')
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(useStore.getState().helpOpen).toBe(false)
   })
 })
 

@@ -57,6 +57,8 @@ export function HelpDrawer() {
     if (!open) return
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        // An open screenshot lightbox consumes Escape itself; keep the drawer open.
+        if (drawerRef.current?.querySelector('dialog[open]')) return
         e.stopPropagation()
         closeHelp()
         return

@@ -18,9 +18,18 @@ describe('HelpShot', () => {
     expect(badge.getAttribute('aria-hidden')).toBe('true')
   })
 
-  it('names the figure from the alt text', () => {
+  it('names the screenshot through the img alt only', () => {
     render(<HelpShot url="/x.png" alt="Upload form" meta={meta} />)
-    expect(screen.getByRole('figure', { name: 'Upload form' })).toBeTruthy()
+    expect(screen.getByRole('figure')).not.toHaveAttribute('aria-label')
+    expect(screen.getAllByAltText('Upload form').length).toBeGreaterThan(0)
+  })
+
+  it('opens the lightbox from a keyboard-reachable button', () => {
+    const { container } = render(<HelpShot url="/x.png" alt="Upload form" meta={meta} />)
+    const button = container.querySelector('figure > button') as HTMLButtonElement
+    expect(button).not.toBeNull()
+    expect(button.type).toBe('button')
+    expect(button.querySelector('div')).toBeNull()
   })
 })
 
