@@ -68,36 +68,51 @@ def _privacy_page(rel: str, lang: Lang) -> Response:
     return HTMLResponse(body, headers=HEADERS)
 
 
-@router.get("/handbuch")
+# Redirect targets are relative so they also work behind a prefix-stripping proxy.
+# Browsers and link checkers send HEAD too, so every route accepts both.
+_METHODS = ["GET", "HEAD"]
+
+
+@router.api_route("/handbuch", methods=_METHODS)
 async def guide_redirect():
-    return RedirectResponse("/handbuch/", status_code=308)
+    return RedirectResponse("handbuch/", status_code=308)
 
 
-@router.get("/handbuch/en")
+@router.api_route("/handbuch/en", methods=_METHODS)
 async def guide_en_redirect():
-    return RedirectResponse("/handbuch/en/", status_code=308)
+    return RedirectResponse("en/", status_code=308)
 
 
-@router.get("/handbuch/")
+@router.api_route("/handbuch/datenschutz", methods=_METHODS)
+async def privacy_de_redirect():
+    return RedirectResponse("datenschutz/", status_code=308)
+
+
+@router.api_route("/handbuch/en/privacy", methods=_METHODS)
+async def privacy_en_redirect():
+    return RedirectResponse("privacy/", status_code=308)
+
+
+@router.api_route("/handbuch/", methods=_METHODS)
 async def guide_de():
     return _page("index.html", "de")
 
 
-@router.get("/handbuch/en/")
+@router.api_route("/handbuch/en/", methods=_METHODS)
 async def guide_en():
     return _page("en/index.html", "en")
 
 
-@router.get("/handbuch/datenschutz/")
+@router.api_route("/handbuch/datenschutz/", methods=_METHODS)
 async def privacy_de():
     return _privacy_page("datenschutz/index.html", "de")
 
 
-@router.get("/handbuch/en/privacy/")
+@router.api_route("/handbuch/en/privacy/", methods=_METHODS)
 async def privacy_en():
     return _privacy_page("en/privacy/index.html", "en")
 
 
-@router.get("/handbuch/{rest:path}")
+@router.api_route("/handbuch/{rest:path}", methods=_METHODS)
 async def guide_not_found(rest: str):
     return _not_found()

@@ -78,12 +78,15 @@ def test_fill_settings_escapes_and_blanks_unknown():
 
 @pytest.mark.asyncio
 async def test_routing_and_headers(guide_dir):
-    r = await get("/handbuch")
-    assert r.status_code == 308
-    assert r.headers["location"].endswith("/handbuch/")
-    r = await get("/handbuch/en")
-    assert r.status_code == 308
-    assert r.headers["location"].endswith("/handbuch/en/")
+    for path, target in (
+        ("/handbuch", "handbuch/"),
+        ("/handbuch/en", "en/"),
+        ("/handbuch/datenschutz", "datenschutz/"),
+        ("/handbuch/en/privacy", "privacy/"),
+    ):
+        r = await get(path)
+        assert r.status_code == 308, path
+        assert r.headers["location"] == target, path
     for p in ("/handbuch/", "/handbuch/en/"):
         r = await get(p)
         assert r.status_code == 200
@@ -93,6 +96,20 @@ async def test_routing_and_headers(guide_dir):
         assert "__TW_" not in r.text
         assert "llm section" in r.text
         assert "tw-feature" not in r.text
+
+
+@pytest.mark.asyncio
+async def test_head_on_all_pages(guide_dir, monkeypatch):
+    monkeypatch.setattr(router_mod, "NOTICES", {"de": "<p>x</p>", "en": "<p>y</p>"})
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as c:
+        for p in ("/handbuch/", "/handbuch/en/", "/handbuch/datenschutz/", "/handbuch/en/privacy/"):
+            r = await c.head(p)
+            assert r.status_code == 200, p
+            assert r.headers["content-security-policy"] == CSP
+        for p in ("/handbuch", "/handbuch/datenschutz"):
+            assert (await c.head(p)).status_code == 308, p
+        assert (await c.head("/handbuch/nope")).status_code == 404
 
 
 @pytest.mark.asyncio
