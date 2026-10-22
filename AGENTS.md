@@ -29,10 +29,16 @@ exits 0 even with type errors in `src/`. Use `npm run typecheck`.
 ### Backend
 ```bash
 cd backend
-pip install -r requirements.txt
+pip install -r requirements-dev.txt   # runtime + test deps
 uvicorn app.main:app --reload --port 8000
 pytest               # run tests
 ```
+
+Dependencies are pinned with hashes. Edit `requirements.in` (runtime) or
+`requirements-dev.in` (test-only), never the generated `requirements*.txt`, then
+regenerate both lock files with the `uv pip compile` commands in the header of
+`requirements.in`. The Docker image installs only `requirements.txt`, with
+`--require-hashes`, so test packages never reach production.
 
 ### Docker
 ```bash
