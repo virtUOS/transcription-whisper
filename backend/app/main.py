@@ -2,6 +2,7 @@ import asyncio
 import os
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,7 +10,8 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from app.config import settings
 from app.database import init_db, get_db
-from app.routers import config_router, upload, transcription, refinement, analysis, translation, presets, tokens, invitations as invitations_router
+from app.routers import config_router, upload, transcription, refinement, analysis, translation, presets, tokens, invitations as invitations_router, public_pages
+from app.public_pages import load_privacy_notices
 from app.metrics import inc, gauge_set, cleanup_runs_total, cleanup_items_deleted_total, storage_bytes, api_tokens_active, invitations_expired_total, init_label_series, users_total, users_with_transcriptions, users_new
 from app.services.audio import has_video_stream
 from app.services.api_tokens import cleanup_stale_tokens, count_active_tokens
@@ -140,6 +142,7 @@ async def cleanup_old_files():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     os.makedirs(settings.TEMP_PATH, exist_ok=True)
+    public_pages.NOTICES = load_privacy_notices()
     await init_db(settings.db_path)
     # Backfill has_video for existing files
     async with get_db() as db:
@@ -194,6 +197,16 @@ app.include_router(invitations_router.router)
 
 # Serve frontend static files (only when built files exist, i.e., in Docker)
 static_dir = os.path.join(os.path.dirname(__file__), "..", "static")
+
+# Public guide and privacy notice. The static mount must come before the router,
+# whose /handbuch/{rest:path} catch-all would shadow it; both must come before
+# the SPA catch-all below so that /handbuch... can never serve the SPA shell.
+public_pages.GUIDE_DIR = Path(static_dir) / "handbuch"
+_guide_assets = public_pages.GUIDE_DIR / "static"
+if _guide_assets.is_dir():
+    app.mount("/handbuch/static", StaticFiles(directory=str(_guide_assets)), name="handbuch-static")
+app.include_router(public_pages.router)
+
 if os.path.isdir(static_dir):
     app.mount("/assets", StaticFiles(directory=os.path.join(static_dir, "assets")), name="assets")
 
