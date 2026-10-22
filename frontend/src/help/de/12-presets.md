@@ -24,9 +24,9 @@ Jeder Reiter listet Ihre gespeicherten Einträge mit **Bearbeiten** und **Lösch
 
 Eine Transkriptions-Voreinstellung speichert Sprache, Erkennung der Sprechenden, Anfangs-Prompt, Schlüsselwörter und Modell. Das Formular auf der Seite hat die Felder **Name**, **Sprache für die Transkription**, **Modell**, **Schlüsselwörter** und **Anfangs-Prompt**. Das Modell ist fest auf {{default_model}} eingestellt und lässt sich nicht ändern.
 
-Wenn Sie eine solche Voreinstellung bei **Hochladen** oder **Aufnehmen** wählen, übernimmt sie Sprache, Sprechende, Anfangs-Prompt und Schlüsselwörter. Das Modell bleibt {{default_model}}.
+Wenn Sie eine solche Voreinstellung bei **Hochladen** oder **Aufnehmen** wählen, übernimmt sie die Sprache, die in ihr gespeicherten Einstellungen zu den Sprechenden, den Anfangs-Prompt und die Schlüsselwörter. Das Modell bleibt {{default_model}}.
 
-> **Sprechende.** Die Seite „Voreinstellungen“ hat kein Feld für die Erkennung der Sprechenden. Wenn Sie dort eine Transkriptions-Voreinstellung bearbeiten, ist die Erkennung der Sprechenden in dieser Voreinstellung danach ausgeschaltet. Möchten Sie Einstellungen zu den Sprechenden ändern, stellen Sie sie bei **Hochladen** oder **Aufnehmen** ein und speichern Sie mit **Als Voreinstellung speichern** eine neue Voreinstellung.
+> **Sprechende.** Die Seite „Voreinstellungen“ hat kein Feld für die Erkennung der Sprechenden. Voreinstellungen, die Sie dort anlegen oder bearbeiten, erkennen keine Sprechenden. Wählen Sie eine solche bei **Hochladen** oder **Aufnehmen**, ist die Erkennung der Sprechenden in den Einstellungen danach ausgeschaltet. Soll eine Voreinstellung Sprechende erkennen, stellen Sie das bei **Hochladen** oder **Aufnehmen** ein und speichern Sie mit **Als Voreinstellung speichern**.
 
 ## Analyse-Voreinstellungen
 

@@ -24,9 +24,9 @@ Each tab lists your saved entries with **Edit** and **Delete**. **+ New preset**
 
 A transcription preset stores language, speaker detection, initial prompt, hotwords and model. The form on the Presets page has the fields **Name**, **Transcription language**, **Model**, **Hotwords** and **Initial prompt**. The model is fixed to {{default_model}} and cannot be changed.
 
-If you choose such a preset in **Upload** or **Record**, it applies language, speakers, initial prompt and hotwords. The model stays {{default_model}}.
+If you choose such a preset in **Upload** or **Record**, it applies the language, the speaker settings stored in it, the initial prompt and the hotwords. The model stays {{default_model}}.
 
-> **Speakers.** The Presets page has no field for speaker detection. If you edit a transcription preset there, speaker detection in this preset is switched off. If you want to change speaker settings, set them in **Upload** or **Record** and save a new preset with **Save as preset**.
+> **Speakers.** The Presets page has no field for speaker detection. Presets you create or edit there have speaker detection switched off, and choosing one in **Upload** or **Record** then switches it off in the settings. If you want speaker detection in a preset, set it in **Upload** or **Record** and save the preset with **Save as preset**.
 
 ## Analysis presets
 
