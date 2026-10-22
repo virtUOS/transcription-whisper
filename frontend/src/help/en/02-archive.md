@@ -1,13 +1,31 @@
 # Archive
 
-## Your transcription list
+## My Transcriptions
 
-Each row shows the transcription title, the original filename, the model used, a status badge (completed, failed, or processing), and the creation date. Expiration info is shown on the right. Click any row to open the transcription in the detail view. Both the title and the filename are editable inline — click the pencil icon next to either one to rename it.
+After signing in you see the overview. Under **My Transcriptions** it lists all your transcriptions, newest first. Each row shows:
 
-## Expiration and archiving
+- the title with the filename below it, or only the filename if there is no title;
+- the model;
+- the status: green `completed`, yellow `pending` or `processing` (waiting or running), red `failed`;
+- the creation date;
+- a shield icon if the transcription is archived.
 
-Transcriptions expire after a retention window and are permanently deleted when that window closes. Archiving a transcription extends its expiration by 180 days from the current date. Expiration dates within 24 hours are shown in red as a warning. You can archive a transcription multiple times to keep pushing the expiration date forward. Once a transcription expires and is deleted, it cannot be recovered.
+Click a row to open the transcription. After transcribing, transkribierBAR creates the title automatically with the language model. If that fails, the row shows only the filename.
 
-## Delete vs archive
+If you have no transcriptions yet, you see **New here?** with the link **Open the Getting Started guide** instead.
 
-**Delete** removes the transcription immediately and cannot be undone. **Archive** keeps the transcription but extends its retention by 180 days. Use Archive when you want to hold on to a result for reference. Use Delete only when you are certain you no longer need it.
+## Renaming
+
+Click the pencil next to the title (**Edit title**) or next to the filename (**Edit filename**). Enter or clicking elsewhere saves, Esc cancels. The file extension stays as it is.
+
+## Expiry and archiving
+
+Every transcription is deleted automatically after a fixed period, together with the uploaded file and all results (analyses, refinement, translation, speaker names). The period is {{retention_days}} days from the upload. The detail view shows the date after **Expires:**; it turns red when less than 24 hours are left.
+
+**Archive** in the detail view sets the period to {{archive_retention_days}} days from that moment. The button is then replaced by **Archived**, and the overview shows the shield icon.
+
+> **Download in time.** Once the period has passed, you cannot restore the transcription. Download any results you want to keep before then.
+
+## Deleting
+
+**Delete transcription** in the detail view asks for confirmation and then deletes the transcription and its results at once. The uploaded file is deleted too, unless another transcription uses it. Deleting cannot be undone. You then return to the overview.
