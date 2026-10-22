@@ -388,10 +388,10 @@ ${footer(lang, links, false)}
 `
 }
 
-export function renderPrivacyShell(lang: GuideLang, logoSvg: string, builtOn: string): string {
+export function renderPrivacyShell(lang: GuideLang, logoSvg: string): string {
   const t = TEXT[lang]
   const links = PRIVACY_LINKS[lang]
-  const back = `<a href="../"><span aria-hidden="true">← </span>${esc(t.backToGuide)}</a> (${t.asOf} <time datetime="${builtOn}">${formatDate(builtOn, lang)}</time>)`
+  const back = `<a href="../"><span aria-hidden="true">← </span>${esc(t.backToGuide)}</a>`
   return `${head(lang, t.privacy, t.privacy, links.root)}
 <body>
 <a class="skip" href="#main">${esc(t.skip)}</a>

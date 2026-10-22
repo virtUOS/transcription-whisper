@@ -233,12 +233,19 @@ describe('renderGuidePage: links and page frame', () => {
 })
 
 describe('renderPrivacyShell', () => {
-  const pde = renderPrivacyShell('de', LOGO, '2026-10-22')
-  const pen = renderPrivacyShell('en', LOGO, '2026-10-22')
+  const pde = renderPrivacyShell('de', LOGO)
+  const pen = renderPrivacyShell('en', LOGO)
 
   it('carries the notice sentinels', () => {
     expect(pde).toContain('<article class="notice" lang="__TW_NOTICE_LANG__">__TW_PRIVACY_NOTICE__</article>')
     expect(pen).toContain('__TW_PRIVACY_NOTICE__')
+  })
+
+  it('shows no date next to the operator notice', () => {
+    for (const page of [pde, pen]) {
+      expect(page).not.toContain('<time')
+      expect(page).not.toMatch(/2026|Stand|As of/)
+    }
   })
 
   it('resolves its links from one or two levels below the guide', () => {

@@ -66,7 +66,7 @@ for (const lang of LANGS) {
   })
   const guide = renderGuidePage({ lang, sections: input, shotMeta: shotMetaFor(lang), logoSvg, builtOn })
   pages.push([lang === 'de' ? 'index.html' : 'en/index.html', guide])
-  pages.push([lang === 'de' ? 'datenschutz/index.html' : 'en/privacy/index.html', renderPrivacyShell(lang, logoSvg, builtOn)])
+  pages.push([lang === 'de' ? 'datenschutz/index.html' : 'en/privacy/index.html', renderPrivacyShell(lang, logoSvg)])
 }
 
 for (const [path, html] of pages) {
