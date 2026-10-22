@@ -1,32 +1,40 @@
 # Transcription Settings
 
-## Speaker diarization
+## Language and model
 
-Diarization detects who spoke when and tags each utterance with a label like SPEAKER_00, SPEAKER_01, and so on. Turn it on for multi-speaker recordings and off for single-speaker content to save processing time. You can optionally set minimum and maximum speaker counts to guide detection. Diarization adds noticeable processing time. Once the transcription is ready, rename speakers to real names via the **Speaker Mapping** feature.
+The **Transcription** group has two fields.
 
-## Model and quality
+**Transcription language:** The default is **Auto-detect**; the speech recognition then determines the language by itself. If you know the language, choose it from the list. German, English, Spanish, French and Turkish are at the top, followed by a divider and all other languages in alphabetical order.
 
-Which Whisper models are available depends on how your deployment is configured.
+**Model:** The field is read-only and shows {{default_model}}. It is the only configured model, so there is nothing to choose. Every transcription uses it.
 
-**If only one model is configured**, the settings panel shows a read-only **Model** field naming it (for example `large-v3-turbo`). There is nothing to choose — every transcription uses that model.
+## Detecting speakers
 
-**If several are configured**, the field is a **Quality** dropdown. Each entry shows a tier name and the model behind it:
+The **Speakers** group has the switch **Detect speakers**. It is on by default and separates the contributions of different people. If only one person speaks, you can turn it off.
 
-| Tier | Speed | Notes |
-|---|---|---|
-| Draft (tiny) | Fastest | Good for quick previews of long files |
-| Standard (base) | Fast | — |
-| Good (small) | Medium | — |
-| Better (medium) | Slow | — |
-| Balanced (large-v3-turbo) | Fast/accurate | Recommended default |
-| Best quality (large-v3) | Slowest | Maximum accuracy |
+When the switch is on, you can narrow down the number of people: **Min speakers** (default 1) and **Max speakers** (default 2). Values from 1 to 20 are allowed. If you set the minimum above the maximum, the maximum follows, and the other way round.
 
-Only the tiers your deployment offers appear. The steps are not evenly spaced — the jump up to `large-v3-turbo` is large, while the gap between `large-v3-turbo` and `large-v3` is small.
+You give names to the detected people after the transcription, in the **Subtitles** tab under **Speaker Names**.
 
 ## Advanced options
 
-**Initial prompt** lets you give the model a short context sentence — useful for technical topics, proper nouns, or expected vocabulary. **Hotwords** is a comma-separated list of domain-specific terms the model should favour. Use both options sparingly; over-specifying can introduce errors.
+**Advanced options** reveals two more fields. Both are optional.
+
+- **Initial prompt:** context for the transcription, for example the topic or proper names.
+- **Hotwords:** comma-separated technical terms.
+
+Both entries go to the speech recognition. Empty fields are not sent.
 
 ## Presets
 
-Save your current settings as a named preset to reuse them without reconfiguring every time. Create and manage presets on the **Presets** page.
+The **Presets** group is the first group.
+
+- **Transcription:** This selection field appears once you have saved presets. If you choose a preset there, it applies language, speakers, initial prompt and hotwords.
+- **Save as preset:** Enter a name and confirm with the check mark or Enter. transkribierBAR saves the current settings under that name.
+- **Bundles:** This field appears once you have created bundles. The section "Upload" explains what it does.
+
+You manage presets on the **Presets** page in the header.
+
+## The summary
+
+After you click **Transcribe**, one line replaces the settings. It names the filename, the size, the model, the language (**auto** if you chose none), the speakers (**no speakers** or, for example, **1–2 speakers**) and, if used, the bundle.

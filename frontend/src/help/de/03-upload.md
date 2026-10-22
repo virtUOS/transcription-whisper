@@ -1,13 +1,29 @@
 # Hochladen
 
-## Unterstützte Formate
+## Datei auswählen
 
-Die App akzeptiert MP3, WAV, MP4, WebM, M4A, MOV, AAC, Opus und OGG bis zu 1 GB. Ziehe eine Datei in den Upload-Bereich oder klicke, um den Datei-Browser zu öffnen.
+Klicken Sie in der Übersicht auf **+ Hochladen**. Ziehen Sie dann eine Datei in den Upload-Bereich oder klicken Sie darauf, um den Datei-Browser zu öffnen. Der Upload beginnt sofort nach der Auswahl.
 
-## Sprache wählen
+Erlaubt sind MP3, WAV, MP4, WebM, M4A, MOV, AAC, Opus und OGG bis zu 1 GB. Ist die Datei größer, erscheint die Meldung **Datei ist zu groß. Maximale Größe ist 1 GB.** Während des Uploads steht dort **Datei wird hochgeladen — bitte warten...**. Danach zeigt die Seite den Dateinamen mit der Dateigröße.
 
-Wähle **Automatisch erkennen**, wenn du die Sprache nicht sicher kennst. Die Erkennung kostet etwas Zeit — wenn du die Sprache bereits kennst, liefert eine manuelle Auswahl schnellere Ergebnisse mit etwas besserer Genauigkeit.
+## Einstellungen und Start
 
-## Bundles verwenden
+Sobald Sie eine Datei gewählt haben, erscheinen die Einstellungen, auch schon während des Uploads. Was die Felder bedeuten, steht im Abschnitt „Transkriptionseinstellungen“.
 
-Ein Bundle verknüpft Voreinstellungen für Transkription, Verfeinerung, Analyse und Übersetzung zu einer einzigen Konfiguration. Wähle ein Bundle im Dropdown aus, bevor du startest — die konfigurierten Stufen laufen dann nach Abschluss der Transkription automatisch. Bundles erstellst und verwaltest du auf der **Voreinstellungen**-Seite. Wie die Pipeline zusammengesetzt wird, steht unter **Bundles**.
+Klicken Sie auf **Transkribieren**. Läuft der Upload noch, heißt die Schaltfläche **Transkribieren wenn bereit**; die Transkription startet dann von selbst, sobald die Datei hochgeladen ist. Schlägt der Upload in diesem Fall fehl, erscheint **Upload fehlgeschlagen** mit der Schaltfläche **Einstellungen ändern**.
+
+Mit **Verwerfen** neben der Schaltfläche **Transkribieren** setzen Sie die Seite zurück und kehren zur Übersicht zurück.
+
+## Pakete verwenden
+
+Ein Paket verbindet Voreinstellungen für Transkription, Verfeinerung, Analyse und Übersetzung. Haben Sie Pakete angelegt, wählen Sie unter **Voreinstellungen** im Feld **Pakete** eines aus. Ist ein Paket als Standard markiert, ist es beim Öffnen schon gewählt.
+
+Hat das Paket eine Transkriptions-Voreinstellung, übernimmt die Auswahl deren Werte in die Einstellungen. Enthält das Paket Verfeinerung, Analyse oder Übersetzung, heißt die Schaltfläche **Pipeline starten**. Diese Schritte laufen nach der Transkription automatisch. Pakete legen Sie auf der Seite **Voreinstellungen** an.
+
+## Seite verlassen
+
+Solange die Datei hochgeladen wird, fragt transkribierBAR beim Wechsel in eine andere Ansicht nach: **Ein Upload läuft gerade. Wenn Sie die Seite verlassen, wird er abgebrochen. Fortfahren?** Bestätigen Sie, bricht der Upload ab. Schließen Sie den Tab oder laden Sie die Seite neu, warnt Sie der Browser.
+
+Sobald die Transkription läuft, können Sie die Seite verlassen. Sie läuft auf dem Server weiter und steht später in der Übersicht.
+
+> **Große Dateien.** Lassen Sie den Tab geöffnet, bis der Upload fertig ist. Danach können Sie die Seite verlassen.
