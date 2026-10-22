@@ -1,5 +1,5 @@
 import json
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 import os
 import shutil
 
@@ -69,6 +69,23 @@ async def test_seed_creates_names_analysis_presets_token(seeded):
     assert len(await _rows(db_path, "SELECT * FROM transcription_presets")) == 1
     assert len(await _rows(db_path, "SELECT * FROM preset_bundles")) == 1
     assert len(await _rows(db_path, "SELECT * FROM api_tokens WHERE user_id = 'dev-user'")) == 1
+
+
+@pytest.mark.asyncio
+async def test_seed_matches_production_retention_and_model(tmp_path):
+    db_path = str(tmp_path / "r.db")
+    await seed(db_path, str(tmp_path / "m"), make_media=False)
+    files = {
+        r["original_filename"]: r
+        for r in await _rows(db_path, "SELECT original_filename, created_at, expires_at, is_archived FROM files")
+    }
+    fmt = "%Y-%m-%d %H:%M:%S"
+    en, de = files["workshop-planning.mp3"], files["workshop-planung.mp3"]
+    assert datetime.strptime(en["expires_at"], fmt) - datetime.strptime(en["created_at"], fmt) == timedelta(hours=72)
+    assert datetime.strptime(de["expires_at"], fmt) - datetime.strptime(de["created_at"], fmt) == timedelta(hours=4320)
+    models = {r["model"] for r in await _rows(db_path, "SELECT model FROM transcriptions")}
+    models |= {r["model"] for r in await _rows(db_path, "SELECT model FROM transcription_presets")}
+    assert models == {"large-v3-turbo"}
 
 
 @pytest.mark.asyncio

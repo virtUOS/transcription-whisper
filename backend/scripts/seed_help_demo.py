@@ -35,8 +35,9 @@ _CREATED = {"de": "2026-10-01 07:00:00", "en": "2026-10-01 06:00:00"}
 _COMPLETED = {"de": "2026-10-01 07:02:00", "en": "2026-10-01 06:02:00"}
 _ANALYSIS_CREATED = "2026-10-01 07:10:00"
 _REFINEMENT_CREATED = "2026-10-01T07:05:00+00:00"
-# German item is archived (archive retention); English keeps a plain expiry.
-_EXPIRES = {"de": "2027-03-30 07:00:00", "en": "2026-12-31 07:00:00"}
+# Production retention: a plain item expires 72 h after creation; the archived German item
+# has the archive retention of 4320 h (180 days), counted here from creation.
+_EXPIRES = {"de": "2027-03-30 07:00:00", "en": "2026-10-04 06:00:00"}
 ARCHIVED = {"de": 1, "en": 0}
 TONE_HZ = {"de": 440, "en": 523}
 DURATION_S = 120
@@ -157,7 +158,7 @@ async def seed(
                        created_at, completed_at, refined_utterances_json,
                        refinement_metadata_json, translated_utterances_json,
                        translation_language, translation_source, translation_source_hash, title)
-                   VALUES (?, ?, ?, ?, 'demo', 'completed', ?, 'large-v3', 2, 2, ?, ?, ?,
+                   VALUES (?, ?, ?, ?, 'demo', 'completed', ?, 'large-v3-turbo', 2, 2, ?, ?, ?,
                            ?, ?, ?, ?, 'refined', ?, ?)""",
                 (txn_id, USER_ID, file_id, f"demo-{code}", code,
                  json.dumps(original, ensure_ascii=False), CREATED[code], COMPLETED[code],
@@ -192,20 +193,20 @@ async def seed(
         await db.execute(
             """INSERT INTO transcription_presets (id, user_id, name, language, model,
                    min_speakers, max_speakers, initial_prompt, hotwords, created_at, updated_at)
-               VALUES (?, ?, 'Interview, two speakers', 'de', 'large-v3', 2, 2,
+               VALUES (?, ?, 'Workshop-Interview', 'de', 'large-v3-turbo', 2, 2,
                        'Interview about planning a university workshop.', 'Workshop, Semester', ?, ?)""",
             (preset_id, USER_ID, CREATED["de"], CREATED["de"]),
         )
         await db.execute(
             """INSERT INTO preset_bundles (id, user_id, name, transcription_preset_id,
                    translate_language, created_at, updated_at)
-               VALUES (?, ?, 'Interview with English translation', ?, 'en', ?, ?)""",
+               VALUES (?, ?, 'Workshop-Interview, DE → EN', ?, 'en', ?, ?)""",
             (bundle_id, USER_ID, preset_id, CREATED["de"], CREATED["de"]),
         )
         await db.commit()
 
         # Raw token is intentionally discarded: it is never printed or stored.
-        await create_token(db, user_id=USER_ID, name="Example script", expires_in_days=90)
+        await create_token(db, user_id=USER_ID, name="Demo-Skript", expires_in_days=90)
     return ids
 
 
