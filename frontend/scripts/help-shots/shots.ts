@@ -243,6 +243,8 @@ export const shots: ShotSpec[] = [
       await page.locator('[data-help="tab-analysis"]').click()
       await page.locator('[data-help="analysis-header"]').click()
       await page.locator('[data-help="chapter-time"]').first().waitFor()
+      // The header's chevron rotates with a CSS transition; let it finish so its pixels do not vary.
+      await page.evaluate('Promise.all(document.getAnimations().map((a) => a.finished))')
       await rest(page)
     },
     clip: ['[data-help="analysis-header"]', '[data-help="chapter-card"]:nth-child(2)'],
