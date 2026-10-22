@@ -201,6 +201,7 @@ async function main(): Promise<void> {
         const meta = computeMarks(clip, boxes, spec.marks)
         await page.screenshot({
           path: join(dir, `${spec.id}.png`),
+          animations: 'disabled',
           clip: { x: clip.x, y: clip.y, width: clip.w, height: clip.h },
         })
         writeFileSync(join(dir, `${spec.id}.json`), `${JSON.stringify(meta, null, 2)}\n`)

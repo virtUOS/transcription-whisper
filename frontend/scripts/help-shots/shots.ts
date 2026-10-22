@@ -17,13 +17,25 @@ function audioFile(): string {
   return path
 }
 
+/**
+ * Select a file in the upload dropzone and wait until the upload has landed:
+ * the response arrived and the dropzone (which holds #file-upload) is replaced
+ * by the compact file row. The settings panel and start button render earlier,
+ * while the spinner dropzone is still tall, so waiting for them is not enough.
+ */
+export async function uploadFile(page: Page, path: string): Promise<void> {
+  const uploaded = page.waitForResponse((r) => r.url().includes('/api/upload') && r.ok())
+  await page.locator('#file-upload').setInputFiles(path)
+  await uploaded
+  await page.locator('#file-upload').waitFor({ state: 'detached' })
+}
+
 export const shots: ShotSpec[] = [
   {
     id: 'upload',
     async prepare(page) {
       await page.locator('[data-help="new-upload"]').click()
-      await page.locator('#file-upload').setInputFiles(audioFile())
-      // The settings panel and the start button appear once the upload finished.
+      await uploadFile(page, audioFile())
       await page.locator('[data-help="transcribe-start"]').waitFor()
       await page.locator('#upload-model-field').waitFor()
     },
