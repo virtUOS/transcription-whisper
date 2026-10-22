@@ -127,7 +127,11 @@ async function main(): Promise<void> {
     DEFAULT_WHISPER_MODEL: 'large-v3-turbo',
     LLM_PROVIDER: 'openai',
     LLM_MODEL: 'demo',
+    // Secret-looking keys of the repo .env must not reach the screenshot backend.
+    ASR_API_KEY: '',
     LLM_API_KEY: 'unused',
+    SMTP_PASSWORD: '',
+    KEYCLOAK_ADMIN_CLIENT_SECRET: '',
     ASR_URL: OUTSIDE,
     LLM_BASE_URL: OUTSIDE,
     ENABLE_API_TOKENS: 'true',
@@ -179,6 +183,8 @@ async function main(): Promise<void> {
       mkdirSync(dir, { recursive: true })
 
       for (const spec of specs) {
+        // Stubs are per spec: none may leak into the next one.
+        await page.unrouteAll({ behavior: 'ignoreErrors' })
         await page.goto(`http://127.0.0.1:${webPort}/`)
         await page.waitForLoadState('load')
         await spec.prepare(page, lang)

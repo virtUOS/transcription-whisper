@@ -150,10 +150,10 @@ export const shots: ShotSpec[] = [
     },
     clip: '[data-help="recorder"]',
     marks: [
-      '[data-help="record-sources"] > :nth-child(1) [role="switch"]',
+      '[data-help="record-source-mic"]',
       '[data-help="record-mic-device"]',
-      '[data-help="record-sources"] > :nth-child(2) [role="switch"]',
-      '[data-help="record-sources"] > :nth-child(3) [role="switch"]',
+      '[data-help="record-source-system"]',
+      '[data-help="record-source-camera"]',
       '[data-help="record-start"]',
     ],
   },
@@ -187,7 +187,7 @@ export const shots: ShotSpec[] = [
       '[data-help="editor-search"]',
       '[data-help="editor-views"]',
       'table tbody tr:nth-child(1)',
-      'table tbody tr:nth-child(2) td:nth-child(4)',
+      'table tbody tr:nth-child(2) [data-help="row-speaker"]',
     ],
   },
   {
@@ -204,7 +204,7 @@ export const shots: ShotSpec[] = [
       '[data-help="speaker-names"]',
       '[data-help="speaker-panel"] input',
       '[data-help="speaker-apply"]',
-      'table tbody tr:nth-child(1) td:nth-child(4)',
+      'table tbody tr:nth-child(1) [data-help="row-speaker"]',
     ],
   },
   {
@@ -250,7 +250,7 @@ export const shots: ShotSpec[] = [
     marks: [
       '[data-help="analysis-template"]',
       '[data-help="analysis-delete"]',
-      ['[data-help="analysis-actions"] > button:first-child', '[data-help="analysis-actions"] > button:last-child'],
+      ['[data-help="analysis-copy"]', '[data-help="analysis-download-md"]'],
       '[data-help="chapter-time"]',
     ],
   },
@@ -284,7 +284,7 @@ export const shots: ShotSpec[] = [
     pad: PAD,
     marks: [
       '[data-help="refine-preset"]',
-      ['[data-help="refine-dialog"] label', '[data-help="refine-context"]'],
+      ['[data-help="refine-context-label"]', '[data-help="refine-context"]'],
       '[data-help="refine-submit"]',
     ],
   },
@@ -295,7 +295,7 @@ export const shots: ShotSpec[] = [
       await page.locator('[data-help="view-refined"]').click()
       await page.locator('[data-help="refined-summary"]').waitFor()
       // The # cell of the first changed row opens the side-by-side comparison.
-      await page.locator('tr:has([data-help="row-changed-dot"]) td:nth-child(1)').first().click()
+      await page.locator('tr:has([data-help="row-changed-dot"]) [data-help="row-number"]').first().click()
       await page.locator('[data-help="row-diff"]').waitFor()
       await rest(page)
     },
@@ -304,7 +304,7 @@ export const shots: ShotSpec[] = [
     marks: [
       '[data-help="editor-views"]',
       '[data-help="refined-summary"]',
-      'tr:has([data-help="row-changed-dot"]) td:nth-child(1)',
+      'tr:has([data-help="row-changed-dot"]) [data-help="row-number"]',
     ],
   },
   {
@@ -367,10 +367,11 @@ export const shots: ShotSpec[] = [
           const json = tokens.map((t) => ({ ...t, prefix: 'tw_3fZq8LkP2', expires_at: expires }))
           await route.fulfill({ response, json })
         },
-        { times: 1 },
       )
       await page.locator('[data-help="nav-settings"]').click()
       await page.locator('[data-help="token-prefix"]').waitFor()
+      // Every fetch of the list was answered (StrictMode fetches twice); stop stubbing before the shot.
+      await page.unrouteAll({ behavior: 'wait' })
       await rest(page)
     },
     clip: '[data-help="tokens"]',

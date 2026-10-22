@@ -215,7 +215,7 @@ function AnalysisCard({ analysisId, transcriptionId, templates, baseName, onDele
           {!!result && (() => {
             const copyDownloadButtons = (extraClassName = '') => (
               <div data-help="analysis-actions" className={`flex justify-end gap-2 ${extraClassName}`.trim()}>
-                <button onClick={() => handleCopy(resultToText(result, t), 'all')} className={btnCopy}>
+                <button data-help="analysis-copy" onClick={() => handleCopy(resultToText(result, t), 'all')} className={btnCopy}>
                   {copied === 'all' ? checkIcon : copyIcon}
                   {copied === 'all' ? t('editor.copied') : t('analysis.copyResult')}
                 </button>
@@ -223,7 +223,7 @@ function AnalysisCard({ analysisId, transcriptionId, templates, baseName, onDele
                   {downloadIcon}
                   TXT
                 </button>
-                <button onClick={() => downloadMarkdown(resultToMarkdown(result, t), `${baseName}_analysis.md`)} className={btnDownload}>
+                <button data-help="analysis-download-md" onClick={() => downloadMarkdown(resultToMarkdown(result, t), `${baseName}_analysis.md`)} className={btnDownload}>
                   {downloadIcon}
                   Markdown
                 </button>

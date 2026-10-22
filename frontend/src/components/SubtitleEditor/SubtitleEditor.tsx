@@ -838,7 +838,7 @@ export function SubtitleEditor() {
                 onSave={handleSaveRefinementPreset}
               />
             </div>
-            <label className="block text-xs text-gray-400 mb-1">{t('editor.refinementContext')}</label>
+            <label data-help="refine-context-label" className="block text-xs text-gray-400 mb-1">{t('editor.refinementContext')}</label>
             <textarea
               data-help="refine-context"
               value={refineContext}

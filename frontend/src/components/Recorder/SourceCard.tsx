@@ -12,6 +12,8 @@ interface SourceCardProps {
   children?: ReactNode
   permission?: DevicePermission
   deniedBanner?: ReactNode
+  /** Value of the switch's data-help attribute (anchor for the help screenshots). */
+  helpId?: string
 }
 
 export function SourceCard({
@@ -25,6 +27,7 @@ export function SourceCard({
   children,
   permission,
   deniedBanner,
+  helpId,
 }: SourceCardProps) {
   const interactive = !disabled && !recording
   const effectiveOn = !disabled && enabled
@@ -48,6 +51,7 @@ export function SourceCard({
         <button
           type="button"
           role="switch"
+          data-help={helpId}
           aria-checked={effectiveOn}
           aria-label={label}
           disabled={!interactive}

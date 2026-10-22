@@ -138,6 +138,7 @@ export function RecordingSources(props: RecordingSourcesProps) {
     <div data-help="record-sources" className="flex flex-col gap-3">
       <SourceCard
         icon="🎤"
+        helpId="record-source-mic"
         label={t('recorder.sourceMicrophone')}
         enabled={useMicrophone}
         onToggle={onUseMicrophoneChange}
@@ -172,6 +173,7 @@ export function RecordingSources(props: RecordingSourcesProps) {
       {systemAudioSupport !== 'unsupported' && (
         <SourceCard
           icon="🔊"
+          helpId="record-source-system"
           label={t('recorder.sourceSystemAudio')}
           enabled={captureSystemAudio}
           onToggle={onCaptureSystemAudioChange}
@@ -216,6 +218,7 @@ export function RecordingSources(props: RecordingSourcesProps) {
 
       <SourceCard
         icon="📷"
+        helpId="record-source-camera"
         label={t('recorder.sourceCamera')}
         enabled={useCamera}
         onToggle={onUseCameraChange}
