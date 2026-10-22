@@ -1,23 +1,37 @@
-# Bundles
+# Pakete
 
-## Was ein Bundle ist
+## Was ein Paket ist
 
-Ein Bundle ist eine benannte Zusammenstellung von Pipeline-Stufen: Transkription, Verfeinerung, Analyse und Übersetzung. Jede Stufe ist optional außer der Transkription, und jede Stufe enthält eine Voreinstellung (oder eine Zielsprache für die Übersetzung). Wenn du in der Upload- oder Aufnahme-Ansicht ein Bundle auswählst, laufen alle konfigurierten Stufen nach Abschluss der Transkription automatisch nacheinander ab — kein manuelles Auslösen nötig.
+Ein Paket verknüpft Voreinstellungen für einen wiederkehrenden Ablauf. Es kann eine Transkriptions-Voreinstellung, eine Verfeinerungs-Voreinstellung, eine Analyse-Voreinstellung und eine Zielsprache für die Übersetzung enthalten. Jeder Teil ist optional. Pakete gehören zu Ihrem Konto, und nur Sie sehen sie.
+
+Ist die Transkription fertig, führt transkribierBAR die weiteren Schritte des Pakets nacheinander aus. Sie müssen sie nicht einzeln starten.
 
 ## Die Pipeline
 
 ![Bundle pipeline](./assets/bundle-pipeline.svg)
 
-Die Stufen laufen immer in dieser Reihenfolge: **Transkription → Verfeinerung → Analyse → Übersetzung**. Ist ein Verfeinerungsschritt konfiguriert, lesen Analyse und Übersetzung standardmäßig den verfeinerten Text statt des Originals — der bereinigte Text fließt also durch die Pipeline weiter. Lass den Verfeinerungsschritt weg (oder stelle den **Quelle**-Umschalter beim manuellen Ausführen um), damit diese Stufen auf dem Original-Transkript arbeiten.
+Die Schritte laufen immer in dieser Reihenfolge: **Transkription, Verfeinerung, Analyse, Übersetzung**. Die Transkription läuft immer. Verfeinerung, Analyse und Übersetzung laufen nur, wenn das Paket sie enthält.
 
-## Standard-Bundle und Automatik
+Ihr Browser startet diese Schritte nacheinander. Bleiben Sie auf der Seite, bis sie fertig sind. Gibt es dann eine Verfeinerung, verwenden Analyse und Übersetzung sie, sonst das Original. Das Original können Sie in einem Paket nicht wählen.
 
-Du kannst ein Bundle als Standard markieren. Es wird dann für jeden neuen Upload und jede Aufnahme vorausgewählt. Sobald die Transkription abgeschlossen ist, starten die verbleibenden Stufen automatisch, und Fortschrittsanzeigen zeigen den Status jeder Stufe. Wenn eine einzelne Stufe fehlschlägt, kannst du den Fehler schließen und weitermachen, ohne die gesamte Pipeline neu zu starten.
+Ist die Transkription fertig, öffnet sich die Detailansicht. Ein Streifen über dem Editor zeigt den aktuellen Schritt, zum Beispiel **Übersetze nach Englisch...**. Schlägt ein Schritt fehl, laufen die übrigen trotzdem. Danach listet die Meldung **Einige Pipeline-Schritte sind fehlgeschlagen:** auf, was schiefgegangen ist. Das Kreuz schließt sie. Ein Schritt, dessen Voreinstellung Sie inzwischen gelöscht haben, wird übersprungen.
 
-## Bundles erstellen und verwenden
+## Paket erstellen
 
-Erstelle Bundles auf der **Voreinstellungen**-Seite, indem du pro Stufe eine Voreinstellung auswählst und dem Bundle einen Namen gibst. Markiere es als Standard, wenn es automatisch angewendet werden soll. In der Upload- oder Aufnahme-Ansicht kannst du das aktive Bundle jederzeit über das Bundle-Dropdown wechseln.
+Legen Sie zuerst die Voreinstellungen an, die Sie brauchen, wie im Abschnitt „Voreinstellungen“ beschrieben. Öffnen Sie dann die Seite **Voreinstellungen**, wechseln Sie zum Reiter **Pakete** und klicken Sie auf **+ Neues Paket**.
 
-## Bundle oder manuelle Schritte?
+Geben Sie einen **Namen** ein. Wählen Sie dann nach Wunsch eine **Transkriptions-Voreinstellung...**, eine **Analyse-Voreinstellung...** und eine **Verfeinerungs-Voreinstellung...** sowie unter **Übersetzen nach** eine Sprache. **Keine** lässt einen Teil weg. Bestätigen Sie mit **Speichern**.
 
-Nutze ein Bundle, wenn du dieselbe Pipeline regelmäßig anwendest — zum Beispiel „jede Besprechungsaufnahme: verfeinern, dann auf Englisch zusammenfassen, dann ins Deutsche übersetzen". Wähle manuelle Schritte für einmalige Aufnahmen, die eine andere Behandlung benötigen, oder wenn du Zwischenergebnisse prüfen möchtest, bevor du weitermachst.
+Jedes Paket erscheint als Karte mit seinem Namen und den Teilen, die es enthält. **Bearbeiten** ändert es, **Löschen** entfernt es nach der Frage **Dieses Paket löschen?**. Beim Löschen eines Pakets bleiben seine Voreinstellungen erhalten.
+
+## Paket verwenden
+
+Bei **Hochladen** und **Aufnehmen** erscheint das Feld **Pakete** in der Gruppe **Voreinstellungen**, sobald Sie Pakete angelegt haben. Wählen Sie dort ein Paket, werden die Einstellungen seiner Transkriptions-Voreinstellung übernommen. Enthält das Paket Verfeinerung, Analyse oder Übersetzung, steht auf der Schaltfläche **Pipeline starten**. Der Abschnitt „Hochladen“ erklärt genauer, wie das abläuft, auch zum vorausgewählten Paket.
+
+## Standard-Paket
+
+Der Stern auf der Karte eines Pakets macht es zum Standard. Der Stern beim Standard-Paket entfernt den Standard wieder. Sie können nur ein Standard-Paket haben. Die Anwendung wählt es beim Öffnen vor. Die Einstellungen seiner Transkriptions-Voreinstellung werden dadurch noch nicht übernommen. Der Abschnitt „Hochladen“ erklärt das.
+
+## Paket oder einzelne Schritte?
+
+Ein Paket lohnt sich, wenn Sie viele Aufnahmen gleich behandeln, zum Beispiel immer verfeinern, dann zusammenfassen, dann übersetzen. Für eine einzelne Aufnahme, die anders behandelt werden soll, oder wenn Sie das Ergebnis eines Schritts erst ansehen möchten, starten Sie die Schritte von Hand.

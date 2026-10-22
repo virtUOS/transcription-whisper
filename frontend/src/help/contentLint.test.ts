@@ -7,11 +7,8 @@ import { sections } from './sectionList'
 import type { HelpSectionId } from './sectionList'
 import { GENDERED_DE, GENDERED_EN } from '../i18n/neutral'
 
-/**
- * Sections whose text has been rewritten and checked against the code. Each
- * content task appends its ids; once all are rewritten this becomes every section.
- */
-const LINTED: HelpSectionId[] = ['about', 'getting-started', 'archive', 'upload', 'record', 'transcription-settings', 'subtitle-editor', 'speaker-mapping', 'format-viewer', 'analysis', 'translation', 'refinement']
+/** Every section is rewritten and checked against the code, so all of them are linted. */
+const LINTED: HelpSectionId[] = sections.map((s) => s.id)
 
 /** German help addresses the reader as "Sie", never "du". */
 const INFORMAL_DE = /\b(du|dich|dir|dein\w*)\b/i

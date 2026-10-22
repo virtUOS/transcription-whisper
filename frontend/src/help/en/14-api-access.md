@@ -1,43 +1,93 @@
 # API Access
 
-## What this is
+## What this is for
 
-When your deployment has API tokens enabled, you can generate a personal bearer token and use it to call the app's REST API directly from scripts, CI jobs, or any HTTP client. A token is scoped to your account — it can read and write your own files, transcriptions, and presets, but never anyone else's.
+With a personal API token, your own scripts can use transkribierBAR without the web interface: upload a file, start a transcription, query its status and download the result. This section is for people who write scripts. For the web interface, you do not need it.
 
-If your deployment has tokens disabled, the **Settings** link in the header won't appear and this feature isn't available.
+A token belongs to your account. A script that uses it sees and changes only your own files and transcriptions. It does what you could do in the web interface.
 
 ## Creating a token
 
-Open **Settings** from the header, then click **Create token**. Give the token a short name that helps you remember where you'll use it (for example, `my-laptop` or `ci-pipeline`), choose how long it should stay valid (30, 90, 365 days, or Never), and click **Create**.
+Click **Settings** in the header. In the **API tokens** section, click **Create token**. Enter a **Name** that tells you where you use the token, for example the name of the script. Under **Expires in**, choose **30 days**, **90 days**, **365 days** or **Never**. The default validity is {{api_token_expiry_days}} days. Click **Create**.
 
-The raw token appears **once** as a `tw_…` string. Copy it immediately — when you close the dialog, the full token is gone and cannot be retrieved. Only the short prefix stays visible in the list for identification.
+The name can be up to 64 characters long. Among your active tokens each name may only be used once. The number of active tokens per person is limited. If you have reached it, creating another one is refused with an error message in the dialog. Revoke a token you no longer need first.
 
-## Using a token
+> **Copy the token now.** The token appears once, starting with `tw_`. **Copy** puts it on the clipboard, **Done** closes the dialog. After that, nobody can display the token again, because transkribierBAR only stores a hash of it, not the token itself. If you lose it, create a new one.
 
-Pass the token as a standard HTTP bearer header:
+## Managing tokens
 
-```
-Authorization: Bearer tw_...
-```
+The list shows each token with its name, its first characters followed by "…", its status (**Active**, **Expired** or **Revoked**), the expiry date if it has one and, once it has been used, when it was last used.
 
-Example with curl:
+Click **Revoke** next to an active token. From then on, the server rejects every new request with it. Expired and revoked tokens stay in the list, shown faded. They are removed from it automatically, revoked ones after 30 days and expired ones after 90 days.
 
-```
-curl -H "Authorization: Bearer tw_abc..." https://your-host/api/tokens
-```
+## Authenticating
 
-For the transcription-status WebSocket, pass the token as a query parameter (browsers don't allow custom headers on WebSocket requests):
+Send the token with every request in the header `Authorization`, in the form `Bearer` followed by a space and the token:
 
 ```
-wss://your-host/api/ws/status/{transcription_id}?token=tw_abc...
+Authorization: Bearer tw_…
 ```
 
-## Revoking a token
+If the token is unknown, expired or revoked, the server answers with status 401 and the message **Invalid or expired API token**.
 
-Click **Revoke** next to any active token. The token stops working immediately. Revoked tokens stay in the list (faded) so you can audit which ones you've rotated.
+For the WebSocket that reports the status, send the token as the query parameter `token`, because browsers cannot set headers there:
 
-## Tips
+```
+wss://transcription.uni-osnabrueck.de/api/ws/status/{transcription_id}?token=tw_…
+```
 
-- **Rotate tokens when machines change.** If a laptop is lost or a CI secret is rotated, revoke the matching token and create a new one.
-- **One token per context.** Avoid sharing a single token across multiple tools or machines — naming them per usage makes revocation safer.
-- **Capabilities match the UI.** A token inherits your access: if your deployment has no LLM configured, token-authenticated requests also can't run analysis, translation, or refinement (those endpoints return 503 regardless of how you authenticated).
+## Transcribing step by step
+
+The examples use `tw_…` as a placeholder for your token and `FILE_ID` and `TRANSCRIPTION_ID` for the ids you receive.
+
+**1. Upload the file.** Send it as the form field `file`:
+
+```
+curl -H "Authorization: Bearer tw_…" -F "file=@interview.mp3" https://transcription.uni-osnabrueck.de/api/upload
+```
+
+The answer is JSON. The field `id` is the `FILE_ID`. The same file types and the same maximum size as in the web interface apply, see the section "Upload". Other file types are answered with status 400, files that are too large with 413.
+
+**2. Start the transcription.** Send the settings as JSON:
+
+```
+curl -X POST https://transcription.uni-osnabrueck.de/api/transcribe \
+  -H "Authorization: Bearer tw_…" \
+  -H "Content-Type: application/json" \
+  -d '{"file_id": "FILE_ID", "language": "de", "model": "{{default_model}}"}'
+```
+
+The answer contains the `id` of the transcription (`TRANSCRIPTION_ID`) and the status `pending`. These fields are available:
+
+| Field | Meaning |
+| --- | --- |
+| `file_id` | Required. The `id` from the upload. |
+| `language` | Language code such as `de`. Without this field, the language is detected automatically. |
+| `model` | The model. See the note below. |
+| `min_speakers`, `max_speakers` | Minimum and maximum number of speakers. If at least one of them is greater than 0, speakers are detected. If both are missing or 0, speakers are not detected. |
+| `initial_prompt` | Optional context for the transcription. |
+| `hotwords` | Optional technical terms, separated by commas. |
+
+> **Always send the model.** This installation offers only the model {{default_model}}. The server does not check the field `model`. If you leave it out, it passes the model `base` on to speech recognition, which this installation does not offer. So always send `"model": "{{default_model}}"`.
+
+**3. Wait for the result.** Query the status until it is `completed` or `failed`:
+
+```
+curl -H "Authorization: Bearer tw_…" https://transcription.uni-osnabrueck.de/api/status/TRANSCRIPTION_ID
+```
+
+The status is `pending`, `processing`, `completed` or `failed`. With `failed`, the field `error` contains the reason. Instead of repeating the query, you can listen on the WebSocket from the section "Authenticating". It sends a message such as `{"type": "status", "status": "processing"}` every 5 seconds and closes after `completed` or `failed`. If the token is invalid, it closes with code 4001. If the transcription does not exist or is not yours, it closes with code 4003.
+
+**4. Fetch the result.** As long as the transcription is not finished, this call is answered with status 400:
+
+```
+curl -H "Authorization: Bearer tw_…" https://transcription.uni-osnabrueck.de/api/transcription/TRANSCRIPTION_ID
+```
+
+The answer contains the utterances (`utterances`, each with `start` and `end` in milliseconds, `text` and `speaker`), the complete text (`text`), the language (`language`) and the speaker names (`speaker_mappings`). For a ready-made file, append `/export/txt`, `/export/srt`, `/export/vtt` or `/export/json` to the address instead.
+
+## Limits
+
+Files and results are deleted automatically after {{retention_days}} days, as in the web interface.
+
+Presets and bundles are applied by the web interface. `/api/transcribe` does not know them, so you send the settings yourself. The calls for presets accept a token as well.
