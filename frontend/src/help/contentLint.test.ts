@@ -11,7 +11,7 @@ import { GENDERED_DE, GENDERED_EN } from '../i18n/neutral'
  * Sections whose text has been rewritten and checked against the code. Each
  * content task appends its ids; once all are rewritten this becomes every section.
  */
-const LINTED: HelpSectionId[] = ['about', 'getting-started', 'archive', 'upload', 'record', 'transcription-settings', 'subtitle-editor', 'speaker-mapping', 'format-viewer']
+const LINTED: HelpSectionId[] = ['about', 'getting-started', 'archive', 'upload', 'record', 'transcription-settings', 'subtitle-editor', 'speaker-mapping', 'format-viewer', 'analysis', 'translation', 'refinement']
 
 /** German help addresses the reader as "Sie", never "du". */
 const INFORMAL_DE = /\b(du|dich|dir|dein\w*)\b/i

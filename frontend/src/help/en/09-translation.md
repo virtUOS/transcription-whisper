@@ -2,20 +2,38 @@
 
 ## What translation produces
 
-Translation generates a parallel set of utterances in your chosen target language, aligned one-to-one with the source. Every source utterance maps to a translated utterance at the same position. The source transcript is not replaced — translation adds a second view accessible via the view switcher in the **Subtitle Editor**. Once produced, the translation is saved and persists across sessions.
+Translation produces a second version of your subtitles in another language. Every utterance has a translated utterance at the same position. The language model is meant to leave times and speakers unchanged and neither to merge nor to split utterances. If the number of translated utterances does not match, the translation fails.
 
-## Choosing a target language
+The original is kept. The translation appears next to **Original** (and **Refined**) as a button, for example **Translated (EN · from original)**. It is saved with the transcription, is there again when you reopen it, and is deleted together with it.
 
-Select the target language from the dropdown before running translation. The list of supported languages depends on your configured LLM provider. For best quality, choose a well-supported language. Less common languages may produce acceptable but uneven results depending on the model.
+> **Save first.** The translation works with the saved text. Changes in the editor that you have not yet saved with **Save changes** are not included.
 
-## Manual vs bundle
+## Translating
 
-You can trigger translation manually from the detail view at any time after transcription is complete. Alternatively, include a target language in a bundle configuration to have translation run automatically after transcription finishes.
+In the **Subtitles** tab, click **Translate** above the table. The button is there as long as no translation exists. In the **Translate to** dialog, choose the **Translation language** from the list. Then click **Translate**. **Cancel** closes the dialog.
 
-## Choosing the source
+While the translation runs, the button reads **Translating...** and the selection fields and buttons are locked. With more than 50 utterances, a note says the translation may take several minutes. The page waits for the language model. Stay on it until the dialog closes. Nothing is saved until the translation is finished. Afterwards the editor shows the **Translated** view.
 
-If a refinement exists, the translate modal shows a **Source** toggle (Original / Refined) — defaulted to **Refined**, so by default the translator sees the cleaned-up text. Switch to **Original** to translate the raw ASR output instead. Without a refinement the toggle is hidden and the original is always used. The view switcher labels each translation with its source, e.g. `Translated (EN · from refined)`.
+The language of the recording does not work as a target language. If it is known and you choose it, the translation fails and the dialog shows only the general error message.
 
-If you later edit the original transcript, or delete the refinement that a translation was made from, the view switcher shows a small amber hint ("source has newer content" or "source no longer available"). Click it to re-open the translate modal and re-run.
+## Source: original or refined
 
-See **Bundles** for how pipeline steps are sequenced.
+If a refinement exists, the dialog shows the **Source** toggle with **Original** and **Refined**. **Refined** is preselected. Without a refinement there is no toggle, and the translation uses the original. Which source was used is shown on the translation's button: **from original** or **from refined**.
+
+## Viewing, reading and deleting
+
+The **Translated** view is read-only. The **SRT**, **VTT**, **JSON** and **TXT** tabs show the translation as long as **Translated** is selected (see "Format Viewer").
+
+Only one translation exists per transcription. For another language, click **Delete translation** and then translate again. Deleting asks for confirmation first.
+
+## When the source changes
+
+If the text of the source has changed since the translation, an amber note appears next to **Delete translation**: **source has newer content**. This happens, for example, if the translation was made from the original and you change text in it and save. If the refinement the translation was made from has been deleted, it reads **source no longer available**. Changes to times or names do not count as new content. The translation itself stays unchanged until you renew it. To do so, delete it with **Delete translation** and translate again.
+
+## If the translation fails
+
+The dialog then shows **Translation failed. Please try again.** transkribierBAR repeats individual sections on its own beforehand. If a section still fails, no translation is created. There are no partly translated versions. A new attempt can succeed.
+
+## In a bundle
+
+If a bundle contains a target language, your browser translates automatically after the transcription, the refinement and the analysis. If a refinement exists by then, the translation uses it, otherwise the original. Stay on the page until all steps are finished.

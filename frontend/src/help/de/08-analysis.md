@@ -1,31 +1,64 @@
 # Analyse
 
-## Was Analyse bedeutet
+## Was die Analyse macht
 
-Die Analyse sendet dein Transkript an ein Sprachmodell, um ein übergeordnetes Ergebnis zu erzeugen — eine Zusammenfassung, ein strukturiertes Protokoll, Kapitelmarker oder was auch immer du anforderst. Das Transkript wird dabei nicht verändert. Die ursprünglichen Äußerungen bleiben unabhängig vom Analyseergebnis unverändert.
+Die Analyse lässt ein Sprachmodell Ihr Transkript auswerten, zum Beispiel als Zusammenfassung mit Kapiteln, als Sitzungsprotokoll oder nach einer eigenen Anweisung. Das Transkript selbst bleibt dabei unverändert. Jedes Ergebnis wird als eigener Eintrag zur Transkription gespeichert und zusammen mit ihr gelöscht.
 
-## Integrierte Vorlagen
+Sie finden die Analyse im Reiter **Analyse** der Detailansicht, neben **Untertitel**. Das Sprachmodell erhält den Text der Äußerungen mit Startzeit und sprechender Person. Dabei setzt transkribierBAR die Namen ein, die Sie unter **Namen der Sprechenden** vergeben haben, und zwar zum Zeitpunkt der Erstellung.
 
-Drei Vorlagen stehen direkt zur Verfügung, plus eine Option **Eigener Prompt**:
+> **Erst speichern.** Die Analyse arbeitet mit dem gespeicherten Text. Änderungen im Editor, die Sie noch nicht mit **Änderungen speichern** gesichert haben, sind nicht enthalten.
 
-- **Zusammenfassung mit Kapiteln** — Gesamtzusammenfassung plus zeitcodierte Kapitelgliederung, nützlich für lange Aufnahmen
-- **Besprechungsprotokoll** — strukturierte Notizen mit Kernpunkten, Entscheidungen und Aufgaben
-- **Agenda-basierte Notizen** — Notizen, die sich an einer vorgegebenen Agenda orientieren
+## Analyse erstellen
 
-Wähle die Vorlage, die am besten zum Inhalt passt.
+Wählen Sie eine Vorlage. Voreingestellt ist **Zusammenfassung mit Kapiteln**. Die **Ausgabesprache** ist mit der erkannten Sprache der Transkription vorbelegt. Klicken Sie auf **Generieren**.
 
-## Eigene Prompts
+Während die Analyse läuft, zeigt die Seite zum Beispiel **Zusammenfassung mit Kapiteln wird erstellt...** und blendet das Formular aus. Die Seite wartet auf die Antwort des Sprachmodells. Bleiben Sie darauf, bis das Ergebnis erscheint. Gespeichert wird erst, wenn die Analyse fertig ist.
 
-Wähle **Eigener Prompt**, um einen eigenen Prompt einzugeben. Das Modell erhält den vollständigen Transkripttext zusammen mit deinem Prompt und gibt zurück, was du anforderst. Formuliere Prompts direkt und konkret. Vermeide Fragen nach Informationen, die im Transkript nicht enthalten sind — das Modell neigt dazu, Lücken mit Vermutungen zu füllen.
+Sie können beliebig viele Analysen erstellen, auch mit verschiedenen Vorlagen. Jede steht als eigener Eintrag in der Liste. Mit **+ Neue Analyse** öffnen Sie das Formular erneut, **Abbrechen** schließt es. Gibt es noch keine Analyse, ist das Formular sofort sichtbar.
 
-## Kapitel-Hinweise und Agenda
+## Vorlagen
 
-Die Vorlage **Zusammenfassung mit Kapiteln** bietet ein optionales Feld **Kapitel definieren**, in das du Kapiteltitel und -beschreibungen (eins pro Zeile) eintragen kannst, um die Segmentierung zu steuern. Die Vorlage **Agenda-basierte Notizen** zeigt ein **Agenda**-Feld — füge dort deine Agenda ein, und das Modell strukturiert die Ausgabe entlang dieser Punkte.
+- **Zusammenfassung mit Kapiteln:** eine Gesamtzusammenfassung und Kapitel mit Titel, Zeitspanne und Kurzbeschreibung.
+- **Sitzungsprotokoll:** Titel, Teilnehmende, Kernpunkte, Entscheidungen und Aufgaben mit zuständiger Person.
+- **Agendabasierte Notizen:** Notizen entlang einer Tagesordnung. Das Ergebnis erscheint wie bei der Zusammenfassung als Text mit Kapiteln.
+- **Eigene Anweisung:** Sie schreiben die Anweisung selbst (siehe „Prompt anpassen“).
 
-## Mehrere Analysen
+## Kapitel vorgeben und Agenda
 
-Du kannst die Analyse beliebig oft mit verschiedenen Vorlagen oder Prompts ausführen. Jedes Ergebnis wird separat gespeichert und im Analyseverlauf angezeigt. Von dort aus kannst du Ergebnisse vergleichen, ältere löschen oder eine beliebige Konfiguration erneut ausführen.
+Bei **Zusammenfassung mit Kapiteln** gibt es die Aufklappliste **Kapitel definieren (optional)**. Mit **Kapitel hinzufügen** legen Sie je Kapitel eine Zeile an, mit einem **Kapiteltitel** und einer **Kurzen Beschreibung**. Es genügt eines von beiden. Ganz leere Zeilen werden ignoriert, **Entfernen** löscht eine Zeile. Sie können bis zu 30 Kapitel vorgeben. Das Sprachmodell richtet die Gliederung danach aus. Kommt ein Thema in der Aufnahme nicht vor, steht das Kapitel trotzdem im Ergebnis, mit einem Hinweis in der Beschreibung und mit **—** statt einer Zeitspanne.
+
+Bei **Agendabasierte Notizen** erscheint das Feld **Agenda**. Fügen Sie dort Ihre Tagesordnung ein. Lassen Sie es leer, leitet das Sprachmodell die Punkte aus dem Transkript ab.
+
+## Prompt anpassen
+
+Unter **Prompt anpassen** sehen Sie die Anweisung der gewählten Vorlage. Sie ist auf Englisch und enthält Platzhalter in geschweiften Klammern, die transkribierBAR sonst selbst ausfüllt. **Auf Vorlage zurücksetzen** stellt den Originaltext wieder her. Bei **Eigene Anweisung** ist das Feld zunächst leer.
+
+> **Geänderter Prompt.** Sobald Sie den Text ändern oder **Eigene Anweisung** verwenden, wird er so gesendet, wie er dasteht. Platzhalter werden dann nicht mehr ersetzt, und **Kapitel definieren** und **Agenda** werden nicht mitgeschickt. Die **Ausgabesprache** gilt weiterhin.
+
+Das Sprachmodell antwortet immer mit einem strukturierten Text (JSON). Ergebnisse, die wie eine Zusammenfassung oder ein Protokoll aufgebaut sind, zeigt die Seite als Karten. Alle anderen erscheinen als Text.
 
 ## Quelle: Original oder Verfeinert
 
-Sobald eine Verfeinerung existiert, zeigt das Analyse-Formular einen Umschalter **Quelle** (Original / Verfeinert) — voreingestellt auf **Verfeinert**, sodass das LLM standardmäßig den bereinigten Text erhält. Wechsle auf **Original**, um stattdessen das rohe ASR-Transkript zu analysieren. Jede gespeicherte Analyse zeigt an, welche Quelle verwendet wurde („aus Verfeinerung" / „aus Original"); wenn sich die Quelle seither geändert hat oder die Verfeinerung gelöscht wurde, wird der Hinweis bernsteinfarben, und du kannst die Analyse zur Neugenerierung erneut ausführen.
+Gibt es eine Verfeinerung, erscheint im Formular der Umschalter **Quelle** mit **Original** und **Verfeinert**. Voreingestellt ist **Verfeinert**. Ohne Verfeinerung gibt es den Umschalter nicht, und die Analyse nutzt das Original. Eine Übersetzung kann nicht als Quelle dienen.
+
+Unter dem Ergebnis steht, woraus es entstanden ist: **aus Verfeinerung** oder **aus Original**. Hat sich der Text dieser Quelle seither geändert, erscheint die Angabe in Bernstein mit dem Zusatz **Quelle hat neueren Inhalt**. Wurde die Verfeinerung gelöscht, steht dort **Quelle nicht mehr verfügbar**. Änderungen an Zeiten oder Namen zählen nicht als neuer Inhalt. Eine bestehende Analyse aktualisiert sich nicht von selbst. Erstellen Sie bei Bedarf eine neue.
+
+## Ergebnisse lesen und weiterverwenden
+
+Ein Klick auf einen Eintrag klappt ihn auf. Die Kopfzeile zeigt den Namen der Vorlage (oder **Eigene Anweisung**), das Datum und das verwendete Sprachmodell. Unter dem Ergebnis steht noch einmal, womit es erstellt wurde.
+
+- Bei Kapiteln, Kernpunkten, Entscheidungen und Aufgaben springt der Player nach einem Klick auf die Zeitangabe an diese Stelle.
+- Das Kreuz, das beim Darüberfahren an einer Karte erscheint, entfernt diesen Punkt aus dem Ergebnis. Das wird sofort gespeichert und lässt sich nicht rückgängig machen. Bei der Zusammenfassung gilt das für Kapitel, nicht für den Zusammenfassungstext.
+- **Ergebnis kopieren** legt den Text in die Zwischenablage. **TXT** und **Markdown** laden ihn herunter, als Datei mit dem Namen der Aufnahme und dem Zusatz `_analysis`. Die Schaltflächen stehen über und unter dem Ergebnis.
+- Das Papierkorbsymbol (**Löschen**) in der Kopfzeile löscht den Eintrag nach einer Rückfrage.
+
+## Wenn die Analyse nicht klappt
+
+Nach einem Fehler entsteht kein Eintrag, Sie können es erneut versuchen. Die Meldung erscheint unter **Generieren**. Zwei Fälle haben eigene Texte:
+
+- **Die Analyse hat das Ausgabelimit des Sprachmodells erreicht, bevor sie vollständig war. Versuchen Sie einen gezielteren Prompt.** Dieselbe Anfrage führt wieder dorthin. Verkürzen oder präzisieren Sie die Anweisung.
+- **Das Sprachmodell hat eine fehlerhafte Antwort zurückgegeben. Bitte versuchen Sie es erneut.** transkribierBAR hat es vorher mehrmals selbst versucht. Ein neuer Versuch kann gelingen.
+
+## In einem Paket
+
+Enthält ein Paket eine Analyse-Voreinstellung, erstellt der Browser die Analyse nach der Transkription und der Verfeinerung automatisch. Gibt es dann eine Verfeinerung, nutzt sie diese, sonst das Original. Im Formular lädt das Feld **Analyse** eine Voreinstellung. **Als Voreinstellung speichern** sichert die aktuellen Angaben. Mehr dazu steht im Abschnitt „Voreinstellungen“.
