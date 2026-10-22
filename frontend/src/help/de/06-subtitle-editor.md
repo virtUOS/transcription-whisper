@@ -14,7 +14,7 @@ Ihre Änderungen gelten zunächst nur in Ihrem Browser, bis Sie sie speichern (s
 
 ## Zeiten bearbeiten
 
-Mit dem Stiftsymbol neben **Start** oder **Ende** ändern Sie die Zeit. Das Feld zeigt sie als `HH:MM:SS`. Geben Sie immer alle drei Teile ein, zum Beispiel `00:01:30`. Mit der Eingabetaste oder einem Klick außerhalb übernehmen Sie die Zeit. Sie gilt in ganzen Sekunden; Bruchteile einer Sekunde fallen beim Übernehmen weg.
+Mit dem Stiftsymbol neben **Start** oder **Ende** ändern Sie die Zeit. Das Feld zeigt sie als `HH:MM:SS`. Geben Sie immer alle drei Teile ein, zum Beispiel `00:01:30`. Mit der Eingabetaste oder einem Klick außerhalb übernehmen Sie die Zeit. Das Feld zeigt ganze Sekunden. Beim Übernehmen fallen die Bruchteile einer Sekunde weg, auch wenn Sie die Zeit nicht geändert haben.
 
 Überschneidet die neue Zeit benachbarte Zeilen, passt der Editor diese an: Ein neuer Start verkürzt das Ende der vorherigen Zeilen, ein neues Ende verschiebt den Start der folgenden. Vorher fragt eine Rückfrage nach, wie viele Zeilen betroffen sind. Wenn Sie sie abbrechen, bleibt alles unverändert. Liegt der neue Start nach dem Ende der Zeile, rückt auch das Ende nach. Entsprechend rückt der Start vor, wenn das neue Ende davor liegt.
 
@@ -34,13 +34,13 @@ Im Textfeld der Zeile stehen weitere Symbole:
 
 Über der Tabelle durchsucht das Feld **Untertitel durchsuchen...** die Zeilen, ohne Groß- und Kleinschreibung zu beachten. Die Schaltflächen **Text** und **Sprechende** bestimmen, wo gesucht wird. Anfangs sind beide aktiv. Klicken Sie auf eine, bleibt nur die andere aktiv. Klicken Sie auf die aktive, sind wieder beide aktiv.
 
-Treffer sind hervorgehoben. Die Zeile davor und danach bleibt als abgeblendeter Kontext sichtbar. Alle übrigen Zeilen fasst eine Trennzeile zusammen, etwa **3 Segmente ausgeblendet**. Neben dem Feld steht, wie viele Segmente passen, zum Beispiel **2 von 40 Segmenten**. Ohne Treffer erscheint **Keine passenden Segmente**. Mit **Esc** im Suchfeld oder dem Kreuz im Feld löschen Sie die Suche.
+Treffer sind hervorgehoben. Die Zeilen davor und danach bleiben als abgeblendeter Kontext sichtbar. Ausgeblendete Zeilen dazwischen fasst jeweils eine Trennzeile zusammen, etwa **3 Segmente ausgeblendet**. Neben dem Feld steht, wie viele Segmente passen, zum Beispiel **2 von 40 Segmenten**. Ohne Treffer erscheint **Keine passenden Segmente**. Mit **Esc** im Suchfeld oder dem Kreuz im Feld löschen Sie die Suche.
 
 ## Abspielen und Mitlaufen
 
 Ein Klick auf **Start**, **Sprechende Person** oder **Text** einer Zeile springt im Player an den Anfang der Äußerung, ein Klick auf **Ende** an deren Ende. Ist der Player angehalten, beginnt er zu spielen. Währenddessen ist die aktuelle Zeile hervorgehoben und die Tabelle läuft mit. Das Mitlaufen ruht, solange eine Suche aktiv ist.
 
-Unter dem Player lädt **Aufnahme herunterladen** die Aufnahme herunter. Bei Videos blendet **Player minimieren** das Bild aus und **Video anzeigen** wieder ein. Der Player enthält außerdem eine Untertitelspur mit dem aktuellen Text und den Namen der Sprechenden, auch mit ungespeicherten Änderungen. Sie ist anfangs ausgeschaltet.
+Unter dem Player lädt **Aufnahme herunterladen** die Aufnahme herunter. Bei Videos blendet **Player minimieren** das Bild aus und **Video anzeigen** wieder ein. Bei Videos enthält der Player außerdem, solange er nicht minimiert ist, eine Untertitelspur mit dem Originaltext und den Namen der Sprechenden, auch mit ungespeicherten Änderungen. Sie ist anfangs ausgeschaltet.
 
 ## Speichern
 
@@ -48,10 +48,10 @@ Sobald Sie etwas geändert haben, erscheinen über der Tabelle die Schaltfläche
 
 Wechseln Sie zu einem Format-Reiter wie **SRT**, bleiben Ihre Änderungen erhalten, und das Format zeigt sie bereits.
 
-> **Ungespeicherte Änderungen gehen verloren.** Klicken Sie auf **← Transkriptionen**, öffnen Sie eine Transkription aus der Übersicht oder laden Sie die Seite neu, verwirft transkribierBAR Ihre Änderungen, ohne nachzufragen. Speichern Sie zuerst.
+> **Ungespeicherte Änderungen gehen verloren.** Wenn Sie die Detailansicht verlassen, fragt transkribierBAR nicht nach. Öffnen Sie danach eine Transkription aus der Übersicht oder laden Sie die Seite neu, sind ungespeicherte Änderungen verloren. Speichern Sie zuerst.
 
 ## Verfeinerte und übersetzte Ansicht
 
 Sind die LLM-Funktionen auf diesem Server eingerichtet, bietet der Editor über der Tabelle die Schaltflächen **Mit LLM verfeinern** und **Übersetzen** an, solange es noch keine Verfeinerung beziehungsweise Übersetzung gibt. Eine Verfeinerung und eine Übersetzung erscheinen neben dem Original. Mit den Schaltflächen **Original**, **Verfeinert** und **Übersetzt** wechseln Sie zwischen ihnen. Die Ansicht **Verfeinert** und die Ansicht **Übersetzt** sind schreibgeschützt: Die Symbole zum Bearbeiten fehlen dort, Änderungen gelten nur im Original. Mit **Verfeinerung löschen** und **Übersetzung löschen** entfernen Sie die jeweilige Fassung nach einer Rückfrage.
 
-In der Ansicht **Verfeinert** nennt **Zusammenfassung der Änderungen**, was das Sprachmodell geändert hat. Geänderte Zeilen tragen einen Punkt, und ein Klick darauf zeigt Original und verfeinerten Text nebeneinander. Wie beide Funktionen arbeiten, steht in den Abschnitten „Verfeinerung“ und „Übersetzung“.
+In der Ansicht **Verfeinert** nennt **Zusammenfassung der Änderungen**, was das Sprachmodell geändert hat. Geänderte Zeilen tragen einen Punkt neben der Zeilennummer. Ein Klick darauf zeigt Original und verfeinerten Text nebeneinander (nur auf größeren Bildschirmen). Wie beide Funktionen arbeiten, steht in den Abschnitten „Verfeinerung“ und „Übersetzung“.
