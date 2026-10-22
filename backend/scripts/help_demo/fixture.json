@@ -1,0 +1,304 @@
+{
+  "de": {
+    "language": "de",
+    "speaker_names": {
+      "SPEAKER_00": "Kim Berger",
+      "SPEAKER_01": "Alex Moreno"
+    },
+    "utterances": [
+      {
+        "start": 500,
+        "end": 12370,
+        "text": "Guten Morgen, Alex Moreno, schön dass sie sich Zeit nehmen. Heute geht es um den Workshop im nächsten Semester.",
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "start": 12770,
+        "end": 20470,
+        "text": "Gern. Ich habe schon ein paar ähm Ideen gesammelt, vor allem zum Ablauf.",
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "start": 20870,
+        "end": 25250,
+        "text": "Wie viele Teilnehmende erwarten Sie denn?",
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "start": 25650,
+        "end": 33030,
+        "text": "Ich rechne mit etwa dreißig Personen aus verschiedenen Fachbereichen.",
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "start": 33430,
+        "end": 40270,
+        "text": "Das ist eine gute Größe. Brauchen wir dafür einen größeren Raum?",
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "start": 40670,
+        "end": 49330,
+        "text": "Ja, der Seminarraum im Hauptgebäude reicht nicht, ich würde den Hörsaal anfragen.",
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "start": 49730,
+        "end": 58500,
+        "text": "Gut, dann kümmere ich mich um die Raumbuchung. Wie lange soll der Workshop dauern?",
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "start": 58900,
+        "end": 69910,
+        "text": "Ich denke an einen ganzen Tag, mit einem Vormittag für Vorträge und einem Nachmittag für Gruppenarbeit.",
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "start": 70310,
+        "end": 73090,
+        "text": "Und wer hält die Vorträge?",
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "start": 73490,
+        "end": 83220,
+        "text": "Zwei Personen aus der Informatik haben schon zu gesagt, ein dritter Beitrag ist noch offen.",
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "start": 83620,
+        "end": 93030,
+        "text": "Dann sollten wir bald eine Einladung verschicken, damit sich alle den Termin freihalten.",
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "start": 93430,
+        "end": 99420,
+        "text": "Einverstanden. Ich entwerfe den Text bis Ende der Woche.",
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "start": 99820,
+        "end": 109340,
+        "text": "Wunderbar. Dann fasse ich zusammen: Raum buchen, Einladung versenden, Programm festlegen.",
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "start": 109740,
+        "end": 118510,
+        "text": "Genau, und nächste Woche treffen wir uns noch einmal, um das Programm abzustimmen.",
+        "speaker": "SPEAKER_01"
+      }
+    ],
+    "refined_texts": [
+      "Guten Morgen, Alex Moreno, schön, dass Sie sich Zeit nehmen. Heute geht es um den Workshop im nächsten Semester.",
+      "Gern. Ich habe schon ein paar Ideen gesammelt, vor allem zum Ablauf.",
+      "Wie viele Teilnehmende erwarten Sie denn?",
+      "Ich rechne mit etwa dreißig Personen aus verschiedenen Fachbereichen.",
+      "Das ist eine gute Größe. Brauchen wir dafür einen größeren Raum?",
+      "Ja, der Seminarraum im Hauptgebäude reicht nicht. Ich würde den Hörsaal anfragen.",
+      "Gut, dann kümmere ich mich um die Raumbuchung. Wie lange soll der Workshop dauern?",
+      "Ich denke an einen ganzen Tag, mit einem Vormittag für Vorträge und einem Nachmittag für Gruppenarbeit.",
+      "Und wer hält die Vorträge?",
+      "Zwei Personen aus der Informatik haben schon zugesagt, ein dritter Beitrag ist noch offen.",
+      "Dann sollten wir bald eine Einladung verschicken, damit sich alle den Termin freihalten.",
+      "Einverstanden. Ich entwerfe den Text bis Ende der Woche.",
+      "Wunderbar. Dann fasse ich zusammen: Raum buchen, Einladung versenden, Programm festlegen.",
+      "Genau, und nächste Woche treffen wir uns noch einmal, um das Programm abzustimmen."
+    ],
+    "translation_language": "en",
+    "translated_texts": [
+      "Good morning, Alex Moreno, thanks for making time. Today is about the workshop next semester.",
+      "Gladly. I have already collected a few ideas, mainly about the schedule.",
+      "How many participants are you expecting?",
+      "I expect around thirty people from different departments.",
+      "That is a good size. Do we need a bigger room for that?",
+      "Yes, the seminar room in the main building is not enough. I would ask for the lecture hall.",
+      "Good, then I will take care of the room booking. How long should the workshop last?",
+      "I am thinking of a whole day, with a morning for talks and an afternoon for group work.",
+      "And who gives the talks?",
+      "Two people from computer science have already said yes. A third contribution is still open.",
+      "Then we should send out an invitation soon so that everyone keeps the date free.",
+      "Agreed. I will draft the text by the end of the week.",
+      "Wonderful. Then let me summarize: book the room, send the invitation, set the program.",
+      "Exactly, and next week we meet once more to agree on the program."
+    ],
+    "chapters": [
+      {
+        "title": "Rahmen und Teilnehmende",
+        "start_time": 500,
+        "end_time": 33030,
+        "summary": "Ziel des Gesprächs und erwartete Teilnehmerzahl von etwa dreißig Personen."
+      },
+      {
+        "title": "Raum und Ablauf",
+        "start_time": 33430,
+        "end_time": 73090,
+        "summary": "Der Seminarraum reicht nicht, der Hörsaal wird angefragt; der Tag gliedert sich in Vorträge und Gruppenarbeit."
+      },
+      {
+        "title": "Einladung und nächste Schritte",
+        "start_time": 73490,
+        "end_time": 118510,
+        "summary": "Ein Vortrag ist noch offen; Einladung, Raumbuchung und Programm werden verteilt."
+      }
+    ],
+    "title": "Workshop-Planung (Beispiel)",
+    "filename": "workshop-planung.mp3",
+    "summary": "Kim Berger und Alex Moreno planen einen eintägigen Workshop im nächsten Semester mit etwa dreißig Teilnehmenden. Vormittags sind Vorträge vorgesehen, nachmittags Gruppenarbeit. Der Hörsaal soll gebucht, die Einladung bis Ende der Woche entworfen und das Programm in der Folgewoche abgestimmt werden.",
+    "refinement_summary": "Zeichensetzung korrigiert, Füllwort entfernt und ein getrenntes Wort zusammengeschrieben.",
+    "refinement_context": "Interview zur Planung eines Hochschul-Workshops."
+  },
+  "en": {
+    "language": "en",
+    "speaker_names": {
+      "SPEAKER_00": "Kim Berger",
+      "SPEAKER_01": "Alex Moreno"
+    },
+    "utterances": [
+      {
+        "start": 500,
+        "end": 12370,
+        "text": "Good morning Alex Moreno, thanks for making time. Today is about the workshop next semester.",
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "start": 12770,
+        "end": 20470,
+        "text": "Gladly. I have already collected a few, um, ideas, mainly about the schedule.",
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "start": 20870,
+        "end": 25250,
+        "text": "How many participants are you expecting?",
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "start": 25650,
+        "end": 33030,
+        "text": "I expect around thirty people from different departments.",
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "start": 33430,
+        "end": 40270,
+        "text": "That is a good size. Do we need a bigger room for that?",
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "start": 40670,
+        "end": 49330,
+        "text": "Yes, the seminar room in the main building is not enough, I would ask for the lecture hall.",
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "start": 49730,
+        "end": 58500,
+        "text": "Good, then I will take care of the room booking. How long should the workshop last?",
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "start": 58900,
+        "end": 69910,
+        "text": "I am thinking of a whole day, with a morning for talks and an afternoon for group work.",
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "start": 70310,
+        "end": 73090,
+        "text": "And who gives the talks?",
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "start": 73490,
+        "end": 83220,
+        "text": "Two people from computer science have already said yes, a third contribution is still open.",
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "start": 83620,
+        "end": 93030,
+        "text": "Then we should send out an invitation soon so that everyone keeps the date free.",
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "start": 93430,
+        "end": 99420,
+        "text": "Agreed. I will draft the text by the end of the week.",
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "start": 99820,
+        "end": 109340,
+        "text": "Wonderful. Then let me summarise: book the room, send the invitation, set the programme.",
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "start": 109740,
+        "end": 118510,
+        "text": "Exactly, and next week we meet once more to agree on the program.",
+        "speaker": "SPEAKER_01"
+      }
+    ],
+    "refined_texts": [
+      "Good morning, Alex Moreno, thanks for making time. Today is about the workshop next semester.",
+      "Gladly. I have already collected a few ideas, mainly about the schedule.",
+      "How many participants are you expecting?",
+      "I expect around thirty people from different departments.",
+      "That is a good size. Do we need a bigger room for that?",
+      "Yes, the seminar room in the main building is not enough. I would ask for the lecture hall.",
+      "Good, then I will take care of the room booking. How long should the workshop last?",
+      "I am thinking of a whole day, with a morning for talks and an afternoon for group work.",
+      "And who gives the talks?",
+      "Two people from computer science have already said yes. A third contribution is still open.",
+      "Then we should send out an invitation soon so that everyone keeps the date free.",
+      "Agreed. I will draft the text by the end of the week.",
+      "Wonderful. Then let me summarize: book the room, send the invitation, set the program.",
+      "Exactly, and next week we meet once more to agree on the program."
+    ],
+    "translation_language": "de",
+    "translated_texts": [
+      "Guten Morgen, Alex Moreno, schön, dass Sie sich Zeit nehmen. Heute geht es um den Workshop im nächsten Semester.",
+      "Gern. Ich habe schon ein paar Ideen gesammelt, vor allem zum Ablauf.",
+      "Wie viele Teilnehmende erwarten Sie denn?",
+      "Ich rechne mit etwa dreißig Personen aus verschiedenen Fachbereichen.",
+      "Das ist eine gute Größe. Brauchen wir dafür einen größeren Raum?",
+      "Ja, der Seminarraum im Hauptgebäude reicht nicht. Ich würde den Hörsaal anfragen.",
+      "Gut, dann kümmere ich mich um die Raumbuchung. Wie lange soll der Workshop dauern?",
+      "Ich denke an einen ganzen Tag, mit einem Vormittag für Vorträge und einem Nachmittag für Gruppenarbeit.",
+      "Und wer hält die Vorträge?",
+      "Zwei Personen aus der Informatik haben schon zugesagt, ein dritter Beitrag ist noch offen.",
+      "Dann sollten wir bald eine Einladung verschicken, damit sich alle den Termin freihalten.",
+      "Einverstanden. Ich entwerfe den Text bis Ende der Woche.",
+      "Wunderbar. Dann fasse ich zusammen: Raum buchen, Einladung versenden, Programm festlegen.",
+      "Genau, und nächste Woche treffen wir uns noch einmal, um das Programm abzustimmen."
+    ],
+    "chapters": [
+      {
+        "title": "Scope and participants",
+        "start_time": 500,
+        "end_time": 33030,
+        "summary": "Purpose of the conversation and an expected thirty participants."
+      },
+      {
+        "title": "Room and schedule",
+        "start_time": 33430,
+        "end_time": 73090,
+        "summary": "The seminar room is too small, so the lecture hall will be requested; the day is split into talks and group work."
+      },
+      {
+        "title": "Invitation and next steps",
+        "start_time": 73490,
+        "end_time": 118510,
+        "summary": "One talk is still open; the invitation, room booking and program are assigned."
+      }
+    ],
+    "title": "Workshop planning (sample)",
+    "filename": "workshop-planning.mp3",
+    "summary": "Kim Berger and Alex Moreno plan a one-day workshop for next semester with about thirty participants. Talks are planned for the morning and group work for the afternoon. The lecture hall is to be booked, the invitation drafted by the end of the week, and the program agreed the following week.",
+    "refinement_summary": "Fixed punctuation, removed a filler word and normalized spelling.",
+    "refinement_context": "Interview about planning a university workshop."
+  }
+}
