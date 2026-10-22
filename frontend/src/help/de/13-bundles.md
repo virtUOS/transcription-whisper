@@ -8,7 +8,7 @@ Ist die Transkription fertig, führt transkribierBAR die weiteren Schritte des P
 
 ## Die Pipeline
 
-![Bundle pipeline](./assets/bundle-pipeline.svg)
+![Ablauf eines Pakets: Transkription, Verfeinerung, Analyse, Übersetzung](./assets/bundle-pipeline.svg)
 
 Die Schritte laufen immer in dieser Reihenfolge: **Transkription, Verfeinerung, Analyse, Übersetzung**. Die Transkription läuft immer. Verfeinerung, Analyse und Übersetzung laufen nur, wenn das Paket sie enthält.
 

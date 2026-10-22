@@ -16,7 +16,7 @@ Ihre Änderungen gelten zunächst nur in Ihrem Browser, bis Sie sie speichern (s
 
 Mit dem Stiftsymbol neben **Start** oder **Ende** ändern Sie die Zeit. Das Feld zeigt sie als `HH:MM:SS`. Geben Sie immer alle drei Teile ein, zum Beispiel `00:01:30`. Mit der Eingabetaste oder einem Klick außerhalb übernehmen Sie die Zeit. Das Feld zeigt ganze Sekunden. Beim Übernehmen fallen die Bruchteile einer Sekunde weg, auch wenn Sie die Zeit nicht geändert haben.
 
-Überschneidet die neue Zeit benachbarte Zeilen, passt der Editor diese an: Ein neuer Start verkürzt das Ende der vorherigen Zeilen, ein neues Ende verschiebt den Start der folgenden. Vorher fragt eine Rückfrage nach, wie viele Zeilen betroffen sind. Wenn Sie sie abbrechen, bleibt alles unverändert. Liegt der neue Start nach dem Ende der Zeile, rückt auch das Ende nach. Entsprechend rückt der Start vor, wenn das neue Ende davor liegt.
+Überschneidet die neue Zeit benachbarte Zeilen, passt der Editor diese an: Ein neuer Start verkürzt das Ende der vorherigen Zeilen, ein neues Ende verschiebt den Start der folgenden. Vorher nennt eine Rückfrage die Zahl der betroffenen Zeilen. Wenn Sie sie abbrechen, bleibt alles unverändert. Liegt der neue Start nach dem Ende der Zeile, rückt auch das Ende nach. Entsprechend wird auch der Start vorgezogen, wenn das neue Ende davor liegt.
 
 ## Sprechende Person einer Zeile
 
@@ -52,6 +52,6 @@ Wechseln Sie zu einem Format-Reiter wie **SRT**, bleiben Ihre Änderungen erhalt
 
 ## Verfeinerte und übersetzte Ansicht
 
-Sind die LLM-Funktionen auf diesem Server eingerichtet, bietet der Editor über der Tabelle die Schaltflächen **Mit LLM verfeinern** und **Übersetzen** an, solange es noch keine Verfeinerung beziehungsweise Übersetzung gibt. Eine Verfeinerung und eine Übersetzung erscheinen neben dem Original. Mit den Schaltflächen **Original**, **Verfeinert** und **Übersetzt** wechseln Sie zwischen ihnen. Die Ansicht **Verfeinert** und die Ansicht **Übersetzt** sind schreibgeschützt: Die Symbole zum Bearbeiten fehlen dort, Änderungen gelten nur im Original. Mit **Verfeinerung löschen** und **Übersetzung löschen** entfernen Sie die jeweilige Fassung nach einer Rückfrage.
+Sind die KI-Funktionen auf diesem Server eingerichtet, bietet der Editor über der Tabelle die Schaltflächen **Mit LLM verfeinern** und **Übersetzen** an, solange es noch keine Verfeinerung beziehungsweise Übersetzung gibt. Eine Verfeinerung und eine Übersetzung erscheinen neben dem Original. Mit den Schaltflächen **Original**, **Verfeinert** und **Übersetzt** wechseln Sie zwischen ihnen. Die Ansicht **Verfeinert** und die Ansicht **Übersetzt** sind schreibgeschützt: Die Symbole zum Bearbeiten fehlen dort, Änderungen gelten nur im Original. Mit **Verfeinerung löschen** und **Übersetzung löschen** entfernen Sie die jeweilige Fassung nach einer Rückfrage.
 
 In der Ansicht **Verfeinert** nennt **Zusammenfassung der Änderungen**, was das Sprachmodell geändert hat. Geänderte Zeilen tragen einen Punkt neben der Zeilennummer. Ein Klick darauf zeigt Original und verfeinerten Text nebeneinander (nur auf größeren Bildschirmen). Wie beide Funktionen arbeiten, steht in den Abschnitten „Verfeinerung“ und „Übersetzung“.

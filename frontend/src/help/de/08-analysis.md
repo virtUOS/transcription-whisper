@@ -25,7 +25,7 @@ Sie können beliebig viele Analysen erstellen, auch mit verschiedenen Vorlagen. 
 
 ## Kapitel vorgeben und Agenda
 
-Bei **Zusammenfassung mit Kapiteln** gibt es die Aufklappliste **Kapitel definieren (optional)**. Mit **Kapitel hinzufügen** legen Sie je Kapitel eine Zeile an, mit einem **Kapiteltitel** und einer **Kurzen Beschreibung**. Es genügt eines von beiden. Ganz leere Zeilen werden ignoriert, **Entfernen** löscht eine Zeile. Sie können bis zu 30 Kapitel vorgeben. Das Sprachmodell richtet die Gliederung danach aus. Kommt ein Thema in der Aufnahme nicht vor, steht das Kapitel trotzdem im Ergebnis, mit einem Hinweis in der Beschreibung und mit **—** statt einer Zeitspanne.
+Bei **Zusammenfassung mit Kapiteln** gibt es die Aufklappliste **Kapitel definieren (optional)**. Mit **Kapitel hinzufügen** legen Sie je Kapitel eine Zeile an, mit einem **Kapiteltitel** und einer **Kurzen Beschreibung**. Es genügt eines von beiden. Ganz leere Zeilen werden ignoriert, **Entfernen** löscht eine Zeile. Sie können bis zu 30 Kapitel vorgeben. Das Sprachmodell richtet die Gliederung danach aus. Kommt ein Thema in der Aufnahme nicht vor, soll das Kapitel trotzdem im Ergebnis stehen, mit einem Hinweis in der Beschreibung und mit **—** statt einer Zeitspanne.
 
 Bei **Agendabasierte Notizen** erscheint das Feld **Agenda**. Fügen Sie dort Ihre Tagesordnung ein. Lassen Sie es leer, leitet das Sprachmodell die Punkte aus dem Transkript ab.
 

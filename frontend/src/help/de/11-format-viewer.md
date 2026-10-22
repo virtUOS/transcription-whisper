@@ -4,7 +4,7 @@
 
 Neben **Untertitel** hat die Detailansicht die Reiter **SRT**, **VTT**, **JSON** und **TXT**. Jeder zeigt das Transkript in diesem Format. transkribierBAR erstellt es in Ihrem Browser aus dem aktuellen Text.
 
-- **SRT:** nummerierte Einträge mit Zeitangaben wie `00:01:30,250 --> 00:01:34,000`, davor der Name der sprechenden Person in eckigen Klammern: `[Name]: Text`.
+- **SRT:** nummerierte Einträge mit Zeitangaben wie `00:01:30,250 --> 00:01:34,000`. Der Text beginnt mit dem Namen der sprechenden Person in eckigen Klammern: `[Name]: Text`.
 - **VTT:** beginnt mit `WEBVTT` und hat Zeitangaben mit Punkt statt Komma (`00:01:30.250`). Die Namen stehen wie bei SRT in eckigen Klammern.
 - **JSON:** eine Liste mit `start`, `end`, `text` und `speaker` je Äußerung. Start und Ende sind Millisekunden.
 - **TXT:** eine Zeile je Äußerung ohne Zeitangaben, in der Form `Name: Text`.

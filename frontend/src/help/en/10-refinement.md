@@ -40,7 +40,7 @@ Changed rows have an amber stripe on the left edge and, on larger screens, a dot
 
 transkribierBAR sends the utterances to the language model in sections. If a section still fails after several automatic attempts, the others are refined and saved anyway. The failed sections keep their original text. If all of them fail, no refinement is created and you see the error message.
 
-The affected rows have a dashed grey border and, on larger screens, a hollow grey dot. The bar also says, for example, **Not refined (original text kept): utterances 451–500**. **Retry failed sections** repeats only those sections, while the button reads **Retrying…**. The saved context applies. What has already succeeded is not sent again. If a section fails again, it stays in the list.
+The affected rows have a dashed gray border and, on larger screens, a hollow gray dot. The bar also says, for example, **Not refined (original text kept): utterances 451–500**. **Retry failed sections** repeats only those sections, while the button reads **Retrying…**. The saved context applies. What has already succeeded is not sent again. If a section fails again, it stays in the list.
 
 Two messages can appear there: **Retry failed. Please try again.** and **Utterances were added or removed since this refinement was saved. Delete the refinement and refine again.**
 

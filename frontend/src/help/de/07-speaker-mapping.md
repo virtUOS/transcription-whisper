@@ -14,7 +14,7 @@ Der neue Name steht danach in der Tabelle, bei Videos in der Untertitelspur des 
 
 ## Personen zusammenführen
 
-Geben Sie zwei Sprechenden denselben Namen, behandelt transkribierBAR sie als eine Person. Der Bereich zeigt sie dann in einer Zeile mit dem Zusatz wie **2 zusammengeführt**, und ihre Punkte haben dieselbe Farbe. Das hilft, wenn die Erkennung eine Person als zwei erkannt hat.
+Geben Sie zwei Sprechenden denselben Namen, behandelt transkribierBAR sie als eine Person. Der Bereich zeigt sie dann in einer Zeile mit einem Zusatz wie **2 zusammengeführt**, und ihre Punkte haben dieselbe Farbe. Das hilft, wenn die Erkennung eine Person als zwei erkannt hat.
 
 ## Einzelne Zeile ändern
 

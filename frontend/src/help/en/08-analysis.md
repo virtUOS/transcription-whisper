@@ -25,7 +25,7 @@ You can create as many analyses as you like, also with different templates. Each
 
 ## Chapters and agenda
 
-For **Summary with chapters** there is the expandable list **Define chapters (optional)**. With **Add chapter** you create one row per chapter, with a **Chapter title** and a **Brief description**. Either one is enough. Completely empty rows are ignored, **Remove** deletes a row. You can specify up to 30 chapters. The language model arranges the structure accordingly. If a topic does not occur in the recording, the chapter still appears in the result, with a note in its description and with **—** instead of a time span.
+For **Summary with chapters** there is the expandable list **Define chapters (optional)**. With **Add chapter** you create one row per chapter, with a **Chapter title** and a **Brief description**. Either one is enough. Completely empty rows are ignored, **Remove** deletes a row. You can specify up to 30 chapters. The language model arranges the structure accordingly. If a topic does not occur in the recording, the chapter should still appear in the result, with a note in its description and with **—** instead of a time span.
 
 For **Agenda-based notes** the **Agenda** field appears. Paste your agenda there. If you leave it empty, the language model derives the items from the transcript.
 

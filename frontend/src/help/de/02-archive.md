@@ -16,11 +16,11 @@ Haben Sie noch keine Transkription, sehen Sie stattdessen **Neu hier?** mit dem 
 
 ## Umbenennen
 
-Klicken Sie auf den Stift neben dem Titel (**Titel bearbeiten**) oder neben dem Dateinamen (**Dateinamen bearbeiten**). Enter oder ein Klick daneben speichert, Esc bricht ab. Die Dateiendung bleibt unverändert.
+Klicken Sie auf den Stift neben dem Titel (**Titel bearbeiten**) oder neben dem Dateinamen (**Dateinamen bearbeiten**). Die Eingabetaste oder ein Klick daneben speichert, Esc bricht ab. Die Dateiendung bleibt unverändert.
 
 ## Frist und Archivieren
 
-Jede Transkription wird nach einer Frist automatisch gelöscht, zusammen mit der hochgeladenen Datei und allen Ergebnissen (Analysen, Verfeinerung, Übersetzung, Namen der Sprechenden). Die Frist beträgt {{retention_days}} Tage ab dem Hochladen. In der Detailansicht steht das Datum hinter **Läuft ab:**; ist weniger als 24 Stunden übrig, wird es rot.
+Jede Transkription wird nach einer Frist automatisch gelöscht, zusammen mit der hochgeladenen Datei und allen Ergebnissen (Analysen, Verfeinerung, Übersetzung, Namen der Sprechenden). Die Frist beträgt {{retention_days}} Tage ab dem Hochladen. In der Detailansicht steht das Datum hinter **Läuft ab:**; sind weniger als 24 Stunden übrig, wird es rot.
 
 **Archivieren** in der Detailansicht setzt die Frist auf {{archive_retention_days}} Tage ab diesem Moment. Statt der Schaltfläche steht dann **Archiviert**, und die Übersicht zeigt das Schild-Symbol.
 

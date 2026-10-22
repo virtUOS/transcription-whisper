@@ -20,7 +20,7 @@ The list shows each token with its name, its first characters followed by "…",
 
 Click **Revoke** next to an active token. From then on, the server rejects every new request with it. Expired and revoked tokens stay in the list, shown faded. They are removed from it automatically, revoked ones after 30 days and expired ones after 90 days.
 
-## Authenticating
+## Authentication
 
 Send the token with every request in the header `Authorization`, in the form `Bearer` followed by a space and the token:
 
@@ -38,7 +38,7 @@ wss://transcription.uni-osnabrueck.de/api/ws/status/{transcription_id}?token=tw_
 
 ## Transcribing step by step
 
-The examples use `tw_…` as a placeholder for your token and `FILE_ID` and `TRANSCRIPTION_ID` for the ids you receive.
+The examples use `tw_…` as a placeholder for your token and `FILE_ID` and `TRANSCRIPTION_ID` for the IDs you receive.
 
 **1. Upload the file.** Send it as the form field `file`:
 
@@ -76,7 +76,7 @@ The answer contains the `id` of the transcription (`TRANSCRIPTION_ID`) and the s
 curl -H "Authorization: Bearer tw_…" https://transcription.uni-osnabrueck.de/api/status/TRANSCRIPTION_ID
 ```
 
-The status is `pending`, `processing`, `completed` or `failed`. With `failed`, the field `error` contains the reason. Instead of repeating the query, you can listen on the WebSocket from the section "Authenticating". It sends a message such as `{"type": "status", "status": "processing"}` every 5 seconds and closes after `completed` or `failed`. If the token is invalid, it closes with code 4001. If the transcription does not exist or is not yours, it closes with code 4003.
+The status is `pending`, `processing`, `completed` or `failed`. With `failed`, the field `error` contains the reason. Instead of repeating the query, you can listen on the WebSocket from the section "Authentication". It sends a message such as `{"type": "status", "status": "processing"}` every 5 seconds and closes after `completed` or `failed`. If the token is invalid, it closes with code 4001. If the transcription does not exist or is not yours, it closes with code 4003.
 
 **4. Fetch the result.** As long as the transcription is not finished, this call is answered with status 400:
 

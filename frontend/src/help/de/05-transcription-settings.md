@@ -30,7 +30,7 @@ Beide Angaben gehen an die Spracherkennung. Leere Felder werden nicht übermitte
 Die Gruppe **Voreinstellungen** ist die erste Gruppe.
 
 - **Transkription:** Dieses Auswahlfeld erscheint, sobald Sie Voreinstellungen gespeichert haben. Wählen Sie dort eine Voreinstellung, übernimmt sie Sprache, Sprechende, Anfangs-Prompt und Schlüsselwörter.
-- **Als Voreinstellung speichern:** Geben Sie einen Namen ein und bestätigen Sie mit dem Häkchen oder mit Enter. transkribierBAR speichert die aktuellen Einstellungen unter diesem Namen.
+- **Als Voreinstellung speichern:** Geben Sie einen Namen ein und bestätigen Sie mit dem Häkchen oder mit der Eingabetaste. transkribierBAR speichert die aktuellen Einstellungen unter diesem Namen.
 - **Pakete:** Dieses Feld erscheint, sobald Sie Pakete angelegt haben. Was es bewirkt, steht im Abschnitt „Hochladen“.
 
 Voreinstellungen verwalten Sie auf der Seite **Voreinstellungen** in der Kopfzeile.

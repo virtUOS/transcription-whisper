@@ -8,7 +8,7 @@ Once the transcription has finished, transkribierBAR carries out the further ste
 
 ## The pipeline
 
-![Bundle pipeline](./assets/bundle-pipeline.svg)
+![How a bundle runs: transcription, refinement, analysis, translation](./assets/bundle-pipeline.svg)
 
 The steps always run in this order: **transcription, refinement, analysis, translation**. The transcription always runs. Refinement, analysis and translation only run if the bundle contains them.
 

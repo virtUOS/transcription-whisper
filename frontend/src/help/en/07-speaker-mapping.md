@@ -14,7 +14,7 @@ The new name then appears in the table, for videos in the player's subtitle trac
 
 ## Merging speakers
 
-Give two speakers the same name and transkribierBAR treats them as one person. The panel then shows them in one row with a note such as **2 merged**, and their dots have the same colour. This helps when detection split one person into two.
+Give two speakers the same name and transkribierBAR treats them as one person. The panel then shows them in one row with a note such as **2 merged**, and their dots have the same color. This helps when detection split one person into two.
 
 ## Changing a single row
 

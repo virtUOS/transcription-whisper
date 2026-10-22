@@ -20,7 +20,7 @@ Die Liste zeigt zu jedem Token den Namen, seine ersten Zeichen mit angehängtem 
 
 Klicken Sie neben einem aktiven Token auf **Widerrufen**. Ab dann weist der Server jede neue Anfrage mit ihm ab. Abgelaufene und widerrufene Tokens bleiben abgeblendet in der Liste. Sie werden automatisch daraus entfernt, widerrufene nach 30 Tagen und abgelaufene nach 90 Tagen.
 
-## Anmelden
+## Authentifizierung
 
 Senden Sie den Token mit jeder Anfrage im Header `Authorization`, in der Form `Bearer`, ein Leerzeichen und der Token:
 
@@ -38,7 +38,7 @@ wss://transcription.uni-osnabrueck.de/api/ws/status/{transcription_id}?token=tw_
 
 ## Transkribieren Schritt für Schritt
 
-In den Beispielen steht `tw_…` als Platzhalter für Ihren Token, `FILE_ID` und `TRANSCRIPTION_ID` stehen für die Ids, die Sie erhalten.
+In den Beispielen steht `tw_…` als Platzhalter für Ihren Token, `FILE_ID` und `TRANSCRIPTION_ID` stehen für die IDs, die Sie erhalten.
 
 **1. Datei hochladen.** Senden Sie sie als Formularfeld `file`:
 
@@ -76,7 +76,7 @@ Die Antwort enthält die `id` der Transkription (`TRANSCRIPTION_ID`) und den Sta
 curl -H "Authorization: Bearer tw_…" https://transcription.uni-osnabrueck.de/api/status/TRANSCRIPTION_ID
 ```
 
-Der Status ist `pending`, `processing`, `completed` oder `failed`. Bei `failed` nennt das Feld `error` den Grund. Statt die Abfrage zu wiederholen, können Sie den WebSocket aus dem Abschnitt „Anmelden“ abhören. Er sendet alle 5 Sekunden eine Nachricht wie `{"type": "status", "status": "processing"}` und schließt sich nach `completed` oder `failed`. Bei einem ungültigen Token schließt er mit dem Code 4001. Gibt es die Transkription nicht oder gehört sie Ihnen nicht, schließt er mit dem Code 4003.
+Der Status ist `pending`, `processing`, `completed` oder `failed`. Bei `failed` nennt das Feld `error` den Grund. Statt die Abfrage zu wiederholen, können Sie den WebSocket aus dem Abschnitt „Authentifizierung“ abhören. Er sendet alle 5 Sekunden eine Nachricht wie `{"type": "status", "status": "processing"}` und schließt sich nach `completed` oder `failed`. Bei einem ungültigen Token schließt er mit dem Code 4001. Gibt es die Transkription nicht oder gehört sie Ihnen nicht, schließt er mit dem Code 4003.
 
 **4. Ergebnis abrufen.** Solange die Transkription nicht fertig ist, beantwortet der Server diesen Aufruf mit dem Status 400:
 

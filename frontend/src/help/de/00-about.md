@@ -4,7 +4,7 @@ transkribierBAR wandelt gesprochene Sprache aus Audio- und Videodateien in Text 
 
 ## Wofür Sie transkribierBAR nutzen können
 
-- **Forschungsinterviews:** Interviews transkribieren, mit getrennten Beiträgen je sprechender Person, die Sie anschließend benennen.
+- **Forschungsinterviews:** Interviews transkribieren, mit getrennten Beiträgen für jede sprechende Person, die Sie anschließend benennen.
 - **Sitzungen:** Besprechungen aufnehmen und daraus ein Sitzungsprotokoll oder Notizen entlang Ihrer Tagesordnung erstellen.
 - **Lehre:** Untertitel für Lehr- und Vorlesungsvideos erzeugen, korrigieren und in andere Sprachen übersetzen.
 

@@ -30,7 +30,7 @@ With **System audio** you also record what your computer plays, such as an onlin
 - **Firefox on other systems:** Support is limited. Use a Chromium browser instead.
 - **Mobile devices and other browsers:** **System audio** is not offered.
 
-While **System audio** is on, **Camera** is unavailable. If you stop sharing the screen or tab, the recording ends. If capturing fails, an error message appears, for example when you cancelled the browser's selection.
+While **System audio** is on, **Camera** is unavailable. If you stop sharing the screen or tab, the recording ends. If capturing fails, an error message appears, for example when you canceled the browser's selection.
 
 ## Camera
 
