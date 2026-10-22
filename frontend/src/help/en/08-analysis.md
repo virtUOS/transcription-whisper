@@ -12,7 +12,7 @@ You find analysis in the **Analysis** tab of the detail view, next to **Subtitle
 
 Choose a template. **Summary with chapters** is preselected. The **Output language** is preset to the language detected in the transcription. Click **Generate**.
 
-While the analysis runs, the page shows, for example, **Generating Summary with chapters...** and hides the form. The page waits for the language model's reply. Stay on it until the result appears. Nothing is saved until the analysis is finished.
+While the analysis runs, the page shows, for example, **Generating Summary with chapters...** and hides the form. The page waits for the language model's reply. Stay on it until the result appears. If you leave the page anyway, the analysis keeps running on the server. You see the result when you reopen the transcription later. A new attempt before it has finished fails.
 
 You can create as many analyses as you like, also with different templates. Each one is a separate entry in the list. **+ New Analysis** opens the form again, **Cancel** closes it. If there is no analysis yet, the form is visible right away.
 

@@ -12,7 +12,7 @@ The original is kept. The translation appears next to **Original** (and **Refine
 
 In the **Subtitles** tab, click **Translate** above the table. The button is there as long as no translation exists. In the **Translate to** dialog, choose the **Translation language** from the list. Then click **Translate**. **Cancel** closes the dialog.
 
-While the translation runs, the button reads **Translating...** and the selection fields and buttons are locked. With more than 50 utterances, a note says the translation may take several minutes. The page waits for the language model. Stay on it until the dialog closes. Nothing is saved until the translation is finished. Afterwards the editor shows the **Translated** view.
+While the translation runs, the button reads **Translating...** and the selection fields and buttons are locked. With more than 50 utterances, a note says the translation may take several minutes. The page waits for the language model. Stay on it until the dialog closes. If you leave the page anyway, the translation keeps running on the server. You see it when you reopen the transcription later. A new attempt before it has finished fails. Afterwards the editor shows the **Translated** view.
 
 The language of the recording does not work as a target language. If it is known and you choose it, the translation fails and the dialog shows only the general error message.
 
@@ -28,7 +28,7 @@ Only one translation exists per transcription. For another language, click **Del
 
 ## When the source changes
 
-If the text of the source has changed since the translation, an amber note appears next to **Delete translation**: **source has newer content**. This happens, for example, if the translation was made from the original and you change text in it and save. If the refinement the translation was made from has been deleted, it reads **source no longer available**. Changes to times or names do not count as new content. The translation itself stays unchanged until you renew it. To do so, delete it with **Delete translation** and translate again.
+If the text of the source has changed since the translation, an amber note appears next to **Delete translation**: **source has newer content**. The note appears once you reopen the transcription. This happens, for example, if the translation was made from the original and you change text in it and save. If the refinement the translation was made from has been deleted, it reads **source no longer available**. Changes to times or names do not count as new content. The translation itself stays unchanged until you renew it. To do so, delete it with **Delete translation** and translate again.
 
 ## If the translation fails
 

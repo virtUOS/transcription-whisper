@@ -18,7 +18,7 @@ The original stays unchanged. The refinement is a version of its own, which you 
 
 ## When it is worth it
 
-Refinement helps most with recordings that have many hesitation sounds, restarts, or varying spellings of technical terms and names, for example interviews and group conversations. If the original already reads well, it changes little. The changes summary shows how much the language model touched.
+Refinement only concerns the points listed above. It is therefore worth it mainly when your transcript contains many of them, for example hesitation sounds or inconsistently spelled technical terms and names. The changes summary shows what the language model changed.
 
 ## Refining
 
@@ -26,7 +26,7 @@ In the **Subtitles** tab, click **Refine with LLM** above the table. The button 
 
 The language model receives the original with the names you gave under **Speaker Names**. Assign the names before you refine.
 
-While refinement runs, the button reads **Refining transcription...** and the context field and the buttons are locked. With more than 50 utterances, a note says the refinement may take several minutes. The page waits for the language model. Stay on it until the dialog closes. Nothing is saved until the refinement is finished. Afterwards the editor shows the **Refined** view.
+While refinement runs, the button reads **Refining transcription...** and the context field and the buttons are locked. With more than 50 utterances, a note says the refinement may take several minutes. The page waits for the language model. Stay on it until the dialog closes. If you leave the page anyway, the refinement keeps running on the server. You see it when you reopen the transcription later. A new attempt before it has finished fails. Afterwards the editor shows the **Refined** view.
 
 If it fails, the dialog reads **Refinement failed. Please try again.** Try again then.
 
@@ -34,7 +34,7 @@ If it fails, the dialog reads **Refinement failed. Please try again.** Try again
 
 In the **Refined** view, a bar above the table shows the **Changes Summary**, with the number of changed utterances. Click it to expand or collapse. Expanded, it describes in words what the language model changed and names the **Context**, if you gave one.
 
-Changed rows have an amber stripe on the left edge and, on larger screens, a dot next to the row number. Clicking the row shows **Original** and **Refined** side by side. The view is read-only. If you want to change text yourself, do so in the original.
+Changed rows have an amber stripe on the left edge and, on larger screens, a dot next to the row number. Clicking the dot shows **Original** and **Refined** side by side (larger screens only). The view is read-only. If you want to change text yourself, do so in the original.
 
 ## If some sections could not be refined
 
@@ -48,7 +48,7 @@ Two messages can appear there: **Retry failed. Please try again.** and **Utteran
 
 The refinement does not adapt. If you change text in the original after refining and save, **original was edited – delete and refine again** appears in amber in the toolbar. Until then the **Refined** view shows the older text. Changes to times or names do not count here.
 
-**Delete Refinement** removes the refinement after a confirmation prompt. The original stays unchanged. Afterwards you can refine again. Analyses and translations that were made from the deleted refinement then show **source no longer available**.
+**Delete Refinement** removes the refinement after a confirmation prompt. The original stays unchanged. Afterwards you can refine again. Analyses and translations that were made from the deleted refinement show **source no longer available**, an analysis right away, a translation once you reopen the transcription.
 
 ## How it works with other steps
 

@@ -12,7 +12,7 @@ Sie finden die Analyse im Reiter **Analyse** der Detailansicht, neben **Untertit
 
 Wählen Sie eine Vorlage. Voreingestellt ist **Zusammenfassung mit Kapiteln**. Die **Ausgabesprache** ist mit der erkannten Sprache der Transkription vorbelegt. Klicken Sie auf **Generieren**.
 
-Während die Analyse läuft, zeigt die Seite zum Beispiel **Zusammenfassung mit Kapiteln wird erstellt...** und blendet das Formular aus. Die Seite wartet auf die Antwort des Sprachmodells. Bleiben Sie darauf, bis das Ergebnis erscheint. Gespeichert wird erst, wenn die Analyse fertig ist.
+Während die Analyse läuft, zeigt die Seite zum Beispiel **Zusammenfassung mit Kapiteln wird erstellt...** und blendet das Formular aus. Die Seite wartet auf die Antwort des Sprachmodells. Bleiben Sie darauf, bis das Ergebnis erscheint. Verlassen Sie die Seite trotzdem, läuft die Analyse auf dem Server weiter. Das Ergebnis sehen Sie, wenn Sie die Transkription später erneut öffnen. Ein neuer Versuch, bevor sie fertig ist, schlägt fehl.
 
 Sie können beliebig viele Analysen erstellen, auch mit verschiedenen Vorlagen. Jede steht als eigener Eintrag in der Liste. Mit **+ Neue Analyse** öffnen Sie das Formular erneut, **Abbrechen** schließt es. Gibt es noch keine Analyse, ist das Formular sofort sichtbar.
 

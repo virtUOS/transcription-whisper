@@ -8,7 +8,7 @@ Bei der Verfeinerung geht ein Sprachmodell Ihr Transkript durch und korrigiert e
 - offensichtliche Grammatikfehler, die Erkennungsfehler sind und nicht der Sprechweise entsprechen,
 - uneinheitliche Fachbegriffe und Eigennamen,
 - Füllgeräusche wie „äh“, „ähm“ oder „hm“,
-- Satzabbrüche und Neuanfänge.
+- Fehlstarts und Selbstkorrekturen, bei denen die Person neu ansetzt.
 
 Das Sprachmodell soll nichts umformulieren, gesprochene Sprache nicht in Schriftsprache umwandeln, Zeiten und die Angabe der sprechenden Person nicht verändern und genau so viele Äußerungen zurückgeben, wie es erhalten hat. Bei Unsicherheit soll es den Text lassen, wie er ist. Eine Übersetzung ist die Verfeinerung nicht, dafür gibt es den Abschnitt „Übersetzung“.
 
@@ -18,7 +18,7 @@ Das Original bleibt unverändert. Die Verfeinerung ist eine eigene Fassung, die 
 
 ## Wann sie sich lohnt
 
-Am meisten bringt die Verfeinerung bei Aufnahmen mit vielen Füllgeräuschen, Neuanfängen oder wechselnder Schreibweise von Fachbegriffen und Namen, etwa bei Interviews und Gruppengesprächen. Ist das Original schon gut lesbar, ändert sie wenig. Die Zusammenfassung der Änderungen zeigt Ihnen, wie viel das Sprachmodell angefasst hat.
+Die Verfeinerung betrifft nur die oben genannten Punkte. Sie lohnt sich deshalb vor allem, wenn Ihr Transkript viele davon enthält, zum Beispiel Füllgeräusche oder uneinheitlich geschriebene Fachbegriffe und Namen. Die Zusammenfassung der Änderungen zeigt Ihnen, was das Sprachmodell geändert hat.
 
 ## Verfeinern
 
@@ -26,7 +26,7 @@ Klicken Sie im Reiter **Untertitel** über der Tabelle auf **Mit LLM verfeinern*
 
 Das Sprachmodell erhält das Original mit den Namen, die Sie unter **Namen der Sprechenden** vergeben haben. Vergeben Sie die Namen deshalb, bevor Sie verfeinern.
 
-Während der Verfeinerung steht auf der Schaltfläche **Transkription wird verfeinert...**, und das Kontextfeld und die Schaltflächen sind gesperrt. Bei mehr als 50 Äußerungen weist ein Hinweis darauf hin, dass die Verfeinerung mehrere Minuten dauern kann. Die Seite wartet auf das Sprachmodell. Bleiben Sie darauf, bis der Dialog sich schließt. Gespeichert wird erst, wenn die Verfeinerung fertig ist. Danach zeigt der Editor die Ansicht **Verfeinert**.
+Während der Verfeinerung steht auf der Schaltfläche **Transkription wird verfeinert...**, und das Kontextfeld und die Schaltflächen sind gesperrt. Bei mehr als 50 Äußerungen weist ein Hinweis darauf hin, dass die Verfeinerung mehrere Minuten dauern kann. Die Seite wartet auf das Sprachmodell. Bleiben Sie darauf, bis der Dialog sich schließt. Verlassen Sie die Seite trotzdem, läuft die Verfeinerung auf dem Server weiter. Sie sehen sie, wenn Sie die Transkription später erneut öffnen. Ein neuer Versuch, bevor sie fertig ist, schlägt fehl. Danach zeigt der Editor die Ansicht **Verfeinert**.
 
 Schlägt es fehl, steht im Dialog **Verfeinerung fehlgeschlagen. Bitte versuchen Sie es erneut.** Versuchen Sie es dann erneut.
 
@@ -34,7 +34,7 @@ Schlägt es fehl, steht im Dialog **Verfeinerung fehlgeschlagen. Bitte versuchen
 
 In der Ansicht **Verfeinert** nennt eine Leiste über der Tabelle die **Zusammenfassung der Änderungen**, mit der Zahl der geänderten Äußerungen. Ein Klick darauf klappt sie auf oder zu. Aufgeklappt beschreibt sie in Worten, was das Sprachmodell geändert hat, und nennt den **Kontext**, falls Sie einen angegeben haben.
 
-Geänderte Zeilen haben einen bernsteinfarbenen Strich am linken Rand und auf größeren Bildschirmen einen Punkt neben der Zeilennummer. Ein Klick auf die Zeile zeigt **Original** und **Verfeinert** nebeneinander. Die Ansicht ist schreibgeschützt. Wollen Sie Text selbst ändern, tun Sie das im Original.
+Geänderte Zeilen haben einen bernsteinfarbenen Strich am linken Rand und auf größeren Bildschirmen einen Punkt neben der Zeilennummer. Ein Klick auf den Punkt zeigt **Original** und **Verfeinert** nebeneinander (nur auf größeren Bildschirmen). Die Ansicht ist schreibgeschützt. Wollen Sie Text selbst ändern, tun Sie das im Original.
 
 ## Wenn Abschnitte nicht verfeinert werden konnten
 
@@ -48,7 +48,7 @@ Zwei Meldungen können dort erscheinen: **Wiederholung fehlgeschlagen. Bitte ver
 
 Die Verfeinerung passt sich nicht an. Ändern Sie nach dem Verfeinern Text im Original und speichern, erscheint in der Werkzeugleiste in Bernstein **Original wurde bearbeitet – löschen und erneut verfeinern**. Die Ansicht **Verfeinert** zeigt bis dahin den älteren Text. Änderungen an Zeiten oder Namen zählen dabei nicht.
 
-Mit **Verfeinerung löschen** entfernen Sie die Verfeinerung nach einer Rückfrage. Das Original bleibt unverändert. Danach können Sie neu verfeinern. Analysen und Übersetzungen, die aus der gelöschten Verfeinerung entstanden sind, zeigen dann **Quelle nicht mehr verfügbar**.
+Mit **Verfeinerung löschen** entfernen Sie die Verfeinerung nach einer Rückfrage. Das Original bleibt unverändert. Danach können Sie neu verfeinern. Analysen und Übersetzungen, die aus der gelöschten Verfeinerung entstanden sind, zeigen **Quelle nicht mehr verfügbar**, eine Analyse sofort, eine Übersetzung sobald Sie die Transkription erneut öffnen.
 
 ## Zusammenspiel mit anderen Schritten
 

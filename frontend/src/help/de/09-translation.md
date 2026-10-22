@@ -12,7 +12,7 @@ Das Original bleibt erhalten. Die Übersetzung erscheint neben **Original** (und
 
 Klicken Sie im Reiter **Untertitel** über der Tabelle auf **Übersetzen**. Die Schaltfläche gibt es, solange noch keine Übersetzung existiert. Im Dialog **Übersetzen nach** wählen Sie die **Übersetzungssprache** aus der Liste. Klicken Sie dann auf **Übersetzen**. **Abbrechen** schließt den Dialog.
 
-Während der Übersetzung steht auf der Schaltfläche **Übersetze...**, und die Auswahlfelder und Schaltflächen sind gesperrt. Bei mehr als 50 Äußerungen weist ein Hinweis darauf hin, dass die Übersetzung mehrere Minuten dauern kann. Die Seite wartet auf das Sprachmodell. Bleiben Sie darauf, bis der Dialog sich schließt. Gespeichert wird erst, wenn die Übersetzung fertig ist. Danach zeigt der Editor die Ansicht **Übersetzt**.
+Während der Übersetzung steht auf der Schaltfläche **Übersetze...**, und die Auswahlfelder und Schaltflächen sind gesperrt. Bei mehr als 50 Äußerungen weist ein Hinweis darauf hin, dass die Übersetzung mehrere Minuten dauern kann. Die Seite wartet auf das Sprachmodell. Bleiben Sie darauf, bis der Dialog sich schließt. Verlassen Sie die Seite trotzdem, läuft die Übersetzung auf dem Server weiter. Sie sehen sie, wenn Sie die Transkription später erneut öffnen. Ein neuer Versuch, bevor sie fertig ist, schlägt fehl. Danach zeigt der Editor die Ansicht **Übersetzt**.
 
 Die Sprache der Aufnahme taugt nicht als Zielsprache. Ist sie bekannt und wählen Sie sie, schlägt die Übersetzung fehl, und der Dialog zeigt nur die allgemeine Fehlermeldung.
 
@@ -28,7 +28,7 @@ Eine Übersetzung existiert pro Transkription nur einmal. Für eine andere Sprac
 
 ## Wenn sich die Quelle ändert
 
-Hat sich der Text der Quelle nach der Übersetzung geändert, erscheint neben **Übersetzung löschen** ein Hinweis in Bernstein: **Quelle hat neueren Inhalt**. Das passiert zum Beispiel, wenn die Übersetzung aus dem Original entstand und Sie Text darin ändern und speichern. Wurde die Verfeinerung gelöscht, aus der die Übersetzung entstand, steht dort **Quelle nicht mehr verfügbar**. Änderungen an Zeiten oder Namen zählen nicht als neuer Inhalt. Die Übersetzung selbst bleibt unverändert, bis Sie sie erneuern. Löschen Sie sie dazu mit **Übersetzung löschen** und übersetzen Sie noch einmal.
+Hat sich der Text der Quelle nach der Übersetzung geändert, erscheint neben **Übersetzung löschen** ein Hinweis in Bernstein: **Quelle hat neueren Inhalt**. Der Hinweis erscheint, sobald Sie die Transkription erneut öffnen. Das passiert zum Beispiel, wenn die Übersetzung aus dem Original entstand und Sie Text darin ändern und speichern. Wurde die Verfeinerung gelöscht, aus der die Übersetzung entstand, steht dort **Quelle nicht mehr verfügbar**. Änderungen an Zeiten oder Namen zählen nicht als neuer Inhalt. Die Übersetzung selbst bleibt unverändert, bis Sie sie erneuern. Löschen Sie sie dazu mit **Übersetzung löschen** und übersetzen Sie noch einmal.
 
 ## Wenn die Übersetzung nicht klappt
 
