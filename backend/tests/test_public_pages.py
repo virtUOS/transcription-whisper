@@ -214,6 +214,8 @@ def real_static_app(tmp_path, monkeypatch):
     (guide / "static").mkdir(parents=True)
     (guide / "index.html").write_text(GUIDE.format(lang="de"), encoding="utf-8")
     (guide / "static" / "guide.css").write_text("body{}", encoding="utf-8")
+    (guide / "static" / "fonts").mkdir()
+    (guide / "static" / "fonts" / "f.woff2").write_bytes(b"wOF2")
     with monkeypatch.context() as m:
         # Other test modules reload app.config, so fetch the live settings object.
         # public_pages may hold an older one, so patch every distinct object.
@@ -227,7 +229,7 @@ def real_static_app(tmp_path, monkeypatch):
     importlib.reload(main_mod)
 
 
-async def raw_get(asgi_app, path: str):
+async def raw_get(asgi_app, path: str, headers_out: dict | None = None):
     """Send a GET with the already-decoded `path` straight to the ASGI app (no client normalisation)."""
     sent = {}
     chunks = []
@@ -244,6 +246,8 @@ async def raw_get(asgi_app, path: str):
     async def send(msg):
         if msg["type"] == "http.response.start":
             sent["status"] = msg["status"]
+            if headers_out is not None:
+                headers_out.update({k.decode().lower(): v.decode() for k, v in msg["headers"]})
         elif msg["type"] == "http.response.body":
             chunks.append(msg.get("body", b""))
 
@@ -254,6 +258,14 @@ async def raw_get(asgi_app, path: str):
     }
     await asgi_app(scope, receive, send)
     return sent["status"], b"".join(chunks).decode("utf-8", "replace")
+
+
+@pytest.mark.asyncio
+async def test_woff2_served_with_font_mime_type(real_static_app):
+    headers: dict = {}
+    status, _ = await raw_get(real_static_app, "/handbuch/static/fonts/f.woff2", headers)
+    assert status == 200
+    assert headers["content-type"] == "font/woff2"
 
 
 @pytest.mark.asyncio

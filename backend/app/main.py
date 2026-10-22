@@ -1,4 +1,5 @@
 import asyncio
+import mimetypes
 import os
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
@@ -197,6 +198,9 @@ app.include_router(invitations_router.router)
 
 # Serve frontend static files (only when built files exist, i.e., in Docker)
 static_dir = settings.STATIC_DIR
+
+# Some Python/OS mime tables lack woff2; without it fonts would be served as octet-stream.
+mimetypes.add_type("font/woff2", ".woff2")
 
 # Public guide and privacy notice. The static mount must come before the router,
 # whose /handbuch/{rest:path} catch-all would shadow it; both must come before
