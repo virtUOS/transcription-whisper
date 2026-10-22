@@ -157,6 +157,16 @@ export function HelpContent({ sectionId }: HelpContentProps) {
       <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSlug]} components={componentsByLang[lang]}>
         {markdown}
       </ReactMarkdown>
+      <p className="mt-8 pt-4 border-t border-gray-700 text-sm">
+        <a
+          href={`${import.meta.env.BASE_URL}handbuch/${lang === 'en' ? 'en/' : ''}#${sectionId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-400 hover:text-blue-300 underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 rounded"
+        >
+          {t('help.openInGuide')} <span aria-hidden="true">↗</span>
+        </a>
+      </p>
     </div>
   )
 }

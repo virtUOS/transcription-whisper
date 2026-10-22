@@ -13,12 +13,13 @@ const LEGAL_LINKS = [
 ] as const
 
 export function HelpDrawer() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const open = useStore((s) => s.helpOpen)
   const initialSection = useStore((s) => s.helpInitialSection)
   const closeHelp = useStore((s) => s.closeHelp)
   const currentView = useStore((s) => s.currentView)
   const config = useStore((s) => s.config)
+  const privacyHref = `${import.meta.env.BASE_URL}handbuch/${i18n.language === 'de' ? 'datenschutz/' : 'en/privacy/'}`
   const contactEmail = config?.contact_email
   const visible = useMemo(() => visibleSections(config), [config])
 
@@ -147,6 +148,16 @@ export function HelpDrawer() {
             </div>
           )}
           <div className="flex flex-wrap gap-x-4 gap-y-1">
+            {config?.privacy_notice && (
+              <a
+                href={privacyHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-400 hover:text-blue-300 underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 rounded"
+              >
+                {t('help.legal.privacyNotice')}
+              </a>
+            )}
             {LEGAL_LINKS.map(({ key, href }) => (
               <a
                 key={key}

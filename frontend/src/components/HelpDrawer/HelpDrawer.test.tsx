@@ -77,6 +77,43 @@ describe('HelpDrawer', () => {
   })
 })
 
+describe('HelpDrawer public links', () => {
+  it('links each section to the public guide in German', () => {
+    openHelp(buildConfig(), 'upload')
+    const link = screen.getByRole('link', { name: /Im Handbuch öffnen/ })
+    expect(link).toHaveAttribute('href', '/handbuch/#upload')
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+  })
+
+  it('links each section to the public guide in English', async () => {
+    await i18n.changeLanguage('en')
+    openHelp(buildConfig(), 'upload')
+    const link = screen.getByRole('link', { name: /Open in the user guide/ })
+    expect(link).toHaveAttribute('href', '/handbuch/en/#upload')
+  })
+
+  it.each([undefined, false])('hides the privacy notice link when privacy_notice is %s', (value) => {
+    openHelp(buildConfig({ privacy_notice: value }), 'upload')
+    expect(screen.queryByRole('link', { name: 'Datenschutzhinweise' })).toBeNull()
+  })
+
+  it('shows the German privacy notice link when enabled', () => {
+    openHelp(buildConfig({ privacy_notice: true }), 'upload')
+    const link = screen.getByRole('link', { name: 'Datenschutzhinweise' })
+    expect(link).toHaveAttribute('href', '/handbuch/datenschutz/')
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+  })
+
+  it('shows the English privacy notice link when enabled', async () => {
+    await i18n.changeLanguage('en')
+    openHelp(buildConfig({ privacy_notice: true }), 'upload')
+    const link = screen.getByRole('link', { name: 'Privacy notice' })
+    expect(link).toHaveAttribute('href', '/handbuch/en/privacy/')
+  })
+})
+
 describe('HelpDrawer screenshots', () => {
   it('keeps the drawer open on Escape while a lightbox is open, closes it otherwise', () => {
     openHelp(buildConfig(), 'archive')
