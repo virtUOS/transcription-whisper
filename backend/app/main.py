@@ -196,7 +196,7 @@ if settings.ENABLE_API_TOKENS:
 app.include_router(invitations_router.router)
 
 # Serve frontend static files (only when built files exist, i.e., in Docker)
-static_dir = os.path.join(os.path.dirname(__file__), "..", "static")
+static_dir = settings.STATIC_DIR
 
 # Public guide and privacy notice. The static mount must come before the router,
 # whose /handbuch/{rest:path} catch-all would shadow it; both must come before

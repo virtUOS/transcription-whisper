@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 import pytest
@@ -179,3 +180,84 @@ async def test_config_has_privacy_notice(monkeypatch):
     assert r.json()["privacy_notice"] is True
     monkeypatch.setattr(router_mod, "NOTICES", {})
     assert (await get("/api/config")).json()["privacy_notice"] is False
+
+
+# --- routing against a real static directory (SPA catch-all + /handbuch/static mount) ---
+
+@pytest.fixture
+def real_static_app(tmp_path, monkeypatch):
+    import importlib
+
+    import app.main as main_mod
+
+    (tmp_path / "index.html").write_text('<html><div id="root"></div></html>', encoding="utf-8")
+    (tmp_path / "secret.txt").write_text("secret", encoding="utf-8")
+    (tmp_path / "assets").mkdir()
+    guide = tmp_path / "handbuch"
+    (guide / "static").mkdir(parents=True)
+    (guide / "index.html").write_text(GUIDE.format(lang="de"), encoding="utf-8")
+    (guide / "static" / "guide.css").write_text("body{}", encoding="utf-8")
+    with monkeypatch.context() as m:
+        # Other test modules reload app.config, so fetch the live settings object.
+        # public_pages may hold an older one, so patch every distinct object.
+        live = importlib.import_module("app.config").settings
+        pp = importlib.import_module("app.public_pages").settings
+        for obj in {id(live): live, id(pp): pp}.values():
+            m.setattr(obj, "STATIC_DIR", str(tmp_path))
+            m.setattr(obj, "CONTACT_EMAIL", "hilfe@example.org")
+        reloaded = importlib.reload(main_mod)
+        yield reloaded.app
+    importlib.reload(main_mod)
+
+
+async def raw_get(asgi_app, path: str):
+    """Send a GET with the already-decoded `path` straight to the ASGI app (no client normalisation)."""
+    sent = {}
+    chunks = []
+
+    first = True
+
+    async def receive():
+        nonlocal first
+        if first:
+            first = False
+            return {"type": "http.request", "body": b"", "more_body": False}
+        await asyncio.Event().wait()  # never disconnect; the response task finishes first
+
+    async def send(msg):
+        if msg["type"] == "http.response.start":
+            sent["status"] = msg["status"]
+        elif msg["type"] == "http.response.body":
+            chunks.append(msg.get("body", b""))
+
+    scope = {
+        "type": "http", "asgi": {"version": "3.0"}, "http_version": "1.1", "method": "GET",
+        "scheme": "http", "path": path, "raw_path": path.encode(), "query_string": b"",
+        "root_path": "", "headers": [(b"host", b"test")], "client": ("t", 1), "server": ("t", 80),
+    }
+    await asgi_app(scope, receive, send)
+    return sent["status"], b"".join(chunks).decode("utf-8", "replace")
+
+
+@pytest.mark.asyncio
+async def test_real_static_dir_routing(real_static_app):
+    status, body = await raw_get(real_static_app, "/handbuch/nope")
+    assert status == 404 and '<div id="root">' not in body
+    status, body = await raw_get(real_static_app, "/handbuch/static/guide.css")
+    assert (status, body) == (200, "body{}")
+    status, body = await raw_get(real_static_app, "/handbuch/")
+    assert status == 200 and "__TW_" not in body and "hilfe@example.org" in body
+    # sanity: the SPA catch-all really is registered for non-handbuch paths
+    status, body = await raw_get(real_static_app, "/some/spa/route")
+    assert status == 200 and '<div id="root">' in body
+    for path in (
+        "/handbuch/static/../index.html",
+        "/handbuch/static/../../secret.txt",
+        "/handbuch/static/%2e%2e/%2e%2e/index.html",
+        "/handbuch/static/..%2f..%2findex.html",
+        "/handbuch/%2e%2e/index.html",
+        "/handbuch/static/missing.css",
+    ):
+        status, body = await raw_get(real_static_app, path)
+        assert status == 404, path
+        assert '<div id="root">' not in body and "secret" not in body, path
