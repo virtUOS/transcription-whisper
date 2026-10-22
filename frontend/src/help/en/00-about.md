@@ -25,7 +25,7 @@ The "Archive" section explains how to archive a transcription.
 
 ## Data protection and consent
 
-> **Your data stays at the university.** transkribierBAR runs on servers of Osnabrück University, and so do its speech recognition and its AI features. Your files and texts are not passed on to external providers. In the app, only you can see your transcriptions. For more, see the [Privacy notice](/handbuch/en/privacy/).
+> **Your data stays at the university.** transkribierBAR runs on servers of Osnabrück University, and so do its speech recognition and its AI features. Your files and texts are not passed on to external providers. In the app, only you can see your transcriptions. For more, see the [privacy notice](/handbuch/en/privacy/).
 
 > **Get consent first.** Only record conversations, and only upload recordings, if everyone who speaks in them has agreed.
 

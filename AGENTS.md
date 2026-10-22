@@ -96,6 +96,13 @@ docker build --build-arg VITE_BASE_PATH=/test -t transcription-test .
 - Screenshots are regenerated with `cd frontend && PYTHON=/path/to/venv/bin/python npm run help:shots [-- --only <id>]` (needs ffmpeg and, once per machine, `npx playwright install chromium`; specs in `frontend/scripts/help-shots/shots.ts`; the run never contacts the real ASR/LLM hosts).
 - English help uses American spelling, as `en.json` does ("Customize", "Minimize", "color"); German help names the key "Eingabetaste" and says "KI-Funktionen" (English "AI features") in prose.
 
+### Public guide (`/handbuch`)
+
+- `/handbuch/` is public (no auth) and is generated at build time (`npm run build` → `dist/handbuch/`) by `frontend/src/help/render/staticGuide.ts`; the backend side is `backend/app/public_pages.py` and `backend/app/routers/public_pages.py`.
+- The router must stay registered before the SPA catch-all in `main.py`, and its static mount before the router. Never put non-guide routes under `/handbuch`.
+- The sentinel/feature contract lives in `staticGuide.ts` ↔ `public_pages.py`: `__TW_SETTING_<key>__`, `<!--tw-feature:X-->…<!--/tw-feature:X-->` (non-nested; `llm`, `api_tokens`, `privacy`, `contact`), `__TW_PRIVACY_NOTICE__`, `__TW_NOTICE_LANG__`, `__TW_NOTICE_FALLBACK__`. Change both sides and their tests together.
+- Operators supply the privacy notice through `PRIVACY_NOTICE_FILE_DE` / `PRIVACY_NOTICE_FILE_EN`.
+
 ## Observability
 
 - Metrics are exposed at `/metrics` when `ENABLE_METRICS=true`. Use the safe helpers in `metrics.py` rather than calling `Counter/Gauge/Histogram` directly — they no-op when metrics are disabled.
