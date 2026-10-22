@@ -16,14 +16,14 @@ Mit **Verwerfen** neben der Schaltfläche **Transkribieren** setzen Sie die Seit
 
 ## Pakete verwenden
 
-Ein Paket verbindet Voreinstellungen für Transkription, Verfeinerung, Analyse und Übersetzung. Haben Sie Pakete angelegt, wählen Sie unter **Voreinstellungen** im Feld **Pakete** eines aus. Ist ein Paket als Standard markiert, ist es beim Öffnen schon gewählt.
+Ein Paket verbindet Voreinstellungen für Transkription, Verfeinerung, Analyse und Übersetzung. Haben Sie Pakete angelegt, wählen Sie unter **Voreinstellungen** im Feld **Pakete** eines aus. Ist ein Paket als Standard markiert, ist es beim Öffnen schon vorgewählt. Seine Transkriptions-Voreinstellung wird dadurch aber nicht in die Einstellungen übernommen. Das geschieht erst, wenn Sie das Paket im Feld **Pakete** selbst auswählen, auch wenn es schon angezeigt wird. Wählen Sie dazu zuerst **Paket wählen...** und danach das Paket aus.
 
-Hat das Paket eine Transkriptions-Voreinstellung, übernimmt die Auswahl deren Werte in die Einstellungen. Enthält das Paket Verfeinerung, Analyse oder Übersetzung, heißt die Schaltfläche **Pipeline starten**. Diese Schritte laufen nach der Transkription automatisch. Pakete legen Sie auf der Seite **Voreinstellungen** an.
+Enthält das Paket Verfeinerung, Analyse oder Übersetzung, heißt die Schaltfläche **Pipeline starten**. Diese Schritte startet Ihr Browser nach der Transkription automatisch. Bleiben Sie auf der Seite, bis sie fertig sind. Pakete legen Sie auf der Seite **Voreinstellungen** an.
 
 ## Seite verlassen
 
 Solange die Datei hochgeladen wird, fragt transkribierBAR beim Wechsel in eine andere Ansicht nach: **Ein Upload läuft gerade. Wenn Sie die Seite verlassen, wird er abgebrochen. Fortfahren?** Bestätigen Sie, bricht der Upload ab. Schließen Sie den Tab oder laden Sie die Seite neu, warnt Sie der Browser.
 
-Sobald die Transkription läuft, können Sie die Seite verlassen. Sie läuft auf dem Server weiter und steht später in der Übersicht.
+Sobald die Transkription läuft, können Sie die Seite verlassen. Sie läuft auf dem Server weiter und steht später in der Übersicht. Das gilt nicht für die Schritte eines Pakets: Sie laufen nur, solange die Seite geöffnet bleibt.
 
-> **Große Dateien.** Lassen Sie den Tab geöffnet, bis der Upload fertig ist. Danach können Sie die Seite verlassen.
+> **Große Dateien.** Eine hochgeladene Datei allein erscheint nicht in der Übersicht. Klicken Sie schon während des Uploads auf **Transkribieren wenn bereit** und lassen Sie den Tab geöffnet, bis der Upload fertig ist. Sobald die Transkription läuft, können Sie die Seite verlassen.

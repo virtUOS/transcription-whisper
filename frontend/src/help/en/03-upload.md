@@ -16,14 +16,14 @@ Click **Transcribe**. If the upload is still running, the button reads **Transcr
 
 ## Using bundles
 
-A bundle links presets for transcription, refinement, analysis and translation. If you have created bundles, pick one under **Presets** in the **Bundles** field. If a bundle is marked as the default, it is already selected when you open the page.
+A bundle links presets for transcription, refinement, analysis and translation. If you have created bundles, pick one under **Presets** in the **Bundles** field. If a bundle is marked as the default, it is already preselected when you open the page. That does not copy its transcription preset into the settings, though. This only happens when you choose the bundle yourself in the **Bundles** field, even if it is already shown. To do so, first select **Select a bundle...** and then the bundle.
 
-If the bundle has a transcription preset, choosing it copies that preset's values into the settings. If the bundle includes refinement, analysis or translation, the button reads **Run pipeline**. Those steps run automatically after the transcription. You create bundles on the **Presets** page.
+If the bundle includes refinement, analysis or translation, the button reads **Run pipeline**. Your browser starts those steps automatically after the transcription. Stay on the page until they have finished. You create bundles on the **Presets** page.
 
 ## Leaving the page
 
 While the file is uploading, transkribierBAR asks before you switch to another view: **An upload is in progress. Leaving this page will cancel it. Continue?** If you confirm, the upload is cancelled. If you close the tab or reload the page, the browser warns you.
 
-Once the transcription is running, you can leave the page. It continues on the server and appears in the overview later.
+Once the transcription is running, you can leave the page. It continues on the server and appears in the overview later. This does not apply to the steps of a bundle: they only run while the page stays open.
 
-> **Large files.** Keep the tab open until the upload has finished. After that you can leave the page.
+> **Large files.** An uploaded file alone does not appear in the overview. Click **Transcribe when ready** while the upload is still running and keep the tab open until the upload has finished. Once the transcription is running, you can leave the page.

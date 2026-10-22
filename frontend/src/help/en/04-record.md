@@ -2,7 +2,7 @@
 
 ## Choosing sources
 
-In the overview, click **+ Record**. The button only appears if your browser supports recording. Before you start, switch the sources on or off: **Microphone**, **System audio** and **Camera**. The microphone is on by default; system audio and camera are off. At least one source must be on, otherwise the page shows **Enable at least one source** and **Start Recording** is disabled.
+In the overview, click **+ Record**. The button only appears if your browser supports recording. Before you start, switch the sources on or off: **Microphone**, **System audio** and **Camera**. The microphone is on by default; system audio and camera are off. With the camera, the microphone is always recorded too, even if the **Microphone** switch is off. At least one source must be on, otherwise the page shows **Enable at least one source** and **Start Recording** is disabled.
 
 For the microphone, pick the device in the **Microphone** field. If there is only one device, the field shows its name. Your browser may ask for permission. If access is blocked, a notice with the button **Retry** appears. Allow access in your browser's site settings.
 
@@ -34,7 +34,7 @@ While **System audio** is on, **Camera** is unavailable. If you stop sharing the
 
 ## Camera
 
-With **Camera** you also record a picture, which produces a video file. Pick the device in the **Camera** field. If there is no camera, it reads **No camera detected.** If the camera cannot be opened, the recording continues with sound only, and a message points this out.
+With **Camera** you also record a picture, which produces a video file. The microphone sound is always recorded with it. Pick the device in the **Camera** field. If there is no camera, it reads **No camera detected.** If the camera cannot be opened, the recording continues with sound only, and a message points this out.
 
 ## Leaving the page
 
