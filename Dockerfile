@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY backend/requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --require-hashes --only-binary=:all: -r requirements.txt
 COPY backend/ ./
 COPY --from=frontend-build /app/frontend/dist ./static
 RUN mkdir -p /app/tmp/transcription-files && chown -R nobody:nogroup /app/tmp
