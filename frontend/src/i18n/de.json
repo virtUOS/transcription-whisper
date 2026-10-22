@@ -468,6 +468,7 @@
     "missingContent": "Inhalt folgt in Kürze.",
     "contact": "Kontakt:",
     "sections": {
+      "about": "Über transkribierBAR",
       "getting-started": "Einführung",
       "archive": "Archiv",
       "upload": "Hochladen",

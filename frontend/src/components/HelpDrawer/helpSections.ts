@@ -7,43 +7,11 @@
  * - `assetUrls` maps source asset paths to Vite-resolved URLs used by the markdown renderer.
  */
 
-export type HelpSectionId =
-  | 'getting-started'
-  | 'archive'
-  | 'upload'
-  | 'record'
-  | 'transcription-settings'
-  | 'subtitle-editor'
-  | 'speaker-mapping'
-  | 'analysis'
-  | 'translation'
-  | 'refinement'
-  | 'format-viewer'
-  | 'presets'
-  | 'bundles'
-  | 'api-access'
+import { sections } from '../../help/sectionList.ts'
+import type { HelpSectionId } from '../../help/sectionList.ts'
 
-export interface HelpSection {
-  id: HelpSectionId
-  filename: string
-}
-
-export const sections: readonly HelpSection[] = [
-  { id: 'getting-started', filename: '01-getting-started.md' },
-  { id: 'archive', filename: '02-archive.md' },
-  { id: 'upload', filename: '03-upload.md' },
-  { id: 'record', filename: '04-record.md' },
-  { id: 'transcription-settings', filename: '05-transcription-settings.md' },
-  { id: 'subtitle-editor', filename: '06-subtitle-editor.md' },
-  { id: 'speaker-mapping', filename: '07-speaker-mapping.md' },
-  { id: 'analysis', filename: '08-analysis.md' },
-  { id: 'translation', filename: '09-translation.md' },
-  { id: 'refinement', filename: '10-refinement.md' },
-  { id: 'format-viewer', filename: '11-format-viewer.md' },
-  { id: 'presets', filename: '12-presets.md' },
-  { id: 'bundles', filename: '13-bundles.md' },
-  { id: 'api-access', filename: '14-api-access.md' },
-] as const
+export { sections }
+export type { HelpSection, HelpSectionId, HelpFeature } from '../../help/sectionList.ts'
 
 import type { AppView } from '../../store'
 

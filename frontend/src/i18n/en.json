@@ -468,6 +468,7 @@
     "missingContent": "Content coming soon.",
     "contact": "Contact:",
     "sections": {
+      "about": "About transkribierBAR",
       "getting-started": "Getting Started",
       "archive": "Archive",
       "upload": "Upload",

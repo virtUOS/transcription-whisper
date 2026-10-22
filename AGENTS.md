@@ -86,6 +86,14 @@ docker build --build-arg VITE_BASE_PATH=/test -t transcription-test .
 - `backend/app/config.py` — Environment variable configuration
 - `backend/app/metrics.py` — Prometheus metrics definitions and instrumentation helpers (`inc`, `observe`, `gauge_inc/dec/set`, `track_llm_tokens`)
 
+### Help content
+
+- Help text lives in `frontend/src/help/{de,en}/`; the section list is `frontend/src/help/sectionList.ts`.
+- German uses "Sie" and gender-neutral forms (no `:innen`/`*innen`); English is gender-neutral.
+- The only allowed placeholders are `{{contact_email}}`, `{{retention_days}}`, `{{archive_retention_days}}`, `{{default_model}}` and `{{api_token_expiry_days}}` (see `helpText.ts`). Never hard-code those values.
+- `frontend/src/help/parity.test.ts` must pass: both languages need the same files, heading outline and images.
+- Check every claim against the frontend/backend code, not against README or old help text.
+
 ## Observability
 
 - Metrics are exposed at `/metrics` when `ENABLE_METRICS=true`. Use the safe helpers in `metrics.py` rather than calling `Counter/Gauge/Histogram` directly — they no-op when metrics are disabled.
