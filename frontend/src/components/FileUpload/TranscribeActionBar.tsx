@@ -28,6 +28,7 @@ export function TranscribeActionBar({
     <div className="px-6 py-3 flex items-center gap-3">
       <button
         type="button"
+        data-help="transcribe-start"
         onClick={onClick}
         disabled={disabled || submitting}
         title={disabled && disabledReason ? disabledReason : undefined}

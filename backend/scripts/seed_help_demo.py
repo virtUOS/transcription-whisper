@@ -17,6 +17,7 @@ import shutil
 import subprocess
 import sys
 import uuid
+from datetime import date, timedelta
 
 import aiosqlite
 
@@ -30,16 +31,24 @@ FIXTURE_PATH = os.path.join(os.path.dirname(__file__), "help_demo", "fixture.jso
 _NS = uuid.UUID("5d0b6f1e-0c1a-4a55-9a52-6f2f3b1c7e10")
 
 # Timestamps are UTC in SQLite's format; 07:00 UTC is 09:00 at +02:00.
-CREATED = {"de": "2026-10-01 07:00:00", "en": "2026-10-01 06:00:00"}
-COMPLETED = {"de": "2026-10-01 07:02:00", "en": "2026-10-01 06:02:00"}
-ANALYSIS_CREATED = "2026-10-01 07:10:00"
-REFINEMENT_CREATED = "2026-10-01T07:05:00+00:00"
+_CREATED = {"de": "2026-10-01 07:00:00", "en": "2026-10-01 06:00:00"}
+_COMPLETED = {"de": "2026-10-01 07:02:00", "en": "2026-10-01 06:02:00"}
+_ANALYSIS_CREATED = "2026-10-01 07:10:00"
+_REFINEMENT_CREATED = "2026-10-01T07:05:00+00:00"
 # German item is archived (archive retention); English keeps a plain expiry.
-EXPIRES = {"de": "2027-03-30 07:00:00", "en": "2026-12-31 07:00:00"}
+_EXPIRES = {"de": "2027-03-30 07:00:00", "en": "2026-12-31 07:00:00"}
 ARCHIVED = {"de": 1, "en": 0}
 TONE_HZ = {"de": 440, "en": 523}
 DURATION_S = 120
+DEFAULT_BASE_DATE = date(2026, 10, 1)
 DEMO_LLM = {"provider": "demo", "model": "demo-model"}
+
+
+def _shift(value, days: int):
+    """Shift the date part of a timestamp string (or dict of them) by days."""
+    if isinstance(value, dict):
+        return {k: _shift(v, days) for k, v in value.items()}
+    return (date.fromisoformat(value[:10]) + timedelta(days=days)).isoformat() + value[10:]
 
 
 def _id(name: str) -> str:
@@ -71,12 +80,26 @@ def _with_texts(utterances: list[dict], texts: list[str]) -> list[dict]:
     return [{**u, "text": t} for u, t in zip(utterances, texts)]
 
 
-async def seed(db_path: str, media_dir: str, *, make_media: bool = True) -> dict[str, str]:
+async def seed(
+    db_path: str,
+    media_dir: str,
+    *,
+    make_media: bool = True,
+    base_date: date | None = None,
+) -> dict[str, str]:
     """Seed db_path (must not already hold data) and return the new ids.
+
+    base_date (default 2026-10-01) is the day the demo content was "created";
+    every created/expires timestamp is shifted by the same number of days,
+    keeping the expiry offsets relative to it.
 
     make_media=False skips ffmpeg (paths are still recorded); the CLI always
     generates media.
     """
+    days = ((base_date or DEFAULT_BASE_DATE) - DEFAULT_BASE_DATE).days
+    CREATED, COMPLETED, EXPIRES = (_shift(d, days) for d in (_CREATED, _COMPLETED, _EXPIRES))
+    ANALYSIS_CREATED = _shift(_ANALYSIS_CREATED, days)
+    REFINEMENT_CREATED = _shift(_REFINEMENT_CREATED, days)
     with open(FIXTURE_PATH, encoding="utf-8") as fh:
         fixture = json.load(fh)
     if os.path.exists(db_path) and os.path.getsize(db_path) > 0:
@@ -190,8 +213,10 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Seed demo data for the help screenshots.")
     parser.add_argument("--db", required=True, help="Path of the new SQLite database")
     parser.add_argument("--media-dir", required=True, help="Directory for generated media")
+    parser.add_argument("--base-date", type=date.fromisoformat, default=None,
+                        help="YYYY-MM-DD the demo content is created on (default 2026-10-01)")
     args = parser.parse_args(argv)
-    ids = asyncio.run(seed(args.db, args.media_dir))
+    ids = asyncio.run(seed(args.db, args.media_dir, base_date=args.base_date))
     print(json.dumps(ids, indent=2))
     return 0
 

@@ -1,4 +1,5 @@
 import json
+from datetime import date, timedelta
 import os
 import shutil
 
@@ -75,3 +76,18 @@ async def test_seed_is_deterministic(tmp_path):
     a = await seed(str(tmp_path / "a.db"), str(tmp_path / "ma"), make_media=False)
     b = await seed(str(tmp_path / "b.db"), str(tmp_path / "mb"), make_media=False)
     assert a == b
+
+
+@pytest.mark.asyncio
+async def test_seed_base_date_shifts_timestamps(tmp_path):
+    default_db = str(tmp_path / "default.db")
+    await seed(default_db, str(tmp_path / "m1"), make_media=False)
+    shifted_db = str(tmp_path / "shifted.db")
+    await seed(shifted_db, str(tmp_path / "m2"), make_media=False, base_date=date(2026, 10, 22))
+
+    sql = "SELECT expires_at, created_at FROM files ORDER BY original_filename"
+    base, later = await _rows(default_db, sql), await _rows(shifted_db, sql)
+    for a, b in zip(base, later):
+        assert b["created_at"].startswith("2026-10-22")
+        expected = date.fromisoformat(a["expires_at"][:10]) + timedelta(days=21)
+        assert b["expires_at"][:10] == expected.isoformat()

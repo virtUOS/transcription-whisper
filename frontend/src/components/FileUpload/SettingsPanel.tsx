@@ -167,7 +167,7 @@ export function SettingsPanel({ values, onChange, saveError = null }: SettingsPa
         {/* Speakers group (checkbox + optional min/max — never split across wraps) */}
         <fieldset className={groupClass}>
           <legend className={legendClass}>{t('settings.groups.speakers')}</legend>
-          <label className="flex items-center gap-2 py-1.5">
+          <label data-help="upload-speakers" className="flex items-center gap-2 py-1.5">
             <input
               type="checkbox"
               checked={values.detectSpeakers}
