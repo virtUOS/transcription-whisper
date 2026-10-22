@@ -44,6 +44,9 @@ def spa(tmp_path):
     (static / "assets" / "app.js").write_text("console.log(1)")
     secret = tmp_path / "secret.txt"
     secret.write_bytes(SECRET)
+    # A sibling whose path shares the static dir's prefix ("static" vs "static2").
+    (tmp_path / "static2").mkdir()
+    (tmp_path / "static2" / "secret2.txt").write_bytes(SECRET)
     (static / "link.txt").symlink_to(secret)
     spa_app = FastAPI()
     mount_spa(spa_app, str(static))
@@ -104,6 +107,8 @@ OUTSIDE_TARGETS = [
     "/img/../../secret.txt",
     "/img/%2e%2e/%2e%2e/secret.txt",
     "/link.txt",  # symlink inside static pointing outside
+    "/../static2/secret2.txt",  # sibling dir sharing the static prefix
+    "/%2e%2e/static2/secret2.txt",
 ]
 
 
