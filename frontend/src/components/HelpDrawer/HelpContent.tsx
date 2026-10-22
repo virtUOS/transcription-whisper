@@ -5,7 +5,8 @@ import remarkGfm from 'remark-gfm'
 import rehypeSlug from 'rehype-slug'
 import type { Components } from 'react-markdown'
 import type { HelpSectionId } from './helpSections'
-import { loadContent, assetUrls } from './helpSections'
+import { loadContent, assetUrls, settingValues, fillSettings } from './helpSections'
+import { useStore } from '../../store'
 
 interface HelpContentProps {
   sectionId: HelpSectionId
@@ -111,7 +112,9 @@ const components: Components = {
 export function HelpContent({ sectionId }: HelpContentProps) {
   const { i18n, t } = useTranslation()
   const lang: 'en' | 'de' = i18n.language === 'de' ? 'de' : 'en'
-  const markdown = loadContent(sectionId, lang)
+  const config = useStore((s) => s.config)
+  const raw = loadContent(sectionId, lang)
+  const markdown = raw === null ? null : fillSettings(raw, settingValues(config, lang))
   const containerRef = useRef<HTMLDivElement>(null)
 
   // Scroll to top whenever the section changes so users land at the section heading.

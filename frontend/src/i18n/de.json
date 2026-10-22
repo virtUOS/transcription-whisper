@@ -467,6 +467,11 @@
     "emptyStateLink": "Einführung öffnen",
     "missingContent": "Inhalt folgt in Kürze.",
     "contact": "Kontakt:",
+    "legal": {
+      "privacyUniversity": "Datenschutzerklärung der Universität",
+      "imprint": "Impressum",
+      "accessibility": "Barrierefreiheit"
+    },
     "sections": {
       "about": "Über transkribierBAR",
       "getting-started": "Einführung",

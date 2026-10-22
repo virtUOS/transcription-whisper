@@ -3,8 +3,14 @@ import { useTranslation } from 'react-i18next'
 import { useStore } from '../../store'
 import { HelpSidebar } from './HelpSidebar'
 import { HelpContent } from './HelpContent'
-import { sections, viewToSection } from './helpSections'
+import { visibleSections, viewToSection } from './helpSections'
 import type { HelpSectionId } from './helpSections'
+
+const LEGAL_LINKS = [
+  { key: 'privacyUniversity', href: 'https://www.uni-osnabrueck.de/datenschutzerklaerung' },
+  { key: 'imprint', href: 'https://www.uni-osnabrueck.de/impressum' },
+  { key: 'accessibility', href: 'https://www.uni-osnabrueck.de/barrierefreiheit' },
+] as const
 
 export function HelpDrawer() {
   const { t } = useTranslation()
@@ -12,17 +18,20 @@ export function HelpDrawer() {
   const initialSection = useStore((s) => s.helpInitialSection)
   const closeHelp = useStore((s) => s.closeHelp)
   const currentView = useStore((s) => s.currentView)
-  const contactEmail = useStore((s) => s.config?.contact_email)
+  const config = useStore((s) => s.config)
+  const contactEmail = config?.contact_email
+  const visible = useMemo(() => visibleSections(config), [config])
 
   // Compute the section to land on when opening.
   // Because the component unmounts when !open, useState(derivedSection) will
   // always receive the correct value on the next mount.
   const derivedSection = useMemo<HelpSectionId>(() => {
-    if (initialSection && sections.some((s) => s.id === initialSection)) {
+    if (initialSection && visible.some((s) => s.id === initialSection)) {
       return initialSection as HelpSectionId
     }
-    return viewToSection[currentView] ?? 'getting-started'
-  }, [initialSection, currentView])
+    const fromView = viewToSection[currentView]
+    return fromView && visible.some((s) => s.id === fromView) ? fromView : 'getting-started'
+  }, [initialSection, currentView, visible])
 
   const [activeId, setActiveId] = useState<HelpSectionId>(derivedSection)
   const drawerRef = useRef<HTMLDivElement>(null)
@@ -112,7 +121,7 @@ export function HelpDrawer() {
             aria-label={t('help.title')}
             className="w-full bg-gray-700 text-white text-sm rounded px-3 py-2"
           >
-            {sections.map((section) => (
+            {visible.map((section) => (
               <option key={section.id} value={section.id}>
                 {t(`help.sections.${section.id}`)}
               </option>
@@ -123,17 +132,32 @@ export function HelpDrawer() {
           <HelpSidebar activeId={activeId} onSelect={setActiveId} />
           <HelpContent sectionId={activeId} />
         </div>
-        {contactEmail && (
-          <div className="px-6 py-3 border-t border-gray-700 text-sm text-gray-400">
-            {t('help.contact')}{' '}
-            <a
-              href={`mailto:${contactEmail}`}
-              className="text-blue-400 hover:text-blue-300 underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 rounded"
-            >
-              {contactEmail}
-            </a>
+        <div className="px-6 py-3 border-t border-gray-700 text-sm text-gray-400 space-y-1">
+          {contactEmail && (
+            <div>
+              {t('help.contact')}{' '}
+              <a
+                href={`mailto:${contactEmail}`}
+                className="text-blue-400 hover:text-blue-300 underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 rounded"
+              >
+                {contactEmail}
+              </a>
+            </div>
+          )}
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            {LEGAL_LINKS.map(({ key, href }) => (
+              <a
+                key={key}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-400 hover:text-blue-300 underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 rounded"
+              >
+                {t(`help.legal.${key}`)}
+              </a>
+            ))}
           </div>
-        )}
+        </div>
       </div>
     </div>
   )
