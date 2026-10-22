@@ -17,7 +17,7 @@ Der Reiter zeigt eine Vorschau, die Sie nicht ändern können. Über und unter d
 
 ## Was im Format steht
 
-Das Format zeigt den Stand, den Sie im Editor sehen, auch mit ungespeicherten Änderungen. Namen aus **Namen der Sprechenden** sind in allen vier Formaten eingesetzt.
+Das Format zeigt den Stand, den Sie im Editor sehen, auch mit ungespeicherten Änderungen. Namen aus **Namen der Sprechenden** sind in allen vier Formaten eingesetzt; in der Ansicht **Verfeinert** und in einer daraus erstellten Übersetzung gelten die Namen vom Zeitpunkt der Verfeinerung.
 
 Welche Fassung erscheint, richtet sich nach der Ansicht, die Sie im Reiter **Untertitel** zuletzt gewählt haben: **Original**, **Verfeinert** oder **Übersetzt**. Ist **Verfeinert** gewählt, enthält das JSON-Format beide Fassungen in einem Objekt: `utterances` für das Original und `refined_utterances` für die verfeinerte Fassung.
 

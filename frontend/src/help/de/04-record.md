@@ -40,4 +40,4 @@ Mit **Kamera** nehmen Sie zusätzlich ein Bild auf, dann entsteht eine Videodate
 
 Schließen Sie den Tab oder laden Sie die Seite neu, während Sie aufnehmen, pausieren oder gerade eine Aufnahme beendet haben, warnt Sie der Browser.
 
-> **Aufnahme nicht verlieren.** Wechseln Sie innerhalb von transkribierBAR in eine andere Ansicht, etwa mit **← Transkriptionen**, endet die laufende Aufnahme und wird verworfen, ohne dass nachgefragt wird. Bleiben Sie auf der Seite, bis die Aufnahme hochgeladen ist.
+> **Aufnahme nicht verlieren.** Wechseln Sie innerhalb von transkribierBAR in eine andere Ansicht, etwa mit **← Transkriptionen**, endet die laufende Aufnahme und wird verworfen, ohne dass nachgefragt wird. Bleiben Sie in dieser Ansicht, bis Sie nach dem Hochladen auf **Transkribieren** geklickt haben.
