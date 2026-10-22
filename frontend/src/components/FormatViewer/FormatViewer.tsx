@@ -87,7 +87,7 @@ export function FormatViewer({ format }: Props) {
   }
 
   const downloadBtn = (
-    <button onClick={handleDownload} className="px-4 py-1.5 bg-green-700 text-white text-sm rounded hover:bg-green-600">
+    <button data-help="format-download" onClick={handleDownload} className="px-4 py-1.5 bg-green-700 text-white text-sm rounded hover:bg-green-600">
       {t('editor.download')} {format.toUpperCase()}
     </button>
   )
@@ -97,7 +97,7 @@ export function FormatViewer({ format }: Props) {
       <div className="flex justify-end mb-2">
         {downloadBtn}
       </div>
-      <div className="overflow-auto max-h-96 bg-gray-900 rounded border border-gray-700">
+      <div data-help="format-preview" className="overflow-auto max-h-96 bg-gray-900 rounded border border-gray-700">
         <textarea
           value={content}
           readOnly

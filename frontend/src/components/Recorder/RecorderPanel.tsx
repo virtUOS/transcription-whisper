@@ -127,7 +127,7 @@ export function RecorderPanel() {
   }
 
   return (
-    <div className="border-2 border-dashed border-gray-600 rounded-lg p-6 space-y-4">
+    <div data-help="recorder" className="border-2 border-dashed border-gray-600 rounded-lg p-6 space-y-4">
       {/* Recording sources — only while idle, since toggles have no effect once recording begins */}
       {state === 'idle' && (
         <RecordingSources

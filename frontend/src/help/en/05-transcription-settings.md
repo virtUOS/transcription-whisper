@@ -1,5 +1,14 @@
 # Transcription Settings
 
+The settings appear in **Upload** once you have chosen a file, and in **Record** once the recording has been uploaded. They are arranged in groups.
+
+![The transcription settings with the advanced options shown; numbered markers highlight the four groups](shots/settings.png)
+
+1. **Presets**: load a saved preset, save the current settings or choose a bundle (see "Presets" below).
+2. **Transcription**: the language and the model (see "Language and model").
+3. **Speakers**: speaker detection and the number of people (see "Detecting speakers").
+4. **Advanced options**: initial prompt and hotwords (see "Advanced options").
+
 ## Language and model
 
 The **Transcription** group has two fields.

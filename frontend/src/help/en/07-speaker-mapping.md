@@ -2,7 +2,16 @@
 
 ## Opening the panel
 
-In the **Subtitles** tab, open the **Speaker Names** panel: with the button of the same name above the table or with the people icon in the **Speaker** column of a row. The people icon places the cursor straight in the field for that person. Another click on the button closes the panel again. In the **Refined** and **Translated** views the people icon is missing, but the button works.
+In the **Subtitles** tab, open the **Speaker Names** panel: with the button of the same name above the table or with the people icon in the **Speaker** column of a row.
+
+![The Speaker Names panel above the editor table; numbered markers highlight the controls](shots/speakers.png)
+
+1. **Speaker Names** opens the panel. Another click closes it again.
+2. The field for a new name (**New name (leave empty to keep)**), to the right of the name currently shown (see "Naming speakers").
+3. **Apply** saves the names (see "How the names are saved").
+4. The **Speaker** column of a row. Its people icon (**Rename speaker in all utterances**) opens the panel and places the cursor straight in the field for that person. Its pencil icon changes only this row (see "Changing a single row").
+
+In the **Refined** and **Translated** views the people icon is missing, but the button works.
 
 If the recording has no detected speakers, the panel shows **No speakers detected.** You decide whether speakers are detected before the transcription (see "Transcription Settings").
 

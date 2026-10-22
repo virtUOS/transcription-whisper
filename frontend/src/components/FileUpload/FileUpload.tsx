@@ -51,7 +51,7 @@ export function FileUpload() {
 
   if (file) {
     return (
-      <div className="flex items-center gap-4 px-6 py-2 bg-gray-800 border-b border-gray-700 text-sm text-gray-300 min-w-0">
+      <div data-help="upload-file" className="flex items-center gap-4 px-6 py-2 bg-gray-800 border-b border-gray-700 text-sm text-gray-300 min-w-0">
         <span className="truncate min-w-0">
           {transcriptionTitle ? <>{transcriptionTitle} <span className="text-gray-500">[{file.original_filename}]</span></> : file.original_filename}
         </span>

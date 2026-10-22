@@ -13,7 +13,7 @@ export function ChapterCard({ chapter, index, onDelete }: Props) {
   const hasTimestamp = chapter.start_time !== 0 || chapter.end_time !== 0
 
   return (
-    <div className="bg-gray-800 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors group">
+    <div data-help="chapter-card" className="bg-gray-800 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors group">
       <div className="flex items-start justify-between mb-2">
         <h3 className="text-sm font-medium text-white">
           {index + 1}. {chapter.title}
@@ -21,6 +21,7 @@ export function ChapterCard({ chapter, index, onDelete }: Props) {
         <div className="flex items-center gap-2 shrink-0 ml-2">
           {hasTimestamp ? (
             <button
+              data-help="chapter-time"
               onClick={() => setSeekTo(chapter.start_time)}
               className="text-xs text-blue-400 hover:text-blue-300"
             >

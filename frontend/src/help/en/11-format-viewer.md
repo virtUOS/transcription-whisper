@@ -13,7 +13,15 @@ Utterances without a speaker appear without a name.
 
 ## Downloading
 
-The tab shows a preview that you cannot change. The same button appears above and below the preview, for example **Download SRT**. It saves the file under the recording's name without its extension plus the file extension of the format, such as `Lecture.srt`. If the name is missing, the file is called `transcription.srt`.
+Each format tab has a preview and a download button.
+
+![The SRT tab with the preview and the download button; numbered markers highlight the controls](shots/formats.png)
+
+1. The **SRT** tab. **VTT**, **JSON** and **TXT** work the same way.
+2. The preview, which you cannot change.
+3. **Download SRT** saves the file. The same button appears below the preview.
+
+The file gets the recording's name without its extension plus the file extension of the format, such as `Lecture.srt`. If the name is missing, the file is called `transcription.srt`.
 
 ## What the format contains
 

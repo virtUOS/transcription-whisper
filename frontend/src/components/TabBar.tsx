@@ -21,6 +21,7 @@ export function TabBar() {
       {tabs.map((tab) => (
         <button
           key={tab.id}
+          data-help={`tab-${tab.id}`}
           onClick={() => setActiveTab(tab.id)}
           className={`px-3 py-1 text-sm rounded ${
             activeTab === tab.id

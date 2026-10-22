@@ -2,9 +2,19 @@
 
 ## Quellen wählen
 
-Klicken Sie in der Übersicht auf **+ Aufnehmen**. Die Schaltfläche erscheint nur, wenn Ihr Browser Aufnahmen unterstützt. Vor dem Start schalten Sie die Quellen ein oder aus: **Mikrofon**, **Systemaudio** und **Kamera**. Das Mikrofon ist voreingestellt, Systemaudio und Kamera sind aus. Mit der Kamera wird immer auch das Mikrofon aufgenommen, auch wenn der Schalter **Mikrofon** aus ist. Mindestens eine Quelle muss eingeschaltet sein, sonst steht dort **Mindestens eine Quelle aktivieren** und **Aufnahme starten** ist gesperrt.
+Klicken Sie in der Übersicht auf **+ Aufnehmen**. Die Schaltfläche erscheint nur, wenn Ihr Browser Aufnahmen unterstützt. Vor dem Start schalten Sie die Quellen ein oder aus.
 
-Beim Mikrofon wählen Sie im Feld **Mikrofon** das Gerät. Gibt es nur ein Gerät, zeigt das Feld dessen Namen. Ihr Browser fragt gegebenenfalls nach der Erlaubnis. Ist der Zugriff blockiert, erscheint ein Hinweis mit der Schaltfläche **Erneut versuchen**. Erlauben Sie den Zugriff dann in den Website-Einstellungen Ihres Browsers.
+![Die Seite „Aufnehmen“ vor dem Start mit den drei Quellen und der Schaltfläche zum Starten; nummerierte Markierungen heben die Bedienelemente hervor](shots/record.png)
+
+1. **Mikrofon** schaltet das Mikrofon ein oder aus. Es ist voreingestellt eingeschaltet.
+2. Im Feld **Mikrofon** wählen Sie das Gerät. Gibt es nur ein Gerät, zeigt das Feld dessen Namen.
+3. **Systemaudio** nimmt zusätzlich auf, was Ihr Computer abspielt. Es ist voreingestellt aus; mehr dazu unter „Systemaudio“ weiter unten.
+4. **Kamera** nimmt zusätzlich das Kamerabild auf. Sie ist voreingestellt aus; mehr dazu unter „Kamera“ weiter unten.
+5. **Aufnahme starten** startet die Aufnahme (siehe „Aufnehmen“).
+
+Mit der Kamera wird immer auch das Mikrofon aufgenommen, auch wenn der Schalter **Mikrofon** aus ist. Mindestens eine Quelle muss eingeschaltet sein, sonst steht dort **Mindestens eine Quelle aktivieren** und **Aufnahme starten** ist gesperrt.
+
+Ihr Browser fragt gegebenenfalls nach der Erlaubnis. Ist der Zugriff blockiert, erscheint ein Hinweis mit der Schaltfläche **Erneut versuchen**. Erlauben Sie den Zugriff dann in den Website-Einstellungen Ihres Browsers.
 
 > **Einwilligung einholen.** Vor dem Start erinnert die Seite Sie: **Nehmen Sie niemanden ohne Erlaubnis auf. Fragen Sie vorher!**
 

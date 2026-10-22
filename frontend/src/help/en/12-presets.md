@@ -14,9 +14,15 @@ Next to each of these fields is **Save as preset**. Enter a name there and confi
 
 ## The Presets page
 
-Click **Presets** in the header. The page **My Presets** has four tabs: **Transcription**, **Analysis**, **Refinement** and **Bundles**. The section "Bundles" explains the last one.
+Click **Presets** in the header. The page **My Presets** opens.
 
-Each tab lists your saved entries with **Edit** and **Delete**. **+ New preset** opens a form with a **Name** and the fields of the preset type. **Save** stays unavailable until you have entered a name. **Cancel** closes the form.
+![The My Presets page with a saved transcription preset; numbered markers highlight the controls](shots/presets.png)
+
+1. The four tabs **Transcription**, **Analysis**, **Refinement** and **Bundles**. Each lists your saved entries. The section "Bundles" explains the last one.
+2. **Edit** changes an entry, **Delete** removes it (see below).
+3. **+ New preset** opens a form with a **Name** and the fields of the preset type.
+
+**Save** stays unavailable until you have entered a name. **Cancel** closes the form.
 
 **Delete** asks for confirmation: **Delete this preset? Bundles using it will lose the reference.** Only the preset is removed. Bundles that used it remain, but without that part. Transcriptions that already exist are not affected.
 

@@ -14,9 +14,15 @@ Neben jedem dieser Felder steht **Als Voreinstellung speichern**. Geben Sie dort
 
 ## Die Seite „Voreinstellungen“
 
-Klicken Sie in der Kopfzeile auf **Voreinstellungen**. Die Seite **Meine Voreinstellungen** hat vier Reiter: **Transkription**, **Analyse**, **Verfeinerung** und **Pakete**. Der Abschnitt „Pakete“ erklärt den letzten.
+Klicken Sie in der Kopfzeile auf **Voreinstellungen**. Die Seite **Meine Voreinstellungen** öffnet sich.
 
-Jeder Reiter listet Ihre gespeicherten Einträge mit **Bearbeiten** und **Löschen**. **+ Neue Voreinstellung** öffnet ein Formular mit einem **Namen** und den Feldern der jeweiligen Art. **Speichern** ist erst möglich, wenn Sie einen Namen eingegeben haben. **Abbrechen** schließt das Formular.
+![Die Seite „Meine Voreinstellungen“ mit einer gespeicherten Transkriptions-Voreinstellung; nummerierte Markierungen heben die Bedienelemente hervor](shots/presets.png)
+
+1. Die vier Reiter **Transkription**, **Analyse**, **Verfeinerung** und **Pakete**. Jeder listet Ihre gespeicherten Einträge. Der Abschnitt „Pakete“ erklärt den letzten.
+2. **Bearbeiten** ändert einen Eintrag, **Löschen** entfernt ihn (siehe unten).
+3. **+ Neue Voreinstellung** öffnet ein Formular mit einem **Namen** und den Feldern der jeweiligen Art.
+
+**Speichern** ist erst möglich, wenn Sie einen Namen eingegeben haben. **Abbrechen** schließt das Formular.
 
 **Löschen** fragt nach: **Voreinstellung löschen? Pakete, die sie verwenden, verlieren die Referenz.** Es wird nur die Voreinstellung entfernt. Pakete, die sie verwendet haben, bleiben bestehen, aber ohne diesen Teil. Bereits vorhandene Transkriptionen sind nicht betroffen.
 

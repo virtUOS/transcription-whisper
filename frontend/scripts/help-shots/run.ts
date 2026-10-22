@@ -7,7 +7,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync, createWriteStream, readF
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { chromium } from 'playwright'
-import { computeMarks, type Box } from './marks.ts'
+import { clipFor, computeMarks, unionBox, type Box } from './marks.ts'
 import { shots } from './shots.ts'
 
 const frontendDir = resolve(import.meta.dirname, '../..')
@@ -17,6 +17,9 @@ const python = process.env.PYTHON ?? 'python3'
 const TZ = 'Europe/Berlin'
 const LANGS = ['de', 'en'] as const
 const OUTSIDE = 'http://127.0.0.1:9' // nothing listens here; real ASR/LLM hosts are never contacted
+const VIEWPORT = { width: 1280, height: 800 }
+/** Px between a control and its marker frame, so the numbered badge does not cover the control's corner. */
+const MARK_MARGIN = 8
 
 const children: ChildProcess[] = []
 let tempDir = ''
@@ -157,7 +160,7 @@ async function main(): Promise<void> {
   try {
     for (const lang of LANGS) {
       const context = await browser.newContext({
-        viewport: { width: 1280, height: 800 },
+        viewport: VIEWPORT,
         deviceScaleFactor: 1,
         reducedMotion: 'reduce',
         timezoneId: TZ,
@@ -189,16 +192,21 @@ async function main(): Promise<void> {
             return null
           }
         }
-        const clipBox = await box(spec.clip)
-        if (!clipBox) throw new Error(`clip ${spec.clip} not found for ${spec.id}`)
-        const clip: Box = {
-          x: Math.floor(clipBox.x),
-          y: Math.floor(clipBox.y),
-          w: Math.ceil(clipBox.x + clipBox.w) - Math.floor(clipBox.x),
-          h: Math.ceil(clipBox.y + clipBox.h) - Math.floor(clipBox.y),
+        const clipSelectors = typeof spec.clip === 'string' ? [spec.clip] : spec.clip
+        const clipBoxes: Box[] = []
+        for (const selector of clipSelectors) {
+          const b = await box(selector)
+          if (!b) throw new Error(`clip ${selector} not found for ${spec.id}`)
+          clipBoxes.push(b)
         }
-        const boxes = await Promise.all(spec.marks.map(box))
-        const meta = computeMarks(clip, boxes, spec.marks)
+        const clip = clipFor(clipBoxes, spec.pad ?? 0, VIEWPORT)
+        // A mark given as several selectors frames all of their elements together.
+        const markBox = async (mark: string | string[]): Promise<Box | null> => {
+          const found = await Promise.all((typeof mark === 'string' ? [mark] : mark).map(box))
+          return found.includes(null) ? null : unionBox(found as Box[])
+        }
+        const boxes = await Promise.all(spec.marks.map(markBox))
+        const meta = computeMarks(clip, boxes, spec.marks.map((m) => [m].flat().join(' + ')), MARK_MARGIN)
         await page.screenshot({
           path: join(dir, `${spec.id}.png`),
           animations: 'disabled',

@@ -18,11 +18,17 @@ Ist die Transkription fertig, öffnet sich die Detailansicht. Ein Streifen über
 
 ## Paket erstellen
 
-Legen Sie zuerst die Voreinstellungen an, die Sie brauchen, wie im Abschnitt „Voreinstellungen“ beschrieben. Öffnen Sie dann die Seite **Voreinstellungen**, wechseln Sie zum Reiter **Pakete** und klicken Sie auf **+ Neues Paket**.
+Legen Sie zuerst die Voreinstellungen an, die Sie brauchen, wie im Abschnitt „Voreinstellungen“ beschrieben. Öffnen Sie dann die Seite **Voreinstellungen**, wechseln Sie zum Reiter **Pakete** und klicken Sie auf **+ Neues Paket**. Geben Sie einen **Namen** ein; die übrigen Felder sind optional, und **Keine** lässt einen Teil weg.
 
-Geben Sie einen **Namen** ein. Wählen Sie dann nach Wunsch eine **Transkriptions-Voreinstellung...**, eine **Analyse-Voreinstellung...** und eine **Verfeinerungs-Voreinstellung...** sowie unter **Übersetzen nach** eine Sprache. **Keine** lässt einen Teil weg. Bestätigen Sie mit **Speichern**.
+![Der Reiter „Pakete“ mit einem gespeicherten Paket und dem Formular für ein neues; nummerierte Markierungen heben die Bedienelemente hervor](shots/bundles.png)
 
-Jedes Paket erscheint als Karte mit seinem Namen und den Teilen, die es enthält. **Bearbeiten** ändert es, **Löschen** entfernt es nach der Frage **Dieses Paket löschen?**. Beim Löschen eines Pakets bleiben seine Voreinstellungen erhalten.
+1. Jedes Paket erscheint als Karte mit seinem Namen und den Teilen, die es enthält.
+2. Der Stern (**Als Standard setzen**) macht das Paket zum Standard (siehe „Standard-Paket“). **Bearbeiten** ändert das Paket, **Löschen** entfernt es nach der Frage **Dieses Paket löschen?**.
+3. **Transkriptions-Voreinstellung...** wählt die Transkriptions-Voreinstellung. **Analyse-Voreinstellung...** und **Verfeinerungs-Voreinstellung...** darunter funktionieren genauso.
+4. **Übersetzen nach** wählt die Sprache für die Übersetzung.
+5. **Speichern** speichert das Paket, sobald es einen Namen hat.
+
+Beim Löschen eines Pakets bleiben seine Voreinstellungen erhalten.
 
 ## Paket verwenden
 

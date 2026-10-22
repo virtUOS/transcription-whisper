@@ -22,7 +22,13 @@ Refinement only concerns the points listed above. It is therefore worth it mainl
 
 ## Refining
 
-In the **Subtitles** tab, click **Refine with LLM** above the table. The button is there as long as no refinement exists. At the top of the dialog you can choose or save a preset. In the **Context (optional)** field, give hints that help the language model with technical terms and proper names, for example "Computer science lecture, speaker is Prof. Müller". Then click **Refine**. **Cancel** closes the dialog.
+In the **Subtitles** tab, click **Refine with LLM** above the table. The button is there as long as no refinement exists. A dialog of the same name opens.
+
+![The Refine with LLM dialog with a context entered; numbered markers highlight the controls](shots/refine.png)
+
+1. **Select a preset...** loads a refinement preset and fills in its context. **Save as preset** saves the current context as a preset.
+2. **Context (optional)**: hints that help the language model with technical terms and proper names, for example "Computer science lecture, speaker is Prof. Müller".
+3. **Refine** starts the refinement. **Cancel** closes the dialog.
 
 The language model receives the original with the names you gave under **Speaker Names**. Assign the names before you refine. Later renames do not reach the **Refined** view.
 
@@ -32,9 +38,15 @@ If it fails, the dialog reads **Refinement failed. Please try again.** Try again
 
 ## Reading the refined view
 
-In the **Refined** view, a bar above the table shows the **Changes Summary**, with the number of changed utterances. Click it to expand or collapse. Expanded, it describes in words what the language model changed and names the **Context**, if you gave one.
+In the **Refined** view, a bar above the table summarizes the changes, and changed rows are marked.
 
-Changed rows have an amber stripe on the left edge and, on larger screens, a dot next to the row number. Clicking the dot shows **Original** and **Refined** side by side (larger screens only). The view is read-only. If you want to change text yourself, do so in the original.
+![The refined view with the changes summary and a changed row compared with the original; numbered markers highlight the controls](shots/refined.png)
+
+1. **Refined** switches to the refined view, **Original** back to the original.
+2. The **Changes Summary**, with the number of changed utterances. Click it to expand or collapse. Expanded, it describes in words what the language model changed and names the **Context**, if you gave one.
+3. A changed row: it has an amber stripe on the left edge and, on larger screens, a dot next to the row number. Clicking the dot shows **Original** and **Refined** side by side (larger screens only), as below the first row here.
+
+The view is read-only. If you want to change text yourself, do so in the original.
 
 ## If some sections could not be refined
 

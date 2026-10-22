@@ -178,11 +178,11 @@ function AnalysisCard({ analysisId, transcriptionId, templates, baseName, onDele
   return (
     <div className="border border-gray-700 rounded-lg overflow-hidden">
       {/* Header — always visible */}
-      <div className="flex items-center gap-2 px-4 py-3 bg-gray-800/50 cursor-pointer hover:bg-gray-800" onClick={handleToggle}>
+      <div data-help="analysis-header" className="flex items-center gap-2 px-4 py-3 bg-gray-800/50 cursor-pointer hover:bg-gray-800" onClick={handleToggle}>
         <svg className={`w-4 h-4 text-gray-400 transition-transform shrink-0 ${expanded ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>
-        <span className="px-2.5 py-0.5 text-xs font-medium rounded-full bg-purple-900/40 text-purple-300 border border-purple-700/50">
+        <span data-help="analysis-template" className="px-2.5 py-0.5 text-xs font-medium rounded-full bg-purple-900/40 text-purple-300 border border-purple-700/50">
           {templateLabel}
         </span>
         {meta?.created_at && (
@@ -192,6 +192,7 @@ function AnalysisCard({ analysisId, transcriptionId, templates, baseName, onDele
           <span className="text-xs text-gray-600 ml-auto mr-2">{meta.llm_model}</span>
         )}
         <button
+          data-help="analysis-delete"
           onClick={(e) => { e.stopPropagation(); handleDelete() }}
           className="text-gray-500 hover:text-red-400 transition-colors shrink-0"
           title={t('analysis.delete')}
@@ -213,7 +214,7 @@ function AnalysisCard({ analysisId, transcriptionId, templates, baseName, onDele
           {error && <p className="text-red-400 text-sm">{error}</p>}
           {!!result && (() => {
             const copyDownloadButtons = (extraClassName = '') => (
-              <div className={`flex justify-end gap-2 ${extraClassName}`.trim()}>
+              <div data-help="analysis-actions" className={`flex justify-end gap-2 ${extraClassName}`.trim()}>
                 <button onClick={() => handleCopy(resultToText(result, t), 'all')} className={btnCopy}>
                   {copied === 'all' ? checkIcon : copyIcon}
                   {copied === 'all' ? t('editor.copied') : t('analysis.copyResult')}
@@ -548,6 +549,7 @@ export function AnalysisView() {
       {/* New analysis button — shown when form is not visible and analyses exist */}
       {!formVisible && (
         <button
+          data-help="analysis-new"
           onClick={() => setShowForm(true)}
           className="w-full py-2.5 text-sm text-purple-400 hover:text-purple-300 border border-dashed border-gray-700 hover:border-purple-700 rounded-lg transition-colors"
         >
@@ -582,7 +584,7 @@ export function AnalysisView() {
           </div>
 
           {/* Template selector */}
-          <div>
+          <div data-help="analysis-templates">
             <label className="block text-xs text-gray-400 mb-2">{t('analysis.selectTemplate')}</label>
             <div className="flex flex-wrap gap-2">
               {templates.map((tpl) => (
@@ -614,7 +616,7 @@ export function AnalysisView() {
 
           {/* Chapter hints — only for summary template */}
           {selectedTemplate === 'summary' && (
-            <div className="border border-gray-700 rounded-lg">
+            <div data-help="analysis-chapters" className="border border-gray-700 rounded-lg">
               <button
                 onClick={() => setHintsExpanded(!hintsExpanded)}
                 className="w-full px-4 py-2.5 text-sm text-left text-gray-300 hover:bg-gray-800 rounded-lg flex items-center justify-between"
@@ -683,7 +685,7 @@ export function AnalysisView() {
           )}
 
           {/* Prompt editor (collapsible) */}
-          <div className="border border-gray-700 rounded-lg">
+          <div data-help="analysis-prompt" className="border border-gray-700 rounded-lg">
             <button
               onClick={() => setPromptExpanded(!promptExpanded)}
               className="w-full px-4 py-2.5 text-sm text-left text-gray-300 hover:bg-gray-800 rounded-lg flex items-center justify-between"
@@ -718,12 +720,12 @@ export function AnalysisView() {
 
           {/* Language selector + Source toggle + Generate button */}
           <div className="flex items-center justify-center gap-3 flex-wrap">
-            <div>
+            <div data-help="analysis-language">
               <label htmlFor="analysis-output-language-field" className="block text-xs text-gray-400 mb-1">{t('editor.outputLanguage')}</label>
               <LanguageSelect id="analysis-output-language-field" value={language} onChange={setLanguage} className="bg-gray-700 text-white text-sm rounded px-3 py-1.5" />
             </div>
             {refinedUtterances && (
-              <div>
+              <div data-help="analysis-source">
                 <label className="block text-xs text-gray-400 mb-1">{t('editor.source')}</label>
                 <div className="inline-flex rounded border border-gray-600 overflow-hidden">
                   <button
@@ -744,6 +746,7 @@ export function AnalysisView() {
               </div>
             )}
             <button
+              data-help="analysis-generate"
               onClick={handleGenerate}
               className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-500 self-end"
             >

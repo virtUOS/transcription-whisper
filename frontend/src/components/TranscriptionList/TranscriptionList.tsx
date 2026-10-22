@@ -202,7 +202,7 @@ export function TranscriptionList() {
   const supportsRecording = typeof MediaRecorder !== 'undefined'
 
   return (
-    <div className="mx-6 my-4">
+    <div data-help="archive" className="mx-6 my-4">
       <div className="flex items-center gap-3 mb-4">
         <button
           data-help="new-upload"
@@ -213,6 +213,7 @@ export function TranscriptionList() {
         </button>
         {supportsRecording && (
           <button
+            data-help="new-recording"
             onClick={() => { reset(); setCurrentView('record') }}
             className="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
           >
@@ -250,11 +251,11 @@ export function TranscriptionList() {
               <span className="min-w-0 sm:flex-1">
                 {item.title ? (
                   <>
-                    <span className="flex items-center gap-1">
+                    <span data-help="archive-title" className="flex items-center gap-1">
                       <span className="text-gray-300 truncate">{item.title}</span>
                       <PencilButton onClick={(e) => handleEditStart(e, item, 'title')} title={t('transcription.editTitle')} />
                     </span>
-                    <span className="flex items-center gap-1">
+                    <span data-help="archive-filename" className="flex items-center gap-1">
                       <span className="text-xs text-gray-500 truncate">{item.original_filename}</span>
                       <PencilButton onClick={(e) => handleEditStart(e, item, 'filename')} title={t('transcription.editFilename')} />
                     </span>
@@ -267,7 +268,7 @@ export function TranscriptionList() {
                 )}
               </span>
             )}
-            <div className="flex items-center gap-2 flex-wrap">
+            <div data-help="archive-meta" className="flex items-center gap-2 flex-wrap">
               <span className="text-gray-500 text-xs">{item.model}</span>
               <span className={`text-xs px-2 py-0.5 rounded ${
                 item.status === 'completed' ? 'bg-green-900 text-green-300' :

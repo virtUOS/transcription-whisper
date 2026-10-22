@@ -18,11 +18,17 @@ When the transcription is finished, the detail view opens. A strip above the edi
 
 ## Creating a bundle
 
-Create the presets you need first, as described in the section "Presets". Then open the **Presets** page, switch to the **Bundles** tab and click **+ New bundle**.
+Create the presets you need first, as described in the section "Presets". Then open the **Presets** page, switch to the **Bundles** tab and click **+ New bundle**. Enter a **Name**; the other fields are optional, and **None** leaves a part out.
 
-Enter a **Name**. Then choose, if you like, a **Transcription preset...**, an **Analysis preset...** and a **Refinement preset...**, and under **Translate to** a language. **None** leaves a part out. Confirm with **Save**.
+![The Bundles tab with a saved bundle and the form for a new one; numbered markers highlight the controls](shots/bundles.png)
 
-Each bundle appears as a card with its name and the parts it contains. **Edit** changes it, **Delete** removes it after the question **Delete this bundle?**. Deleting a bundle does not delete its presets.
+1. Each bundle appears as a card with its name and the parts it contains.
+2. The star (**Set as default**) makes the bundle the default (see "Default bundle"). **Edit** changes the bundle, **Delete** removes it after the question **Delete this bundle?**.
+3. **Transcription preset...** chooses the transcription preset. **Analysis preset...** and **Refinement preset...** below it work the same way.
+4. **Translate to** chooses the language for the translation.
+5. **Save** saves the bundle once it has a name.
+
+Deleting a bundle does not delete its presets.
 
 ## Using a bundle
 

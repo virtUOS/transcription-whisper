@@ -8,11 +8,15 @@ MP3, WAV, MP4, WebM, M4A, MOV, AAC, Opus and OGG files up to 1 GB are allowed. I
 
 ## Settings and starting
 
-As soon as you have chosen a file, the settings appear, even while the upload is still running. The section "Transcription Settings" explains the fields.
+As soon as you have chosen a file, the settings appear, even while the upload is still running.
 
-Click **Transcribe**. If the upload is still running, the button reads **Transcribe when ready**; the transcription then starts by itself once the file is uploaded. If the upload fails in that case, **Upload failed** appears with the button **Edit settings**.
+![The upload page after choosing a file, with the settings and the buttons to start; numbered markers highlight the controls](shots/upload.png)
 
-**Discard** next to the **Transcribe** button resets the page and returns you to the overview.
+1. The settings. The section "Transcription Settings" explains the fields; the **Bundles** field is explained under "Using bundles" below.
+2. **Transcribe** starts the transcription.
+3. **Discard** resets the page and returns you to the overview.
+
+If the upload is still running, the button reads **Transcribe when ready**; the transcription then starts by itself once the file is uploaded. If the upload fails in that case, **Upload failed** appears with the button **Edit settings**.
 
 ## Using bundles
 

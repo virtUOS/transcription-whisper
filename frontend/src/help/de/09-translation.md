@@ -10,7 +10,13 @@ Das Original bleibt erhalten. Die Übersetzung erscheint neben **Original** (und
 
 ## Übersetzen
 
-Klicken Sie im Reiter **Untertitel** über der Tabelle auf **Übersetzen**. Die Schaltfläche gibt es, solange noch keine Übersetzung existiert. Im Dialog **Übersetzen nach** wählen Sie die **Übersetzungssprache** aus der Liste. Klicken Sie dann auf **Übersetzen**. **Abbrechen** schließt den Dialog.
+Klicken Sie im Reiter **Untertitel** über der Tabelle auf **Übersetzen**. Die Schaltfläche gibt es, solange noch keine Übersetzung existiert. Der Dialog **Übersetzen nach** öffnet sich.
+
+![Der Dialog „Übersetzen nach“; nummerierte Markierungen heben die Bedienelemente hervor](shots/translate.png)
+
+1. **Übersetzungssprache** wählt die Sprache, in die übersetzt wird.
+2. **Quelle** erscheint, wenn es eine Verfeinerung gibt (siehe „Quelle: Original oder Verfeinert“).
+3. **Übersetzen** startet die Übersetzung. **Abbrechen** schließt den Dialog.
 
 Während der Übersetzung steht auf der Schaltfläche **Übersetze...**, und die Auswahlfelder und Schaltflächen sind gesperrt. Bei mehr als 50 Äußerungen weist ein Hinweis darauf hin, dass die Übersetzung mehrere Minuten dauern kann. Die Seite wartet auf das Sprachmodell. Bleiben Sie darauf, bis der Dialog sich schließt. Verlassen Sie die Seite trotzdem, läuft die Übersetzung auf dem Server weiter. Sie sehen sie, wenn Sie die Transkription später erneut öffnen. Ein neuer Versuch, bevor sie fertig ist, schlägt fehl. Danach zeigt der Editor die Ansicht **Übersetzt**.
 

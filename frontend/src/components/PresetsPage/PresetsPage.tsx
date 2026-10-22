@@ -94,7 +94,7 @@ function TranscriptionPresetsList() {
       )}
 
       {presets.map((p) => (
-        <div key={p.id} className="bg-gray-800 rounded-lg p-4 flex items-start justify-between gap-3">
+        <div key={p.id} data-help="preset-card" className="bg-gray-800 rounded-lg p-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="font-medium text-white truncate">{p.name}</p>
             <p className="text-xs text-gray-400 mt-0.5">
@@ -102,10 +102,10 @@ function TranscriptionPresetsList() {
             </p>
           </div>
           <div className="flex gap-2 shrink-0">
-            <button onClick={() => openEdit(p)} className="text-sm text-blue-400 hover:text-blue-300">
+            <button data-help="preset-edit" onClick={() => openEdit(p)} className="text-sm text-blue-400 hover:text-blue-300">
               {t('presets.edit')}
             </button>
-            <button onClick={() => handleDelete(p.id)} className="text-sm text-red-400 hover:text-red-300">
+            <button data-help="preset-delete" onClick={() => handleDelete(p.id)} className="text-sm text-red-400 hover:text-red-300">
               {t('presets.delete')}
             </button>
           </div>
@@ -183,6 +183,7 @@ function TranscriptionPresetsList() {
               {t('common.cancel')}
             </button>
             <button
+              data-help="preset-save"
               onClick={handleSave}
               disabled={saving || !form.name.trim()}
               className="text-sm bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded px-4 py-1.5"
@@ -195,6 +196,7 @@ function TranscriptionPresetsList() {
 
       {!showForm && (
         <button
+          data-help="preset-new"
           onClick={openNew}
           className="text-sm text-blue-400 hover:text-blue-300"
         >
@@ -287,7 +289,7 @@ function AnalysisPresetsList() {
       )}
 
       {presets.map((p) => (
-        <div key={p.id} className="bg-gray-800 rounded-lg p-4 flex items-start justify-between gap-3">
+        <div key={p.id} data-help="preset-card" className="bg-gray-800 rounded-lg p-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="font-medium text-white truncate">{p.name}</p>
             <p className="text-xs text-gray-400 mt-0.5">
@@ -295,10 +297,10 @@ function AnalysisPresetsList() {
             </p>
           </div>
           <div className="flex gap-2 shrink-0">
-            <button onClick={() => openEdit(p)} className="text-sm text-blue-400 hover:text-blue-300">
+            <button data-help="preset-edit" onClick={() => openEdit(p)} className="text-sm text-blue-400 hover:text-blue-300">
               {t('presets.edit')}
             </button>
-            <button onClick={() => handleDelete(p.id)} className="text-sm text-red-400 hover:text-red-300">
+            <button data-help="preset-delete" onClick={() => handleDelete(p.id)} className="text-sm text-red-400 hover:text-red-300">
               {t('presets.delete')}
             </button>
           </div>
@@ -357,6 +359,7 @@ function AnalysisPresetsList() {
               {t('common.cancel')}
             </button>
             <button
+              data-help="preset-save"
               onClick={handleSave}
               disabled={saving || !form.name.trim()}
               className="text-sm bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded px-4 py-1.5"
@@ -368,7 +371,7 @@ function AnalysisPresetsList() {
       )}
 
       {!showForm && (
-        <button onClick={openNew} className="text-sm text-blue-400 hover:text-blue-300">
+        <button data-help="preset-new" onClick={openNew} className="text-sm text-blue-400 hover:text-blue-300">
           + {t('presets.create')}
         </button>
       )}
@@ -445,16 +448,16 @@ function RefinementPresetsList() {
       )}
 
       {presets.map((p) => (
-        <div key={p.id} className="bg-gray-800 rounded-lg p-4 flex items-start justify-between gap-3">
+        <div key={p.id} data-help="preset-card" className="bg-gray-800 rounded-lg p-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="font-medium text-white truncate">{p.name}</p>
             {p.context && <p className="text-xs text-gray-400 mt-0.5 truncate">{p.context}</p>}
           </div>
           <div className="flex gap-2 shrink-0">
-            <button onClick={() => openEdit(p)} className="text-sm text-blue-400 hover:text-blue-300">
+            <button data-help="preset-edit" onClick={() => openEdit(p)} className="text-sm text-blue-400 hover:text-blue-300">
               {t('presets.edit')}
             </button>
-            <button onClick={() => handleDelete(p.id)} className="text-sm text-red-400 hover:text-red-300">
+            <button data-help="preset-delete" onClick={() => handleDelete(p.id)} className="text-sm text-red-400 hover:text-red-300">
               {t('presets.delete')}
             </button>
           </div>
@@ -488,6 +491,7 @@ function RefinementPresetsList() {
               {t('common.cancel')}
             </button>
             <button
+              data-help="preset-save"
               onClick={handleSave}
               disabled={saving || !form.name.trim()}
               className="text-sm bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded px-4 py-1.5"
@@ -499,7 +503,7 @@ function RefinementPresetsList() {
       )}
 
       {!showForm && (
-        <button onClick={openNew} className="text-sm text-blue-400 hover:text-blue-300">
+        <button data-help="preset-new" onClick={openNew} className="text-sm text-blue-400 hover:text-blue-300">
           + {t('presets.create')}
         </button>
       )}
@@ -631,7 +635,7 @@ function BundlesList() {
                     </span>
                   )}
                 </div>
-                <div className="flex flex-wrap gap-1.5 mt-1.5">
+                <div data-help="bundle-parts" className="flex flex-wrap gap-1.5 mt-1.5">
                   {tpName && (
                     <span className="text-xs bg-gray-700 text-gray-300 rounded px-2 py-0.5">
                       {t('presets.transcription')}: {tpName}
@@ -656,6 +660,7 @@ function BundlesList() {
               </div>
               <div className="flex gap-2 shrink-0 items-center">
                 <button
+                  data-help="bundle-default"
                   onClick={() => handleToggleDefault(b)}
                   className={`text-sm ${isDefault ? 'text-yellow-400 hover:text-yellow-300' : 'text-gray-400 hover:text-yellow-400'}`}
                   title={isDefault ? t('presets.bundle.clearDefault') : t('presets.bundle.setDefault')}
@@ -665,7 +670,7 @@ function BundlesList() {
                 <button onClick={() => openEdit(b)} className="text-sm text-blue-400 hover:text-blue-300">
                   {t('presets.edit')}
                 </button>
-                <button onClick={() => handleDelete(b.id)} className="text-sm text-red-400 hover:text-red-300">
+                <button data-help="bundle-delete" onClick={() => handleDelete(b.id)} className="text-sm text-red-400 hover:text-red-300">
                   {t('presets.delete')}
                 </button>
               </div>
@@ -686,7 +691,7 @@ function BundlesList() {
               className="w-full bg-gray-700 text-white text-sm rounded px-3 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
-          <div>
+          <div data-help="bundle-transcription">
             <label className="block text-xs text-gray-400 mb-1">{t('presets.bundle.selectTranscription')}</label>
             <select
               value={form.transcription_preset_id ?? ''}
@@ -725,7 +730,7 @@ function BundlesList() {
               ))}
             </select>
           </div>
-          <div>
+          <div data-help="bundle-translate">
             <label htmlFor="bundle-translate-language-field" className="block text-xs text-gray-400 mb-1">{t('presets.bundle.translateLanguage')}</label>
             <select
               id="bundle-translate-language-field"
@@ -742,6 +747,7 @@ function BundlesList() {
               {t('common.cancel')}
             </button>
             <button
+              data-help="preset-save"
               onClick={handleSave}
               disabled={saving || !form.name.trim()}
               className="text-sm bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded px-4 py-1.5"
@@ -753,7 +759,7 @@ function BundlesList() {
       )}
 
       {!showForm && (
-        <button onClick={openNew} className="text-sm text-blue-400 hover:text-blue-300">
+        <button data-help="bundle-new" onClick={openNew} className="text-sm text-blue-400 hover:text-blue-300">
           + {t('presets.bundle.create')}
         </button>
       )}
@@ -779,14 +785,15 @@ export function PresetsPage() {
   ]
 
   return (
-    <div className="px-6 py-4">
+    <div data-help="presets-page" className="px-6 py-4">
       <h2 className="text-xl font-semibold text-white mb-4">{t('presets.title')}</h2>
 
       {/* Tab bar */}
-      <div className="flex gap-1 border-b border-gray-700 mb-5 overflow-x-auto [mask-image:linear-gradient(to_right,transparent,black_1rem,black_calc(100%-1rem),transparent)] sm:[mask-image:none]">
+      <div data-help="presets-tabs" className="flex gap-1 border-b border-gray-700 mb-5 overflow-x-auto [mask-image:linear-gradient(to_right,transparent,black_1rem,black_calc(100%-1rem),transparent)] sm:[mask-image:none]">
         {tabs.map(({ key, label }) => (
           <button
             key={key}
+            data-help={`presets-tab-${key}`}
             onClick={() => setActiveTab(key)}
             className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
               activeTab === key

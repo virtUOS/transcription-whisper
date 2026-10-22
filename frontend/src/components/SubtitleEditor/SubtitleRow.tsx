@@ -189,7 +189,7 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
           <span className="inline-flex items-center gap-0.5">
             {index + 1}
             {isChanged && (
-              <span className="ml-1 inline-block w-1.5 h-1.5 rounded-full bg-amber-500 align-middle" title={t('editor.utteranceChanged')} />
+              <span data-help="row-changed-dot" className="ml-1 inline-block w-1.5 h-1.5 rounded-full bg-amber-500 align-middle" title={t('editor.utteranceChanged')} />
             )}
             {!isChanged && isUnrefined && (
               <span className="ml-1 inline-block w-1.5 h-1.5 rounded-full border border-gray-500 align-middle" title={t('editor.unrefinedRow')} />
@@ -364,7 +364,7 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
         </td>
       </tr>
       {showDiff && originalText && (
-        <tr className="bg-gray-800/50">
+        <tr data-help="row-diff" className="bg-gray-800/50">
           <td colSpan={5} className="px-3 py-2">
             <div className="flex gap-4 text-xs">
               <div className="flex-1">

@@ -10,7 +10,16 @@ Sie finden die Analyse im Reiter **Analyse** der Detailansicht, neben **Untertit
 
 ## Analyse erstellen
 
-Wählen Sie eine Vorlage. Voreingestellt ist **Zusammenfassung mit Kapiteln**. Die **Ausgabesprache** ist mit der erkannten Sprache der Transkription vorbelegt. Klicken Sie auf **Generieren**.
+Wählen Sie eine Vorlage und klicken Sie auf **Generieren**.
+
+![Das Analyse-Formular mit eingeblendetem Prompt; nummerierte Markierungen heben die Bedienelemente hervor](shots/analysis-form.png)
+
+1. **Vorlage auswählen** bietet die Vorlagen an (siehe „Vorlagen“). Voreingestellt ist **Zusammenfassung mit Kapiteln**.
+2. **Kapitel definieren (optional)** erscheint bei **Zusammenfassung mit Kapiteln** (siehe „Kapitel vorgeben und Agenda“).
+3. **Prompt anpassen** zeigt die Anweisung der Vorlage an das Sprachmodell (siehe „Prompt anpassen“).
+4. **Ausgabesprache** legt die Sprache des Ergebnisses fest. Sie ist mit der erkannten Sprache der Transkription vorbelegt.
+5. **Quelle** erscheint, wenn es eine Verfeinerung gibt (siehe „Quelle: Original oder Verfeinert“).
+6. **Generieren** startet die Analyse.
 
 Während die Analyse läuft, zeigt die Seite zum Beispiel **Zusammenfassung mit Kapiteln wird erstellt...** und blendet das Formular aus. Die Seite wartet auf die Antwort des Sprachmodells. Bleiben Sie darauf, bis das Ergebnis erscheint. Verlassen Sie die Seite trotzdem, läuft die Analyse auf dem Server weiter. Das Ergebnis sehen Sie, wenn Sie die Transkription später erneut öffnen. Ein neuer Versuch, bevor sie fertig ist, schlägt fehl.
 
@@ -45,12 +54,18 @@ Unter dem Ergebnis steht, woraus es entstanden ist: **aus Verfeinerung** oder **
 
 ## Ergebnisse lesen und weiterverwenden
 
-Ein Klick auf einen Eintrag klappt ihn auf. Die Kopfzeile zeigt den Namen der Vorlage (oder **Eigene Anweisung**), das Datum und das verwendete Sprachmodell. Unter dem Ergebnis steht noch einmal, womit es erstellt wurde.
+Ein Klick auf einen Eintrag klappt ihn auf.
 
-- Bei Kapiteln, Kernpunkten, Entscheidungen und Aufgaben springt der Player nach einem Klick auf die Zeitangabe an diese Stelle.
-- Das Kreuz, das beim Darüberfahren an einer Karte erscheint, entfernt diesen Punkt aus dem Ergebnis. Das wird sofort gespeichert und lässt sich nicht rückgängig machen. Bei der Zusammenfassung gilt das für Kapitel, nicht für den Zusammenfassungstext.
-- **Ergebnis kopieren** legt den Text in die Zwischenablage. **TXT** und **Markdown** laden ihn herunter, als Datei mit dem Namen der Aufnahme und dem Zusatz `_analysis`. Die Schaltflächen stehen über und unter dem Ergebnis.
-- Das Papierkorbsymbol (**Löschen**) in der Kopfzeile löscht den Eintrag nach einer Rückfrage.
+![Eine aufgeklappte Zusammenfassung mit Kapiteln; nummerierte Markierungen heben die Bedienelemente hervor](shots/analysis-result.png)
+
+1. Die Kopfzeile zeigt den Namen der Vorlage (oder **Eigene Anweisung**), das Datum und das verwendete Sprachmodell.
+2. Das Papierkorbsymbol (**Löschen**) löscht den Eintrag nach einer Rückfrage.
+3. **Ergebnis kopieren** legt den Text in die Zwischenablage. **TXT** und **Markdown** laden ihn herunter, als Datei mit dem Namen der Aufnahme und dem Zusatz `_analysis`. Die Schaltflächen stehen über und unter dem Ergebnis.
+4. Bei Kapiteln, Kernpunkten, Entscheidungen und Aufgaben springt der Player nach einem Klick auf die Zeitangabe an diese Stelle.
+
+Das Kreuz, das beim Darüberfahren an einer Karte erscheint, entfernt diesen Punkt aus dem Ergebnis. Das wird sofort gespeichert und lässt sich nicht rückgängig machen. Bei der Zusammenfassung gilt das für Kapitel, nicht für den Zusammenfassungstext.
+
+Unter dem Ergebnis steht noch einmal, womit es erstellt wurde.
 
 ## Wenn die Analyse nicht klappt
 

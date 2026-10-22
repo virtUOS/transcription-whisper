@@ -135,7 +135,7 @@ export function RecordingSources(props: RecordingSourcesProps) {
   )
 
   return (
-    <div className="flex flex-col gap-3">
+    <div data-help="record-sources" className="flex flex-col gap-3">
       <SourceCard
         icon="🎤"
         label={t('recorder.sourceMicrophone')}
@@ -145,7 +145,7 @@ export function RecordingSources(props: RecordingSourcesProps) {
         permission={micPermission.state}
         deniedBanner={makeDeniedBanner(t('recorder.sourceMicrophone'), micPermission.refresh)}
       >
-        <div className="flex flex-col gap-1 min-w-0 sm:flex-row sm:items-center sm:gap-3">
+        <div data-help="record-mic-device" className="flex flex-col gap-1 min-w-0 sm:flex-row sm:items-center sm:gap-3">
           <label className="text-xs text-gray-400 sm:min-w-24 sm:shrink-0">{t('recorder.selectMic')}</label>
           {audioDevices.length === 1 ? (
             <output className="flex-1 min-w-0 bg-gray-700 text-white rounded px-3 py-1.5 text-sm">

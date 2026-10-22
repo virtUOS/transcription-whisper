@@ -16,9 +16,15 @@ The name can be up to 64 characters long. Among your active tokens each name may
 
 ## Managing tokens
 
-The list shows each token with its name, its first characters followed by "…", its status (**Active**, **Expired** or **Revoked**), the expiry date if it has one and, once it has been used, when it was last used.
+The **API tokens** section lists your tokens.
 
-Click **Revoke** next to an active token. From then on, the server rejects every new request with it. Expired and revoked tokens stay in the list, shown faded. They are removed from it automatically, revoked ones after 30 days and expired ones after 90 days.
+![The API tokens section with one active token; numbered markers highlight the controls](shots/tokens.png)
+
+1. **Create token** opens the dialog described above.
+2. A token with its name, its first characters followed by "…", its status (**Active**, **Expired** or **Revoked**), the expiry date if it has one and, once it has been used, when it was last used.
+3. **Revoke**, next to an active token, revokes it. From then on, the server rejects every new request with it.
+
+Expired and revoked tokens stay in the list, shown faded. They are removed from it automatically, revoked ones after 30 days and expired ones after 90 days.
 
 ## Authentication
 

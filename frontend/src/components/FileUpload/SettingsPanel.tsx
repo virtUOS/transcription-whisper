@@ -78,11 +78,11 @@ export function SettingsPanel({ values, onChange, saveError = null }: SettingsPa
   const legendClass = 'text-[10px] uppercase tracking-wider text-gray-500 px-1'
 
   return (
-    <div className="px-6 py-3 bg-gray-800 border-b border-gray-700 space-y-3">
+    <div data-help="settings-panel" className="px-6 py-3 bg-gray-800 border-b border-gray-700 space-y-3">
       {/* Container row — semantic groups laid out side-by-side, wrap freely */}
       <div className="flex flex-wrap gap-3 items-stretch">
         {/* Presets group */}
-        <fieldset className={groupClass}>
+        <fieldset data-help="upload-presets-group" className={groupClass}>
           <legend className={legendClass}>{t('settings.groups.presets')}</legend>
           {bundles.length > 0 && (
             <div className="min-w-0">
@@ -128,7 +128,7 @@ export function SettingsPanel({ values, onChange, saveError = null }: SettingsPa
         </fieldset>
 
         {/* Transcription group (Language + Quality) */}
-        <fieldset className={groupClass}>
+        <fieldset data-help="upload-transcription-group" className={groupClass}>
           <legend className={legendClass}>{t('settings.groups.transcription')}</legend>
           <div className="min-w-0">
             <label htmlFor="upload-language-field" className="block text-xs text-gray-400 mb-1">{t('settings.language')}</label>
@@ -165,9 +165,9 @@ export function SettingsPanel({ values, onChange, saveError = null }: SettingsPa
         </fieldset>
 
         {/* Speakers group (checkbox + optional min/max — never split across wraps) */}
-        <fieldset className={groupClass}>
+        <fieldset data-help="upload-speakers-group" className={groupClass}>
           <legend className={legendClass}>{t('settings.groups.speakers')}</legend>
-          <label data-help="upload-speakers" className="flex items-center gap-2 py-1.5">
+          <label className="flex items-center gap-2 py-1.5">
             <input
               type="checkbox"
               checked={values.detectSpeakers}
@@ -217,6 +217,7 @@ export function SettingsPanel({ values, onChange, saveError = null }: SettingsPa
         </fieldset>
 
         <button
+          data-help="upload-advanced-toggle"
           onClick={() => onChange({ showAdvanced: !values.showAdvanced })}
           className="ml-auto self-end text-sm text-blue-400 hover:text-blue-300 py-1.5 shrink-0"
         >
@@ -235,7 +236,7 @@ export function SettingsPanel({ values, onChange, saveError = null }: SettingsPa
 
       {/* Advanced options panel — wrapped in a labeled container to match other groups */}
       {values.showAdvanced && (
-        <fieldset className={`${groupClass} w-full`}>
+        <fieldset data-help="upload-advanced" className={`${groupClass} w-full`}>
           <legend className={legendClass}>{t('settings.advancedOptions')}</legend>
           <div className="flex flex-wrap gap-3 w-full">
             <div className="flex-1 min-w-[200px]">
