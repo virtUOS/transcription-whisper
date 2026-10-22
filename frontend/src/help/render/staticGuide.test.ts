@@ -142,7 +142,7 @@ describe('renderGuidePage: shots and assets', () => {
     expect(de).not.toMatch(/<p>\s*<figure/)
     expect(de).toContain('<figure class="shot" id="shot-upload-upload">')
     expect(de).toContain('<a class="shotbox" href="#shot-upload-upload-zoom">')
-    expect(de).toContain('<img src="static/shots/de/upload.png" width="1000" height="300" alt="Die Seite „Hochladen“">')
+    expect(de).toContain('<img src="static/shots/de/upload.png?v=2026-10-22" width="1000" height="300" alt="Die Seite „Hochladen“">')
     expect(de).toContain('<span class="mark" style="left:10%;top:10%;width:20%;height:20%" aria-hidden="true"><i>2</i></span>')
   })
 
@@ -152,7 +152,7 @@ describe('renderGuidePage: shots and assets', () => {
     const zoom = de.slice(start, de.indexOf('</div></div></div>', start))
     expect(zoom).toContain('<a class="zoom-close" href="#shot-upload-upload">Schließen</a>')
     expect(zoom).toContain('style="max-width:1024px"')
-    expect(zoom).toContain('src="static/shots/de/upload.png"')
+    expect(zoom).toContain('src="static/shots/de/upload.png?v=2026-10-22"')
     expect(zoom.match(/class="mark"/g)).toHaveLength(META.marks.length)
     expect(en).toContain('<a class="zoom-close" href="#shot-upload-upload">Close</a>')
     expect(de).not.toContain('<script')
@@ -167,15 +167,23 @@ describe('renderGuidePage: shots and assets', () => {
   })
 
   it('points asset images at static/assets', () => {
-    expect(de).toContain('src="static/assets/de/main-flow.svg"')
+    expect(de).toContain('src="static/assets/de/main-flow.svg?v=2026-10-22"')
     expect(de).not.toContain('./assets/')
   })
 
   it('uses ../static/ on the English page', () => {
-    expect(en).toContain('href="../static/guide.css"')
-    expect(en).toContain('src="../static/shots/en/upload.png"')
-    expect(en).toContain('src="../static/assets/en/main-flow.svg"')
+    expect(en).toContain('href="../static/guide.css?v=2026-10-22"')
+    expect(en).toContain('src="../static/shots/en/upload.png?v=2026-10-22"')
+    expect(en).toContain('src="../static/assets/en/main-flow.svg?v=2026-10-22"')
     expect(en).not.toMatch(/(src|href)="static\//)
+  })
+
+  it('versions the css, logo, shot and diagram URLs with the build date', () => {
+    for (const page of [de, en, renderPrivacyShell('de', LOGO, '2026-10-22')]) {
+      const urls = [...page.matchAll(/\b(?:href|src)="((?:\.\.\/)*static\/[^"]+)"/g)].map((m) => m[1])
+      expect(urls.length).toBeGreaterThan(1)
+      for (const u of urls) expect(u).toMatch(/\?v=2026-10-22$/)
+    }
   })
 
   it('fails the build when a shot has no recorded markers', () => {
@@ -257,8 +265,8 @@ describe('guide.css', () => {
 })
 
 describe('renderPrivacyShell', () => {
-  const pde = renderPrivacyShell('de', LOGO)
-  const pen = renderPrivacyShell('en', LOGO)
+  const pde = renderPrivacyShell('de', LOGO, '2026-10-22')
+  const pen = renderPrivacyShell('en', LOGO, '2026-10-22')
 
   it('carries the notice sentinels', () => {
     expect(pde).toContain('<article class="notice" lang="__TW_NOTICE_LANG__">__TW_PRIVACY_NOTICE__</article>')
@@ -268,14 +276,14 @@ describe('renderPrivacyShell', () => {
   it('shows no date next to the operator notice', () => {
     for (const page of [pde, pen]) {
       expect(page).not.toContain('<time')
-      expect(page).not.toMatch(/2026|Stand|As of/)
+      expect(page).not.toMatch(/Oktober|October|Stand|As of/)
     }
   })
 
   it('resolves its links from one or two levels below the guide', () => {
     expect(pde).toContain('<html lang="de">')
-    expect(pde).toContain('href="../static/guide.css"')
-    expect(pen).toContain('href="../../static/guide.css"')
+    expect(pde).toContain('href="../static/guide.css?v=2026-10-22"')
+    expect(pen).toContain('href="../../static/guide.css?v=2026-10-22"')
     expect(pde).toMatch(/<a href="\.\.\/en\/privacy\/" hreflang="en" lang="en">English<\/a>/)
     expect(pen).toMatch(/<a href="\.\.\/\.\.\/datenschutz\/" hreflang="de" lang="de">Deutsch<\/a>/)
     expect(pde).toMatch(/<a class="cta" href="\.\.\/\.\.\/">/)

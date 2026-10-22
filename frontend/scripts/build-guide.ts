@@ -66,7 +66,7 @@ for (const lang of LANGS) {
   })
   const guide = renderGuidePage({ lang, sections: input, shotMeta: shotMetaFor(lang), logoSvg, builtOn })
   pages.push([lang === 'de' ? 'index.html' : 'en/index.html', guide])
-  pages.push([lang === 'de' ? 'datenschutz/index.html' : 'en/privacy/index.html', renderPrivacyShell(lang, logoSvg)])
+  pages.push([lang === 'de' ? 'datenschutz/index.html' : 'en/privacy/index.html', renderPrivacyShell(lang, logoSvg, builtOn)])
 }
 
 for (const [path, html] of pages) {
@@ -83,7 +83,7 @@ for (const lang of LANGS) {
 }
 // Every diagram a page references must exist in that page's language.
 for (const [path, html] of pages) {
-  for (const [, ref] of html.matchAll(/\bsrc="((?:\.\.\/)*static\/assets\/[^"]+)"/g)) {
+  for (const [, ref] of html.matchAll(/\bsrc="((?:\.\.\/)*static\/assets\/[^"?]+)(?:\?[^"]*)?"/g)) {
     const file = join(outDir, ref.replace(/^(?:\.\.\/)*/, ''))
     if (!existsSync(file)) throw new Error(`${path}: diagram ${ref} is missing (${file})`)
   }

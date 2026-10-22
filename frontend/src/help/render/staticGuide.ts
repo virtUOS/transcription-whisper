@@ -8,6 +8,7 @@
  * - every `{{key}}` becomes `__TW_SETTING_key__`; the masthead has `__TW_SETTING_app_version__`;
  * - gated blocks are wrapped in `<!--tw-feature:X-->…<!--/tw-feature:X-->`, never nested;
  * - the privacy shell has `__TW_PRIVACY_NOTICE__` and `__TW_NOTICE_LANG__`;
+ * - asset URLs (css, logo, shots, diagrams) end in `?v=<build date>`; fonts are referenced from the CSS;
  * - no `<script>`, and no absolute URL other than the three university links.
  */
 import { unified } from 'unified'
@@ -129,6 +130,12 @@ function gated(feature: string | undefined, html: string): string {
   return feature ? `<!--tw-feature:${feature}-->${html}<!--/tw-feature:${feature}-->` : html
 }
 
+/** Asset names are not hashed, so a re-shoot is picked up through the build date. */
+function versionQuery(builtOn: string): string {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(builtOn)) throw new Error(`builtOn must be YYYY-MM-DD, got "${builtOn}"`)
+  return `?v=${builtOn}`
+}
+
 function formatDate(builtOn: string, lang: GuideLang): string {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(builtOn)) throw new Error(`builtOn must be YYYY-MM-DD, got "${builtOn}"`)
   return new Intl.DateTimeFormat(lang === 'de' ? 'de-DE' : 'en-GB', {
@@ -157,6 +164,8 @@ interface SectionOptions {
   shotMeta: (id: string) => ShotMeta | undefined
   enlarge: string
   close: string
+  /** Cache-busting suffix for asset URLs, e.g. `?v=2026-10-22`. */
+  version: string
   /** Occurrences of each shot in this section, for unique anchors. */
   shotSeen: Map<string, number>
 }
@@ -190,7 +199,7 @@ const ASSET_SRC = /^\.\/assets\/([\w-]+\.svg)$/
 function shotFigure(id: string, alt: string, o: SectionOptions): Element[] {
   const meta = o.shotMeta(id)
   if (!meta) throw new Error(`Section "${o.sectionId}" (${o.lang}) shows shots/${id}.png, which has no recorded markers`)
-  const src = `${o.prefix}static/shots/${o.lang}/${id}.png`
+  const src = `${o.prefix}static/shots/${o.lang}/${id}.png${o.version}`
   const seen = (o.shotSeen.get(id) ?? 0) + 1
   o.shotSeen.set(id, seen)
   const anchor = `shot-${o.sectionId}-${id}${seen > 1 ? `-${seen}` : ''}`
@@ -217,7 +226,7 @@ function shotFigure(id: string, alt: string, o: SectionOptions): Element[] {
 
 function assetSrc(src: string, o: SectionOptions): string | null {
   const m = ASSET_SRC.exec(src)
-  return m ? `${o.prefix}static/assets/${o.lang}/${m[1]}` : null
+  return m ? `${o.prefix}static/assets/${o.lang}/${m[1]}${o.version}` : null
 }
 
 /** Shots and assets, heading shift (`#` → h2) and section-prefixed heading ids, scrollable tables. */
@@ -280,7 +289,7 @@ function renderSection(section: GuideSectionInput, o: SectionOptions): string {
 // ---------------------------------------------------------------------------
 // Page frame
 
-function head(lang: GuideLang, title: string, description: string, root: string): string {
+function head(lang: GuideLang, title: string, description: string, root: string, version: string): string {
   return `<!doctype html>
 <html lang="${lang}">
 <head>
@@ -289,8 +298,8 @@ function head(lang: GuideLang, title: string, description: string, root: string)
 <meta name="color-scheme" content="light dark">
 <title>${esc(title)} · transkribierBAR</title>
 <meta name="description" content="${esc(description)}">
-<link rel="icon" href="${root}static/logo.svg" type="image/svg+xml">
-<link rel="stylesheet" href="${root}static/guide.css">
+<link rel="icon" href="${root}static/logo.svg${version}" type="image/svg+xml">
+<link rel="stylesheet" href="${root}static/guide.css${version}">
 </head>`
 }
 
@@ -361,7 +370,7 @@ export function renderGuidePage(input: GuidePageInput): string {
   })
 
   const body = groups.flatMap((g) => g.items).map((s) => {
-    const content = renderSection(s, { sectionId: s.id, lang, prefix: links.root, shotMeta: input.shotMeta, enlarge: t.enlarge, close: t.close, shotSeen: new Map() })
+    const content = renderSection(s, { sectionId: s.id, lang, prefix: links.root, shotMeta: input.shotMeta, enlarge: t.enlarge, close: t.close, version: versionQuery(input.builtOn), shotSeen: new Map() })
     return gated(s.feature, `<section id="${s.id}">\n${content}\n</section>`)
   })
 
@@ -370,7 +379,7 @@ export function renderGuidePage(input: GuidePageInput): string {
     `<span><b>${t.version}</b> __TW_SETTING_app_version__</span>`,
   ]
 
-  return `${head(lang, t.guide, t.lede, links.root)}
+  return `${head(lang, t.guide, t.lede, links.root, versionQuery(input.builtOn))}
 <body>
 <a class="skip" href="#main">${esc(t.skip)}</a>
 ${masthead(lang, input.logoSvg, t.guide, t.lede, meta, links)}
@@ -388,11 +397,11 @@ ${footer(lang, links, false)}
 `
 }
 
-export function renderPrivacyShell(lang: GuideLang, logoSvg: string): string {
+export function renderPrivacyShell(lang: GuideLang, logoSvg: string, builtOn: string): string {
   const t = TEXT[lang]
   const links = PRIVACY_LINKS[lang]
   const back = `<a href="../"><span aria-hidden="true">← </span>${esc(t.backToGuide)}</a>`
-  return `${head(lang, t.privacy, t.privacy, links.root)}
+  return `${head(lang, t.privacy, t.privacy, links.root, versionQuery(builtOn))}
 <body>
 <a class="skip" href="#main">${esc(t.skip)}</a>
 ${masthead(lang, logoSvg, t.privacy, null, [`<span>${back}</span>`], links)}
