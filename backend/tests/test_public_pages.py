@@ -24,8 +24,8 @@ GUIDE = """<!doctype html><html lang="{lang}"><body>
 <ul><li>intro</li>
 <!--tw-feature:llm--><li>llm toc</li><!--/tw-feature:llm-->
 </ul>
-<p>Mail <a href="mailto:__TW_SETTING_contact_email__">__TW_SETTING_contact_email__</a>
-keep __TW_SETTING_retention_days__ days, v__TW_SETTING_app_version__</p>
+<!--tw-feature:contact--><p>Mail <a href="mailto:__TW_SETTING_contact_email__">__TW_SETTING_contact_email__</a>.</p><!--/tw-feature:contact-->
+<p>keep __TW_SETTING_retention_days__ days, v__TW_SETTING_app_version__</p>
 <!--tw-feature:llm--><section>llm section</section><!--/tw-feature:llm-->
 <!--tw-feature:privacy--><a href="/handbuch/datenschutz/">privacy</a><!--/tw-feature:privacy-->
 </body></html>"""
@@ -117,6 +117,19 @@ async def test_llm_off_removes_blocks(guide_dir, monkeypatch):
     monkeypatch.setattr(settings, "LLM_PROVIDER", "")
     r = await get("/handbuch/")
     assert "llm" not in r.text.replace("tw-feature", "")
+
+
+@pytest.mark.asyncio
+async def test_empty_contact_email_drops_contact_blocks(guide_dir, monkeypatch):
+    monkeypatch.setattr(settings, "CONTACT_EMAIL", "")
+    for p in ("/handbuch/", "/handbuch/en/"):
+        r = await get(p)
+        assert r.status_code == 200
+        assert "mailto:" not in r.text
+        assert "Mail" not in r.text
+        assert "tw-feature" not in r.text
+        assert "__TW_" not in r.text
+        assert "keep" in r.text  # the rest of the page is intact
 
 
 @pytest.mark.asyncio

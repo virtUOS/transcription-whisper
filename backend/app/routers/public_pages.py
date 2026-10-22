@@ -38,6 +38,8 @@ def _features() -> dict[str, bool]:
         "llm": bool(settings.LLM_PROVIDER),
         "api_tokens": settings.ENABLE_API_TOKENS,
         "privacy": bool(NOTICES),
+        # Sentences with the contact address are dropped when none is configured.
+        "contact": bool(settings.CONTACT_EMAIL),
     }
 
 

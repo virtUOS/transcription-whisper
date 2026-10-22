@@ -123,6 +123,49 @@ describe('renderGuidePage: settings', () => {
   })
 })
 
+describe('renderGuidePage: contact feature', () => {
+  const ABOUT = '# Über\n\nText.\n\n## Fragen\n\nSchreiben Sie an [{{contact_email}}](mailto:{{contact_email}}).\n'
+
+  function about(markdown: string, lang: 'de' | 'en' = 'de') {
+    return renderGuidePage({ ...input(lang), sections: [{ id: 'about', tocLabel: 'Über', markdown }] })
+  }
+
+  it('gates the footer sentence', () => {
+    expect(de).toMatch(/<!--tw-feature:contact--><p>Fragen oder Probleme\?[^<]*<a href="mailto:__TW_SETTING_contact_email__">[\s\S]*?<\/p><!--\/tw-feature:contact-->/)
+  })
+
+  it('gates the about sentence together with the heading that only introduces it', () => {
+    const page = about(ABOUT)
+    expect(page).toMatch(/<!--tw-feature:contact--><h3 id="about--fragen">Fragen<\/h3>\s*<p>Schreiben Sie an <a href="mailto:__TW_SETTING_contact_email__">[\s\S]*?<\/p><!--\/tw-feature:contact-->\s*<\/section>/)
+  })
+
+  it('keeps a heading that is followed by other content', () => {
+    const page = about(ABOUT + '\nNoch ein Absatz.\n')
+    expect(page).toMatch(/<h3 id="about--fragen">Fragen<\/h3>\s*<!--tw-feature:contact--><p>Schreiben/)
+  })
+
+  it('leaves no empty contact sentence, no mailto and no nesting once the backend strips it', () => {
+    const off = applyFeatures(about(ABOUT), { contact: false, privacy: true })
+    expect(off).not.toContain('contact_email')
+    expect(off).not.toContain('mailto:')
+    expect(off).not.toContain('Fragen')
+    expect(off).not.toContain('tw-feature')
+    const on = applyFeatures(about(ABOUT), { contact: true, privacy: true })
+    expect(on).toContain('mailto:__TW_SETTING_contact_email__')
+    for (const page of [de, en, about(ABOUT)]) {
+      const stripped = page.replace(/<!--tw-feature:contact-->[\s\S]*?<!--\/tw-feature:contact-->/g, '')
+      expect(stripped).not.toMatch(/tw-feature:contact/)
+      expect(stripped).not.toContain('mailto:__TW')
+    }
+  })
+
+  it('refuses to put the contact sentence into a gated section', () => {
+    expect(() => renderGuidePage({ ...input('de'), sections: [
+      { id: 'analysis', tocLabel: 'A', markdown: ABOUT, feature: 'llm' },
+    ] })).toThrow(/nest/)
+  })
+})
+
 describe('renderGuidePage: headings', () => {
   it('shifts headings down one level and prefixes their ids with the section id', () => {
     expect(de).toContain('<h2 id="upload--hochladen">Hochladen</h2>')

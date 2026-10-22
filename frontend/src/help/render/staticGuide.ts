@@ -6,7 +6,8 @@
  *
  * Output contract, filled in by the backend when it serves the pages:
  * - every `{{key}}` becomes `__TW_SETTING_key__`; the masthead has `__TW_SETTING_app_version__`;
- * - gated blocks are wrapped in `<!--tw-feature:X-->…<!--/tw-feature:X-->`, never nested;
+ * - gated blocks are wrapped in `<!--tw-feature:X-->…<!--/tw-feature:X-->`, never nested; `contact`
+ *   wraps every sentence with the contact address (footer, about section);
  * - the privacy shell has `__TW_PRIVACY_NOTICE__` and `__TW_NOTICE_LANG__`;
  * - asset URLs (css, logo, shots, diagrams) end in `?v=<build date>`; fonts are referenced from the CSS;
  * - no `<script>`, and no absolute URL other than the three university links.
@@ -229,6 +230,33 @@ function assetSrc(src: string, o: SectionOptions): string | null {
   return m ? `${o.prefix}static/assets/${o.lang}/${m[1]}${o.version}` : null
 }
 
+const CONTACT_HREF = 'mailto:__TW_SETTING_contact_email__'
+
+function linksToContact(node: ElementContent): boolean {
+  if (node.type !== 'element') return false
+  if (node.tagName === 'a' && node.properties.href === CONTACT_HREF) return true
+  return node.children.some(linksToContact)
+}
+
+/**
+ * A top-level paragraph that links the contact address is wrapped in the `contact`
+ * feature, so the backend can drop it when no address is configured. A heading that
+ * then introduces nothing else (the paragraph ends the section) goes with it.
+ */
+function rehypeContactBlock() {
+  return (tree: HastRoot) => {
+    const kids = tree.children
+    const at = kids.findIndex((n) => n.type === 'element' && n.tagName === 'p' && linksToContact(n))
+    if (at < 0) return
+    const rest = kids.slice(at + 1).filter((n) => !(n.type === 'text' && n.value.trim() === ''))
+    const prev = kids.slice(0, at).reverse().find((n) => !(n.type === 'text' && n.value.trim() === ''))
+    const headingIndex = prev && prev.type === 'element' && /^h[1-6]$/.test(prev.tagName) ? kids.indexOf(prev) : -1
+    const start = headingIndex >= 0 && rest.length === 0 ? headingIndex : at
+    kids.splice(at + 1, 0, { type: 'raw', value: '<!--/tw-feature:contact-->' } as unknown as ElementContent)
+    kids.splice(start, 0, { type: 'raw', value: '<!--tw-feature:contact-->' } as unknown as ElementContent)
+  }
+}
+
 /** Shots and assets, heading shift (`#` → h2) and section-prefixed heading ids, scrollable tables. */
 function rehypeGuide(o: SectionOptions) {
   return (tree: HastRoot) => {
@@ -281,9 +309,14 @@ function renderSection(section: GuideSectionInput, o: SectionOptions): string {
     .use(remarkRehype)
     .use(rehypeSlug)
     .use(rehypeGuide, o)
-    .use(rehypeStringify)
+    .use(rehypeContactBlock)
+    .use(rehypeStringify, { allowDangerousHtml: true })
     .processSync(section.markdown)
-  return String(html)
+  const out = String(html)
+  if (section.feature && out.includes('tw-feature:contact')) {
+    throw new Error(`Section "${section.id}" is gated and shows the contact address; feature blocks must not nest`)
+  }
+  return out
 }
 
 // ---------------------------------------------------------------------------
@@ -339,7 +372,7 @@ function footer(lang: GuideLang, links: PageLinks, privacyIsCurrent: boolean): s
   )
   return `<footer class="foot">
 <div class="foot-inner">
-<p>${esc(t.contact)} <a href="mailto:${contact}">${contact}</a>.</p>
+${gated('contact', `<p>${esc(t.contact)} <a href="mailto:${contact}">${contact}</a>.</p>`)}
 <nav aria-label="${esc(t.legal)}"><ul class="legal">
 ${gated('privacy', privacy)}
 ${external.join('\n')}
