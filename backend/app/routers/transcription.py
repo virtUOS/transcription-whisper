@@ -174,15 +174,21 @@ async def _run_transcription(transcription_id: str, file_path: str, req: Transcr
             inc(diarization_speakers_total, str(min(len(speakers), 20)))
 
         async with get_db() as db:
-            await db.execute(
+            cursor = await db.execute(
                 """UPDATE transcriptions SET status = ?, result_json = ?, completed_at = ? WHERE id = ?""",
                 ("completed", json.dumps([u.model_dump() for u in result.utterances]),
                  datetime.now(timezone.utc).isoformat(), transcription_id),
             )
             await db.commit()
 
-        # The result is stored locally; the remote copy is now only a liability.
+        # The result is stored locally (or, if the row was deleted mid-run,
+        # nowhere); either way the remote copy is now only a liability.
         await backend.cleanup(asr_job_id)
+
+        if cursor.rowcount == 0:
+            # Deleted while processing: the user wanted it gone, so don't send
+            # its text to the LLM for a title either.
+            return
 
         # Generate title if LLM is available
         try:

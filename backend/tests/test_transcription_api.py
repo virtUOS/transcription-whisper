@@ -94,3 +94,41 @@ async def test_archive_nonexistent_transcription():
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post("/api/transcription/nonexistent-id/archive")
     assert resp.status_code == 404
+
+@pytest.mark.asyncio
+async def test_deleted_during_processing_skips_title(mock_asr):
+    """A transcription deleted mid-run must not have its text sent to the LLM."""
+    from unittest.mock import MagicMock
+    from app.database import get_db
+    from app.models import TranscriptionSettings as TranscriptionSettingsModel
+    from app.routers.transcription import _run_transcription
+
+    async with get_db() as db:
+        await db.execute(
+            "INSERT INTO transcriptions (id, asr_backend, status) VALUES (?, ?, ?)",
+            ("txn-del", "murmurai", "pending"),
+        )
+        await db.commit()
+
+    original_result = mock_asr.get_result.return_value
+
+    async def delete_row_then_return(job_id):
+        async with get_db() as db:
+            await db.execute("DELETE FROM transcriptions WHERE id = ?", ("txn-del",))
+            await db.commit()
+        return original_result
+
+    mock_asr.get_result.side_effect = delete_row_then_return
+    provider = MagicMock()
+    provider.generate_title = AsyncMock(return_value="A title")
+    req = TranscriptionSettingsModel(file_id="file-1", language="en", model="base")
+
+    with patch("app.routers.transcription.get_asr_backend", return_value=mock_asr), \
+         patch("app.services.llm.get_llm_provider", return_value=provider):
+        await _run_transcription("txn-del", "/nonexistent/audio.mp3", req, submitted_at=0.0)
+
+    provider.generate_title.assert_not_awaited()
+    mock_asr.cleanup.assert_awaited_once_with("asr-job-123")
+    async with get_db() as db:
+        cursor = await db.execute("SELECT id FROM transcriptions WHERE id = ?", ("txn-del",))
+        assert await cursor.fetchone() is None
