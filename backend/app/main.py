@@ -157,6 +157,17 @@ async def cleanup_old_files():
                             except OSError:
                                 pass
 
+                # Retry the remote deletes first: once the rows go, so do their job ids.
+                # A remote copy already deleted answers 404, which counts as done.
+                cursor = await db.execute(
+                    f"SELECT asr_job_id FROM transcriptions WHERE file_id IN ({expired_files_q}) "
+                    "AND asr_job_id IS NOT NULL",
+                    (now,),
+                )
+                asr_backend = get_asr_backend()
+                for row in await cursor.fetchall():
+                    await asr_backend.cleanup(row["asr_job_id"])
+
                 # Delete related DB records
                 expired_transcriptions_q = f"SELECT id FROM transcriptions WHERE file_id IN ({expired_files_q})"
                 cursor = await db.execute(

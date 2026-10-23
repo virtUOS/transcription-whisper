@@ -359,7 +359,7 @@ async def delete_transcription(transcription_id: str, user: UserInfo = Depends(g
     import os
     async with get_db() as db:
         cursor = await db.execute(
-            "SELECT file_id FROM transcriptions WHERE id = ? AND user_id = ?",
+            "SELECT file_id, status, asr_job_id FROM transcriptions WHERE id = ? AND user_id = ?",
             (transcription_id, user.id),
         )
         row = await cursor.fetchone()
@@ -396,6 +396,11 @@ async def delete_transcription(transcription_id: str, user: UserInfo = Depends(g
                     os.remove(path)
                 except OSError:
                     pass
+
+    # The running job would delete its remote copy when it ends, but a restart
+    # before then would leak it. MurmurAI deletes running jobs too.
+    if row["status"] in ("pending", "processing") and row["asr_job_id"]:
+        await get_asr_backend().cleanup(row["asr_job_id"])
 
     inc(deletions_total, "transcription")
 
