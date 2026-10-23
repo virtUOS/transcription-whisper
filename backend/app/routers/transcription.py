@@ -18,7 +18,7 @@ from app.database import get_db
 from app.services.asr import get_asr_backend
 from app.services.api_tokens import resolve_token
 from app.services.asr.base import TranscriptionSettings, asr_semaphore
-from app.services.audio import get_media_duration
+from app.services.audio import ensure_clean_asr_copy, get_media_duration
 from app.services.formats import generate_srt, generate_vtt, generate_txt
 from app.metrics import (
     inc, observe, gauge_inc, gauge_dec,
@@ -43,15 +43,25 @@ async def start_transcription(
 ):
     async with get_db() as db:
         cursor = await db.execute(
-            "SELECT id, mp3_path FROM files WHERE id = ? AND user_id = ?",
+            "SELECT id, file_path, mp3_path FROM files WHERE id = ? AND user_id = ?",
             (req.file_id, user.id),
         )
         file_row = await cursor.fetchone()
         if not file_row:
             raise HTTPException(status_code=404, detail="File not found")
 
+    # Files uploaded before the ASR copy was cleaned still carry their metadata
+    try:
+        mp3_path = await ensure_clean_asr_copy(file_row["file_path"], file_row["mp3_path"])
+    except Exception as e:
+        logging.warning("Could not prepare the ASR copy of file %s: %s", req.file_id, e)
+        raise HTTPException(status_code=422, detail="Could not prepare the audio for transcription.")
+    if mp3_path != file_row["mp3_path"]:
+        async with get_db() as db:
+            await db.execute("UPDATE files SET mp3_path = ? WHERE id = ?", (mp3_path, req.file_id))
+            await db.commit()
+
     transcription_id = str(uuid.uuid4())
-    mp3_path = file_row["mp3_path"]
 
     async with get_db() as db:
         await db.execute(
@@ -174,15 +184,21 @@ async def _run_transcription(transcription_id: str, file_path: str, req: Transcr
             inc(diarization_speakers_total, str(min(len(speakers), 20)))
 
         async with get_db() as db:
-            await db.execute(
+            cursor = await db.execute(
                 """UPDATE transcriptions SET status = ?, result_json = ?, completed_at = ? WHERE id = ?""",
                 ("completed", json.dumps([u.model_dump() for u in result.utterances]),
                  datetime.now(timezone.utc).isoformat(), transcription_id),
             )
             await db.commit()
 
-        # The result is stored locally; the remote copy is now only a liability.
+        # The result is stored locally (or, if the row was deleted mid-run,
+        # nowhere); either way the remote copy is now only a liability.
         await backend.cleanup(asr_job_id)
+
+        if cursor.rowcount == 0:
+            # Deleted while processing: the user wanted it gone, so don't send
+            # its text to the LLM for a title either.
+            return
 
         # Generate title if LLM is available
         try:
@@ -202,17 +218,19 @@ async def _run_transcription(transcription_id: str, file_path: str, req: Transcr
             logging.warning("Title generation failed for %s: %s", transcription_id, e)
 
     except Exception as e:
-        logging.error("Transcription %s failed: %s: %s", transcription_id, type(e).__name__, e)
-        logging.error("Traceback: %s", traceback.format_exc())
-        inc(transcriptions_total, backend_name, req.language or "auto", req.model or "default", "failed")
-        inc(errors_total, "transcription_failed", "asr")
-
         async with get_db() as db:
-            await db.execute(
+            cursor = await db.execute(
                 "UPDATE transcriptions SET status = ?, error_message = ? WHERE id = ?",
                 ("failed", str(e), transcription_id),
             )
             await db.commit()
+
+        # No row to update means the user deleted it mid-run: not an app failure.
+        if cursor.rowcount:
+            logging.error("Transcription %s failed: %s: %s", transcription_id, type(e).__name__, e)
+            logging.error("Traceback: %s", traceback.format_exc())
+            inc(transcriptions_total, backend_name, req.language or "auto", req.model or "default", "failed")
+            inc(errors_total, "transcription_failed", "asr")
 
         # A job that failed or timed out after submit still left a row remotely.
         if asr_job_id is not None:
@@ -338,12 +356,16 @@ async def update_speaker_mappings(transcription_id: str, request: SpeakerMapping
     return {"status": "ok"}
 
 
+# Strong references: the loop only keeps weak ones to running tasks.
+_background_tasks: set[asyncio.Task] = set()
+
+
 @router.delete("/api/transcription/{transcription_id}")
 async def delete_transcription(transcription_id: str, user: UserInfo = Depends(get_current_user)):
     import os
     async with get_db() as db:
         cursor = await db.execute(
-            "SELECT file_id FROM transcriptions WHERE id = ? AND user_id = ?",
+            "SELECT file_id, asr_job_id FROM transcriptions WHERE id = ? AND user_id = ?",
             (transcription_id, user.id),
         )
         row = await cursor.fetchone()
@@ -380,6 +402,13 @@ async def delete_transcription(transcription_id: str, user: UserInfo = Depends(g
                     os.remove(path)
                 except OSError:
                     pass
+
+    # Delete the remote copy after the response so a slow ASR host never holds
+    # up the user. cleanup() retries and never raises; expiry retries what fails.
+    if row["asr_job_id"]:
+        task = asyncio.create_task(get_asr_backend().cleanup(row["asr_job_id"]))
+        _background_tasks.add(task)
+        task.add_done_callback(_background_tasks.discard)
 
     inc(deletions_total, "transcription")
 

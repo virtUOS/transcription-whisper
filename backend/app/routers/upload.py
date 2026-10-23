@@ -55,8 +55,16 @@ async def upload_file(
         raise
     file_size = total_size
 
-    # Convert to MP3 if needed
-    mp3_path = await convert_to_mp3(file_path)
+    # Write the MP3 copy the ASR host receives (always a new file, no metadata)
+    try:
+        mp3_path = await convert_to_mp3(file_path)
+    except Exception:
+        # No DB row exists yet, so nothing else would ever delete the upload
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        inc(file_uploads_total, ext.lstrip("."), "rejected")
+        inc(errors_total, "conversion_failed", "upload")
+        raise HTTPException(status_code=422, detail="Could not read the audio in this file.")
 
     # Detect video tracks
     if has_video is None:

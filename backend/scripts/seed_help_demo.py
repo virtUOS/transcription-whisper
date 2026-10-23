@@ -113,6 +113,7 @@ async def seed(
     async with aiosqlite.connect(db_path) as db:
         db.row_factory = aiosqlite.Row
         await db.execute("PRAGMA foreign_keys = ON")
+        await db.execute("PRAGMA secure_delete = ON")
         await db.execute(
             "INSERT INTO users (id, email, first_seen, last_active) VALUES (?, ?, ?, ?)",
             (USER_ID, USER_EMAIL, CREATED["en"], ANALYSIS_CREATED),

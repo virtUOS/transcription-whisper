@@ -175,6 +175,8 @@ async def init_db(db_path: str) -> None:
     global _db_path
     _db_path = db_path
     async with aiosqlite.connect(db_path) as db:
+        # Overwrite deleted content instead of leaving it in free pages
+        await db.execute("PRAGMA secure_delete = ON")
         await db.executescript(SCHEMA)
         # Add columns that may be missing on existing databases
         for col_name, table, col_def in MIGRATIONS:
@@ -245,5 +247,6 @@ async def get_db(db_path: str | None = None):
     path = db_path or _db_path
     async with aiosqlite.connect(path) as db:
         await db.execute("PRAGMA foreign_keys = ON")
+        await db.execute("PRAGMA secure_delete = ON")
         db.row_factory = aiosqlite.Row
         yield db

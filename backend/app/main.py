@@ -1,6 +1,8 @@
 import asyncio
 import mimetypes
 import os
+import re
+import time
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -13,9 +15,19 @@ from app.config import settings
 from app.database import init_db, get_db
 from app.routers import config_router, upload, transcription, refinement, analysis, translation, presets, tokens, invitations as invitations_router, public_pages
 from app.public_pages import load_privacy_notices
+from app.log_redaction import install_token_redaction
 from app.metrics import inc, gauge_set, cleanup_runs_total, cleanup_items_deleted_total, storage_bytes, api_tokens_active, invitations_expired_total, init_label_series, users_total, users_with_transcriptions, users_new
+from app.services.asr import get_asr_backend
 from app.services.audio import has_video_stream
 from app.services.api_tokens import cleanup_stale_tokens, count_active_tokens
+
+
+install_token_redaction()
+
+ORPHAN_MIN_AGE_HOURS = 24
+# Upload names are "<uuid><ext>"; this never matches the SQLite DB or other files in TEMP_PATH.
+_UPLOAD_NAME_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.")
+INTERRUPTED_MESSAGE = "The server restarted while this transcription was running."
 
 
 def _dir_size_bytes(path: str) -> int:
@@ -61,6 +73,59 @@ async def refresh_user_gauges(db) -> None:
         gauge_set(users_new, n, window)
 
 
+async def fail_interrupted_transcriptions() -> list[str]:
+    """Fail every transcription still pending/processing; return their ASR job ids.
+
+    Only called at startup, when no transcription task can be running, so any
+    such row was interrupted by the restart and would otherwise stay in flight
+    forever (and keep its file out of the expiry cleanup).
+    """
+    async with get_db() as db:
+        cursor = await db.execute(
+            "SELECT asr_job_id FROM transcriptions "
+            "WHERE status IN ('pending', 'processing') AND asr_job_id IS NOT NULL"
+        )
+        job_ids = [row["asr_job_id"] for row in await cursor.fetchall()]
+        await db.execute(
+            "UPDATE transcriptions SET status = 'failed', error_message = ? "
+            "WHERE status IN ('pending', 'processing')",
+            (INTERRUPTED_MESSAGE,),
+        )
+        await db.commit()
+    return job_ids
+
+
+async def cleanup_remote_jobs(job_ids: list[str]) -> None:
+    """Delete the remote ASR transcripts of interrupted jobs (best effort)."""
+    backend = get_asr_backend()
+    for job_id in job_ids:
+        await backend.cleanup(job_id)
+
+
+async def delete_orphaned_media(now: float | None = None, temp_path: str | None = None) -> int:
+    """Delete old upload files in temp_path (default TEMP_PATH) that no files row references; return the count."""
+    if temp_path is None:
+        temp_path = settings.TEMP_PATH
+    cutoff = (time.time() if now is None else now) - ORPHAN_MIN_AGE_HOURS * 3600
+    async with get_db() as db:
+        cursor = await db.execute("SELECT file_path, mp3_path FROM files")
+        referenced = {
+            os.path.realpath(p) for row in await cursor.fetchall() for p in (row["file_path"], row["mp3_path"]) if p
+        }
+    deleted = 0
+    for entry in os.scandir(temp_path):
+        if not _UPLOAD_NAME_RE.match(entry.name) or not entry.is_file(follow_symlinks=False):
+            continue
+        try:
+            if entry.stat().st_mtime >= cutoff or os.path.realpath(entry.path) in referenced:
+                continue
+            os.unlink(entry.path)
+            deleted += 1
+        except OSError:
+            pass
+    return deleted
+
+
 async def cleanup_old_files():
     """Periodically delete files and DB records that have passed their expires_at."""
     while True:
@@ -91,6 +156,15 @@ async def cleanup_old_files():
                                 os.unlink(path)
                             except OSError:
                                 pass
+
+                # Remember the job ids: once the rows go, so do they. A remote copy
+                # already deleted answers 404, which counts as done.
+                cursor = await db.execute(
+                    f"SELECT asr_job_id FROM transcriptions WHERE file_id IN ({expired_files_q}) "
+                    "AND asr_job_id IS NOT NULL",
+                    (now,),
+                )
+                asr_job_ids = [row["asr_job_id"] for row in await cursor.fetchall()]
 
                 # Delete related DB records
                 expired_transcriptions_q = f"SELECT id FROM transcriptions WHERE file_id IN ({expired_files_q})"
@@ -125,6 +199,8 @@ async def cleanup_old_files():
                 gauge_set(api_tokens_active, active_tokens)
                 await refresh_user_gauges(db)
 
+            orphans_deleted = await delete_orphaned_media()
+
             inc(cleanup_runs_total, "success")
             inc(cleanup_items_deleted_total, "file", amount=db_files_deleted)
             inc(cleanup_items_deleted_total, "transcription", amount=transcriptions_deleted)
@@ -132,9 +208,16 @@ async def cleanup_old_files():
             inc(cleanup_items_deleted_total, "speaker_mapping", amount=mappings_deleted)
             inc(cleanup_items_deleted_total, "api_token", amount=tokens_deleted)
             inc(cleanup_items_deleted_total, "invitation", amount=invitations_deleted)
+            inc(cleanup_items_deleted_total, "orphaned_file", amount=orphans_deleted)
             for _ in range(invitations_expired):
                 inc(invitations_expired_total)
             _refresh_storage_gauge()
+
+            # Last, so an unreachable ASR host only delays the remote deletes.
+            if asr_job_ids:
+                asr_backend = get_asr_backend()
+                for job_id in asr_job_ids:
+                    await asr_backend.cleanup(job_id)
         except Exception as e:
             inc(cleanup_runs_total, "failed")
             print(f"Cleanup error: {e}")
@@ -145,6 +228,7 @@ async def lifespan(app: FastAPI):
     os.makedirs(settings.TEMP_PATH, exist_ok=True)
     public_pages.NOTICES = load_privacy_notices()
     await init_db(settings.db_path)
+    interrupted_job_ids = await fail_interrupted_transcriptions()
     # Backfill has_video for existing files
     async with get_db() as db:
         cursor = await db.execute(
@@ -168,8 +252,11 @@ async def lifespan(app: FastAPI):
         await refresh_user_gauges(db)
     init_label_series()
     cleanup_task = asyncio.create_task(cleanup_old_files())
+    # Not awaited: the ASR server may be slow or down, and startup must not wait for it.
+    remote_cleanup_task = asyncio.create_task(cleanup_remote_jobs(interrupted_job_ids))
     yield
     cleanup_task.cancel()
+    remote_cleanup_task.cancel()
 
 
 app = FastAPI(title="transkribierBAR", lifespan=lifespan)

@@ -73,12 +73,13 @@ async def test_cleanup_deletes_the_remote_transcript():
 
 
 @pytest.mark.asyncio
-async def test_cleanup_failure_is_counted_not_raised():
+async def test_cleanup_failure_is_counted_not_raised(capsys):
     """A failed remote delete must never fail the transcription that already succeeded."""
     import httpx
     backend = MurmurAIBackend()
 
-    with patch("app.services.asr.murmurai.httpx.AsyncClient") as MockClient:
+    with patch("app.services.asr.murmurai.httpx.AsyncClient") as MockClient, \
+         patch("app.services.asr.murmurai.CLEANUP_RETRY_DELAYS", (0, 0)):
         mock_client = AsyncMock()
         mock_client.delete.side_effect = httpx.ConnectError("asr down")
         mock_client.__aenter__ = AsyncMock(return_value=mock_client)
@@ -89,3 +90,55 @@ async def test_cleanup_failure_is_counted_not_raised():
         await backend.cleanup("job-123")
 
     assert _cleanup_errors() == before + 1
+    # Logged, not printed: the hourly cleanup prints "Cleanup error:" for its own failures
+    assert capsys.readouterr().out == ""
+
+
+def _delete_client(*responses):
+    """An httpx.AsyncClient mock whose successive DELETEs return `responses`."""
+    mock_client = AsyncMock()
+    mock_client.delete.side_effect = list(responses)
+    mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+    mock_client.__aexit__ = AsyncMock(return_value=False)
+    return mock_client
+
+
+def _response(status_code):
+    import httpx
+    return httpx.Response(status_code, request=httpx.Request("DELETE", "http://asr/v1/transcript/job-123"))
+
+
+async def _cleanup_with(*responses):
+    backend = MurmurAIBackend()
+    mock_client = _delete_client(*responses)
+    with patch("app.services.asr.murmurai.httpx.AsyncClient", return_value=mock_client), \
+         patch("app.services.asr.murmurai.CLEANUP_RETRY_DELAYS", (0, 0)):
+        before = _cleanup_errors()
+        await backend.cleanup("job-123")
+    return mock_client.delete.await_count, _cleanup_errors() - before
+
+
+@pytest.mark.asyncio
+async def test_cleanup_retries_then_succeeds():
+    calls, errors = await _cleanup_with(_response(500), _response(200))
+    assert (calls, errors) == (2, 0)
+
+
+@pytest.mark.asyncio
+async def test_cleanup_404_is_success():
+    calls, errors = await _cleanup_with(_response(404))
+    assert (calls, errors) == (1, 0)
+
+
+@pytest.mark.asyncio
+async def test_cleanup_gives_up_after_three():
+    calls, errors = await _cleanup_with(_response(500), _response(500), _response(500))
+    assert (calls, errors) == (3, 1)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("status_code", [401, 403])
+async def test_cleanup_client_error_is_not_retried(status_code):
+    """A retry cannot fix a rejected request, only an unreachable or failing server."""
+    calls, errors = await _cleanup_with(_response(status_code))
+    assert (calls, errors) == (1, 1)

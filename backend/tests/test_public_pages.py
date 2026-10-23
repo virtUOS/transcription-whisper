@@ -185,6 +185,30 @@ async def test_notice_fallback_note_for_german_page_with_english_notice(guide_di
     assert "notice-note" not in r.text
 
 
+@pytest.mark.asyncio
+async def test_notice_settings_are_filled(guide_dir, monkeypatch):
+    monkeypatch.setattr(settings, "DEFAULT_EXPIRY_HOURS", 72)
+    monkeypatch.setattr(
+        router_mod,
+        "NOTICES",
+        {"de": "<p>de __TW_SETTING_retention_days__ Tage</p>", "en": "<p>en __TW_SETTING_retention_days__ days</p>"},
+    )
+    r = await get("/handbuch/datenschutz/")
+    assert "<p>de 3 Tage</p>" in r.text
+    assert "__TW_" not in r.text
+    r = await get("/handbuch/en/privacy/")
+    assert "<p>en 3 days</p>" in r.text
+    assert "__TW_" not in r.text
+
+
+@pytest.mark.asyncio
+async def test_fallback_notice_uses_notice_language_formatting(guide_dir, monkeypatch):
+    monkeypatch.setattr(settings, "DEFAULT_EXPIRY_HOURS", 36)
+    monkeypatch.setattr(router_mod, "NOTICES", {"de": "<p>__TW_SETTING_retention_days__ Tage</p>"})
+    r = await get("/handbuch/en/privacy/")
+    assert "<p>1,5 Tage</p>" in r.text
+
+
 def test_notice_fallback_note_helper():
     assert notice_fallback_note("en", "en") == ""
     assert "German only" in notice_fallback_note("en", "de")
