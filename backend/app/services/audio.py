@@ -21,6 +21,9 @@ async def convert_to_mp3(input_path: str) -> str:
     _, stderr = await process.communicate()
 
     if process.returncode != 0:
+        # ffmpeg may have left a partial output behind
+        if os.path.exists(output_path):
+            os.unlink(output_path)
         error_msg = stderr.decode()[-500:] if stderr else "Unknown error"
         raise RuntimeError(f"Audio conversion failed: {error_msg}")
 

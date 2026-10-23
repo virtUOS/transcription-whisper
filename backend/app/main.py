@@ -1,6 +1,8 @@
 import asyncio
 import mimetypes
 import os
+import re
+import time
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -19,6 +21,9 @@ from app.services.audio import has_video_stream
 from app.services.api_tokens import cleanup_stale_tokens, count_active_tokens
 
 
+ORPHAN_MIN_AGE_HOURS = 24
+# Upload names are "<uuid><ext>"; this never matches the SQLite DB or other files in TEMP_PATH.
+_UPLOAD_NAME_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.")
 INTERRUPTED_MESSAGE = "The server restarted while this transcription was running."
 
 
@@ -94,6 +99,28 @@ async def cleanup_remote_jobs(job_ids: list[str]) -> None:
         await backend.cleanup(job_id)
 
 
+async def delete_orphaned_media(now: float | None = None) -> int:
+    """Delete old upload files in TEMP_PATH that no files row references; return the count."""
+    cutoff = (time.time() if now is None else now) - ORPHAN_MIN_AGE_HOURS * 3600
+    async with get_db() as db:
+        cursor = await db.execute("SELECT file_path, mp3_path FROM files")
+        referenced = {
+            os.path.realpath(p) for row in await cursor.fetchall() for p in (row["file_path"], row["mp3_path"]) if p
+        }
+    deleted = 0
+    for entry in os.scandir(settings.TEMP_PATH):
+        if not _UPLOAD_NAME_RE.match(entry.name) or not entry.is_file(follow_symlinks=False):
+            continue
+        try:
+            if entry.stat().st_mtime >= cutoff or os.path.realpath(entry.path) in referenced:
+                continue
+            os.unlink(entry.path)
+            deleted += 1
+        except OSError:
+            pass
+    return deleted
+
+
 async def cleanup_old_files():
     """Periodically delete files and DB records that have passed their expires_at."""
     while True:
@@ -158,6 +185,8 @@ async def cleanup_old_files():
                 gauge_set(api_tokens_active, active_tokens)
                 await refresh_user_gauges(db)
 
+            orphans_deleted = await delete_orphaned_media()
+
             inc(cleanup_runs_total, "success")
             inc(cleanup_items_deleted_total, "file", amount=db_files_deleted)
             inc(cleanup_items_deleted_total, "transcription", amount=transcriptions_deleted)
@@ -165,6 +194,7 @@ async def cleanup_old_files():
             inc(cleanup_items_deleted_total, "speaker_mapping", amount=mappings_deleted)
             inc(cleanup_items_deleted_total, "api_token", amount=tokens_deleted)
             inc(cleanup_items_deleted_total, "invitation", amount=invitations_deleted)
+            inc(cleanup_items_deleted_total, "orphaned_file", amount=orphans_deleted)
             for _ in range(invitations_expired):
                 inc(invitations_expired_total)
             _refresh_storage_gauge()

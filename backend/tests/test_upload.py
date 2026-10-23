@@ -1,3 +1,4 @@
+import os
 import pytest
 from unittest.mock import patch, AsyncMock
 from httpx import AsyncClient, ASGITransport
@@ -202,3 +203,19 @@ async def test_upload_with_has_video_true():
     assert response.status_code == 200
     data = response.json()
     assert data["has_video"] is True
+
+
+@pytest.mark.asyncio
+async def test_failed_conversion_removes_upload(tmp_path, monkeypatch):
+    from app.routers.upload import settings
+    monkeypatch.setattr(settings, "TEMP_PATH", str(tmp_path / "media"))
+    transport = ASGITransport(app=app)
+    with patch("app.routers.upload.convert_to_mp3", new_callable=AsyncMock, side_effect=RuntimeError("bad audio")):
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            response = await client.post(
+                "/api/upload",
+                files={"file": ("test.wav", b"not audio", "audio/wav")},
+            )
+    assert response.status_code == 422
+    assert response.json()["detail"] == "Could not read the audio in this file."
+    assert os.listdir(settings.TEMP_PATH) == []
