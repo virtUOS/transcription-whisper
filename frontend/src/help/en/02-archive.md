@@ -19,7 +19,7 @@ Click the pencil icon next to the title (**Edit title**) or next to the filename
 
 ## Expiry and archiving
 
-Every transcription is deleted automatically after a fixed period, together with the uploaded file and all results (analyses, refinement, translation, speaker names). The period is {{retention_days}} days from the upload. The detail view shows the date after **Expires:**; it turns red when less than 24 hours are left.
+The period applies to the uploaded file: once it has passed, the file is deleted automatically, together with all transcriptions and results that belong to it (analyses, refinement, translation, speaker names). The period is {{retention_days}} days from the upload. The detail view shows the date after **Expires:**; it turns red when less than 24 hours are left.
 
 **Archive** in the detail view sets the period to {{archive_retention_days}} days from that moment. The button is then replaced by **Archived**, and the overview shows the shield icon.
 

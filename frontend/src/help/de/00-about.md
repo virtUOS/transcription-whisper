@@ -10,18 +10,18 @@ transkribierBAR wandelt gesprochene Sprache aus Audio- und Videodateien in Text 
 
 ## Zugang
 
-Melden Sie sich unter **transcription.uni-osnabrueck.de** mit Ihrem Uni-Account an. Danach sehen Sie die Übersicht Ihrer Transkriptionen. Die Oberfläche gibt es auf Deutsch und Englisch.
+Melden Sie sich unter **transcription.uni-osnabrueck.de** mit Ihrem Uni-Login an. Danach sehen Sie die Übersicht Ihrer Transkriptionen. Die Oberfläche gibt es auf Deutsch und Englisch.
 
 ## Aufbewahrung
 
-Jede Transkription wird nach einer festen Frist automatisch gelöscht, zusammen mit der hochgeladenen Datei und allen Ergebnissen.
+Jede hochgeladene Datei wird nach einer festen Frist automatisch gelöscht, zusammen mit allen Transkriptionen und Ergebnissen, die zu ihr gehören.
 
-| Transkription | Wird gelöscht |
+| Hochgeladene Datei | Wird gelöscht |
 | --- | --- |
 | Standard | {{retention_days}} Tage nach dem Hochladen |
 | Archiviert | {{archive_retention_days}} Tage nach dem Archivieren |
 
-Wie Sie eine Transkription archivieren, steht im Abschnitt „Archiv“.
+Wie Sie eine Datei archivieren, steht im Abschnitt „Archiv“.
 
 ## Datenschutz und Einwilligung
 

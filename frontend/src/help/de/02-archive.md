@@ -19,7 +19,7 @@ Klicken Sie auf das Stiftsymbol neben dem Titel (**Titel bearbeiten**) oder nebe
 
 ## Frist und Archivieren
 
-Jede Transkription wird nach einer Frist automatisch gelöscht, zusammen mit der hochgeladenen Datei und allen Ergebnissen (Analysen, Verfeinerung, Übersetzung, Namen der Sprechenden). Die Frist beträgt {{retention_days}} Tage ab dem Hochladen. In der Detailansicht steht das Datum hinter **Läuft ab:**; sind weniger als 24 Stunden übrig, wird es rot.
+Die Frist gilt für die hochgeladene Datei: Sie wird nach Ablauf automatisch gelöscht, zusammen mit allen Transkriptionen und Ergebnissen, die zu ihr gehören (Analysen, Verfeinerung, Übersetzung, Namen der Sprechenden). Die Frist beträgt {{retention_days}} Tage ab dem Hochladen. In der Detailansicht steht das Datum hinter **Läuft ab:**; sind weniger als 24 Stunden übrig, wird es rot.
 
 **Archivieren** in der Detailansicht setzt die Frist auf {{archive_retention_days}} Tage ab diesem Moment. Statt der Schaltfläche steht dann **Archiviert**, und die Übersicht zeigt das Schild-Symbol.
 

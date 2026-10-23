@@ -10,18 +10,18 @@ transkribierBAR turns speech in audio and video files into text. You upload a fi
 
 ## Access
 
-Sign in at **transcription.uni-osnabrueck.de** with your Uni-Account. You then see the overview of your transcriptions. The interface is available in German and English.
+Sign in at **transcription.uni-osnabrueck.de** with your Uni-Login. You then see the overview of your transcriptions. The interface is available in German and English.
 
 ## Retention
 
-Every transcription is deleted automatically after a fixed period, together with the uploaded file and all results.
+Every uploaded file is deleted automatically after a fixed period, together with all transcriptions and results that belong to it.
 
-| Transcription | Deleted |
+| Uploaded file | Deleted |
 | --- | --- |
 | Standard | {{retention_days}} days after upload |
 | Archived | {{archive_retention_days}} days after archiving |
 
-The "Archive" section explains how to archive a transcription.
+The "Archive" section explains how to archive a file.
 
 ## Data protection and consent
 
