@@ -2,22 +2,29 @@
 
 ## The four formats
 
-The detail view offers four export formats, each suited to different workflows:
+Next to **Subtitles**, the detail view has the tabs **SRT**, **VTT**, **JSON** and **TXT**. Each shows the transcript in that format. transkribierBAR creates it in your browser from the current text.
 
-- **SRT** — The most widely supported subtitle format. Numbered entries with `HH:MM:SS,mmm` timestamps. Works with virtually every video player and editing tool.
-- **VTT** — The modern WebVTT standard designed for HTML5 video. Structurally similar to SRT but with cleaner syntax and native browser support.
-- **JSON** — A structured list of utterances with start time, end time, text, and speaker label. The right choice when you want to process the transcript programmatically. When a refinement exists, the JSON export is an object with both arrays nested inside: `{ "utterances": [...], "refined_utterances": [...] }`.
-- **TXT** — Plain text with speaker labels but no timestamps. Easy to read, share, or paste into a document.
+- **SRT:** numbered entries with times such as `00:01:30,250 --> 00:01:34,000`, The text starts with the speaker's name in square brackets: `[Name]: Text`.
+- **VTT:** starts with `WEBVTT` and has times with a full stop instead of a comma (`00:01:30.250`). The names are in square brackets as in SRT.
+- **JSON:** a list with `start`, `end`, `text` and `speaker` for each utterance. Start and end are milliseconds.
+- **TXT:** one line per utterance without times, in the form `Name: Text`.
+
+Utterances without a speaker appear without a name.
 
 ## Downloading
 
-Each format has its own tab. Click a tab to preview the content, then hit **Download** to save the file. Speaker names assigned in Speaker Mapping are reflected in all four formats.
+The tab shows a preview that you cannot change. The same button appears above and below the preview, for example **Download SRT**. It saves the file under the recording's name without its extension plus the file extension of the format, such as `Lecture.srt`. If the name is missing, the file is called `transcription.srt`.
 
-## Which format to pick?
+## What the format contains
 
-| Goal | Best format |
+The format shows the state you see in the editor, including unsaved changes. Names from **Speaker Names** are filled in in all four formats; in the **Refined** view and in a translation made from it, the names from the time of the refinement apply.
+
+Which version appears depends on the view you last chose in the **Subtitles** tab: **Original**, **Refined** or **Translated**. If **Refined** is chosen, the JSON format contains both versions in one object: `utterances` for the original and `refined_utterances` for the refined version.
+
+## Which format fits?
+
+| Goal | Format |
 |---|---|
 | Add subtitles to a video | SRT or VTT |
-| Post-process programmatically | JSON |
-| Read or share the transcript | TXT |
-| Embed in a web player | VTT |
+| Process the transcript with a program | JSON |
+| Read or pass on the transcript | TXT |

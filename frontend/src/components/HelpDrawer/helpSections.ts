@@ -7,45 +7,40 @@
  * - `assetUrls` maps source asset paths to Vite-resolved URLs used by the markdown renderer.
  */
 
-export type HelpSectionId =
-  | 'getting-started'
-  | 'archive'
-  | 'upload'
-  | 'record'
-  | 'transcription-settings'
-  | 'subtitle-editor'
-  | 'speaker-mapping'
-  | 'analysis'
-  | 'translation'
-  | 'refinement'
-  | 'format-viewer'
-  | 'presets'
-  | 'bundles'
-  | 'api-access'
+import { sections } from '../../help/sectionList.ts'
+import type { HelpSectionId } from '../../help/sectionList.ts'
 
-export interface HelpSection {
-  id: HelpSectionId
-  filename: string
-}
-
-export const sections: readonly HelpSection[] = [
-  { id: 'getting-started', filename: '01-getting-started.md' },
-  { id: 'archive', filename: '02-archive.md' },
-  { id: 'upload', filename: '03-upload.md' },
-  { id: 'record', filename: '04-record.md' },
-  { id: 'transcription-settings', filename: '05-transcription-settings.md' },
-  { id: 'subtitle-editor', filename: '06-subtitle-editor.md' },
-  { id: 'speaker-mapping', filename: '07-speaker-mapping.md' },
-  { id: 'analysis', filename: '08-analysis.md' },
-  { id: 'translation', filename: '09-translation.md' },
-  { id: 'refinement', filename: '10-refinement.md' },
-  { id: 'format-viewer', filename: '11-format-viewer.md' },
-  { id: 'presets', filename: '12-presets.md' },
-  { id: 'bundles', filename: '13-bundles.md' },
-  { id: 'api-access', filename: '14-api-access.md' },
-] as const
+export { sections }
+export type { HelpSection, HelpSectionId, HelpFeature } from '../../help/sectionList.ts'
 
 import type { AppView } from '../../store'
+import type { ConfigResponse } from '../../api/types'
+import type { HelpSection } from '../../help/sectionList.ts'
+import { fillSettings, formatDays } from '../../help/helpText.ts'
+import type { SettingValues } from '../../help/helpText.ts'
+
+export { fillSettings }
+
+/** Sections whose feature is enabled on this host. Without config only ungated sections. */
+export function visibleSections(config: ConfigResponse | null): readonly HelpSection[] {
+  return sections.filter((s) => {
+    if (s.feature === 'llm') return !!config?.llm_available
+    if (s.feature === 'api_tokens') return !!config?.api_tokens_enabled
+    return true
+  })
+}
+
+/** Per-host values for the `{{...}}` placeholders; missing inputs are omitted. */
+export function settingValues(config: ConfigResponse | null, lang: 'de' | 'en'): SettingValues {
+  const values: SettingValues = {}
+  if (!config) return values
+  if (config.contact_email) values.contact_email = config.contact_email
+  if (config.default_expiry_hours != null) values.retention_days = formatDays(config.default_expiry_hours, lang)
+  if (config.archive_expiry_hours != null) values.archive_retention_days = formatDays(config.archive_expiry_hours, lang)
+  if (config.default_model) values.default_model = config.default_model
+  if (config.api_token_default_expiry_days != null) values.api_token_expiry_days = String(config.api_token_default_expiry_days)
+  return values
+}
 
 export const viewToSection: Record<AppView, HelpSectionId> = {
   archive: 'getting-started',

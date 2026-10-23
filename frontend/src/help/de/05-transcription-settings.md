@@ -1,32 +1,40 @@
 # Transkriptionseinstellungen
 
-## Sprechererkennung
+## Sprache und Modell
 
-Die Sprechererkennung (Diarization) erkennt, wer wann gesprochen hat, und versieht jede Äußerung mit einer Bezeichnung wie SPEAKER_00, SPEAKER_01 usw. Schalte sie für Aufnahmen mit mehreren Sprechern ein und für Einzelsprecher-Inhalte aus, um Verarbeitungszeit zu sparen. Optional kannst du eine minimale und maximale Sprecheranzahl angeben, um die Erkennung zu steuern. Die Sprechererkennung erhöht die Verarbeitungszeit spürbar. Nach der Transkription kannst du Sprecher über das **Speaker Mapping** umbenennen.
+Die Gruppe **Transkription** enthält zwei Felder.
 
-## Modell und Qualität
+**Sprache für die Transkription:** Voreingestellt ist **Automatisch erkennen**; dann bestimmt die Spracherkennung die Sprache selbst. Kennen Sie die Sprache, wählen Sie sie aus der Liste. Oben stehen Deutsch, Englisch, Spanisch, Französisch und Türkisch, darunter nach einem Trennstrich alle weiteren Sprachen in alphabetischer Reihenfolge.
 
-Welche Whisper-Modelle zur Verfügung stehen, hängt von der Konfiguration deiner Installation ab.
+**Modell:** Das Feld ist schreibgeschützt und zeigt {{default_model}}. Es ist das einzige konfigurierte Modell, daher gibt es nichts auszuwählen. Jede Transkription verwendet es.
 
-**Ist nur ein Modell konfiguriert**, zeigt der Einstellungsbereich ein schreibgeschütztes Feld **Modell** mit dessen Namen an (zum Beispiel `large-v3-turbo`). Es gibt nichts auszuwählen — jede Transkription verwendet dieses Modell.
+## Sprechende erkennen
 
-**Sind mehrere konfiguriert**, wird daraus ein Auswahlfeld **Qualität**. Jeder Eintrag nennt eine Stufe und das dahinterliegende Modell:
+Die Gruppe **Sprechende** enthält den Schalter **Sprechende erkennen**. Er ist voreingestellt eingeschaltet und trennt die Beiträge verschiedener Personen. Spricht nur eine Person, können Sie ihn ausschalten.
 
-| Stufe | Geschwindigkeit | Hinweis |
-|---|---|---|
-| Entwurf (tiny) | Schnellste | Gut für schnelle Vorschauen langer Dateien |
-| Standard (base) | Schnell | — |
-| Gut (small) | Mittel | — |
-| Besser (medium) | Langsam | — |
-| Ausgewogen (large-v3-turbo) | Schnell/genau | Empfohlene Standardwahl |
-| Beste Qualität (large-v3) | Langsamste | Maximale Genauigkeit |
+Ist der Schalter an, können Sie die Zahl der Personen eingrenzen: **Mindestanzahl Personen** (voreingestellt 1) und **Höchstanzahl Personen** (voreingestellt 2). Erlaubt sind Werte von 1 bis 20. Setzen Sie die Mindestanzahl über die Höchstanzahl, zieht die Höchstanzahl nach, und umgekehrt.
 
-Es erscheinen nur die Stufen, die deine Installation anbietet. Die Abstände sind nicht gleichmäßig — der Sprung hinauf zu `large-v3-turbo` ist groß, während der Unterschied zwischen `large-v3-turbo` und `large-v3` klein ist.
+Namen für die erkannten Personen vergeben Sie nach der Transkription im Reiter **Untertitel** unter **Namen der Sprechenden**.
 
 ## Erweiterte Optionen
 
-**Initial Prompt** ermöglicht es, dem Modell einen kurzen Kontext mitzugeben — nützlich für Fachthemen, Eigennamen oder erwartetes Vokabular. **Hotwords** ist eine kommagetrennte Liste von Fachbegriffen, die das Modell bevorzugen soll. Setze beide Optionen sparsam ein; zu viele Vorgaben können Fehler erzeugen.
+Mit **Erweiterte Optionen** blenden Sie zwei weitere Felder ein. Beide sind optional.
+
+- **Anfangs-Prompt:** Kontext für die Transkription, zum Beispiel das Thema oder Eigennamen.
+- **Schlüsselwörter:** kommagetrennte Fachbegriffe.
+
+Beide Angaben gehen an die Spracherkennung. Leere Felder werden nicht übermittelt.
 
 ## Voreinstellungen
 
-Speichere deine aktuellen Einstellungen als benannte Voreinstellung, um sie jederzeit wieder aufzurufen. Voreinstellungen erstellst und verwaltest du auf der Seite **Voreinstellungen**.
+Die Gruppe **Voreinstellungen** ist die erste Gruppe.
+
+- **Transkription:** Dieses Auswahlfeld erscheint, sobald Sie Voreinstellungen gespeichert haben. Wählen Sie dort eine Voreinstellung, übernimmt sie Sprache, Sprechende, Anfangs-Prompt und Schlüsselwörter.
+- **Als Voreinstellung speichern:** Geben Sie einen Namen ein und bestätigen Sie mit dem Häkchen oder mit der Eingabetaste. transkribierBAR speichert die aktuellen Einstellungen unter diesem Namen.
+- **Pakete:** Dieses Feld erscheint, sobald Sie Pakete angelegt haben. Was es bewirkt, steht im Abschnitt „Hochladen“.
+
+Voreinstellungen verwalten Sie auf der Seite **Voreinstellungen** in der Kopfzeile.
+
+## Die Zusammenfassung
+
+Nach dem Klick auf **Transkribieren** ersetzt eine Zeile die Einstellungen. Sie nennt den Dateinamen, die Größe, das Modell, die Sprache (**automatisch**, wenn Sie nichts gewählt haben), die Sprechenden (**keine Sprechenden** oder zum Beispiel **1–2 Personen**) und gegebenenfalls das Paket.

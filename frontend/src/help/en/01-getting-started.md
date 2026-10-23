@@ -1,24 +1,38 @@
 # Getting Started
 
-## What this app does
+## The flow
 
-transkribierBAR turns audio and video recordings into editable transcripts. Once a transcription is ready, you can run optional LLM-powered steps: generate a summary, translate the transcript into another language, or refine the text to clean up filler words and formatting. You feed the app content in one of two ways — upload an existing file, or record directly in the browser using your microphone and optionally a camera or system audio.
+![Flow: Archive, then Upload or Record, then the detail view with editor and analysis](./assets/main-flow.svg)
 
-## The main flow
-
-![Main flow: Archive → Upload or Record → Detail](./assets/main-flow.svg)
-
-Every session starts in the Archive, moves through Upload or Record to create a new transcript, and lands in the Detail view where you edit and export your results.
+You start in the overview of your transcriptions. From there you upload a file or record in the browser. You work on the finished transcription in the detail view.
 
 ## Your first transcription
 
-1. Open the app — you land in the Archive, which lists all your transcriptions.
-2. Click **+ Upload** to upload a file, or **+ Record** to capture audio in the browser.
-3. Configure any options shown (language, model, speaker count) and confirm.
-4. Wait for the transcription to process — a status indicator shows progress.
-5. Click the finished entry in the Archive to open the Detail view.
-6. In the Detail view, edit the transcript, run analysis or translation, and download the result in your preferred format.
+1. In the overview, click **+ Upload** and choose an audio or video file. Or click **+ Record** to record in the browser; when you stop, transkribierBAR uploads the recording automatically. **+ Record** only appears if your browser supports recording.
+2. Choose the **Transcription language**. The default is **Auto-detect**. The **Model** is fixed: {{default_model}}.
+3. **Detect speakers** is on and separates the contributions of different people. If only one person speaks, you can turn it off.
+4. Click **Transcribe**. If the upload is still running, the button reads **Transcribe when ready**; the transcription then starts by itself once the file is uploaded.
+5. Wait until the transcription is done. The status shows **Queued…** while it waits and **Transcribing…** while it runs.
+6. If you stayed on the page, the finished transcription opens in the detail view by itself. Otherwise click it in the overview.
 
-## Where things live
+> **Leaving the page?** While a file is uploading, leaving the page cancels the upload. Once the transcription is running, you can leave the page; it continues on the server.
 
-The header is your main navigation. Click **?** to open this help drawer. Click **Presets** to manage reusable transcription settings. The language toggle switches the interface between EN and DE. The back arrow in any sub-view returns you to the Archive.
+## The detail view
+
+The player plays the recording. Below it, choose a tab:
+
+- **Subtitles:** correct the text and name the speakers under **Speaker Names**. This is also where you start **Refine with LLM** and **Translate**.
+- **Analysis:** create a summary, meeting minutes or your own analysis.
+- **SRT**, **VTT**, **JSON** and **TXT:** view the result in that format and download it.
+
+## Where to find things
+
+The header contains:
+
+- **?** opens this help at the section for the current view.
+- **Presets** manages your saved presets.
+- **Settings** manages your API tokens.
+- **DE** switches the interface to German.
+- **Logout** signs you out.
+
+On narrow screens these items are in the **Menu** (the icon with three lines). From any other view, **← Transcriptions** takes you back to the overview.

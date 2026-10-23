@@ -1,17 +1,41 @@
 # Voreinstellungen
 
+## Was Voreinstellungen sind
+
+Eine Voreinstellung speichert Einstellungen unter einem Namen, damit Sie sie nicht für jede Aufnahme neu eingeben müssen. Es gibt Voreinstellungen für die Transkription, für die Analyse und für die Verfeinerung. Voreinstellungen gehören zu Ihrem Konto, und nur Sie sehen sie.
+
+Sie verwenden sie an drei Stellen:
+
+- **Transkription:** in der Gruppe **Voreinstellungen** der Ansichten **Hochladen** und **Aufnehmen**, im Feld **Transkription**. Der Abschnitt „Transkriptionseinstellungen“ erklärt es.
+- **Analyse:** im Feld **Analyse** des Analyse-Formulars.
+- **Verfeinerung:** oben im Dialog zum Verfeinern.
+
+Neben jedem dieser Felder steht **Als Voreinstellung speichern**. Geben Sie dort einen Namen ein und bestätigen Sie mit dem Häkchen oder der Eingabetaste. transkribierBAR speichert die aktuellen Einstellungen unter diesem Namen. Das Kreuz oder Esc bricht ab.
+
+## Die Seite „Voreinstellungen“
+
+Klicken Sie in der Kopfzeile auf **Voreinstellungen**. Die Seite **Meine Voreinstellungen** hat vier Reiter: **Transkription**, **Analyse**, **Verfeinerung** und **Pakete**. Der Abschnitt „Pakete“ erklärt den letzten.
+
+Jeder Reiter listet Ihre gespeicherten Einträge mit **Bearbeiten** und **Löschen**. **+ Neue Voreinstellung** öffnet ein Formular mit einem **Namen** und den Feldern der jeweiligen Art. **Speichern** ist erst möglich, wenn Sie einen Namen eingegeben haben. **Abbrechen** schließt das Formular.
+
+**Löschen** fragt nach: **Voreinstellung löschen? Pakete, die sie verwenden, verlieren die Referenz.** Es wird nur die Voreinstellung entfernt. Pakete, die sie verwendet haben, bleiben bestehen, aber ohne diesen Teil. Bereits vorhandene Transkriptionen sind nicht betroffen.
+
 ## Transkriptions-Voreinstellungen
 
-Eine Transkriptions-Voreinstellung speichert deine bevorzugte Kombination aus Sprache, Modell, Sprechererkennungs-Einstellungen, initialem Prompt und Hotwords. Wähle eine gespeicherte Voreinstellung in der Upload- oder Aufnahme-Ansicht aus, anstatt jede Option jedes Mal manuell einzustellen. Voreinstellungen erstellst und verwaltest du auf der **Voreinstellungen**-Seite, die du über die Kopfzeile erreichst.
+Eine Transkriptions-Voreinstellung speichert Sprache, Erkennung der Sprechenden, Anfangs-Prompt, Schlüsselwörter und Modell. Das Formular auf der Seite hat die Felder **Name**, **Sprache für die Transkription**, **Modell**, **Schlüsselwörter** und **Anfangs-Prompt**. Das Modell ist fest auf {{default_model}} eingestellt und lässt sich nicht ändern.
+
+Wenn Sie eine solche Voreinstellung bei **Hochladen** oder **Aufnehmen** wählen, übernimmt sie die Sprache, die in ihr gespeicherten Einstellungen zu den Sprechenden, den Anfangs-Prompt und die Schlüsselwörter. Das Modell bleibt {{default_model}}.
+
+> **Sprechende.** Die Seite „Voreinstellungen“ hat kein Feld für die Erkennung der Sprechenden. Voreinstellungen, die Sie dort anlegen oder bearbeiten, erkennen keine Sprechenden. Wählen Sie eine solche bei **Hochladen** oder **Aufnehmen**, ist die Erkennung der Sprechenden in den Einstellungen danach ausgeschaltet. Soll eine Voreinstellung Sprechende erkennen, stellen Sie das bei **Hochladen** oder **Aufnehmen** ein und speichern Sie mit **Als Voreinstellung speichern**.
 
 ## Analyse-Voreinstellungen
 
-Eine Analyse-Voreinstellung speichert eine Vorlage (oder einen eigenen Prompt) zusammen mit der Ausgabesprache. Praktisch für wiederkehrende Analysemuster — zum Beispiel „Besprechungsprotokoll auf Deutsch erstellen". Kapiteltitel und Agenda-Punkte werden bei jeder Analyse einzeln eingegeben und nicht in der Voreinstellung gespeichert. Wähle die Voreinstellung beim Ausführen einer Analyse aus.
+Eine Analyse-Voreinstellung speichert die Vorlage und die Ausgabesprache. Bei **Eigene Anweisung** speichert sie auch Ihre eigene Anweisung. Das Formular auf der Seite hat die Felder **Name**, **Vorlage auswählen**, **Ausgabesprache** und, bei **Eigene Anweisung**, **Prompt anpassen**.
+
+Speichern Sie eine Voreinstellung im Analyse-Formular mit **Als Voreinstellung speichern**, speichert sie auch die Kapitel und die Agenda, die Sie dort eingegeben haben. Wählen Sie die Voreinstellung später, werden sie wieder eingetragen. Der Abschnitt „Analyse“ erklärt das Formular.
+
+> **Kapitel und Agenda.** Die Seite „Voreinstellungen“ hat keine Felder für Kapitel und Agenda. Wenn Sie dort eine Analyse-Voreinstellung bearbeiten, werden sie aus der Voreinstellung entfernt.
 
 ## Verfeinerungs-Voreinstellungen
 
-Eine Verfeinerungs-Voreinstellung speichert ein einzelnes Kontextfeld: eine kurze Beschreibung, die dem LLM bessere Bereinigungsentscheidungen ermöglicht — zum Beispiel „technisches Interview über Datenbanken". Es ist der einfachste Voreinstellungstyp, kann aber die Verfeinerungsqualität für gleichartige Aufnahmen spürbar verbessern.
-
-## Bearbeiten und löschen
-
-Öffne die **Voreinstellungen**-Seite, um eine Voreinstellung zu bearbeiten oder vollständig zu entfernen. Das Löschen einer Voreinstellung entfernt sie nur aus dem Dropdown-Menü — vergangene Transkriptionen, die sie genutzt haben, bleiben unverändert. Die Löschung ist dauerhaft.
+Eine Verfeinerungs-Voreinstellung speichert nur einen Kontexttext, zum Beispiel einen Hinweis zum Thema und zu Fachbegriffen. Das Formular auf der Seite hat die Felder **Name** und **Kontext (optional)**. Der Abschnitt „Verfeinerung“ erklärt, was der Kontext bewirkt.

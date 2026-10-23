@@ -2,30 +2,63 @@
 
 ## What analysis does
 
-Analysis sends your transcript to a language model to produce a higher-level artifact — a summary, a structured protocol, chapter markers, or anything else you ask for. It does not modify the transcript. The original utterances remain unchanged regardless of what the analysis produces.
+Analysis has a language model evaluate your transcript, for example as a summary with chapters, as meeting minutes or according to an instruction of your own. The transcript itself stays unchanged. Each result is saved as a separate entry for the transcription and deleted together with it.
 
-## Built-in templates
+You find analysis in the **Analysis** tab of the detail view, next to **Subtitles**. The language model receives the text of the utterances with their start time and speaker. transkribierBAR inserts the names you gave under **Speaker Names**, as they are at the time of creation.
 
-Three templates are available out of the box, plus a **Custom** option for your own prompt:
+> **Save first.** The analysis works with the saved text. Changes in the editor that you have not yet saved with **Save changes** are not included.
 
-- **Summary with chapters** — an overall summary plus time-coded chapter breakdown, useful for long recordings
-- **Meeting protocol** — structured notes with key points, decisions, and action items
-- **Agenda-based notes** — notes structured around a provided meeting agenda
+## Creating an analysis
 
-Pick the template that matches the nature of your content.
+Choose a template. **Summary with chapters** is preselected. The **Output language** is preset to the language detected in the transcription. Click **Generate**.
 
-## Custom prompts
+While the analysis runs, the page shows, for example, **Generating Summary with chapters...** and hides the form. The page waits for the language model's reply. Stay on it until the result appears. If you leave the page anyway, the analysis keeps running on the server. You see the result when you reopen the transcription later. A new attempt before it has finished fails.
 
-Select **Custom** to write your own prompt. The model receives the full transcript text plus your prompt and returns whatever you ask for. Keep prompts direct and concrete. Avoid asking for information the transcript does not contain — the model will fill in gaps with guesses if pushed.
+You can create as many analyses as you like, also with different templates. Each one is a separate entry in the list. **+ New Analysis** opens the form again, **Cancel** closes it. If there is no analysis yet, the form is visible right away.
 
-## Chapter hints and agenda
+## Templates
 
-The **Summary with chapters** template shows an optional **Define chapters** field where you can pre-declare chapter titles and descriptions (one per line) to guide segmentation. The **Agenda-based notes** template shows an **Agenda** field — paste your agenda there and the model will structure the output around those items.
+- **Summary with chapters:** an overall summary and chapters with title, time span and a short description.
+- **Meeting protocol:** title, participants, key points, decisions and action items with the person responsible.
+- **Agenda-based notes:** notes following an agenda. Like the summary, the result appears as text with chapters.
+- **Custom:** you write the instruction yourself (see "Customizing the prompt").
 
-## Running multiple analyses
+## Chapters and agenda
 
-You can run analysis as many times as you like, with different templates or prompts. Each result is saved separately and displayed in the analysis history. From there you can compare outputs, delete older results, or re-run any configuration.
+For **Summary with chapters** there is the expandable list **Define chapters (optional)**. With **Add chapter** you create one row per chapter, with a **Chapter title** and a **Brief description**. Either one is enough. Completely empty rows are ignored, **Remove** deletes a row. You can specify up to 30 chapters. The language model arranges the structure accordingly. If a topic does not occur in the recording, the chapter should still appear in the result, with a note in its description and with **—** instead of a time span.
+
+For **Agenda-based notes** the **Agenda** field appears. Paste your agenda there. If you leave it empty, the language model derives the items from the transcript.
+
+## Customizing the prompt
+
+Under **Customize prompt** you see the instruction of the selected template. It is in English and contains placeholders in curly braces, which transkribierBAR otherwise fills in itself. **Reset to template** restores the original text. With **Custom** the field is empty at first.
+
+> **Changed prompt.** As soon as you change the text or use **Custom**, it is sent exactly as it stands. Placeholders are then no longer replaced, and **Define chapters** and **Agenda** are not sent along. The **Output language** still applies.
+
+The language model always replies with structured text (JSON). The page shows results built like a summary or a protocol as cards. All others appear as text.
 
 ## Source: original or refined
 
-If a refinement exists, the analyze form shows a **Source** toggle (Original / Refined) — defaulted to **Refined**, so the LLM sees the cleaned-up text by default. Switch to **Original** to analyze the raw ASR output instead. Each stored analysis shows which source it used ("from refined" / "from original"); if the source has since changed or the refinement was deleted, the label turns amber and you can re-run to regenerate.
+If a refinement exists, the form shows the **Source** toggle with **Original** and **Refined**. **Refined** is preselected. Without a refinement there is no toggle, and the analysis uses the original. A translation cannot serve as the source.
+
+Below the result it says what it was made from: **from refined** or **from original**. If the text of that source has changed since, the label turns amber with the addition **source has newer content**. If the refinement was deleted, it reads **source no longer available**. Changes to times or names do not count as new content. An existing analysis does not update itself. Create a new one if needed.
+
+## Reading and reusing results
+
+Click an entry to expand it. The header shows the name of the template (or **Custom**), the date and the language model used. Below the result it says once more what it was generated with.
+
+- For chapters, key points, decisions and action items, clicking the time makes the player jump to that spot.
+- The cross that appears on a card when you hover over it removes that item from the result. This is saved immediately and cannot be undone. For the summary this applies to chapters, not to the summary text.
+- **Copy result** puts the text on the clipboard. **TXT** and **Markdown** download it, as a file named after the recording with the suffix `_analysis`. The buttons appear above and below the result.
+- The trash icon (**Delete**) in the header deletes the entry after a confirmation prompt.
+
+## If the analysis fails
+
+After an error no entry is created, and you can try again. The message appears below **Generate**. Two cases have their own texts:
+
+- **The analysis reached the language model's output limit before it was complete. Try a more focused prompt.** The same request leads there again. Shorten the instruction or make it more precise.
+- **The language model returned a malformed response. Please try again.** transkribierBAR has already tried several times on its own. A new attempt can succeed.
+
+## In a bundle
+
+If a bundle contains an analysis preset, your browser creates the analysis automatically after the transcription and the refinement. If a refinement exists by then, it uses it, otherwise the original. In the form, the **Analysis** field loads a preset. **Save as preset** saves the current settings. The "Presets" section has more on this.

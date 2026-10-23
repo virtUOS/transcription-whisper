@@ -1,17 +1,43 @@
 # Aufnehmen
 
-## Im Browser aufnehmen
+## Quellen wählen
 
-Klicke auf **+ Aufnehmen**, um den Recorder zu öffnen. Erteile die Mikrofonberechtigung, wenn du dazu aufgefordert wirst — optional kannst du auch ein Kamerabild aktivieren. Nutze die Steuerung zum Starten, Pausieren, Fortsetzen und Stoppen. Die Aufnahme bleibt im Speicher, bis du auf **Transkribieren** klickst oder sie mit **Verwerfen** löschst. Wenn du die Seite mit einer ungespeicherten Aufnahme verlässt, fragt die App zur Bestätigung nach.
+Klicken Sie in der Übersicht auf **+ Aufnehmen**. Die Schaltfläche erscheint nur, wenn Ihr Browser Aufnahmen unterstützt. Vor dem Start schalten Sie die Quellen ein oder aus: **Mikrofon**, **Systemaudio** und **Kamera**. Das Mikrofon ist voreingestellt, Systemaudio und Kamera sind aus. Mit der Kamera wird immer auch das Mikrofon aufgenommen, auch wenn der Schalter **Mikrofon** aus ist. Mindestens eine Quelle muss eingeschaltet sein, sonst steht dort **Mindestens eine Quelle aktivieren** und **Aufnahme starten** ist gesperrt.
 
-## Aufnahmequalität
+Beim Mikrofon wählen Sie im Feld **Mikrofon** das Gerät. Gibt es nur ein Gerät, zeigt das Feld dessen Namen. Ihr Browser fragt gegebenenfalls nach der Erlaubnis. Ist der Zugriff blockiert, erscheint ein Hinweis mit der Schaltfläche **Erneut versuchen**. Erlauben Sie den Zugriff dann in den Website-Einstellungen Ihres Browsers.
 
-Der Browser nimmt im Standard-MediaRecorder-Format auf, meist WebM/Opus. Das reicht für Sprachtranskriptionen aus. Wenn du höhere Audioqualität oder ein bestimmtes Format brauchst, nimm extern mit einer dedizierten Software auf und lade die Datei hoch.
+> **Einwilligung einholen.** Vor dem Start erinnert die Seite Sie: **Nehmen Sie niemanden ohne Erlaubnis auf. Fragen Sie vorher!**
+
+## Aufnehmen
+
+Klicken Sie auf **Aufnahme starten**. Ein kurzer Signalton zeigt den Start an. Die Anzeige zählt die Dauer als Stunden:Minuten:Sekunden hoch, und ein roter Punkt blinkt. Ein grüner Balken zeigt den Pegel; ist die Kamera an, sehen Sie stattdessen das Kamerabild. Die Quellen lassen sich nach dem Start nicht mehr ändern.
+
+Während der Aufnahme stehen **Pause**, **Stopp** und **Verwerfen** bereit. Nach **Pause** heißt die erste Schaltfläche **Fortsetzen**. **Verwerfen** löscht die Aufnahme und führt zurück zum Start.
+
+## Nach dem Stopp
+
+Nach **Stopp** lädt transkribierBAR die Aufnahme automatisch hoch (**Aufnahme wird hochgeladen...**). Danach geht es weiter wie beim Hochladen: Sie sehen die Einstellungen und klicken auf **Transkribieren**. **Verwerfen** steht auch hier bereit. Schlägt der Upload fehl, erscheint eine Fehlermeldung mit **Erneut versuchen** und **Verwerfen**.
+
+Die Datei heißt `recording-` mit Datum und Uhrzeit. Das Format wählt der Browser: bevorzugt WebM, sonst MP4.
 
 ## Systemaudio
 
-Du kannst Systemaudio zusammen mit dem Mikrofon aufnehmen. Die Unterstützung variiert je nach Browser und Betriebssystem — die App zeigt plattformspezifische Hinweise in der Oberfläche an. Auf manchen Plattformen musst du zuerst einen Bildschirm oder Tab zum Teilen auswählen. Nimm nur Inhalte auf, für die du die Berechtigung hast.
+Mit **Systemaudio** nehmen Sie zusätzlich auf, was Ihr Computer abspielt, etwa ein Online-Meeting. Das Mikrofon wird dann mit dem Systemaudio gemischt; schalten Sie das Mikrofon aus, wird nur Systemaudio aufgenommen. Die Seite kennzeichnet die Funktion als experimentell. Was möglich ist, hängt von Browser und Betriebssystem ab:
 
-## Aufnehmen oder hochladen?
+- **Chromium-Browser unter Windows (Chrome, Edge, Brave):** Der Browser lässt Sie einen Bildschirm oder einen Tab wählen. Ein ganzer Bildschirm liefert das gesamte Systemaudio, ein Tab nur dessen Ton.
+- **Chromium-Browser unter anderen Systemen:** Nur der Ton eines Browser-Tabs ist möglich. Führen Sie das Meeting in einem Tab und wählen Sie diesen Tab aus, wenn der Browser fragt.
+- **Firefox unter Linux:** Wählen Sie im Feld **Systemaudioquelle** ein zweites Audio-Eingabegerät, zum Beispiel eine PulseAudio- oder PipeWire-Monitorquelle.
+- **Firefox unter anderen Systemen:** Die Unterstützung ist eingeschränkt. Verwenden Sie besser einen Chromium-Browser.
+- **Mobilgeräte und andere Browser:** **Systemaudio** wird nicht angeboten.
 
-Nutze den Recorder für schnelle In-App-Sitzungen ohne vorhandene Datei. Lade eine Datei hoch, wenn du bereits eine Aufnahme hast oder wenn Audioqualität wichtiger ist — externe Aufnahmen geben dir volle Kontrolle über Format und Bitrate.
+Solange **Systemaudio** an ist, ist **Kamera** gesperrt. Beenden Sie die Freigabe des Bildschirms oder Tabs, endet die Aufnahme. Gelingt die Aufnahme nicht, erscheint eine Fehlermeldung, zum Beispiel wenn Sie die Auswahl des Browsers abgebrochen haben.
+
+## Kamera
+
+Mit **Kamera** nehmen Sie zusätzlich ein Bild auf, dann entsteht eine Videodatei. Der Ton des Mikrofons wird dabei immer mit aufgenommen. Im Feld **Kamera** wählen Sie das Gerät. Ist keine Kamera da, steht **Keine Kamera erkannt.** Lässt sich die Kamera nicht öffnen, läuft die Aufnahme nur mit Ton weiter, und eine Meldung weist darauf hin.
+
+## Seite verlassen
+
+Schließen Sie den Tab oder laden Sie die Seite neu, während Sie aufnehmen, pausieren oder gerade eine Aufnahme beendet haben, warnt Sie der Browser.
+
+> **Aufnahme nicht verlieren.** Wechseln Sie innerhalb von transkribierBAR in eine andere Ansicht, etwa mit **← Transkriptionen**, endet die laufende Aufnahme und wird verworfen, ohne dass nachgefragt wird. Bleiben Sie in dieser Ansicht, bis Sie nach dem Hochladen auf **Transkribieren** geklickt haben.

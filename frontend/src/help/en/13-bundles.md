@@ -2,22 +2,36 @@
 
 ## What a bundle is
 
-A bundle is a named composition of pipeline stages: transcription, refinement, analysis, and translation. Each stage is optional except transcription, and each stage slot holds one preset (or a target language for translation). Selecting a bundle on the Upload or Record view means all configured stages run automatically in sequence after transcription completes — no manual triggering required.
+A bundle ties presets together for a recurring workflow. It can contain a transcription preset, a refinement preset, an analysis preset and a target language for translation. Each part is optional. Bundles belong to your account, and only you see them.
+
+Once the transcription has finished, transkribierBAR carries out the further steps of the bundle one after another. You do not have to start each one yourself.
 
 ## The pipeline
 
-![Bundle pipeline](./assets/bundle-pipeline.svg)
+![How a bundle runs: transcription, refinement, analysis, translation](./assets/bundle-pipeline.svg)
 
-Stages always execute in order: **transcription → refinement → analysis → translation**. When a refinement step is configured, analysis and translation default to reading the refined text rather than the original — so the cleaned-up output propagates forward through the pipeline. Drop the refinement step (or flip the **Source** toggle when running manually) to keep those stages on the original transcript instead.
+The steps always run in this order: **transcription, refinement, analysis, translation**. The transcription always runs. Refinement, analysis and translation only run if the bundle contains them.
 
-## The default bundle and auto-run
+Your browser starts these steps, one after another. Stay on the page until they have finished. If a refinement exists by then, analysis and translation use it, otherwise the original. You cannot choose the original in a bundle.
 
-You can mark one bundle as the default. It will be pre-selected for every new upload and recording. Once transcription finishes, the remaining stages start automatically and progress indicators show each stage's status. If an individual stage fails, you can dismiss the error and continue without re-running the whole pipeline.
+When the transcription is finished, the detail view opens. A strip above the editor shows the current step, for example **Translating to English...**. If a step fails, the others still run. Afterwards the message **Some pipeline steps failed:** lists what went wrong. The cross closes it. A step whose preset you have deleted in the meantime is skipped.
 
-## Creating and using bundles
+## Creating a bundle
 
-Create bundles on the **Presets** page by picking one preset per stage and giving the bundle a name. Mark it as default if you want it applied automatically. On the Upload or Record view, switch the active bundle via the bundle dropdown at any time before submitting.
+Create the presets you need first, as described in the section "Presets". Then open the **Presets** page, switch to the **Bundles** tab and click **+ New bundle**.
+
+Enter a **Name**. Then choose, if you like, a **Transcription preset...**, an **Analysis preset...** and a **Refinement preset...**, and under **Translate to** a language. **None** leaves a part out. Confirm with **Save**.
+
+Each bundle appears as a card with its name and the parts it contains. **Edit** changes it, **Delete** removes it after the question **Delete this bundle?**. Deleting a bundle does not delete its presets.
+
+## Using a bundle
+
+In **Upload** and **Record**, the **Bundles** field in the **Presets** group appears once you have created bundles. If you choose a bundle there, the settings of its transcription preset are applied. If the bundle contains refinement, analysis or translation, the button reads **Run pipeline**. The section "Upload" explains in detail how this works, including the preselected bundle.
+
+## Default bundle
+
+The star on a bundle's card makes it the default. The star on the default bundle removes the default again. You can have only one default bundle. The app preselects it when it opens. This does not apply its transcription preset to the settings yet. The section "Upload" explains that.
 
 ## Bundle or manual steps?
 
-Use a bundle when you apply the same pipeline repeatedly — for example, "every meeting recording: refine, then summarize in English, then translate to German". Use manual steps for one-off recordings that need different treatment or where you want to inspect intermediate results before proceeding.
+A bundle pays off when you treat many recordings the same way, for example always refine, then summarize, then translate. For a single recording that needs different treatment, or if you want to look at the result of a step first, start the steps by hand.

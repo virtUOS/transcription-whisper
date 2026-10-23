@@ -2,22 +2,29 @@
 
 ## Die vier Formate
 
-Die Detailansicht bietet vier Exportformate, die sich für unterschiedliche Anwendungsfälle eignen:
+Neben **Untertitel** hat die Detailansicht die Reiter **SRT**, **VTT**, **JSON** und **TXT**. Jeder zeigt das Transkript in diesem Format. transkribierBAR erstellt es in Ihrem Browser aus dem aktuellen Text.
 
-- **SRT** — Das am weitesten verbreitete Untertitelformat. Nummerierte Einträge mit `HH:MM:SS,mmm`-Zeitstempeln. Funktioniert mit nahezu jedem Videoplayer und Schnittprogramm.
-- **VTT** — Der moderne WebVTT-Standard für HTML5-Video. Ähnlich aufgebaut wie SRT, aber mit übersichtlicherer Syntax und nativer Browser-Unterstützung.
-- **JSON** — Eine strukturierte Liste von Äußerungen mit Start- und Endzeit, Text und Sprecherbeschriftung. Die richtige Wahl, wenn du das Transkript programmatisch weiterverarbeiten möchtest. Wenn eine Verfeinerung existiert, ist der JSON-Export ein Objekt, das beide Arrays enthält: `{ "utterances": [...], "refined_utterances": [...] }`.
-- **TXT** — Reiner Text mit Sprecherbeschriftungen, aber ohne Zeitstempel. Leicht lesbar, teilbar oder in ein Dokument einfügbar.
+- **SRT:** nummerierte Einträge mit Zeitangaben wie `00:01:30,250 --> 00:01:34,000`. Der Text beginnt mit dem Namen der sprechenden Person in eckigen Klammern: `[Name]: Text`.
+- **VTT:** beginnt mit `WEBVTT` und hat Zeitangaben mit Punkt statt Komma (`00:01:30.250`). Die Namen stehen wie bei SRT in eckigen Klammern.
+- **JSON:** eine Liste mit `start`, `end`, `text` und `speaker` je Äußerung. Start und Ende sind Millisekunden.
+- **TXT:** eine Zeile je Äußerung ohne Zeitangaben, in der Form `Name: Text`.
+
+Äußerungen ohne sprechende Person erscheinen ohne Namen.
 
 ## Herunterladen
 
-Jedes Format hat seinen eigenen Reiter. Klicke auf einen Reiter, um eine Vorschau anzuzeigen, und klicke dann auf **Herunterladen**, um die Datei zu speichern. Namen, die du im Speaker Mapping vergeben hast, werden in allen vier Formaten übernommen.
+Der Reiter zeigt eine Vorschau, die Sie nicht ändern können. Über und unter der Vorschau steht dieselbe Schaltfläche, zum Beispiel **Herunterladen SRT**. Sie speichert die Datei mit dem Namen der Aufnahme ohne Endung plus Dateiendung des Formats, etwa `Vorlesung.srt`. Fehlt der Name, heißt die Datei `transcription.srt`.
+
+## Was im Format steht
+
+Das Format zeigt den Stand, den Sie im Editor sehen, auch mit ungespeicherten Änderungen. Namen aus **Namen der Sprechenden** sind in allen vier Formaten eingesetzt; in der Ansicht **Verfeinert** und in einer daraus erstellten Übersetzung gelten die Namen vom Zeitpunkt der Verfeinerung.
+
+Welche Fassung erscheint, richtet sich nach der Ansicht, die Sie im Reiter **Untertitel** zuletzt gewählt haben: **Original**, **Verfeinert** oder **Übersetzt**. Ist **Verfeinert** gewählt, enthält das JSON-Format beide Fassungen in einem Objekt: `utterances` für das Original und `refined_utterances` für die verfeinerte Fassung.
 
 ## Welches Format passt?
 
-| Ziel | Bestes Format |
+| Ziel | Format |
 |---|---|
 | Untertitel zu einem Video hinzufügen | SRT oder VTT |
-| Programmatisch weiterverarbeiten | JSON |
-| Transkript lesen oder teilen | TXT |
-| In einen Web-Player einbetten | VTT |
+| Das Transkript mit einem Programm weiterverarbeiten | JSON |
+| Das Transkript lesen oder weitergeben | TXT |

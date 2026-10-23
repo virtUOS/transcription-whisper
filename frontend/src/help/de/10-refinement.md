@@ -1,21 +1,57 @@
 # Verfeinerung
 
-## Was Verfeinerung bewirkt
+## Was die Verfeinerung macht
 
-Die Verfeinerung führt einen Bereinigungsdurchlauf mit einem Sprachmodell über dein Transkript aus. Sie entfernt Füllwörter (äh, ähm, also), behebt Sprecherzuordnungsfehler, bei denen mitten im Satz der falsche Sprecher getaggt wurde, und glättet fragmentierte oder zu lange Sätze zu lesbarem Text. Das Original-Transkript bleibt vollständig erhalten — die Verfeinerung erzeugt eine eigene Ansicht, keine direkte Bearbeitung. Sie bleibt in der Ausgangssprache; sie ist keine Übersetzung. Bearbeitest du das Original nach der Verfeinerung, zeigt die Werkzeugleiste **Original wurde bearbeitet – löschen und erneut verfeinern**; die verfeinerte Ansicht behält bis dahin den älteren Text.
+Bei der Verfeinerung geht ein Sprachmodell Ihr Transkript durch und korrigiert eindeutige Fehler. Es soll nur Folgendes ändern:
 
-## Wann sie hilft
+- Rechtschreib- und Zeichensetzungsfehler,
+- offensichtliche Grammatikfehler, die Erkennungsfehler sind und nicht der Sprechweise entsprechen,
+- uneinheitliche Fachbegriffe und Eigennamen,
+- Füllgeräusche wie „äh“, „ähm“ oder „hm“,
+- Fehlstarts und Selbstkorrekturen, bei denen die Person neu ansetzt.
 
-Die Verfeinerung ist am nützlichsten bei rauschreichen Quellen: informellen Gesprächen, Interviews, Gruppendiskussionen mit Überlappungen oder Aufnahmen mit vielen Füllwörtern und Sprechunflüssigkeiten. Sie hilft auch dann, wenn die Diarisierung Zuordnungsfehler bei aufeinanderfolgenden Äußerungen gemacht hat. Das verfeinerte Transkript ist oft deutlich lesbarer als die rohe ASR-Ausgabe.
+Das Sprachmodell soll nichts umformulieren, gesprochene Sprache nicht in Schriftsprache umwandeln, Zeiten und die Angabe der sprechenden Person nicht verändern und genau so viele Äußerungen zurückgeben, wie es erhalten hat. Bei Unsicherheit soll es den Text lassen, wie er ist. Eine Übersetzung ist die Verfeinerung nicht, dafür gibt es den Abschnitt „Übersetzung“.
 
-## Wann du sie überspringen solltest
+Das Original bleibt unverändert. Die Verfeinerung ist eine eigene Fassung, die Sie mit **Verfeinert** neben **Original** ansehen. Sie wird mit der Transkription gespeichert, ist beim erneuten Öffnen wieder da und wird zusammen mit ihr gelöscht.
 
-Bei sauberen Einzelsprecher-Aufnahmen — Vorlesungen, Kommentaren, vorbereiteten Reden — ist die rohe ASR-Ausgabe in der Regel bereits von hoher Qualität. Die Verfeinerung verursacht dann LLM-Kosten und Verarbeitungszeit ohne nennenswerten Gewinn. Überspringe sie, wenn das Original bereits gut lesbar ist.
+> **Erst speichern.** Die Verfeinerung arbeitet mit dem gespeicherten Text. Änderungen im Editor, die Sie noch nicht mit **Änderungen speichern** gesichert haben, sind nicht enthalten.
 
-## Wenn einzelne Abschnitte nicht verfeinert werden konnten
+## Wann sie sich lohnt
 
-Die Verfeinerung wird dem Sprachmodell abschnittsweise übergeben. Schlägt ein Abschnitt fehl — meist, weil der Modell-Endpunkt ausgelastet war und die Anfrage abgelaufen ist — wird der Rest des Transkripts trotzdem verfeinert und gespeichert. Fehlgeschlagene Abschnitte behalten ihren Originaltext: In der verfeinerten Ansicht haben ihre Zeilen einen gestrichelten grauen Rand und einen hohlen grauen Punkt, und ein Hinweis über der Tabelle nennt ihre Äußerungsnummern. Mit **Fehlgeschlagene Abschnitte erneut verfeinern** in diesem Hinweis werden nur diese Abschnitte mit demselben Kontext wie ursprünglich erneut verarbeitet. Bereits erfolgreiche Abschnitte werden nicht erneut gesendet.
+Die Verfeinerung betrifft nur die oben genannten Punkte. Sie lohnt sich deshalb vor allem, wenn Ihr Transkript viele davon enthält, zum Beispiel Füllgeräusche oder uneinheitlich geschriebene Fachbegriffe und Namen. Die Zusammenfassung der Änderungen zeigt Ihnen, was das Sprachmodell geändert hat.
 
-## Reihenfolge mit anderen Schritten
+## Verfeinern
 
-In einer Bundle-Pipeline läuft die Verfeinerung immer vor Analyse und Übersetzung. Sobald eine Verfeinerung vorhanden ist, verwenden Analyse und Übersetzung standardmäßig diese als Eingabe — ein Bundle mit Verfeinerungsschritt reicht den bereinigten Text also automatisch an die nachfolgenden Stufen weiter. Du kannst dies pro Durchlauf über den **Quelle**-Umschalter in den Dialogen „Übersetzen" und „Analysieren" überschreiben oder den Verfeinerungsschritt im Bundle weglassen, wenn nachgelagerte Stufen auf dem Original arbeiten sollen. Die verfeinerte Fassung bleibt zudem als eigenständige Ansicht nutzbar — lesbar, bearbeitbar und herunterladbar neben dem Original. Mehr dazu unter **Analyse**, **Übersetzung** und **Bundles**.
+Klicken Sie im Reiter **Untertitel** über der Tabelle auf **Mit LLM verfeinern**. Die Schaltfläche gibt es, solange noch keine Verfeinerung existiert. Oben im Dialog können Sie eine Voreinstellung wählen oder speichern. Im Feld **Kontext (optional)** geben Sie Hinweise, die dem Sprachmodell bei Fachbegriffen und Eigennamen helfen, zum Beispiel „Informatik-Vorlesung, Vortragende Person ist Prof. Müller“. Klicken Sie dann auf **Verfeinern**. **Abbrechen** schließt den Dialog.
+
+Das Sprachmodell erhält das Original mit den Namen, die Sie unter **Namen der Sprechenden** vergeben haben. Vergeben Sie die Namen deshalb, bevor Sie verfeinern. Spätere Umbenennungen erreichen die Ansicht **Verfeinert** nicht mehr.
+
+Während der Verfeinerung steht auf der Schaltfläche **Transkription wird verfeinert...**, und das Kontextfeld und die Schaltflächen sind gesperrt. Bei mehr als 50 Äußerungen weist ein Hinweis darauf hin, dass die Verfeinerung mehrere Minuten dauern kann. Die Seite wartet auf das Sprachmodell. Bleiben Sie darauf, bis der Dialog sich schließt. Verlassen Sie die Seite trotzdem, läuft die Verfeinerung auf dem Server weiter. Sie sehen sie, wenn Sie die Transkription später erneut öffnen. Ein neuer Versuch, bevor sie fertig ist, schlägt fehl. Danach zeigt der Editor die Ansicht **Verfeinert**.
+
+Schlägt es fehl, steht im Dialog **Verfeinerung fehlgeschlagen. Bitte versuchen Sie es erneut.** Versuchen Sie es dann erneut.
+
+## Die verfeinerte Ansicht lesen
+
+In der Ansicht **Verfeinert** nennt eine Leiste über der Tabelle die **Zusammenfassung der Änderungen**, mit der Zahl der geänderten Äußerungen. Ein Klick darauf klappt sie auf oder zu. Aufgeklappt beschreibt sie in Worten, was das Sprachmodell geändert hat, und nennt den **Kontext**, falls Sie einen angegeben haben.
+
+Geänderte Zeilen haben einen bernsteinfarbenen Strich am linken Rand und auf größeren Bildschirmen einen Punkt neben der Zeilennummer. Ein Klick auf den Punkt zeigt **Original** und **Verfeinert** nebeneinander (nur auf größeren Bildschirmen). Die Ansicht ist schreibgeschützt. Wollen Sie Text selbst ändern, tun Sie das im Original.
+
+## Wenn Abschnitte nicht verfeinert werden konnten
+
+transkribierBAR schickt die Äußerungen abschnittsweise an das Sprachmodell. Scheitert ein Abschnitt auch nach mehreren automatischen Versuchen, werden die übrigen trotzdem verfeinert und gespeichert. Die gescheiterten Abschnitte behalten ihren Originaltext. Scheitern alle, entsteht keine Verfeinerung, und Sie sehen die Fehlermeldung.
+
+Die betroffenen Zeilen haben einen gestrichelten grauen Rand und auf größeren Bildschirmen einen hohlen grauen Punkt. In der Leiste steht außerdem zum Beispiel **Nicht verfeinert (Originaltext beibehalten): Äußerungen 451–500**. Mit **Fehlgeschlagene Abschnitte erneut verfeinern** wiederholen Sie nur diese Abschnitte, während die Schaltfläche **Wird wiederholt…** zeigt. Dabei gilt der gespeicherte Kontext. Was schon gelungen ist, wird nicht erneut gesendet. Scheitert ein Abschnitt wieder, bleibt er in der Liste.
+
+Zwei Meldungen können dort erscheinen: **Wiederholung fehlgeschlagen. Bitte versuchen Sie es erneut.** und **Seit dem Speichern dieser Verfeinerung wurden Äußerungen hinzugefügt oder entfernt. Löschen Sie die Verfeinerung und verfeinern Sie erneut.**
+
+## Wenn Sie das Original ändern
+
+Die Verfeinerung passt sich nicht an. Ändern Sie nach dem Verfeinern Text im Original und speichern, erscheint in der Werkzeugleiste in Bernstein **Original wurde bearbeitet – löschen und erneut verfeinern**. Die Ansicht **Verfeinert** zeigt bis dahin den älteren Text. Änderungen an Zeiten oder Namen zählen dabei nicht.
+
+Mit **Verfeinerung löschen** entfernen Sie die Verfeinerung nach einer Rückfrage. Das Original bleibt unverändert. Danach können Sie neu verfeinern. Analysen und Übersetzungen, die aus der gelöschten Verfeinerung entstanden sind, zeigen **Quelle nicht mehr verfügbar**, eine Analyse sofort, eine Übersetzung sobald Sie die Transkription erneut öffnen.
+
+## Zusammenspiel mit anderen Schritten
+
+Analyse und Übersetzung bieten die Verfeinerung als **Quelle** an und wählen sie von sich aus, sobald es eine gibt. Sie können dort auf **Original** wechseln.
+
+In einem Paket mit Verfeinerungs-Voreinstellung verfeinert der Browser nach der Transkription automatisch, mit dem Kontext der Voreinstellung. Danach folgen Analyse und Übersetzung. Bleiben Sie auf der Seite, bis alle Schritte fertig sind.

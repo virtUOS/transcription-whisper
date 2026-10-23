@@ -1,13 +1,31 @@
 # Archiv
 
-## Deine Transkriptionsliste
+## Meine Transkriptionen
 
-Jede Zeile zeigt den Titel der Transkription, den ursprünglichen Dateinamen, das verwendete Modell, ein Statusbadge (abgeschlossen, fehlgeschlagen oder wird verarbeitet) und das Erstellungsdatum. Die Ablaufinformationen werden rechts angezeigt. Klicke auf eine Zeile, um die Transkription in der Detailansicht zu öffnen. Titel und Dateiname sind direkt bearbeitbar — klicke auf das Stift-Symbol neben dem jeweiligen Feld, um es umzubenennen.
+Nach der Anmeldung sehen Sie die Übersicht. Unter **Meine Transkriptionen** stehen alle Ihre Transkriptionen, die neueste zuerst. Jede Zeile zeigt:
 
-## Ablauf und Archivierung
+- den Titel und darunter den Dateinamen, oder nur den Dateinamen, wenn es keinen Titel gibt;
+- das Modell;
+- den Status: grün `completed` (fertig), gelb `pending` oder `processing` (wartet oder läuft), rot `failed` (fehlgeschlagen);
+- das Erstellungsdatum;
+- ein Schild-Symbol, wenn die Transkription archiviert ist.
 
-Transkriptionen laufen nach einem Aufbewahrungszeitraum ab und werden danach dauerhaft gelöscht. Wenn du eine Transkription archivierst, wird das Ablaufdatum um 180 Tage ab dem aktuellen Datum verlängert. Ablaufdaten innerhalb von 24 Stunden werden rot hervorgehoben. Du kannst eine Transkription mehrmals archivieren, um das Ablaufdatum immer wieder nach hinten zu verschieben. Sobald eine Transkription abgelaufen und gelöscht wurde, lässt sie sich nicht wiederherstellen.
+Ein Klick auf eine Zeile öffnet die Transkription. Den Titel erzeugt transkribierBAR nach der Transkription automatisch mit dem Sprachmodell. Gelingt das nicht, zeigt die Zeile nur den Dateinamen.
 
-## Löschen vs. Archivieren
+Haben Sie noch keine Transkription, sehen Sie stattdessen **Neu hier?** mit dem Link **Einführung öffnen**.
 
-**Löschen** entfernt die Transkription sofort und kann nicht rückgängig gemacht werden. **Archivieren** behält die Transkription, verlängert aber die Aufbewahrung um 180 Tage. Verwende Archivieren, wenn du ein Ergebnis als Referenz behalten möchtest. Lösche nur, wenn du sicher bist, dass du die Transkription nicht mehr benötigst.
+## Umbenennen
+
+Klicken Sie auf den Stift neben dem Titel (**Titel bearbeiten**) oder neben dem Dateinamen (**Dateinamen bearbeiten**). Die Eingabetaste oder ein Klick daneben speichert, Esc bricht ab. Die Dateiendung bleibt unverändert.
+
+## Frist und Archivieren
+
+Jede Transkription wird nach einer Frist automatisch gelöscht, zusammen mit der hochgeladenen Datei und allen Ergebnissen (Analysen, Verfeinerung, Übersetzung, Namen der Sprechenden). Die Frist beträgt {{retention_days}} Tage ab dem Hochladen. In der Detailansicht steht das Datum hinter **Läuft ab:**; sind weniger als 24 Stunden übrig, wird es rot.
+
+**Archivieren** in der Detailansicht setzt die Frist auf {{archive_retention_days}} Tage ab diesem Moment. Statt der Schaltfläche steht dann **Archiviert**, und die Übersicht zeigt das Schild-Symbol.
+
+> **Rechtzeitig herunterladen.** Nach Ablauf der Frist können Sie die Transkription nicht wiederherstellen. Laden Sie Ergebnisse, die Sie behalten möchten, vorher herunter.
+
+## Löschen
+
+**Transkription löschen** in der Detailansicht fragt nach und löscht dann die Transkription mit ihren Ergebnissen sofort. Die hochgeladene Datei wird mitgelöscht, sofern keine andere Transkription sie verwendet. Das Löschen kann nicht rückgängig gemacht werden. Danach sind Sie wieder in der Übersicht.

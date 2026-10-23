@@ -467,7 +467,13 @@
     "emptyStateLink": "Open the Getting Started guide",
     "missingContent": "Content coming soon.",
     "contact": "Contact:",
+    "legal": {
+      "privacyUniversity": "University privacy policy",
+      "imprint": "Imprint",
+      "accessibility": "Accessibility"
+    },
     "sections": {
+      "about": "About transkribierBAR",
       "getting-started": "Getting Started",
       "archive": "Archive",
       "upload": "Upload",

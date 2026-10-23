@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
-import { sections } from './helpSections'
+import { useStore } from '../../store'
+import { visibleSections } from './helpSections'
 import type { HelpSectionId } from './helpSections'
 
 interface HelpSidebarProps {
@@ -9,6 +10,7 @@ interface HelpSidebarProps {
 
 export function HelpSidebar({ activeId, onSelect }: HelpSidebarProps) {
   const { t } = useTranslation()
+  const config = useStore((s) => s.config)
 
   return (
     <nav
@@ -16,7 +18,7 @@ export function HelpSidebar({ activeId, onSelect }: HelpSidebarProps) {
       className="hidden md:block w-[200px] shrink-0 border-r border-gray-700 overflow-y-auto py-4"
     >
       <ul className="space-y-1">
-        {sections.map((section) => {
+        {visibleSections(config).map((section) => {
           const isActive = section.id === activeId
           return (
             <li key={section.id}>

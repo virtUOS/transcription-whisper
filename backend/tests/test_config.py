@@ -2,6 +2,7 @@ import importlib
 
 import pytest
 from httpx import AsyncClient, ASGITransport
+from app.config import settings
 from app.main import app
 
 
@@ -14,6 +15,15 @@ async def test_config_endpoint():
     data = response.json()
     assert "whisper_models" in data
     assert "asr_backend" in data
+
+
+@pytest.mark.asyncio
+async def test_config_exposes_retention_hours():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        data = (await client.get("/api/config")).json()
+    assert data["default_expiry_hours"] == settings.DEFAULT_EXPIRY_HOURS
+    assert data["archive_expiry_hours"] == settings.ARCHIVE_EXPIRY_HOURS
 
 
 @pytest.mark.asyncio

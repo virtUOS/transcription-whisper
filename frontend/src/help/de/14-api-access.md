@@ -1,43 +1,93 @@
 # API-Zugriff
 
-## Worum es geht
+## Wofür das gedacht ist
 
-Wenn in Ihrer Installation API-Tokens aktiviert sind, können Sie einen persönlichen Bearer-Token erzeugen und damit die REST-Schnittstelle der Anwendung direkt aus Skripten, CI-Jobs oder beliebigen HTTP-Clients aufrufen. Ein Token ist an Ihr Konto gebunden — er kann Ihre eigenen Dateien, Transkriptionen und Voreinstellungen lesen und schreiben, aber niemals Daten anderer Nutzer sehen.
+Mit einem persönlichen API-Token können Ihre eigenen Skripte transkribierBAR ohne die Weboberfläche nutzen: eine Datei hochladen, eine Transkription starten, ihren Status abfragen und das Ergebnis herunterladen. Dieser Abschnitt richtet sich an Personen, die Skripte schreiben. Für die Weboberfläche brauchen Sie ihn nicht.
 
-Ist das Feature in Ihrer Installation deaktiviert, erscheint der Eintrag **Einstellungen** in der Kopfzeile nicht und der Bereich ist nicht verfügbar.
+Ein Token gehört zu Ihrem Konto. Ein Skript, das ihn verwendet, sieht und ändert nur Ihre eigenen Dateien und Transkriptionen. Es kann tun, was Sie auch in der Weboberfläche tun können.
 
 ## Token erstellen
 
-Öffnen Sie **Einstellungen** in der Kopfzeile und klicken Sie auf **Token erstellen**. Vergeben Sie einen kurzen Namen, der Ihnen hilft, den Verwendungszweck wiederzuerkennen (z. B. `mein-laptop` oder `ci-pipeline`), wählen Sie eine Gültigkeit (30, 90, 365 Tage oder Nie) und bestätigen Sie mit **Erstellen**.
+Klicken Sie in der Kopfzeile auf **Einstellungen**. Klicken Sie im Bereich **API-Tokens** auf **Token erstellen**. Geben Sie einen **Namen** ein, der Ihnen sagt, wo Sie den Token verwenden, zum Beispiel den Namen des Skripts. Wählen Sie unter **Läuft ab** zwischen **30 Tage**, **90 Tage**, **365 Tage** und **Nie**. Die Standard-Gültigkeit beträgt {{api_token_expiry_days}} Tage. Klicken Sie auf **Erstellen**.
 
-Der Token wird **einmalig** als `tw_…`-Zeichenkette angezeigt. Kopieren Sie ihn sofort — sobald Sie den Dialog schließen, ist der vollständige Wert nicht mehr abrufbar. In der Liste ist nur das kurze Präfix zur Wiedererkennung sichtbar.
+Der Name darf bis zu 64 Zeichen lang sein. Unter Ihren aktiven Tokens darf jeder Name nur einmal vorkommen. Die Zahl der aktiven Tokens pro Person ist begrenzt. Haben Sie sie erreicht, wird ein weiterer Token mit einer Fehlermeldung im Dialog abgelehnt. Widerrufen Sie dann zuerst einen Token, den Sie nicht mehr brauchen.
 
-## Token verwenden
+> **Token jetzt kopieren.** Der Token erscheint einmal und beginnt mit `tw_`. **Kopieren** legt ihn in die Zwischenablage, **Fertig** schließt den Dialog. Danach kann ihn niemand mehr anzeigen, denn transkribierBAR speichert nur einen Hash des Tokens, nicht den Token selbst. Haben Sie ihn verloren, erstellen Sie einen neuen.
 
-Senden Sie den Token als HTTP-Bearer-Header:
+## Tokens verwalten
 
-```
-Authorization: Bearer tw_...
-```
+Die Liste zeigt zu jedem Token den Namen, seine ersten Zeichen mit angehängtem „…“, den Status (**Aktiv**, **Abgelaufen** oder **Widerrufen**), das Ablaufdatum, falls er eines hat, und, sobald er verwendet wurde, wann er zuletzt verwendet wurde.
 
-Beispiel mit curl:
+Klicken Sie neben einem aktiven Token auf **Widerrufen**. Ab dann weist der Server jede neue Anfrage mit ihm ab. Abgelaufene und widerrufene Tokens bleiben abgeblendet in der Liste. Sie werden automatisch daraus entfernt, widerrufene nach 30 Tagen und abgelaufene nach 90 Tagen.
 
-```
-curl -H "Authorization: Bearer tw_abc..." https://ihr-host/api/tokens
-```
+## Authentifizierung
 
-Für den Status-WebSocket der Transkription übergeben Sie den Token als Query-Parameter (Browser erlauben keine eigenen Header auf WebSocket-Verbindungen):
+Senden Sie den Token mit jeder Anfrage im Header `Authorization`, in der Form `Bearer`, ein Leerzeichen und der Token:
 
 ```
-wss://ihr-host/api/ws/status/{transcription_id}?token=tw_abc...
+Authorization: Bearer tw_…
 ```
 
-## Token widerrufen
+Ist der Token unbekannt, abgelaufen oder widerrufen, antwortet der Server mit dem Status 401 und der Meldung **Invalid or expired API token**.
 
-Klicken Sie neben einem aktiven Token auf **Widerrufen**. Der Token wird sofort ungültig. Widerrufene Tokens bleiben (abgeblendet) in der Liste, damit Sie nachvollziehen können, welche Sie bereits rotiert haben.
+Für den WebSocket, der den Status meldet, übergeben Sie den Token als Query-Parameter `token`, weil Browser dort keine Header setzen können:
 
-## Hinweise
+```
+wss://transcription.uni-osnabrueck.de/api/ws/status/{transcription_id}?token=tw_…
+```
 
-- **Token rotieren, wenn sich Geräte ändern.** Geht ein Laptop verloren oder wird ein CI-Secret erneuert, widerrufen Sie den passenden Token und erstellen einen neuen.
-- **Ein Token pro Einsatzzweck.** Teilen Sie einen Token möglichst nicht zwischen mehreren Werkzeugen oder Geräten — Namen pro Einsatzort erleichtern den gezielten Widerruf.
-- **Gleiche Rechte wie in der Oberfläche.** Ein Token erbt Ihre Berechtigungen: Ist in der Installation kein LLM konfiguriert, liefern Analyse, Übersetzung und Überarbeitung auch für Token-Anfragen den Status 503.
+## Transkribieren Schritt für Schritt
+
+In den Beispielen steht `tw_…` als Platzhalter für Ihren Token, `FILE_ID` und `TRANSCRIPTION_ID` stehen für die IDs, die Sie erhalten.
+
+**1. Datei hochladen.** Senden Sie sie als Formularfeld `file`:
+
+```
+curl -H "Authorization: Bearer tw_…" -F "file=@interview.mp3" https://transcription.uni-osnabrueck.de/api/upload
+```
+
+Die Antwort ist JSON. Das Feld `id` ist die `FILE_ID`. Es gelten dieselben Dateitypen und dieselbe Höchstgröße wie in der Weboberfläche, siehe Abschnitt „Hochladen“. Andere Dateitypen beantwortet der Server mit dem Status 400, zu große Dateien mit 413.
+
+**2. Transkription starten.** Senden Sie die Einstellungen als JSON:
+
+```
+curl -X POST https://transcription.uni-osnabrueck.de/api/transcribe \
+  -H "Authorization: Bearer tw_…" \
+  -H "Content-Type: application/json" \
+  -d '{"file_id": "FILE_ID", "language": "de", "model": "{{default_model}}"}'
+```
+
+Die Antwort enthält die `id` der Transkription (`TRANSCRIPTION_ID`) und den Status `pending`. Diese Felder gibt es:
+
+| Feld | Bedeutung |
+| --- | --- |
+| `file_id` | Pflicht. Die `id` aus dem Upload. |
+| `language` | Sprachcode wie `de`. Ohne dieses Feld wird die Sprache automatisch erkannt. |
+| `model` | Das Modell. Siehe den Hinweis unten. |
+| `min_speakers`, `max_speakers` | Mindest- und Höchstzahl der Sprechenden. Ist mindestens eines davon größer als 0, werden Sprechende erkannt. Fehlen beide oder sind sie 0, werden keine Sprechenden erkannt. |
+| `initial_prompt` | Optionaler Kontext für die Transkription. |
+| `hotwords` | Optionale Fachbegriffe, durch Kommas getrennt. |
+
+> **Das Modell immer mitsenden.** Diese Installation bietet nur das Modell {{default_model}} an. Der Server prüft das Feld `model` nicht. Lassen Sie es weg, gibt er das Modell `base` an die Spracherkennung weiter, das diese Installation nicht anbietet. Senden Sie deshalb immer `"model": "{{default_model}}"`.
+
+**3. Auf das Ergebnis warten.** Fragen Sie den Status ab, bis er `completed` oder `failed` ist:
+
+```
+curl -H "Authorization: Bearer tw_…" https://transcription.uni-osnabrueck.de/api/status/TRANSCRIPTION_ID
+```
+
+Der Status ist `pending`, `processing`, `completed` oder `failed`. Bei `failed` nennt das Feld `error` den Grund. Statt die Abfrage zu wiederholen, können Sie den WebSocket aus dem Abschnitt „Authentifizierung“ abhören. Er sendet alle 5 Sekunden eine Nachricht wie `{"type": "status", "status": "processing"}` und schließt sich nach `completed` oder `failed`. Bei einem ungültigen Token schließt er mit dem Code 4001. Gibt es die Transkription nicht oder gehört sie Ihnen nicht, schließt er mit dem Code 4003.
+
+**4. Ergebnis abrufen.** Solange die Transkription nicht fertig ist, beantwortet der Server diesen Aufruf mit dem Status 400:
+
+```
+curl -H "Authorization: Bearer tw_…" https://transcription.uni-osnabrueck.de/api/transcription/TRANSCRIPTION_ID
+```
+
+Die Antwort enthält die Äußerungen (`utterances`, jeweils mit `start` und `end` in Millisekunden, `text` und `speaker`), den gesamten Text (`text`), die Sprache (`language`) und die Namen der Sprechenden (`speaker_mappings`). Für eine fertige Datei hängen Sie stattdessen `/export/txt`, `/export/srt`, `/export/vtt` oder `/export/json` an die Adresse an.
+
+## Grenzen
+
+Dateien und Ergebnisse werden wie in der Weboberfläche nach {{retention_days}} Tagen automatisch gelöscht.
+
+Voreinstellungen und Pakete wendet die Weboberfläche an. `/api/transcribe` kennt sie nicht, Sie senden die Einstellungen also selbst. Die Aufrufe für Voreinstellungen akzeptieren ebenfalls einen Token.

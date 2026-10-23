@@ -27,6 +27,8 @@ async def get_config(user: UserInfo = Depends(get_current_user)):
         contact_email=settings.CONTACT_EMAIL,
         is_admin=user.is_admin,
         invitation_mode=settings.INVITATION_MODE,
+        default_expiry_hours=settings.DEFAULT_EXPIRY_HOURS,
+        archive_expiry_hours=settings.ARCHIVE_EXPIRY_HOURS,
     )
 
 
