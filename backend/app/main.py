@@ -15,11 +15,14 @@ from app.config import settings
 from app.database import init_db, get_db
 from app.routers import config_router, upload, transcription, refinement, analysis, translation, presets, tokens, invitations as invitations_router, public_pages
 from app.public_pages import load_privacy_notices
+from app.log_redaction import install_token_redaction
 from app.metrics import inc, gauge_set, cleanup_runs_total, cleanup_items_deleted_total, storage_bytes, api_tokens_active, invitations_expired_total, init_label_series, users_total, users_with_transcriptions, users_new
 from app.services.asr import get_asr_backend
 from app.services.audio import has_video_stream
 from app.services.api_tokens import cleanup_stale_tokens, count_active_tokens
 
+
+install_token_redaction()
 
 ORPHAN_MIN_AGE_HOURS = 24
 # Upload names are "<uuid><ext>"; this never matches the SQLite DB or other files in TEMP_PATH.
