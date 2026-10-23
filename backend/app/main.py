@@ -215,15 +215,18 @@ def safe_static_file(static_dir: str, rel: str) -> str | None:
 def mount_spa(app: FastAPI, static_dir: str) -> None:
     """Serve the built frontend in ``static_dir``: /assets plus the SPA fallback."""
     app.mount("/assets", StaticFiles(directory=os.path.join(static_dir, "assets")), name="assets")
+    root = os.path.realpath(static_dir)
 
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
         """Serve index.html for all non-API routes (SPA client-side routing)."""
         if full_path.startswith("api/"):
             raise HTTPException(status_code=404)
-        # Serve root-level static files (e.g. favicon, logo) if they exist
+        # Serve root-level static files (e.g. favicon, logo) if they exist. The
+        # guide's raw templates are left to public_pages, which fills them in and
+        # adds the CSP; lower() also catches /HANDBUCH on case-insensitive disks.
         candidate = safe_static_file(static_dir, full_path)
-        if candidate:
+        if candidate and os.path.relpath(candidate, root).split(os.sep)[0].lower() != "handbuch":
             return FileResponse(candidate)
         # index.html must not be cached: browsers applying heuristic freshness
         # would serve a stale shell after logout, bypassing the auth proxy and
