@@ -1,5 +1,7 @@
 import asyncio
+import json
 import os
+import tempfile
 from app.config import settings
 
 
@@ -46,6 +48,54 @@ async def convert_to_mp3(input_path: str) -> str:
         if error_msg is None:
             return output_path
     raise RuntimeError(f"Audio conversion failed: {error_msg}")
+
+
+async def _carries_metadata(path: str) -> bool:
+    """Whether ffprobe finds tags (besides ffmpeg's own encoder tag), a non-audio stream or a chapter."""
+    process = await asyncio.create_subprocess_exec(
+        settings.FFPROBE_PATH, "-v", "error", "-show_entries", "format_tags:stream=codec_type",
+        "-show_chapters", "-of", "json", path,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    stdout, stderr = await process.communicate()
+    if process.returncode != 0:
+        raise RuntimeError(f"ffprobe failed: {stderr.decode()[-500:]}")
+    info = json.loads(stdout)
+    return (
+        any(key != "encoder" for key in info.get("format", {}).get("tags", {}))
+        or any(stream.get("codec_type") != "audio" for stream in info.get("streams", []))
+        or bool(info.get("chapters"))
+    )
+
+
+async def ensure_clean_asr_copy(file_path: str, mp3_path: str) -> str:
+    """Return the path of an ASR copy without metadata, cleaning up older files.
+
+    Files uploaded before the ASR copy was cleaned either use the original MP3
+    upload as the ASR copy, or have a converted copy that kept the upload's
+    metadata.
+    """
+    if mp3_path == file_path:
+        return await convert_to_mp3(file_path)
+    if not await _carries_metadata(mp3_path):
+        return mp3_path
+
+    # Named after the upload, so the orphan sweep removes it if a crash leaves it behind
+    fd, tmp_path = tempfile.mkstemp(
+        dir=os.path.dirname(mp3_path), prefix=os.path.basename(mp3_path) + ".", suffix=".mp3",
+    )
+    os.close(fd)
+    try:
+        # -map_metadata -1 keeps chapters (only their titles go), so drop them too
+        error_msg = await _write_without_metadata(mp3_path, tmp_path, ["-map_chapters", "-1", "-c:a", "copy"])
+        if error_msg is not None:
+            raise RuntimeError(f"Metadata removal failed: {error_msg}")
+        os.replace(tmp_path, mp3_path)
+    finally:
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+    return mp3_path
 
 
 async def get_media_duration(file_path: str) -> float | None:

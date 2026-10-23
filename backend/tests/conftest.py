@@ -43,3 +43,13 @@ def fake_convert_to_mp3(monkeypatch):
         return output_path
 
     monkeypatch.setattr("app.routers.upload.convert_to_mp3", _convert)
+
+
+@pytest.fixture(autouse=True)
+def fake_ensure_clean_asr_copy(monkeypatch):
+    """Transcription start would ffprobe the same placeholder bytes. Every upload here
+    gets its own ASR copy (see above), which this treats as already clean."""
+    async def _ensure(file_path, mp3_path):
+        return mp3_path
+
+    monkeypatch.setattr("app.routers.transcription.ensure_clean_asr_copy", _ensure)

@@ -18,7 +18,7 @@ from app.database import get_db
 from app.services.asr import get_asr_backend
 from app.services.api_tokens import resolve_token
 from app.services.asr.base import TranscriptionSettings, asr_semaphore
-from app.services.audio import get_media_duration
+from app.services.audio import ensure_clean_asr_copy, get_media_duration
 from app.services.formats import generate_srt, generate_vtt, generate_txt
 from app.metrics import (
     inc, observe, gauge_inc, gauge_dec,
@@ -43,15 +43,25 @@ async def start_transcription(
 ):
     async with get_db() as db:
         cursor = await db.execute(
-            "SELECT id, mp3_path FROM files WHERE id = ? AND user_id = ?",
+            "SELECT id, file_path, mp3_path FROM files WHERE id = ? AND user_id = ?",
             (req.file_id, user.id),
         )
         file_row = await cursor.fetchone()
         if not file_row:
             raise HTTPException(status_code=404, detail="File not found")
 
+    # Files uploaded before the ASR copy was cleaned still carry their metadata
+    try:
+        mp3_path = await ensure_clean_asr_copy(file_row["file_path"], file_row["mp3_path"])
+    except Exception as e:
+        logging.warning("Could not prepare the ASR copy of file %s: %s", req.file_id, e)
+        raise HTTPException(status_code=422, detail="Could not prepare the audio for transcription.")
+    if mp3_path != file_row["mp3_path"]:
+        async with get_db() as db:
+            await db.execute("UPDATE files SET mp3_path = ? WHERE id = ?", (mp3_path, req.file_id))
+            await db.commit()
+
     transcription_id = str(uuid.uuid4())
-    mp3_path = file_row["mp3_path"]
 
     async with get_db() as db:
         await db.execute(

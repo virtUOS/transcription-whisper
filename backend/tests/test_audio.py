@@ -2,7 +2,7 @@ import os
 import shutil
 import subprocess
 import pytest
-from app.services.audio import convert_to_mp3
+from app.services.audio import convert_to_mp3, ensure_clean_asr_copy
 
 
 def _ffmpeg(*args):
@@ -15,7 +15,7 @@ def _ffmpeg(*args):
 def _probe(path):
     from app.services.audio import settings
     return subprocess.run(
-        [settings.FFPROBE_PATH, "-show_format", "-show_streams", str(path)],
+        [settings.FFPROBE_PATH, "-show_format", "-show_streams", "-show_chapters", str(path)],
         capture_output=True, text=True, check=True,
     ).stdout
 
@@ -99,3 +99,71 @@ async def test_failed_conversion_removes_partial_output(tmp_path, monkeypatch, n
         await convert_to_mp3(str(src))
 
     assert os.listdir(work) == [name]
+
+
+@pytest.mark.asyncio
+async def test_legacy_passthrough_mp3_gets_a_clean_copy(tmp_path):
+    """Before the ASR copy was cleaned, an MP3 upload was its own ASR copy."""
+    src = tmp_path / "in.mp3"
+    _ffmpeg(
+        "-f", "lavfi", "-i", "sine=frequency=440:duration=1", "-c:a", "libmp3lame",
+        "-id3v2_version", "3", "-metadata", "title=SECRET-TITLE", str(src),
+    )
+    original = src.read_bytes()
+
+    result = await ensure_clean_asr_copy(str(src), str(src))
+
+    assert result == str(tmp_path / "in.asr.mp3")
+    assert "SECRET-TITLE" not in _probe(result)
+    assert src.read_bytes() == original
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("kind", ["title", "cover", "chapter"])
+async def test_legacy_converted_copy_stripped_in_place(tmp_path, kind):
+    """Before the ASR copy was cleaned, conversion kept the upload's metadata."""
+    work = tmp_path / "work"
+    work.mkdir()
+    asr = work / "in.mp3"
+    if kind == "title":
+        _ffmpeg(
+            "-f", "lavfi", "-i", "sine=frequency=440:duration=1",
+            "-id3v2_version", "3", "-metadata", "title=SECRET-TITLE", str(asr),
+        )
+    elif kind == "cover":
+        cover = tmp_path / "cover.png"
+        _ffmpeg("-f", "lavfi", "-i", "color=c=red:s=16x16", "-frames:v", "1", str(cover))
+        _ffmpeg(
+            "-f", "lavfi", "-i", "sine=frequency=440:duration=1", "-i", str(cover),
+            "-map", "0:a", "-map", "1:v", "-c:v", "copy", "-id3v2_version", "3", str(asr),
+        )
+    else:
+        meta = tmp_path / "meta.txt"
+        meta.write_text(";FFMETADATA1\n[CHAPTER]\nTIMEBASE=1/1000\nSTART=0\nEND=500\ntitle=SECRET-TITLE\n")
+        _ffmpeg(
+            "-f", "lavfi", "-i", "sine=frequency=440:duration=1", "-i", str(meta),
+            "-map_chapters", "1", "-id3v2_version", "3", str(asr),
+        )
+    before = _probe(asr)
+    assert "SECRET-TITLE" in before or "codec_type=video" in before
+
+    result = await ensure_clean_asr_copy(str(tmp_path / "in.mp4"), str(asr))
+
+    assert result == str(asr)
+    probe = _probe(asr)
+    assert "SECRET-TITLE" not in probe
+    assert "codec_type=video" not in probe
+    assert "[CHAPTER]" not in probe
+    assert os.listdir(work) == ["in.mp3"]
+
+
+@pytest.mark.asyncio
+async def test_clean_asr_copy_untouched(tmp_path):
+    asr = tmp_path / "in.mp3"
+    _ffmpeg("-f", "lavfi", "-i", "sine=frequency=440:duration=1", str(asr))
+    os.utime(asr, (1_000_000_000, 1_000_000_000))
+
+    result = await ensure_clean_asr_copy(str(tmp_path / "in.mp4"), str(asr))
+
+    assert result == str(asr)
+    assert asr.stat().st_mtime == 1_000_000_000
