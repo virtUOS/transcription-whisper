@@ -321,3 +321,7 @@ The metrics are designed to work well with Grafana. Key dashboard panels might i
 ## Authors
 
 virtUOS
+
+## License
+
+Apache License 2.0 — see [LICENSE](LICENSE).
