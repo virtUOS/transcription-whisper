@@ -97,18 +97,84 @@ async def test_expiry_deletes_remote_transcripts_of_expired_rows():
         assert [row["id"] for row in await cursor.fetchall()] == ["t-new"]
 
 
+async def _delete(backend, tid):
+    with patch("app.routers.transcription.get_asr_backend", return_value=backend):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            resp = await client.delete(f"/api/transcription/{tid}")
+        # The remote delete runs as a task after the response.
+        for _ in range(5):
+            await asyncio.sleep(0)
+    return resp
+
+
 @pytest.mark.asyncio
-@pytest.mark.parametrize("status, remote_deletes", [("processing", 1), ("completed", 0)])
-async def test_deleting_a_running_job_deletes_its_remote_transcript(status, remote_deletes):
-    """A restart before the running job finishes would otherwise leak its remote copy."""
+@pytest.mark.parametrize("status", ["pending", "processing", "completed", "failed"])
+async def test_deleting_a_transcription_deletes_its_remote_transcript(status):
+    """Whatever its status, a transcription with a job id leaves nothing on the ASR host."""
     await _insert("f-1", "2999-01-01 00:00:00", [("t-1", status, "job-1")])
     backend = AsyncMock()
 
-    with patch("app.routers.transcription.get_asr_backend", return_value=backend):
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            resp = await client.delete("/api/transcription/t-1")
+    resp = await _delete(backend, "t-1")
 
     assert resp.status_code == 200
-    assert backend.cleanup.await_count == remote_deletes
-    if remote_deletes:
-        backend.cleanup.assert_awaited_with("job-1")
+    backend.cleanup.assert_awaited_once_with("job-1")
+
+
+@pytest.mark.asyncio
+async def test_deleting_without_a_job_id_makes_no_remote_call():
+    await _insert("f-1", "2999-01-01 00:00:00", [("t-1", "failed", None)])
+    backend = AsyncMock()
+
+    resp = await _delete(backend, "t-1")
+
+    assert resp.status_code == 200
+    backend.cleanup.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_delete_response_does_not_wait_for_the_asr_host():
+    await _insert("f-1", "2999-01-01 00:00:00", [("t-1", "completed", "job-1")])
+    release = asyncio.Event()
+    backend = AsyncMock()
+
+    async def slow_cleanup(job_id):
+        await release.wait()
+
+    backend.cleanup.side_effect = slow_cleanup
+
+    try:
+        resp = await asyncio.wait_for(_delete(backend, "t-1"), timeout=2)
+    finally:
+        release.set()
+
+    assert resp.status_code == 200
+    backend.cleanup.assert_awaited_once_with("job-1")
+    async with get_db() as db:
+        cursor = await db.execute("SELECT 1 FROM transcriptions WHERE id = 't-1'")
+        assert await cursor.fetchone() is None
+
+
+@pytest.mark.asyncio
+async def test_run_deleted_then_failed_cleans_up_without_counting_a_failure(caplog):
+    """The user deleted the row mid-run: the failure is not an app error, but the remote copy still goes."""
+    backend = _backend()
+    backend.get_result.side_effect = RuntimeError("asr exploded")
+    with patch("app.routers.transcription.inc") as inc_mock:
+        await _run(backend)
+
+    backend.cleanup.assert_awaited_once_with("asr-job-123")
+    assert not [c for c in inc_mock.call_args_list if "failed" in c.args or "transcription_failed" in c.args]
+    assert not [r for r in caplog.records if r.levelname == "ERROR"]
+
+
+@pytest.mark.asyncio
+async def test_run_failure_of_a_live_row_still_counts_and_logs(caplog):
+    await _insert("file-1", "2999-01-01 00:00:00", [("txn-1", "pending", None)])
+    backend = _backend()
+    backend.get_result.side_effect = RuntimeError("asr exploded")
+    with patch("app.routers.transcription.inc") as inc_mock:
+        await _run(backend)
+
+    assert any("failed" in c.args for c in inc_mock.call_args_list)
+    assert [r for r in caplog.records if r.levelname == "ERROR"]
+    backend.cleanup.assert_awaited_once_with("asr-job-123")

@@ -218,17 +218,19 @@ async def _run_transcription(transcription_id: str, file_path: str, req: Transcr
             logging.warning("Title generation failed for %s: %s", transcription_id, e)
 
     except Exception as e:
-        logging.error("Transcription %s failed: %s: %s", transcription_id, type(e).__name__, e)
-        logging.error("Traceback: %s", traceback.format_exc())
-        inc(transcriptions_total, backend_name, req.language or "auto", req.model or "default", "failed")
-        inc(errors_total, "transcription_failed", "asr")
-
         async with get_db() as db:
-            await db.execute(
+            cursor = await db.execute(
                 "UPDATE transcriptions SET status = ?, error_message = ? WHERE id = ?",
                 ("failed", str(e), transcription_id),
             )
             await db.commit()
+
+        # No row to update means the user deleted it mid-run: not an app failure.
+        if cursor.rowcount:
+            logging.error("Transcription %s failed: %s: %s", transcription_id, type(e).__name__, e)
+            logging.error("Traceback: %s", traceback.format_exc())
+            inc(transcriptions_total, backend_name, req.language or "auto", req.model or "default", "failed")
+            inc(errors_total, "transcription_failed", "asr")
 
         # A job that failed or timed out after submit still left a row remotely.
         if asr_job_id is not None:
@@ -354,12 +356,16 @@ async def update_speaker_mappings(transcription_id: str, request: SpeakerMapping
     return {"status": "ok"}
 
 
+# Strong references: the loop only keeps weak ones to running tasks.
+_background_tasks: set[asyncio.Task] = set()
+
+
 @router.delete("/api/transcription/{transcription_id}")
 async def delete_transcription(transcription_id: str, user: UserInfo = Depends(get_current_user)):
     import os
     async with get_db() as db:
         cursor = await db.execute(
-            "SELECT file_id, status, asr_job_id FROM transcriptions WHERE id = ? AND user_id = ?",
+            "SELECT file_id, asr_job_id FROM transcriptions WHERE id = ? AND user_id = ?",
             (transcription_id, user.id),
         )
         row = await cursor.fetchone()
@@ -397,10 +403,12 @@ async def delete_transcription(transcription_id: str, user: UserInfo = Depends(g
                 except OSError:
                     pass
 
-    # The running job would delete its remote copy when it ends, but a restart
-    # before then would leak it. MurmurAI deletes running jobs too.
-    if row["status"] in ("pending", "processing") and row["asr_job_id"]:
-        await get_asr_backend().cleanup(row["asr_job_id"])
+    # Delete the remote copy after the response so a slow ASR host never holds
+    # up the user. cleanup() retries and never raises; expiry retries what fails.
+    if row["asr_job_id"]:
+        task = asyncio.create_task(get_asr_backend().cleanup(row["asr_job_id"]))
+        _background_tasks.add(task)
+        task.add_done_callback(_background_tasks.discard)
 
     inc(deletions_total, "transcription")
 
