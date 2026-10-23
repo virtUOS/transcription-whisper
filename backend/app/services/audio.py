@@ -8,13 +8,19 @@ async def convert_to_mp3(input_path: str) -> str:
     if not os.path.exists(input_path):
         raise FileNotFoundError(f"Input file does not exist: {input_path}")
 
+    # Always write a new file: the ASR host must not receive the upload's tags,
+    # cover art or location. MP3 is stream-copied, everything else is re-encoded.
+    stem = os.path.splitext(input_path)[0]
     if input_path.lower().endswith(".mp3"):
-        return input_path
-
-    output_path = os.path.splitext(input_path)[0] + ".mp3"
+        output_path = stem + ".asr.mp3"
+        codec_args = ["-c:a", "copy"]
+    else:
+        output_path = stem + ".mp3"
+        codec_args = []
 
     process = await asyncio.create_subprocess_exec(
-        settings.FFMPEG_PATH, "-y", "-i", input_path, output_path,
+        settings.FFMPEG_PATH, "-y", "-i", input_path,
+        "-map_metadata", "-1", "-vn", *codec_args, output_path,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
