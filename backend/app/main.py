@@ -196,6 +196,44 @@ if settings.ENABLE_API_TOKENS:
 # mount to a startup-time flag that tests reload.
 app.include_router(invitations_router.router)
 
+
+def safe_static_file(static_dir: str, rel: str) -> str | None:
+    """Return the real path of ``rel`` if it is a regular file inside ``static_dir``, else None.
+
+    Paths that resolve outside the directory (absolute paths, ``..`` segments,
+    symlinks pointing elsewhere) are rejected, as are NUL bytes.
+    """
+    if not rel or "\x00" in rel:
+        return None
+    root = os.path.realpath(static_dir)
+    candidate = os.path.realpath(os.path.join(root, rel))
+    if os.path.commonpath([root, candidate]) != root or not os.path.isfile(candidate):
+        return None
+    return candidate
+
+
+def mount_spa(app: FastAPI, static_dir: str) -> None:
+    """Serve the built frontend in ``static_dir``: /assets plus the SPA fallback."""
+    app.mount("/assets", StaticFiles(directory=os.path.join(static_dir, "assets")), name="assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        """Serve index.html for all non-API routes (SPA client-side routing)."""
+        if full_path.startswith("api/"):
+            raise HTTPException(status_code=404)
+        # Serve root-level static files (e.g. favicon, logo) if they exist
+        candidate = safe_static_file(static_dir, full_path)
+        if candidate:
+            return FileResponse(candidate)
+        # index.html must not be cached: browsers applying heuristic freshness
+        # would serve a stale shell after logout, bypassing the auth proxy and
+        # leaving the SPA stuck making XHRs without a valid session cookie.
+        return FileResponse(
+            os.path.join(static_dir, "index.html"),
+            headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
+        )
+
+
 # Serve frontend static files (only when built files exist, i.e., in Docker)
 static_dir = settings.STATIC_DIR
 
@@ -212,21 +250,4 @@ if _guide_assets.is_dir():
 app.include_router(public_pages.router)
 
 if os.path.isdir(static_dir):
-    app.mount("/assets", StaticFiles(directory=os.path.join(static_dir, "assets")), name="assets")
-
-    @app.get("/{full_path:path}")
-    async def serve_spa(full_path: str):
-        """Serve index.html for all non-API routes (SPA client-side routing)."""
-        if full_path.startswith("api/"):
-            raise HTTPException(status_code=404)
-        # Serve root-level static files (e.g. favicon, logo) if they exist
-        candidate = os.path.join(static_dir, full_path)
-        if full_path and os.path.isfile(candidate):
-            return FileResponse(candidate)
-        # index.html must not be cached: browsers applying heuristic freshness
-        # would serve a stale shell after logout, bypassing the auth proxy and
-        # leaving the SPA stuck making XHRs without a valid session cookie.
-        return FileResponse(
-            os.path.join(static_dir, "index.html"),
-            headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
-        )
+    mount_spa(app, static_dir)
