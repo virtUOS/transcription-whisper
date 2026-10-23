@@ -16,9 +16,15 @@ Der Name darf bis zu 64 Zeichen lang sein. Unter Ihren aktiven Tokens darf jeder
 
 ## Tokens verwalten
 
-Die Liste zeigt zu jedem Token den Namen, seine ersten Zeichen mit angehängtem „…“, den Status (**Aktiv**, **Abgelaufen** oder **Widerrufen**), das Ablaufdatum, falls er eines hat, und, sobald er verwendet wurde, wann er zuletzt verwendet wurde.
+Der Bereich **API-Tokens** listet Ihre Tokens auf.
 
-Klicken Sie neben einem aktiven Token auf **Widerrufen**. Ab dann weist der Server jede neue Anfrage mit ihm ab. Abgelaufene und widerrufene Tokens bleiben abgeblendet in der Liste. Sie werden automatisch daraus entfernt, widerrufene nach 30 Tagen und abgelaufene nach 90 Tagen.
+![Der Bereich „API-Tokens“ mit einem aktiven Token; nummerierte Markierungen heben die Bedienelemente hervor](shots/tokens.png)
+
+1. **Token erstellen** öffnet den oben beschriebenen Dialog.
+2. Ein Token mit seinem Namen, seinen ersten Zeichen mit angehängtem „…“, dem Status (**Aktiv**, **Abgelaufen** oder **Widerrufen**), dem Ablaufdatum, falls er eines hat, und, sobald er verwendet wurde, dem Zeitpunkt der letzten Verwendung.
+3. **Widerrufen** neben einem aktiven Token widerruft ihn. Ab dann weist der Server jede neue Anfrage mit ihm ab.
+
+Abgelaufene und widerrufene Tokens bleiben abgeblendet in der Liste. Sie werden automatisch daraus entfernt, widerrufene nach 30 Tagen und abgelaufene nach 90 Tagen.
 
 ## Authentifizierung
 

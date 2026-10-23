@@ -5,38 +5,26 @@ import remarkGfm from 'remark-gfm'
 import rehypeSlug from 'rehype-slug'
 import type { Components } from 'react-markdown'
 import type { HelpSectionId } from './helpSections'
-import { loadContent, assetUrls, settingValues, fillSettings } from './helpSections'
+import { loadContent, resolveAssetUrl, settingValues, fillSettings, shotFor } from './helpSections'
+import { HelpShot } from './HelpShot'
 import { useStore } from '../../store'
 
 interface HelpContentProps {
   sectionId: HelpSectionId
 }
 
-/**
- * Resolves a markdown image src against Vite's asset URL map.
- * Accepts relative paths like "./assets/main-flow.svg" or "/src/help/assets/main-flow.svg".
- */
-function resolveAssetUrl(src: string | undefined): string | undefined {
-  if (!src) return undefined
-  // Normalize: strip leading "./" and make relative paths absolute from /src/help/
-  let key = src
-  if (key.startsWith('./')) key = '/src/help/' + key.slice(2)
-  if (!key.startsWith('/')) key = '/src/help/' + key
-  return assetUrls[key] ?? src
-}
-
-function LightboxImage({ src, alt, ...props }: React.ImgHTMLAttributes<HTMLImageElement>) {
-  const resolved = resolveAssetUrl(typeof src === 'string' ? src : undefined)
+function LightboxImage({ src, alt, lang, ...props }: React.ImgHTMLAttributes<HTMLImageElement> & { lang: 'de' | 'en' }) {
+  const resolved = resolveAssetUrl(typeof src === 'string' ? src : undefined, lang)
   const dialogRef = useRef<HTMLDialogElement>(null)
   return (
     <>
-      <img
-        src={resolved}
-        alt={alt ?? ''}
-        className="my-4 w-full rounded border border-gray-700 bg-gray-800/40 p-2 cursor-pointer hover:border-gray-500 transition-colors"
+      <button
+        type="button"
+        className="my-4 block w-full cursor-pointer rounded border border-gray-700 bg-gray-800/40 p-2 transition-colors hover:border-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
         onClick={() => dialogRef.current?.showModal()}
-        {...props}
-      />
+      >
+        <img src={resolved} alt={alt ?? ''} className="block w-full" {...props} />
+      </button>
       <dialog
         ref={dialogRef}
         onClick={(e) => { if (e.target === e.currentTarget) dialogRef.current?.close() }}
@@ -50,8 +38,15 @@ function LightboxImage({ src, alt, ...props }: React.ImgHTMLAttributes<HTMLImage
 
 const components: Components = {
   a: ({ href, children, ...props }) => {
-    const isExternal = href?.startsWith('http://') || href?.startsWith('https://')
-    if (isExternal) {
+    // Guide pages (/handbuch/...) are separate documents: opening them in place would
+    // navigate the SPA away and lose a running upload or recording.
+    const opensInNewTab =
+      !!href &&
+      (href.startsWith('http://') ||
+        href.startsWith('https://') ||
+        href.startsWith('/handbuch/') ||
+        href.startsWith(`${import.meta.env.BASE_URL}handbuch/`))
+    if (opensInNewTab) {
       return (
         <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline" {...props}>
           {children}
@@ -95,7 +90,6 @@ const components: Components = {
   li: ({ children, ...props }) => (
     <li className="text-gray-300" {...props}>{children}</li>
   ),
-  img: LightboxImage,
   table: ({ children, ...props }) => (
     <div className="overflow-x-auto my-3">
       <table className="text-sm text-gray-300 border-collapse" {...props}>{children}</table>
@@ -108,6 +102,25 @@ const components: Components = {
     <td className="border border-gray-700 px-3 py-1" {...props}>{children}</td>
   ),
 }
+
+function makeComponents(lang: 'de' | 'en'): Components {
+  return {
+    ...components,
+    // A paragraph holding only an image renders figure/dialog markup, which is not allowed inside <p>.
+    p: ({ node, children, ...props }) => {
+      const kids = node?.children ?? []
+      if (kids.length === 1 && kids[0].type === 'element' && kids[0].tagName === 'img') return <>{children}</>
+      return <p className="text-gray-300 leading-relaxed mb-3" {...props}>{children}</p>
+    },
+    img: (props) => {
+      const src = typeof props.src === 'string' ? props.src : ''
+      const shot = shotFor(lang, src)
+      return shot ? <HelpShot url={shot.url} alt={props.alt ?? ''} meta={shot.meta} /> : <LightboxImage {...props} lang={lang} />
+    },
+  }
+}
+
+const componentsByLang = { de: makeComponents('de'), en: makeComponents('en') }
 
 export function HelpContent({ sectionId }: HelpContentProps) {
   const { i18n, t } = useTranslation()
@@ -134,9 +147,19 @@ export function HelpContent({ sectionId }: HelpContentProps) {
 
   return (
     <div ref={containerRef} className="flex-1 overflow-y-auto p-6">
-      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSlug]} components={components}>
+      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSlug]} components={componentsByLang[lang]}>
         {markdown}
       </ReactMarkdown>
+      <p className="mt-8 pt-4 border-t border-gray-700 text-sm">
+        <a
+          href={`${import.meta.env.BASE_URL}handbuch/${lang === 'en' ? 'en/' : ''}#${sectionId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-400 hover:text-blue-300 underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 rounded"
+        >
+          {t('help.openInGuide')} <span aria-hidden="true">↗</span>
+        </a>
+      </p>
     </div>
   )
 }

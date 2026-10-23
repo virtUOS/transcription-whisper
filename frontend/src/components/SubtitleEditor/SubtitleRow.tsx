@@ -185,11 +185,11 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
         onClick={handleRowClick}
         className={`group block sm:table-row border-b border-gray-700 text-xs ${isActive ? 'bg-blue-900/30' : 'hover:bg-gray-800'} ${isContext ? 'opacity-50' : ''} ${isChanged ? 'border-l-2 border-l-amber-500' : isUnrefined ? 'border-l-2 border-dashed border-l-gray-500' : ''} ${isChanged ? 'cursor-pointer' : ''}`}
       >
-        <td className="hidden sm:table-cell px-3 py-2 text-gray-500">
+        <td data-help="row-number" className="hidden sm:table-cell px-3 py-2 text-gray-500">
           <span className="inline-flex items-center gap-0.5">
             {index + 1}
             {isChanged && (
-              <span className="ml-1 inline-block w-1.5 h-1.5 rounded-full bg-amber-500 align-middle" title={t('editor.utteranceChanged')} />
+              <span data-help="row-changed-dot" className="ml-1 inline-block w-1.5 h-1.5 rounded-full bg-amber-500 align-middle" title={t('editor.utteranceChanged')} />
             )}
             {!isChanged && isUnrefined && (
               <span className="ml-1 inline-block w-1.5 h-1.5 rounded-full border border-gray-500 align-middle" title={t('editor.unrefinedRow')} />
@@ -243,7 +243,7 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
             )}
           </span>
         </td>
-        <td className="inline-block sm:table-cell px-2 py-2 sm:py-2 pt-2 pb-0 text-green-400 group cursor-pointer" onClick={(e) => { e.stopPropagation(); delayedSeek(utterance.start) }}>
+        <td data-help="row-speaker" className="inline-block sm:table-cell px-2 py-2 sm:py-2 pt-2 pb-0 text-green-400 group cursor-pointer" onClick={(e) => { e.stopPropagation(); delayedSeek(utterance.start) }}>
           <span className="inline-flex items-center gap-1.5">
             {colorClass && editingField !== 'speaker' && (
               <span className={`inline-block w-2 h-2 rounded-full ${colorClass} shrink-0`} />
@@ -364,7 +364,7 @@ export const SubtitleRow = forwardRef<HTMLTableRowElement, Props>(function Subti
         </td>
       </tr>
       {showDiff && originalText && (
-        <tr className="bg-gray-800/50">
+        <tr data-help="row-diff" className="bg-gray-800/50">
           <td colSpan={5} className="px-3 py-2">
             <div className="flex gap-4 text-xs">
               <div className="flex-1">

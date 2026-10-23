@@ -630,7 +630,7 @@ function MainApp() {
         <>
           <BackButton />
           {file && (
-            <h1 className="px-6 text-lg font-semibold text-white truncate">
+            <h1 data-help="detail-title" className="px-6 text-lg font-semibold text-white truncate">
               {transcriptionTitle || file.original_filename}
               {transcriptionTitle && (
                 <span className="text-sm font-normal text-gray-500 ml-2">[{file.original_filename}]</span>
@@ -686,7 +686,7 @@ function MainApp() {
                 />
                 <TabBar />
 
-                <div className={`mx-6 my-2 ${!file.has_video || playerCollapsed ? 'max-h-[calc(100vh-14rem)]' : 'max-h-[calc(100vh-22rem)]'} overflow-auto`}>
+                <div data-help="detail-panel" className={`mx-6 my-2 ${!file.has_video || playerCollapsed ? 'max-h-[calc(100vh-14rem)]' : 'max-h-[calc(100vh-22rem)]'} overflow-auto`}>
                   {activeTab === 'subtitles' && <SubtitleEditor />}
                   {activeTab === 'analysis' && <AnalysisView />}
                   {['srt', 'vtt', 'json', 'txt'].includes(activeTab) && (

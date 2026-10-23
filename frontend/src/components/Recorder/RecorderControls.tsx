@@ -50,6 +50,7 @@ export function RecorderControls({
       <div className="flex gap-3">
         {state === 'idle' && (
           <button
+            data-help="record-start"
             onClick={onStart}
             disabled={startDisabled}
             title={startDisabled ? startDisabledReason : undefined}

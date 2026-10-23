@@ -3,6 +3,7 @@ from app.config import settings
 from app.dependencies import get_current_user
 from app.models import ConfigResponse, UserInfo
 from app.metrics import metrics_response
+from app.routers import public_pages
 
 router = APIRouter()
 
@@ -29,6 +30,7 @@ async def get_config(user: UserInfo = Depends(get_current_user)):
         invitation_mode=settings.INVITATION_MODE,
         default_expiry_hours=settings.DEFAULT_EXPIRY_HOURS,
         archive_expiry_hours=settings.ARCHIVE_EXPIRY_HOURS,
+        privacy_notice=bool(public_pages.NOTICES),
     )
 
 

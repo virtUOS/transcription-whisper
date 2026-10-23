@@ -2,7 +2,16 @@
 
 ## Bereich öffnen
 
-Öffnen Sie im Reiter **Untertitel** den Bereich **Namen der Sprechenden**: mit der gleichnamigen Schaltfläche über der Tabelle oder mit dem Personensymbol in der Spalte **Sprechende Person** einer Zeile. Das Personensymbol setzt den Cursor gleich in das Feld dieser Person. Ein weiterer Klick auf die Schaltfläche schließt den Bereich wieder. In der Ansicht **Verfeinert** und in der Ansicht **Übersetzt** fehlt das Personensymbol, die Schaltfläche funktioniert aber.
+Öffnen Sie im Reiter **Untertitel** den Bereich **Namen der Sprechenden**: mit der gleichnamigen Schaltfläche über der Tabelle oder mit dem Personensymbol in der Spalte **Sprechende Person** einer Zeile.
+
+![Der Bereich „Namen der Sprechenden“ über der Tabelle des Editors; nummerierte Markierungen heben die Bedienelemente hervor](shots/speakers.png)
+
+1. **Namen der Sprechenden** öffnet den Bereich. Ein weiterer Klick schließt ihn wieder.
+2. Das Feld für einen neuen Namen (**Neuer Name (leer lassen zum Beibehalten)**), rechts neben dem Namen, der gerade angezeigt wird (siehe „Namen vergeben“).
+3. **Anwenden** speichert die Namen (siehe „Wie die Namen gespeichert werden“).
+4. Die Spalte **Sprechende Person** einer Zeile. Ihr Personensymbol (**Diese Person in allen Äußerungen umbenennen**) öffnet den Bereich und setzt den Cursor gleich in das Feld dieser Person. Ihr Stiftsymbol ändert nur diese Zeile (siehe „Einzelne Zeile ändern“).
+
+In der Ansicht **Verfeinert** und in der Ansicht **Übersetzt** fehlt das Personensymbol, die Schaltfläche funktioniert aber.
 
 Hat die Aufnahme keine erkannten Sprechenden, zeigt der Bereich **Keine Sprechenden erkannt.** Ob Sprechende erkannt werden, legen Sie vor der Transkription fest (siehe „Transkriptionseinstellungen“).
 

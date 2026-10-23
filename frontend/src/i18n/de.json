@@ -460,6 +460,7 @@
     "submitting": "Wird gesendet…"
   },
   "help": {
+    "enlarge": "Zum Vergrößern klicken",
     "open": "Hilfe öffnen",
     "close": "Hilfe schließen",
     "title": "Hilfe",
@@ -467,7 +468,9 @@
     "emptyStateLink": "Einführung öffnen",
     "missingContent": "Inhalt folgt in Kürze.",
     "contact": "Kontakt:",
+    "openInGuide": "Im Handbuch öffnen",
     "legal": {
+      "privacyNotice": "Datenschutzhinweise",
       "privacyUniversity": "Datenschutzerklärung der Universität",
       "imprint": "Impressum",
       "accessibility": "Barrierefreiheit"

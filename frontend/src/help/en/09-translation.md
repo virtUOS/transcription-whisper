@@ -10,7 +10,13 @@ The original is kept. The translation appears next to **Original** (and **Refine
 
 ## Translating
 
-In the **Subtitles** tab, click **Translate** above the table. The button is there as long as no translation exists. In the **Translate to** dialog, choose the **Translation language** from the list. Then click **Translate**. **Cancel** closes the dialog.
+In the **Subtitles** tab, click **Translate** above the table. The button is there as long as no translation exists. The **Translate to** dialog opens.
+
+![The Translate to dialog; numbered markers highlight the controls](shots/translate.png)
+
+1. **Translation language** chooses the language to translate into.
+2. **Source** appears if a refinement exists (see "Source: original or refined").
+3. **Translate** starts the translation. **Cancel** closes the dialog.
 
 While the translation runs, the button reads **Translating...** and the selection fields and buttons are locked. With more than 50 utterances, a note says the translation may take several minutes. The page waits for the language model. Stay on it until the dialog closes. If you leave the page anyway, the translation keeps running on the server. You see it when you reopen the transcription later. A new attempt before it has finished fails. Afterwards the editor shows the **Translated** view.
 

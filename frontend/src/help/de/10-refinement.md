@@ -22,7 +22,13 @@ Die Verfeinerung betrifft nur die oben genannten Punkte. Sie lohnt sich deshalb 
 
 ## Verfeinern
 
-Klicken Sie im Reiter **Untertitel** über der Tabelle auf **Mit LLM verfeinern**. Die Schaltfläche gibt es, solange noch keine Verfeinerung existiert. Oben im Dialog können Sie eine Voreinstellung wählen oder speichern. Im Feld **Kontext (optional)** geben Sie Hinweise, die dem Sprachmodell bei Fachbegriffen und Eigennamen helfen, zum Beispiel „Informatik-Vorlesung, Vortragende Person ist Prof. Müller“. Klicken Sie dann auf **Verfeinern**. **Abbrechen** schließt den Dialog.
+Klicken Sie im Reiter **Untertitel** über der Tabelle auf **Mit LLM verfeinern**. Die Schaltfläche gibt es, solange noch keine Verfeinerung existiert. Es öffnet sich ein Dialog mit demselben Namen.
+
+![Der Dialog „Mit LLM verfeinern“ mit eingetragenem Kontext; nummerierte Markierungen heben die Bedienelemente hervor](shots/refine.png)
+
+1. **Voreinstellung wählen...** lädt eine Verfeinerungs-Voreinstellung und trägt ihren Kontext ein. **Als Voreinstellung speichern** fragt nach einem Namen (bestätigen Sie mit dem Häkchen oder der Eingabetaste) und speichert den aktuellen Kontext unter diesem Namen als Voreinstellung.
+2. **Kontext (optional)**: Hinweise, die dem Sprachmodell bei Fachbegriffen und Eigennamen helfen, zum Beispiel „Informatik-Vorlesung, Vortragende Person ist Prof. Müller“.
+3. **Verfeinern** startet die Verfeinerung. **Abbrechen** schließt den Dialog.
 
 Das Sprachmodell erhält das Original mit den Namen, die Sie unter **Namen der Sprechenden** vergeben haben. Vergeben Sie die Namen deshalb, bevor Sie verfeinern. Spätere Umbenennungen erreichen die Ansicht **Verfeinert** nicht mehr.
 
@@ -32,9 +38,15 @@ Schlägt es fehl, steht im Dialog **Verfeinerung fehlgeschlagen. Bitte versuchen
 
 ## Die verfeinerte Ansicht lesen
 
-In der Ansicht **Verfeinert** nennt eine Leiste über der Tabelle die **Zusammenfassung der Änderungen**, mit der Zahl der geänderten Äußerungen. Ein Klick darauf klappt sie auf oder zu. Aufgeklappt beschreibt sie in Worten, was das Sprachmodell geändert hat, und nennt den **Kontext**, falls Sie einen angegeben haben.
+In der Ansicht **Verfeinert** fasst eine Leiste über der Tabelle die Änderungen zusammen, und geänderte Zeilen sind markiert.
 
-Geänderte Zeilen haben einen bernsteinfarbenen Strich am linken Rand und auf größeren Bildschirmen einen Punkt neben der Zeilennummer. Ein Klick auf den Punkt zeigt **Original** und **Verfeinert** nebeneinander (nur auf größeren Bildschirmen). Die Ansicht ist schreibgeschützt. Wollen Sie Text selbst ändern, tun Sie das im Original.
+![Die Ansicht „Verfeinert“ mit der Zusammenfassung der Änderungen und einer geänderten Zeile im Vergleich mit dem Original; nummerierte Markierungen heben die Bedienelemente hervor](shots/refined.png)
+
+1. **Verfeinert** wechselt in die verfeinerte Ansicht, **Original** zurück zum Original.
+2. Die **Zusammenfassung der Änderungen**, mit der Zahl der geänderten Äußerungen. Ein Klick darauf klappt sie auf oder zu. Aufgeklappt beschreibt sie in Worten, was das Sprachmodell geändert hat, und nennt den **Kontext**, falls Sie einen angegeben haben.
+3. Eine geänderte Zeile: Sie hat einen bernsteinfarbenen Strich am linken Rand und auf größeren Bildschirmen einen Punkt neben der Zeilennummer. Ein Klick auf den Punkt zeigt **Original** und **Verfeinert** nebeneinander (nur auf größeren Bildschirmen), wie hier unter der ersten Zeile.
+
+Die Ansicht ist schreibgeschützt. Wollen Sie Text selbst ändern, tun Sie das im Original.
 
 ## Wenn Abschnitte nicht verfeinert werden konnten
 

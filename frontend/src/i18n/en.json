@@ -460,6 +460,7 @@
     "submitting": "Submitting…"
   },
   "help": {
+    "enlarge": "Click to enlarge",
     "open": "Open help",
     "close": "Close help",
     "title": "Help",
@@ -467,7 +468,9 @@
     "emptyStateLink": "Open the Getting Started guide",
     "missingContent": "Content coming soon.",
     "contact": "Contact:",
+    "openInGuide": "Open in the user guide",
     "legal": {
+      "privacyNotice": "Privacy notice",
       "privacyUniversity": "University privacy policy",
       "imprint": "Imprint",
       "accessibility": "Accessibility"

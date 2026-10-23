@@ -13,7 +13,15 @@ Neben **Untertitel** hat die Detailansicht die Reiter **SRT**, **VTT**, **JSON**
 
 ## Herunterladen
 
-Der Reiter zeigt eine Vorschau, die Sie nicht ändern können. Über und unter der Vorschau steht dieselbe Schaltfläche, zum Beispiel **Herunterladen SRT**. Sie speichert die Datei mit dem Namen der Aufnahme ohne Endung plus Dateiendung des Formats, etwa `Vorlesung.srt`. Fehlt der Name, heißt die Datei `transcription.srt`.
+Jeder Format-Reiter hat eine Vorschau und eine Schaltfläche zum Herunterladen.
+
+![Der Reiter „SRT“ mit der Vorschau und der Schaltfläche zum Herunterladen; nummerierte Markierungen heben die Bedienelemente hervor](shots/formats.png)
+
+1. Der Reiter **SRT**. **VTT**, **JSON** und **TXT** funktionieren genauso.
+2. Die Vorschau, die Sie nicht ändern können.
+3. **Herunterladen SRT** speichert die Datei. Dieselbe Schaltfläche steht auch unter der Vorschau.
+
+Die Datei bekommt den Namen der Aufnahme ohne Endung plus Dateiendung des Formats, etwa `Vorlesung.srt`. Fehlt der Name, heißt die Datei `transcription.srt`.
 
 ## Was im Format steht
 

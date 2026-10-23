@@ -4,6 +4,14 @@
 
 The editor is in the **Subtitles** tab of the detail view. Each row of the table is an utterance with the columns **#**, **Start**, **End**, **Speaker** and **Text**. On narrow screens the column headings and the **#** column are not shown.
 
+![The detail view with the player, the search, the version buttons and the first rows of the editor; numbered markers highlight the controls](shots/editor.png)
+
+1. The player (see "Playing and following along").
+2. The search field **Search subtitles...** with the buttons **Text** and **Speaker** (see "Searching").
+3. **Original**, **Refined** and **Translated** switch between the original and its refined and translated versions (see "Refined and translated view").
+4. A row is one utterance. Its pencil icons edit the times, the speaker and the text (see the sections below).
+5. The row's **Speaker**. The colored dot shows who is speaking; the same name always has the same color.
+
 ## Editing text
 
 Click the pencil icon after the text and start typing. Clicking outside the field applies the change. **Tab** applies it and jumps to the text of the next row, **Shift+Tab** to the previous one. The player then jumps to the start of that row. **Esc** ends editing; the change is kept.
@@ -20,7 +28,7 @@ If the new time overlaps neighboring rows, the editor adjusts them: a new start 
 
 ## A row's speaker
 
-A colored dot before the name shows the speaker. The same name always has the same color. The pencil icon in this column changes the name on this row only, the people icon renames the person on all rows. Both are described in the section "Speaker Mapping".
+In the **Speaker** column, the pencil icon changes the name on this row only, the people icon renames the person on all rows. Both are described in the section "Speaker Mapping".
 
 ## Inserting, merging and deleting rows
 

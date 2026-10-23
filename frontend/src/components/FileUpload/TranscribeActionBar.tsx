@@ -25,9 +25,10 @@ export function TranscribeActionBar({
       : 'bg-blue-600 hover:bg-blue-500'
 
   return (
-    <div className="px-6 py-3 flex items-center gap-3">
+    <div data-help="transcribe-bar" className="px-6 py-3 flex items-center gap-3">
       <button
         type="button"
+        data-help="transcribe-start"
         onClick={onClick}
         disabled={disabled || submitting}
         title={disabled && disabledReason ? disabledReason : undefined}
@@ -41,6 +42,7 @@ export function TranscribeActionBar({
       {onDiscard && (
         <button
           type="button"
+          data-help="transcribe-discard"
           onClick={onDiscard}
           disabled={submitting}
           className="px-6 py-3 text-red-400 hover:text-red-300 text-sm font-medium rounded-lg border border-gray-700 hover:border-red-500 transition-colors disabled:opacity-50"

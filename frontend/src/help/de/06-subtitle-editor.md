@@ -4,6 +4,14 @@
 
 Der Editor steht im Reiter **Untertitel** der Detailansicht. Jede Zeile der Tabelle ist eine Äußerung mit den Spalten **#**, **Start**, **Ende**, **Sprechende Person** und **Text**. Auf schmalen Bildschirmen fehlen die Spaltenüberschriften und die Spalte **#**.
 
+![Die Detailansicht mit Player, Suche, Schaltflächen für die Fassungen und den ersten Zeilen des Editors; nummerierte Markierungen heben die Bedienelemente hervor](shots/editor.png)
+
+1. Der Player (siehe „Abspielen und Mitlaufen“).
+2. Das Suchfeld **Untertitel durchsuchen...** mit den Schaltflächen **Text** und **Sprechende** (siehe „Suchen“).
+3. **Original**, **Verfeinert** und **Übersetzt** wechseln zwischen dem Original und seiner verfeinerten und übersetzten Fassung (siehe „Verfeinerte und übersetzte Ansicht“).
+4. Eine Zeile ist eine Äußerung. Ihre Stiftsymbole bearbeiten die Zeiten, die sprechende Person und den Text (siehe die folgenden Abschnitte).
+5. Die **Sprechende Person** der Zeile. Der farbige Punkt zeigt, wer spricht; gleiche Namen haben gleiche Farben.
+
 ## Text bearbeiten
 
 Klicken Sie auf das Stiftsymbol hinter dem Text und schreiben Sie los. Ein Klick außerhalb des Felds übernimmt die Änderung. Mit **Tab** übernehmen Sie sie und springen zum Text der nächsten Zeile, mit **Shift+Tab** zur vorherigen. Dabei springt der Player an den Anfang dieser Zeile. **Esc** beendet die Bearbeitung; die Änderung bleibt erhalten.
@@ -20,7 +28,7 @@ Mit dem Stiftsymbol neben **Start** oder **Ende** ändern Sie die Zeit. Das Feld
 
 ## Sprechende Person einer Zeile
 
-Ein farbiger Punkt vor dem Namen zeigt die sprechende Person. Gleiche Namen haben gleiche Farben. Das Stiftsymbol in dieser Spalte ändert den Namen nur in dieser Zeile, das Personensymbol benennt die Person in allen Zeilen um. Beides steht im Abschnitt „Sprechende benennen“.
+In der Spalte **Sprechende Person** ändert das Stiftsymbol den Namen nur in dieser Zeile, das Personensymbol benennt die Person in allen Zeilen um. Beides steht im Abschnitt „Sprechende benennen“.
 
 ## Zeilen einfügen, zusammenführen, löschen
 

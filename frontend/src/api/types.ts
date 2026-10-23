@@ -143,6 +143,7 @@ export interface ConfigResponse {
   invitation_mode?: boolean
   default_expiry_hours?: number
   archive_expiry_hours?: number
+  privacy_notice?: boolean
 }
 
 export interface AnalysisTemplate {

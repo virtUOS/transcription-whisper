@@ -30,6 +30,7 @@ async def test_api_routes_not_caught_by_spa():
 SECRET = b"SECRET-outside-static"
 INDEX = '<!doctype html><div id="root"></div>'
 FAVICON = '<svg xmlns="http://www.w3.org/2000/svg"/>'
+GUIDE_TEMPLATE = "<p>__TW_SETTING_contact_email__</p>"
 NO_CACHE = "no-cache, no-store, must-revalidate"
 
 
@@ -41,6 +42,9 @@ def spa(tmp_path):
     (static / "img").mkdir()
     (static / "index.html").write_text(INDEX)
     (static / "favicon.svg").write_text(FAVICON)
+    (static / "handbuch" / "static").mkdir(parents=True)
+    (static / "handbuch" / "index.html").write_text(GUIDE_TEMPLATE)
+    (static / "handbuch" / "static" / "guide.css").write_text("body{}")
     (static / "assets" / "app.js").write_text("console.log(1)")
     secret = tmp_path / "secret.txt"
     secret.write_bytes(SECRET)
@@ -164,6 +168,24 @@ async def test_spa_serves_assets(spa):
 @pytest.mark.asyncio
 @pytest.mark.parametrize("raw_path", ["/", "/archive/123", "/assets", "/missing.png"])
 async def test_spa_client_routes_get_uncached_index(spa, raw_path):
+    spa_app, _, _ = spa
+    status, headers, body = await _raw_get(spa_app, raw_path)
+    assert status == 200
+    assert body.decode() == INDEX
+    assert headers["cache-control"] == NO_CACHE
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("raw_path", [
+    "/handbuch/index.html",
+    "/./handbuch/index.html",
+    "/img/../handbuch/index.html",
+    "/%2e/handbuch/index.html",
+    "/HANDBUCH/index.html",
+    "/x/../handbuch/static/guide.css",
+])
+async def test_spa_never_serves_guide_files(spa, raw_path):
+    """Guide templates are served only by public_pages, which fills them in and adds the CSP."""
     spa_app, _, _ = spa
     status, headers, body = await _raw_get(spa_app, raw_path)
     assert status == 200

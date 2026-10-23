@@ -2,9 +2,19 @@
 
 ## Choosing sources
 
-In the overview, click **+ Record**. The button only appears if your browser supports recording. Before you start, switch the sources on or off: **Microphone**, **System audio** and **Camera**. The microphone is on by default; system audio and camera are off. With the camera, the microphone is always recorded too, even if the **Microphone** switch is off. At least one source must be on, otherwise the page shows **Enable at least one source** and **Start Recording** is disabled.
+In the overview, click **+ Record**. The button only appears if your browser supports recording. Before you start, switch the sources on or off.
 
-For the microphone, pick the device in the **Microphone** field. If there is only one device, the field shows its name. Your browser may ask for permission. If access is blocked, a notice with the button **Retry** appears. Allow access in your browser's site settings.
+![The recording page before the start, with the three sources and the start button; numbered markers highlight the controls](shots/record.png)
+
+1. **Microphone** switches the microphone on or off. It is on by default.
+2. The **Microphone** field chooses the device. If there is only one device, the field shows its name.
+3. **System audio** also records what your computer plays. It is off by default; see "System audio" below.
+4. **Camera** also records the camera image. It is off by default; see "Camera" below.
+5. **Start Recording** starts the recording (see "Recording").
+
+With the camera, the microphone is always recorded too, even if the **Microphone** switch is off. At least one source must be on, otherwise the page shows **Enable at least one source** and **Start Recording** is disabled.
+
+Your browser may ask for permission. If access is blocked, a notice with the button **Retry** appears. Allow access in your browser's site settings.
 
 > **Get consent.** Before you start, the page reminds you: **Don't record people without their permission. Ask first!**
 

@@ -2,13 +2,12 @@
 
 ## My Transcriptions
 
-After signing in you see the overview. Under **My Transcriptions** it lists all your transcriptions, newest first. Each row shows:
+After signing in you see the overview. Under **My Transcriptions** it lists all your transcriptions, newest first.
 
-- the title with the filename below it, or only the filename if there is no title;
-- the model;
-- the status: green `completed`, yellow `pending` or `processing` (waiting or running), red `failed`;
-- the creation date;
-- a shield icon if the transcription is archived.
+![The overview with two transcriptions; numbered markers highlight the parts of a row](shots/archive.png)
+
+1. The title with the filename below it, or only the filename if there is no title. The pencil icons next to them rename them (see "Renaming").
+2. The model, the status, the creation date and, if the transcription is archived, a shield icon. The status is green `completed`, yellow `pending` or `processing` (waiting or running), or red `failed`.
 
 Click a row to open the transcription. After transcribing, transkribierBAR creates the title automatically with the language model. If that fails, the row shows only the filename.
 
@@ -16,7 +15,7 @@ If you have no transcriptions yet, you see **New here?** with the link **Open th
 
 ## Renaming
 
-Click the pencil next to the title (**Edit title**) or next to the filename (**Edit filename**). Enter or clicking elsewhere saves, Esc cancels. The file extension stays as it is.
+Click the pencil icon next to the title (**Edit title**) or next to the filename (**Edit filename**). Enter or clicking elsewhere saves, Esc cancels. The file extension stays as it is.
 
 ## Expiry and archiving
 

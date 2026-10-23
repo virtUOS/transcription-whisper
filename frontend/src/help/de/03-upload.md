@@ -8,11 +8,15 @@ Erlaubt sind MP3, WAV, MP4, WebM, M4A, MOV, AAC, Opus und OGG bis zu 1 GB. Ist d
 
 ## Einstellungen und Start
 
-Sobald Sie eine Datei gewählt haben, erscheinen die Einstellungen, auch schon während des Uploads. Was die Felder bedeuten, steht im Abschnitt „Transkriptionseinstellungen“.
+Sobald Sie eine Datei gewählt haben, erscheinen die Einstellungen, auch schon während des Uploads.
 
-Klicken Sie auf **Transkribieren**. Läuft der Upload noch, heißt die Schaltfläche **Transkribieren wenn bereit**; die Transkription startet dann von selbst, sobald die Datei hochgeladen ist. Schlägt der Upload in diesem Fall fehl, erscheint **Upload fehlgeschlagen** mit der Schaltfläche **Einstellungen ändern**.
+![Die Seite „Hochladen“ nach der Dateiauswahl mit den Einstellungen und den Schaltflächen zum Starten; nummerierte Markierungen heben die Bedienelemente hervor](shots/upload.png)
 
-Mit **Verwerfen** neben der Schaltfläche **Transkribieren** setzen Sie die Seite zurück und kehren zur Übersicht zurück.
+1. Die Einstellungen. Was die Felder bedeuten, steht im Abschnitt „Transkriptionseinstellungen“; das Feld **Pakete** erklärt „Pakete verwenden“ weiter unten.
+2. **Transkribieren** startet die Transkription.
+3. **Verwerfen** setzt die Seite zurück und führt Sie zur Übersicht zurück.
+
+Läuft der Upload noch, heißt die Schaltfläche **Transkribieren wenn bereit**; die Transkription startet dann von selbst, sobald die Datei hochgeladen ist. Schlägt der Upload in diesem Fall fehl, erscheint **Upload fehlgeschlagen** mit der Schaltfläche **Einstellungen ändern**.
 
 ## Pakete verwenden
 

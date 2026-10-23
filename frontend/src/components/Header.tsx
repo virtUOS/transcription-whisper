@@ -82,11 +82,11 @@ export function Header() {
         >
           ?
         </button>
-        <button onClick={openPresets} className={buttonClass}>
+        <button data-help="nav-presets" onClick={openPresets} className={buttonClass}>
           {t('nav.presets')}
         </button>
         {config?.api_tokens_enabled && (
-          <button onClick={openSettings} className={buttonClass}>
+          <button data-help="nav-settings" onClick={openSettings} className={buttonClass}>
             {t('nav.settings')}
           </button>
         )}

@@ -25,7 +25,7 @@ Wie Sie eine Transkription archivieren, steht im Abschnitt „Archiv“.
 
 ## Datenschutz und Einwilligung
 
-> **Ihre Daten bleiben an der Universität.** transkribierBAR läuft auf Servern der Universität Osnabrück, ebenso die Spracherkennung und die KI-Funktionen. Ihre Dateien und Texte werden nicht an externe Anbieter weitergegeben. In der App sehen nur Sie Ihre Transkriptionen.
+> **Ihre Daten bleiben an der Universität.** transkribierBAR läuft auf Servern der Universität Osnabrück, ebenso die Spracherkennung und die KI-Funktionen. Ihre Dateien und Texte werden nicht an externe Anbieter weitergegeben. In der App sehen nur Sie Ihre Transkriptionen. Mehr dazu finden Sie in den [Datenschutzhinweisen](/handbuch/datenschutz/).
 
 > **Einwilligung einholen.** Nehmen Sie Gespräche nur auf und laden Sie Aufnahmen nur hoch, wenn alle sprechenden Personen eingewilligt haben.
 

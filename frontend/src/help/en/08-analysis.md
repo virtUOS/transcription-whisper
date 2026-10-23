@@ -10,7 +10,16 @@ You find analysis in the **Analysis** tab of the detail view, next to **Subtitle
 
 ## Creating an analysis
 
-Choose a template. **Summary with chapters** is preselected. The **Output language** is preset to the language detected in the transcription. Click **Generate**.
+Choose a template and click **Generate**.
+
+![The analysis form with the prompt shown; numbered markers highlight the controls](shots/analysis-form.png)
+
+1. **Select a template** offers the templates (see "Templates"). **Summary with chapters** is preselected.
+2. **Define chapters (optional)** appears with **Summary with chapters** (see "Chapters and agenda").
+3. **Customize prompt** shows the template's instruction to the language model (see "Customizing the prompt").
+4. **Output language** sets the language of the result. It is preset to the language detected in the transcription.
+5. **Source** appears if a refinement exists (see "Source: original or refined").
+6. **Generate** starts the analysis.
 
 While the analysis runs, the page shows, for example, **Generating Summary with chapters...** and hides the form. The page waits for the language model's reply. Stay on it until the result appears. If you leave the page anyway, the analysis keeps running on the server. You see the result when you reopen the transcription later. A new attempt before it has finished fails.
 
@@ -45,12 +54,18 @@ Below the result it says what it was made from: **from refined** or **from origi
 
 ## Reading and reusing results
 
-Click an entry to expand it. The header shows the name of the template (or **Custom**), the date and the language model used. Below the result it says once more what it was generated with.
+Click an entry to expand it.
 
-- For chapters, key points, decisions and action items, clicking the time makes the player jump to that spot.
-- The cross that appears on a card when you hover over it removes that item from the result. This is saved immediately and cannot be undone. For the summary this applies to chapters, not to the summary text.
-- **Copy result** puts the text on the clipboard. **TXT** and **Markdown** download it, as a file named after the recording with the suffix `_analysis`. The buttons appear above and below the result.
-- The trash icon (**Delete**) in the header deletes the entry after a confirmation prompt.
+![An expanded summary with chapters; numbered markers highlight the controls](shots/analysis-result.png)
+
+1. The name of the template (or **Custom**). The date follows it, and the language model used appears at the right end of the header.
+2. The trash icon (**Delete**) deletes the entry after a confirmation prompt.
+3. **Copy result** puts the text on the clipboard. **TXT** and **Markdown** download it, as a file named after the recording with the suffix `_analysis`. The buttons appear above and below the result.
+4. For chapters, key points, decisions and action items, clicking the time makes the player jump to that spot.
+
+The cross that appears on a card when you hover over it removes that item from the result. This is saved immediately and cannot be undone. For the summary this applies to chapters, not to the summary text.
+
+Below the result it says once more what it was generated with.
 
 ## If the analysis fails
 

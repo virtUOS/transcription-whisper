@@ -2,7 +2,7 @@
 
 ## Der Ablauf
 
-![Ablauf: Archiv, dann Hochladen oder Aufnehmen, dann die Detailansicht mit Editor und Analyse](./assets/main-flow.svg)
+![Ablauf: Übersicht, dann Hochladen oder Aufnehmen, dann die Detailansicht mit Editor und Analyse](./assets/main-flow.svg)
 
 Sie beginnen in der Übersicht Ihrer Transkriptionen. Von dort laden Sie eine Datei hoch oder nehmen im Browser auf. Die fertige Transkription bearbeiten Sie in der Detailansicht.
 

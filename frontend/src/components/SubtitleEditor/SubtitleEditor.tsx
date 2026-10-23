@@ -504,7 +504,7 @@ export function SubtitleEditor() {
   return (
     <div>
       {/* Search bar — pinned above scrollable area */}
-      <div className="flex items-center gap-2 px-3 py-2 bg-gray-800 border-b border-gray-700">
+      <div data-help="editor-search" className="flex items-center gap-2 px-3 py-2 bg-gray-800 border-b border-gray-700">
         <div className="relative flex-1">
           <svg className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -567,6 +567,7 @@ export function SubtitleEditor() {
         </details>
         <div className="ml-auto flex items-center gap-2">
           <button
+            data-help="speaker-names"
             onClick={() => { setFocusSpeaker(undefined); setSpeakerPanelOpen((open) => !open) }}
             className={`px-3 py-1 text-xs rounded border ${speakerPanelOpen ? 'bg-blue-600 text-white border-blue-500' : 'text-gray-300 border-gray-600 hover:text-white hover:border-gray-400'}`}
           >
@@ -597,9 +598,10 @@ export function SubtitleEditor() {
         focusSpeaker={focusSpeaker}
       />
       {(llmAvailable || refinementMetadata || translatedUtterances) && (
-      <div className="flex flex-wrap items-center gap-2 px-3 py-2 bg-gray-800 border-b border-gray-700">
+      <div data-help="editor-versions" className="flex flex-wrap items-center gap-2 px-3 py-2 bg-gray-800 border-b border-gray-700">
         {llmAvailable && !refinementMetadata && (
           <button
+            data-help="refine-open"
             onClick={() => setShowRefineModal(true)}
             className="flex items-center gap-1.5 px-3 py-1 text-xs bg-amber-700/40 text-amber-300 border border-amber-700/50 rounded hover:bg-amber-700/60"
           >
@@ -611,6 +613,7 @@ export function SubtitleEditor() {
         )}
         {llmAvailable && !translatedUtterances && (
           <button
+            data-help="translate-open"
             onClick={() => setShowTranslateModal(true)}
             className="flex items-center gap-1.5 px-3 py-1 text-xs bg-indigo-700/40 text-indigo-300 border border-indigo-700/50 rounded hover:bg-indigo-700/60"
           >
@@ -622,7 +625,7 @@ export function SubtitleEditor() {
         )}
         {(refinementMetadata || translatedUtterances) && (
           <>
-            <div className="flex rounded overflow-hidden border border-gray-600">
+            <div data-help="editor-views" className="flex rounded overflow-hidden border border-gray-600">
               <button
                 onClick={() => setActiveView('original')}
                 className={`px-3 py-1 text-xs ${activeView === 'original' ? 'bg-gray-600 text-white' : 'bg-gray-700 text-gray-400 hover:bg-gray-650'}`}
@@ -631,6 +634,7 @@ export function SubtitleEditor() {
               </button>
               {refinementMetadata && (
                 <button
+                  data-help="view-refined"
                   onClick={() => setActiveView('refined')}
                   className={`px-3 py-1 text-xs ${activeView === 'refined' ? 'bg-amber-700/70 text-amber-200' : 'bg-gray-700 text-gray-400 hover:bg-gray-650'}`}
                 >
@@ -699,7 +703,7 @@ export function SubtitleEditor() {
 
       {/* Changes summary banner */}
       {activeView === 'refined' && refinementMetadata && (
-        <div className="px-3 py-2 bg-amber-900/20 border-b border-amber-700/30">
+        <div data-help="refined-summary" className="px-3 py-2 bg-amber-900/20 border-b border-amber-700/30">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setSummaryCollapsed(c => !c)}
@@ -824,9 +828,9 @@ export function SubtitleEditor() {
       {/* Refine modal */}
       {showRefineModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-xl w-full max-w-md mx-4 p-5">
+          <div data-help="refine-dialog" className="bg-gray-800 border border-gray-700 rounded-lg shadow-xl w-full max-w-md mx-4 p-5">
             <h3 className="text-sm font-medium text-gray-200 mb-3">{t('editor.refineTranscription')}</h3>
-            <div className="mb-3">
+            <div data-help="refine-preset" className="mb-3">
               <PresetSelect
                 presets={refinementPresets}
                 selectedId={selectedRefinementPresetId}
@@ -834,8 +838,9 @@ export function SubtitleEditor() {
                 onSave={handleSaveRefinementPreset}
               />
             </div>
-            <label className="block text-xs text-gray-400 mb-1">{t('editor.refinementContext')}</label>
+            <label data-help="refine-context-label" className="block text-xs text-gray-400 mb-1">{t('editor.refinementContext')}</label>
             <textarea
+              data-help="refine-context"
               value={refineContext}
               onChange={(e) => setRefineContext(e.target.value)}
               placeholder={t('editor.refinementContextPlaceholder')}
@@ -860,6 +865,7 @@ export function SubtitleEditor() {
                 {t('common.cancel')}
               </button>
               <button
+                data-help="refine-submit"
                 onClick={handleRefine}
                 disabled={refining}
                 className="px-3 py-1.5 text-xs bg-amber-700/60 text-amber-200 border border-amber-700/50 rounded hover:bg-amber-700/80 disabled:opacity-50 flex items-center gap-1.5"
@@ -880,7 +886,7 @@ export function SubtitleEditor() {
       {/* Translate modal */}
       {showTranslateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-xl w-full max-w-sm mx-4 p-5">
+          <div data-help="translate-dialog" className="bg-gray-800 border border-gray-700 rounded-lg shadow-xl w-full max-w-sm mx-4 p-5">
             <h3 className="text-sm font-medium text-gray-200 mb-3">{t('editor.translateTo')}</h3>
             <label htmlFor="translation-language-field" className="block text-xs text-gray-400 mb-1">{t('editor.translationLanguage')}</label>
             <LanguageSelect
@@ -891,7 +897,7 @@ export function SubtitleEditor() {
               className="w-full bg-gray-700 text-gray-200 text-xs px-3 py-2 rounded border border-gray-600 focus:border-indigo-500 focus:outline-none disabled:opacity-50"
             />
             {refinedUtterances && (
-              <div className="mt-3">
+              <div data-help="translate-source" className="mt-3">
                 <label className="block text-xs text-gray-400 mb-1">{t('editor.source')}</label>
                 <div className="inline-flex rounded border border-gray-600 overflow-hidden">
                   <button
@@ -930,6 +936,7 @@ export function SubtitleEditor() {
                 {t('common.cancel')}
               </button>
               <button
+                data-help="translate-submit"
                 onClick={handleTranslate}
                 disabled={translating}
                 className="px-3 py-1.5 text-xs bg-indigo-700/60 text-indigo-200 border border-indigo-700/50 rounded hover:bg-indigo-700/80 disabled:opacity-50 flex items-center gap-1.5"

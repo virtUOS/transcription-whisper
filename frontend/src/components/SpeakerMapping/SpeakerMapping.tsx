@@ -108,7 +108,7 @@ export function SpeakerMapping({ isOpen, onClose, focusSpeaker }: Props) {
   if (!isOpen) return null
 
   return (
-    <section className="mx-2 sm:mx-6 mb-4 bg-gray-800 rounded-lg p-3 sm:p-6">
+    <section data-help="speaker-panel" className="mx-2 sm:mx-6 mb-4 bg-gray-800 rounded-lg p-3 sm:p-6">
       <h2 className="text-lg font-medium text-white mb-4">{t('editor.speakerNames')}</h2>
       <div className="space-y-3">
         {identities.map((identity) => {
@@ -151,7 +151,7 @@ export function SpeakerMapping({ isOpen, onClose, focusSpeaker }: Props) {
         <button onClick={onClose} className="px-4 py-1.5 text-sm text-gray-300 hover:text-white">
           {t('common.cancel')}
         </button>
-        <button onClick={handleApply} className="px-4 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-500">
+        <button data-help="speaker-apply" onClick={handleApply} className="px-4 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-500">
           {t('editor.apply')}
         </button>
       </div>

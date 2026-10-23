@@ -13,6 +13,7 @@ import type { HelpSectionId } from '../../help/sectionList.ts'
 export { sections }
 export type { HelpSection, HelpSectionId, HelpFeature } from '../../help/sectionList.ts'
 
+import type { ShotMeta } from '../../help/shotMeta.ts'
 import type { AppView } from '../../store'
 import type { ConfigResponse } from '../../api/types'
 import type { HelpSection } from '../../help/sectionList.ts'
@@ -67,12 +68,26 @@ const deMarkdown = import.meta.glob('/src/help/de/*.md', {
 }) as Record<string, string>
 
 // Vite glob: resolve asset URLs for SVG diagrams referenced from markdown.
+// Diagrams are per language: /src/help/assets/<lang>/<name>.svg.
 // These are post-build URLs (e.g. "/assets/main-flow-abc123.svg").
-export const assetUrls = import.meta.glob('/src/help/assets/*.{svg,png}', {
+export const assetUrls = import.meta.glob('/src/help/assets/*/*.{svg,png}', {
   query: '?url',
   import: 'default',
   eager: true,
 }) as Record<string, string>
+
+/**
+ * Resolves a markdown image src like "./assets/main-flow.svg" to this language's
+ * diagram (src/help/assets/<lang>/main-flow.svg). Throws when that file is missing.
+ */
+export function resolveAssetUrl(src: string | undefined, lang: 'de' | 'en'): string | undefined {
+  if (!src) return undefined
+  const m = /^\.\/assets\/([\w-]+\.(?:svg|png))$/.exec(src)
+  if (!m) return src
+  const url = assetUrls[`/src/help/assets/${lang}/${m[1]}`]
+  if (!url) throw new Error(`Help diagram "${m[1]}" has no ${lang} version in src/help/assets/${lang}/`)
+  return url
+}
 
 export function loadContent(id: HelpSectionId, lang: 'en' | 'de'): string | null {
   const section = sections.find((s) => s.id === id)
@@ -80,4 +95,26 @@ export function loadContent(id: HelpSectionId, lang: 'en' | 'de'): string | null
   const map = lang === 'en' ? enMarkdown : deMarkdown
   const key = `/src/help/${lang}/${section.filename}`
   return map[key] ?? null
+}
+
+// Screenshots recorded by the screenshot runner: src/help/shots/<lang>/<id>.{png,json}.
+const shotUrls = import.meta.glob('/src/help/shots/*/*.png', {
+  query: '?url',
+  import: 'default',
+  eager: true,
+}) as Record<string, string>
+
+const shotMetas = import.meta.glob('/src/help/shots/*/*.json', {
+  import: 'default',
+  eager: true,
+}) as Record<string, ShotMeta>
+
+/** Resolves a markdown `shots/<id>.png` src to this language's screenshot and marker boxes. */
+export function shotFor(lang: 'de' | 'en', src: string): { url: string; meta: ShotMeta } | null {
+  const m = /^shots\/([\w-]+)\.png$/.exec(src)
+  if (!m) return null
+  const base = `/src/help/shots/${lang}/${m[1]}`
+  const url = shotUrls[`${base}.png`]
+  const meta = shotMetas[`${base}.json`]
+  return url && meta ? { url, meta } : null
 }

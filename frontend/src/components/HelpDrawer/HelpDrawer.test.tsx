@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { useStore } from '../../store'
 import i18n from '../../i18n'
 import { HelpDrawer } from './HelpDrawer'
-import { settingValues } from './helpSections'
+import { resolveAssetUrl, settingValues } from './helpSections'
 import type { ConfigResponse } from '../../api/types'
 
 function buildConfig(overrides: Partial<ConfigResponse> = {}): ConfigResponse {
@@ -74,6 +74,93 @@ describe('HelpDrawer', () => {
       expect(link).toHaveAttribute('target', '_blank')
       expect(link).toHaveAttribute('rel', 'noopener noreferrer')
     }
+  })
+})
+
+describe('HelpDrawer public links', () => {
+  it('links each section to the public guide in German', () => {
+    openHelp(buildConfig(), 'upload')
+    const link = screen.getByRole('link', { name: /Im Handbuch öffnen/ })
+    expect(link).toHaveAttribute('href', '/handbuch/#upload')
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+  })
+
+  it('links each section to the public guide in English', async () => {
+    await i18n.changeLanguage('en')
+    openHelp(buildConfig(), 'upload')
+    const link = screen.getByRole('link', { name: /Open in the user guide/ })
+    expect(link).toHaveAttribute('href', '/handbuch/en/#upload')
+  })
+
+  it.each([undefined, false])('hides the privacy notice link when privacy_notice is %s', (value) => {
+    openHelp(buildConfig({ privacy_notice: value }), 'upload')
+    expect(screen.queryByRole('link', { name: 'Datenschutzhinweise' })).toBeNull()
+  })
+
+  it('shows the German privacy notice link when enabled', () => {
+    openHelp(buildConfig({ privacy_notice: true }), 'upload')
+    const link = screen.getByRole('link', { name: 'Datenschutzhinweise' })
+    expect(link).toHaveAttribute('href', '/handbuch/datenschutz/')
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+  })
+
+  it('opens the guide link in the about section in a new tab', () => {
+    openHelp(buildConfig(), 'about')
+    const link = screen.getByRole('link', { name: 'Datenschutzhinweisen' })
+    expect(link).toHaveAttribute('href', '/handbuch/datenschutz/')
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+  })
+
+  it('shows the English privacy notice link when enabled', async () => {
+    await i18n.changeLanguage('en')
+    openHelp(buildConfig({ privacy_notice: true }), 'upload')
+    const link = screen.getByRole('link', { name: 'Privacy notice' })
+    expect(link).toHaveAttribute('href', '/handbuch/en/privacy/')
+  })
+})
+
+describe('HelpDrawer screenshots', () => {
+  it('keeps the drawer open on Escape while a lightbox is open, closes it otherwise', () => {
+    openHelp(buildConfig(), 'archive')
+    const dialog = document.querySelector('dialog') as HTMLDialogElement
+    expect(dialog).not.toBeNull()
+    dialog.setAttribute('open', '')
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(useStore.getState().helpOpen).toBe(true)
+    dialog.removeAttribute('open')
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(useStore.getState().helpOpen).toBe(false)
+  })
+
+  it('renders screenshots outside paragraphs', () => {
+    openHelp(buildConfig(), 'archive')
+    expect(document.querySelector('p figure, p dialog, p button')).toBeNull()
+    expect(document.querySelector('figure')).not.toBeNull()
+  })
+})
+
+describe('HelpDrawer diagrams', () => {
+  it.each([
+    ['de', 'Hochladen', 'Upload'],
+    ['en', 'Upload', 'Hochladen'],
+  ])('shows the %s diagram', async (lang, label, other) => {
+    await i18n.changeLanguage(lang)
+    openHelp(buildConfig(), 'getting-started')
+    // Vite inlines small SVGs as data URIs, so check the decoded labels.
+    const svgs = [...document.querySelectorAll('img')]
+      .map((i) => i.getAttribute('src') ?? '')
+      .filter((src) => src.startsWith('data:image/svg+xml;base64,'))
+      .map((src) => decodeURIComponent(escape(atob(src.split(',')[1]))))
+    expect(svgs.length).toBeGreaterThan(0)
+    expect(svgs[0]).toContain(`>${label}<`)
+    expect(svgs[0]).not.toContain(`>${other}<`)
+  })
+
+  it('fails loudly for a diagram without a version in the language', () => {
+    expect(() => resolveAssetUrl('./assets/nope.svg', 'de')).toThrow(/nope\.svg.*de/)
   })
 })
 

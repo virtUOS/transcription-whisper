@@ -13,12 +13,13 @@ const LEGAL_LINKS = [
 ] as const
 
 export function HelpDrawer() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const open = useStore((s) => s.helpOpen)
   const initialSection = useStore((s) => s.helpInitialSection)
   const closeHelp = useStore((s) => s.closeHelp)
   const currentView = useStore((s) => s.currentView)
   const config = useStore((s) => s.config)
+  const privacyHref = `${import.meta.env.BASE_URL}handbuch/${i18n.language === 'de' ? 'datenschutz/' : 'en/privacy/'}`
   const contactEmail = config?.contact_email
   const visible = useMemo(() => visibleSections(config), [config])
 
@@ -57,6 +58,8 @@ export function HelpDrawer() {
     if (!open) return
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        // An open screenshot lightbox consumes Escape itself; keep the drawer open.
+        if (drawerRef.current?.querySelector('dialog[open]')) return
         e.stopPropagation()
         closeHelp()
         return
@@ -98,7 +101,7 @@ export function HelpDrawer() {
       />
       <div
         ref={drawerRef}
-        className="relative flex flex-col bg-gray-900 border-l border-gray-700 w-full md:w-[35vw] md:min-w-[420px] max-w-[720px] shadow-2xl"
+        className="relative flex flex-col bg-gray-900 border-l border-gray-700 w-full md:w-[50vw] md:min-w-[640px] max-w-[900px] shadow-2xl"
       >
         <div className="flex items-center justify-between px-6 py-3 border-b border-gray-700">
           <h2 id="help-drawer-title" className="text-lg font-semibold text-white">
@@ -145,6 +148,16 @@ export function HelpDrawer() {
             </div>
           )}
           <div className="flex flex-wrap gap-x-4 gap-y-1">
+            {config?.privacy_notice && (
+              <a
+                href={privacyHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-400 hover:text-blue-300 underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 rounded"
+              >
+                {t('help.legal.privacyNotice')}
+              </a>
+            )}
             {LEGAL_LINKS.map(({ key, href }) => (
               <a
                 key={key}

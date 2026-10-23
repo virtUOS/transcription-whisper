@@ -1,5 +1,14 @@
 # Transkriptionseinstellungen
 
+Die Einstellungen erscheinen bei **Hochladen**, sobald Sie eine Datei gewählt haben, und bei **Aufnehmen**, sobald die Aufnahme hochgeladen ist. Sie sind in Gruppen geordnet.
+
+![Die Transkriptionseinstellungen mit eingeblendeten erweiterten Optionen; nummerierte Markierungen heben die vier Gruppen hervor](shots/settings.png)
+
+1. **Voreinstellungen**: eine gespeicherte Voreinstellung laden, die aktuellen Einstellungen speichern oder ein Paket wählen (siehe „Voreinstellungen“ unten).
+2. **Transkription**: Sprache und Modell (siehe „Sprache und Modell“).
+3. **Sprechende**: die Erkennung der Sprechenden und die Zahl der Personen (siehe „Sprechende erkennen“).
+4. **Erweiterte Optionen**: Anfangs-Prompt und Schlüsselwörter (siehe „Erweiterte Optionen“).
+
 ## Sprache und Modell
 
 Die Gruppe **Transkription** enthält zwei Felder.
