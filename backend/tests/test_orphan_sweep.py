@@ -6,7 +6,7 @@ import uuid
 import pytest
 
 from app.database import get_db
-from app.main import ORPHAN_MIN_AGE_HOURS, delete_orphaned_media, settings
+from app.main import ORPHAN_MIN_AGE_HOURS, delete_orphaned_media
 
 
 def _touch(directory, name, age_hours):
@@ -19,8 +19,7 @@ def _touch(directory, name, age_hours):
 
 
 @pytest.mark.asyncio
-async def test_orphan_sweep(tmp_path, monkeypatch):
-    monkeypatch.setattr(settings, "TEMP_PATH", str(tmp_path))
+async def test_orphan_sweep(tmp_path):
     old = ORPHAN_MIN_AGE_HOURS + 1
     orphan = _touch(tmp_path, f"{uuid.uuid4()}.wav", old)
     referenced = _touch(tmp_path, f"{uuid.uuid4()}.mp3", old)
@@ -37,7 +36,9 @@ async def test_orphan_sweep(tmp_path, monkeypatch):
         )
         await db.commit()
 
-    assert await delete_orphaned_media() == 1
+    # Passed explicitly: tests elsewhere reload app.config, so patching a settings
+    # object here could leave the sweep reading the real TEMP_PATH.
+    assert await delete_orphaned_media(temp_path=str(tmp_path)) == 1
 
     assert not os.path.exists(orphan)
     for kept in (referenced, fresh, db_file, notes):

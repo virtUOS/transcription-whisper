@@ -102,8 +102,10 @@ async def cleanup_remote_jobs(job_ids: list[str]) -> None:
         await backend.cleanup(job_id)
 
 
-async def delete_orphaned_media(now: float | None = None) -> int:
-    """Delete old upload files in TEMP_PATH that no files row references; return the count."""
+async def delete_orphaned_media(now: float | None = None, temp_path: str | None = None) -> int:
+    """Delete old upload files in temp_path (default TEMP_PATH) that no files row references; return the count."""
+    if temp_path is None:
+        temp_path = settings.TEMP_PATH
     cutoff = (time.time() if now is None else now) - ORPHAN_MIN_AGE_HOURS * 3600
     async with get_db() as db:
         cursor = await db.execute("SELECT file_path, mp3_path FROM files")
@@ -111,7 +113,7 @@ async def delete_orphaned_media(now: float | None = None) -> int:
             os.path.realpath(p) for row in await cursor.fetchall() for p in (row["file_path"], row["mp3_path"]) if p
         }
     deleted = 0
-    for entry in os.scandir(settings.TEMP_PATH):
+    for entry in os.scandir(temp_path):
         if not _UPLOAD_NAME_RE.match(entry.name) or not entry.is_file(follow_symlinks=False):
             continue
         try:
