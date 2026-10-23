@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import httpx
 from app.config import settings
@@ -12,6 +13,9 @@ STATUS_MAP = {
     "error": "failed",
     "failed": "failed",
 }
+
+# Seconds to wait before each retry of a remote delete (3 attempts in all).
+CLEANUP_RETRY_DELAYS = (1, 2)
 
 class MurmurAIBackend(ASRBackend):
     def __init__(self):
@@ -84,16 +88,26 @@ class MurmurAIBackend(ASRBackend):
         """Delete the transcript from the MurmurAI server.
 
         MurmurAI keeps every transcript until a client deletes it. The app holds
-        its own copy, so the remote one goes as soon as it has been read. Best
-        effort: a failure is logged and counted, never raised.
+        its own copy, so the remote one goes as soon as it has been read. Retried
+        a few times, since a restart can leave the server briefly unreachable; a
+        404 means it is already gone. Best effort: a failure is logged and
+        counted, never raised.
         """
-        try:
-            async with httpx.AsyncClient(timeout=30) as client:
-                response = await client.delete(
-                    f"{self.base_url}/v1/transcript/{job_id}",
-                    headers=self.headers,
-                )
-                response.raise_for_status()
-        except Exception as e:
-            logging.warning("Could not delete remote transcript %s from MurmurAI: %s", job_id, e)
-            inc(errors_total, "asr_cleanup_failed", "asr")
+        for delay in (*CLEANUP_RETRY_DELAYS, None):
+            try:
+                async with httpx.AsyncClient(timeout=30) as client:
+                    response = await client.delete(
+                        f"{self.base_url}/v1/transcript/{job_id}",
+                        headers=self.headers,
+                    )
+                    if response.status_code == 404:
+                        return
+                    response.raise_for_status()
+                return
+            except Exception as e:
+                if delay is not None:
+                    await asyncio.sleep(delay)
+                    continue
+                logging.warning("Could not delete remote transcript %s from MurmurAI: %s", job_id, e)
+                inc(errors_total, "asr_cleanup_failed", "asr")
+                print(f"Cleanup error: {e}")
