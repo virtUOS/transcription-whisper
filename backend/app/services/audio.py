@@ -6,13 +6,14 @@ from app.config import settings
 
 
 async def _write_without_metadata(input_path: str, output_path: str, codec_args: list[str]) -> str | None:
-    """Write the audio of input_path to output_path without tags or cover art.
+    """Write the audio of input_path to output_path without tags, cover art or chapters.
 
     Returns None on success, else the tail of ffmpeg's error output.
     """
     process = await asyncio.create_subprocess_exec(
-        settings.FFMPEG_PATH, "-y", "-i", input_path,
-        "-map_metadata", "-1", "-vn", *codec_args, output_path,
+        # -hide_banner -loglevel error: a failure's stderr must not dump the input's tags
+        settings.FFMPEG_PATH, "-hide_banner", "-loglevel", "error", "-y", "-i", input_path,
+        "-map_metadata", "-1", "-map_chapters", "-1", "-vn", *codec_args, output_path,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
@@ -87,8 +88,7 @@ async def ensure_clean_asr_copy(file_path: str, mp3_path: str) -> str:
     )
     os.close(fd)
     try:
-        # -map_metadata -1 keeps chapters (only their titles go), so drop them too
-        error_msg = await _write_without_metadata(mp3_path, tmp_path, ["-map_chapters", "-1", "-c:a", "copy"])
+        error_msg = await _write_without_metadata(mp3_path, tmp_path, ["-c:a", "copy"])
         if error_msg is not None:
             raise RuntimeError(f"Metadata removal failed: {error_msg}")
         os.replace(tmp_path, mp3_path)

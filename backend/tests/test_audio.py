@@ -1,6 +1,8 @@
 import os
+import pathlib
 import shutil
 import subprocess
+import tempfile
 import pytest
 from app.services.audio import convert_to_mp3, ensure_clean_asr_copy
 
@@ -167,3 +169,40 @@ async def test_clean_asr_copy_untouched(tmp_path):
 
     assert result == str(asr)
     assert asr.stat().st_mtime == 1_000_000_000
+
+
+@pytest.mark.asyncio
+async def test_failed_conversion_error_has_no_file_tags():
+    # A short path keeps the tags inside the last 500 characters of ffmpeg's output.
+    work = pathlib.Path(tempfile.mkdtemp(dir="/tmp", prefix="a"))
+    src = work / "in.wav"
+    _ffmpeg("-f", "lavfi", "-i", "sine=frequency=440:duration=1", "-metadata", "title=SECRET-TAG", str(src))
+    work.chmod(0o555)  # the output cannot be written, so ffmpeg fails after reading the tags
+    try:
+        with pytest.raises(RuntimeError) as excinfo:
+            await convert_to_mp3(str(src))
+    finally:
+        work.chmod(0o755)
+        shutil.rmtree(work)
+
+    assert "SECRET-TAG" not in str(excinfo.value)
+
+
+@pytest.mark.asyncio
+async def test_new_asr_copy_has_no_chapters(tmp_path):
+    chapters = tmp_path / "chapters.txt"
+    chapters.write_text(
+        ";FFMETADATA1\n[CHAPTER]\nTIMEBASE=1/1000\nSTART=0\nEND=500\ntitle=SECRET-CHAPTER\n"
+        "[CHAPTER]\nTIMEBASE=1/1000\nSTART=500\nEND=1000\ntitle=Second\n"
+    )
+    src = tmp_path / "in.m4a"
+    _ffmpeg("-f", "lavfi", "-i", "sine=frequency=440:duration=1", "-i", str(chapters),
+            "-map_metadata", "1", "-c:a", "aac", str(src))
+    assert "[CHAPTER]" in _probe(src)  # the fixture really has chapters
+
+    out = await convert_to_mp3(str(src))
+
+    assert "[CHAPTER]" not in _probe(out)
+    os.utime(out, (1_000_000_000, 1_000_000_000))
+    assert await ensure_clean_asr_copy(str(src), out) == out
+    assert os.stat(out).st_mtime == 1_000_000_000
