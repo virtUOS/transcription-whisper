@@ -2,7 +2,7 @@
 
 ## The flow
 
-![Flow: Archive, then Upload or Record, then the detail view with editor and analysis](./assets/main-flow.svg)
+![Flow: overview, then Upload or Record, then the detail view with editor and analysis](./assets/main-flow.svg)
 
 You start in the overview of your transcriptions. From there you upload a file or record in the browser. You work on the finished transcription in the detail view.
 

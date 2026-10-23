@@ -5,7 +5,7 @@ import remarkGfm from 'remark-gfm'
 import rehypeSlug from 'rehype-slug'
 import type { Components } from 'react-markdown'
 import type { HelpSectionId } from './helpSections'
-import { loadContent, assetUrls, settingValues, fillSettings, shotFor } from './helpSections'
+import { loadContent, resolveAssetUrl, settingValues, fillSettings, shotFor } from './helpSections'
 import { HelpShot } from './HelpShot'
 import { useStore } from '../../store'
 
@@ -13,21 +13,8 @@ interface HelpContentProps {
   sectionId: HelpSectionId
 }
 
-/**
- * Resolves a markdown image src against Vite's asset URL map.
- * Accepts relative paths like "./assets/main-flow.svg" or "/src/help/assets/main-flow.svg".
- */
-function resolveAssetUrl(src: string | undefined): string | undefined {
-  if (!src) return undefined
-  // Normalize: strip leading "./" and make relative paths absolute from /src/help/
-  let key = src
-  if (key.startsWith('./')) key = '/src/help/' + key.slice(2)
-  if (!key.startsWith('/')) key = '/src/help/' + key
-  return assetUrls[key] ?? src
-}
-
-function LightboxImage({ src, alt, ...props }: React.ImgHTMLAttributes<HTMLImageElement>) {
-  const resolved = resolveAssetUrl(typeof src === 'string' ? src : undefined)
+function LightboxImage({ src, alt, lang, ...props }: React.ImgHTMLAttributes<HTMLImageElement> & { lang: 'de' | 'en' }) {
+  const resolved = resolveAssetUrl(typeof src === 'string' ? src : undefined, lang)
   const dialogRef = useRef<HTMLDialogElement>(null)
   return (
     <>
@@ -51,8 +38,15 @@ function LightboxImage({ src, alt, ...props }: React.ImgHTMLAttributes<HTMLImage
 
 const components: Components = {
   a: ({ href, children, ...props }) => {
-    const isExternal = href?.startsWith('http://') || href?.startsWith('https://')
-    if (isExternal) {
+    // Guide pages (/handbuch/...) are separate documents: opening them in place would
+    // navigate the SPA away and lose a running upload or recording.
+    const opensInNewTab =
+      !!href &&
+      (href.startsWith('http://') ||
+        href.startsWith('https://') ||
+        href.startsWith('/handbuch/') ||
+        href.startsWith(`${import.meta.env.BASE_URL}handbuch/`))
+    if (opensInNewTab) {
       return (
         <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline" {...props}>
           {children}
@@ -96,7 +90,6 @@ const components: Components = {
   li: ({ children, ...props }) => (
     <li className="text-gray-300" {...props}>{children}</li>
   ),
-  img: LightboxImage,
   table: ({ children, ...props }) => (
     <div className="overflow-x-auto my-3">
       <table className="text-sm text-gray-300 border-collapse" {...props}>{children}</table>
@@ -122,7 +115,7 @@ function makeComponents(lang: 'de' | 'en'): Components {
     img: (props) => {
       const src = typeof props.src === 'string' ? props.src : ''
       const shot = shotFor(lang, src)
-      return shot ? <HelpShot url={shot.url} alt={props.alt ?? ''} meta={shot.meta} /> : <LightboxImage {...props} />
+      return shot ? <HelpShot url={shot.url} alt={props.alt ?? ''} meta={shot.meta} /> : <LightboxImage {...props} lang={lang} />
     },
   }
 }
@@ -157,6 +150,16 @@ export function HelpContent({ sectionId }: HelpContentProps) {
       <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSlug]} components={componentsByLang[lang]}>
         {markdown}
       </ReactMarkdown>
+      <p className="mt-8 pt-4 border-t border-gray-700 text-sm">
+        <a
+          href={`${import.meta.env.BASE_URL}handbuch/${lang === 'en' ? 'en/' : ''}#${sectionId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-400 hover:text-blue-300 underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 rounded"
+        >
+          {t('help.openInGuide')} <span aria-hidden="true">↗</span>
+        </a>
+      </p>
     </div>
   )
 }
