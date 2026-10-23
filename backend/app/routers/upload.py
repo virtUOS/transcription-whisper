@@ -55,7 +55,7 @@ async def upload_file(
         raise
     file_size = total_size
 
-    # Convert to MP3 if needed
+    # Write the MP3 copy the ASR host receives (always a new file, no metadata)
     try:
         mp3_path = await convert_to_mp3(file_path)
     except Exception:

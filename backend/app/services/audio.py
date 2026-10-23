@@ -3,21 +3,11 @@ import os
 from app.config import settings
 
 
-async def convert_to_mp3(input_path: str) -> str:
-    input_path = os.path.abspath(input_path)
-    if not os.path.exists(input_path):
-        raise FileNotFoundError(f"Input file does not exist: {input_path}")
+async def _write_without_metadata(input_path: str, output_path: str, codec_args: list[str]) -> str | None:
+    """Write the audio of input_path to output_path without tags or cover art.
 
-    # Always write a new file: the ASR host must not receive the upload's tags,
-    # cover art or location. MP3 is stream-copied, everything else is re-encoded.
-    stem = os.path.splitext(input_path)[0]
-    if input_path.lower().endswith(".mp3"):
-        output_path = stem + ".asr.mp3"
-        codec_args = ["-c:a", "copy"]
-    else:
-        output_path = stem + ".mp3"
-        codec_args = []
-
+    Returns None on success, else the tail of ffmpeg's error output.
+    """
     process = await asyncio.create_subprocess_exec(
         settings.FFMPEG_PATH, "-y", "-i", input_path,
         "-map_metadata", "-1", "-vn", *codec_args, output_path,
@@ -30,10 +20,32 @@ async def convert_to_mp3(input_path: str) -> str:
         # ffmpeg may have left a partial output behind
         if os.path.exists(output_path):
             os.unlink(output_path)
-        error_msg = stderr.decode()[-500:] if stderr else "Unknown error"
-        raise RuntimeError(f"Audio conversion failed: {error_msg}")
+        return stderr.decode()[-500:] if stderr else "Unknown error"
+    return None
 
-    return output_path
+
+async def convert_to_mp3(input_path: str) -> str:
+    input_path = os.path.abspath(input_path)
+    if not os.path.exists(input_path):
+        raise FileNotFoundError(f"Input file does not exist: {input_path}")
+
+    # Always write a new file: the ASR host must not receive the upload's tags,
+    # cover art or location. MP3 is stream-copied, everything else is re-encoded.
+    stem = os.path.splitext(input_path)[0]
+    if input_path.lower().endswith(".mp3"):
+        output_path = stem + ".asr.mp3"
+        # A file named .mp3 may hold other audio (AAC, WAV, ...), which the MP3
+        # muxer rejects as is; re-encode it then.
+        attempts = [["-c:a", "copy"], []]
+    else:
+        output_path = stem + ".mp3"
+        attempts = [[]]
+
+    for codec_args in attempts:
+        error_msg = await _write_without_metadata(input_path, output_path, codec_args)
+        if error_msg is None:
+            return output_path
+    raise RuntimeError(f"Audio conversion failed: {error_msg}")
 
 
 async def get_media_duration(file_path: str) -> float | None:

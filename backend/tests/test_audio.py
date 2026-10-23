@@ -45,6 +45,18 @@ async def test_mp3_tags_and_cover_stripped(tmp_path):
 
 
 @pytest.mark.asyncio
+async def test_mislabeled_mp3_is_reencoded(tmp_path):
+    """A .mp3 name holding other audio cannot be stream-copied into MP3."""
+    src = tmp_path / "in.mp3"
+    _ffmpeg("-f", "lavfi", "-i", "sine=frequency=440:duration=1", "-c:a", "pcm_s16le", "-f", "wav", str(src))
+
+    result = await convert_to_mp3(str(src))
+
+    assert result == str(tmp_path / "in.asr.mp3")
+    assert "codec_name=mp3" in _probe(result)
+
+
+@pytest.mark.asyncio
 async def test_mp4_metadata_stripped(tmp_path):
     src = tmp_path / "in.mp4"
     _ffmpeg(
