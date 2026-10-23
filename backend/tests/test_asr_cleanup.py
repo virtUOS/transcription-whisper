@@ -80,7 +80,7 @@ async def _insert(file_id, expires_at, transcriptions):
 
 @pytest.mark.asyncio
 async def test_expiry_deletes_remote_transcripts_of_expired_rows():
-    """A remote delete that failed earlier is retried before the row, and its job id, go."""
+    """Every expired row with a job id gets a remote delete, so one that failed earlier is retried."""
     await _insert("f-old", "2000-01-01 00:00:00", [("t-old", "completed", "job-old"), ("t-nojob", "failed", None)])
     await _insert("f-new", "2999-01-01 00:00:00", [("t-new", "completed", "job-new")])
     backend = AsyncMock()
@@ -95,6 +95,41 @@ async def test_expiry_deletes_remote_transcripts_of_expired_rows():
     async with get_db() as db:
         cursor = await db.execute("SELECT id FROM transcriptions")
         assert [row["id"] for row in await cursor.fetchall()] == ["t-new"]
+
+@pytest.mark.asyncio
+async def test_expiry_deletes_local_rows_before_contacting_the_asr_host():
+    """An unreachable ASR host must not hold back the local retention."""
+    await _insert("f-old", "2000-01-01 00:00:00", [("t-old", "completed", "job-old")])
+    release = asyncio.Event()
+    seen = {}
+    backend = AsyncMock()
+
+    async def blocked_cleanup(job_id):
+        if not seen:
+            async with get_db() as db:
+                for table in ("files", "transcriptions"):
+                    cursor = await db.execute(f"SELECT COUNT(*) AS n FROM {table}")
+                    seen[table] = (await cursor.fetchone())["n"]
+        await release.wait()
+
+    backend.cleanup.side_effect = blocked_cleanup
+    real_sleep = asyncio.sleep  # asyncio.sleep is patched below, for the loop's pause
+
+    with patch("app.main.get_asr_backend", return_value=backend), \
+         patch("app.main.delete_orphaned_media", AsyncMock(return_value=0)), \
+         patch("app.main.asyncio.sleep", AsyncMock(side_effect=[None, asyncio.CancelledError()])):
+        task = asyncio.create_task(cleanup_old_files())
+        try:
+            for _ in range(200):
+                if seen:
+                    break
+                await real_sleep(0.01)
+        finally:
+            release.set()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+
+    assert seen == {"files": 0, "transcriptions": 0}
 
 
 async def _delete(backend, tid):

@@ -157,16 +157,14 @@ async def cleanup_old_files():
                             except OSError:
                                 pass
 
-                # Retry the remote deletes first: once the rows go, so do their job ids.
-                # A remote copy already deleted answers 404, which counts as done.
+                # Remember the job ids: once the rows go, so do they. A remote copy
+                # already deleted answers 404, which counts as done.
                 cursor = await db.execute(
                     f"SELECT asr_job_id FROM transcriptions WHERE file_id IN ({expired_files_q}) "
                     "AND asr_job_id IS NOT NULL",
                     (now,),
                 )
-                asr_backend = get_asr_backend()
-                for row in await cursor.fetchall():
-                    await asr_backend.cleanup(row["asr_job_id"])
+                asr_job_ids = [row["asr_job_id"] for row in await cursor.fetchall()]
 
                 # Delete related DB records
                 expired_transcriptions_q = f"SELECT id FROM transcriptions WHERE file_id IN ({expired_files_q})"
@@ -214,6 +212,12 @@ async def cleanup_old_files():
             for _ in range(invitations_expired):
                 inc(invitations_expired_total)
             _refresh_storage_gauge()
+
+            # Last, so an unreachable ASR host only delays the remote deletes.
+            if asr_job_ids:
+                asr_backend = get_asr_backend()
+                for job_id in asr_job_ids:
+                    await asr_backend.cleanup(job_id)
         except Exception as e:
             inc(cleanup_runs_total, "failed")
             print(f"Cleanup error: {e}")
