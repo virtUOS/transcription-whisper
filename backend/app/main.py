@@ -192,9 +192,24 @@ if settings.ENABLE_API_TOKENS:
 # mount to a startup-time flag that tests reload.
 app.include_router(invitations_router.router)
 
-# Serve frontend static files (only when built files exist, i.e., in Docker)
-static_dir = os.path.join(os.path.dirname(__file__), "..", "static")
-if os.path.isdir(static_dir):
+
+def safe_static_file(static_dir: str, rel: str) -> str | None:
+    """Return the real path of ``rel`` if it is a regular file inside ``static_dir``, else None.
+
+    Paths that resolve outside the directory (absolute paths, ``..`` segments,
+    symlinks pointing elsewhere) are rejected, as are NUL bytes.
+    """
+    if not rel or "\x00" in rel:
+        return None
+    root = os.path.realpath(static_dir)
+    candidate = os.path.realpath(os.path.join(root, rel))
+    if os.path.commonpath([root, candidate]) != root or not os.path.isfile(candidate):
+        return None
+    return candidate
+
+
+def mount_spa(app: FastAPI, static_dir: str) -> None:
+    """Serve the built frontend in ``static_dir``: /assets plus the SPA fallback."""
     app.mount("/assets", StaticFiles(directory=os.path.join(static_dir, "assets")), name="assets")
 
     @app.get("/{full_path:path}")
@@ -203,8 +218,8 @@ if os.path.isdir(static_dir):
         if full_path.startswith("api/"):
             raise HTTPException(status_code=404)
         # Serve root-level static files (e.g. favicon, logo) if they exist
-        candidate = os.path.join(static_dir, full_path)
-        if full_path and os.path.isfile(candidate):
+        candidate = safe_static_file(static_dir, full_path)
+        if candidate:
             return FileResponse(candidate)
         # index.html must not be cached: browsers applying heuristic freshness
         # would serve a stale shell after logout, bypassing the auth proxy and
@@ -213,3 +228,9 @@ if os.path.isdir(static_dir):
             os.path.join(static_dir, "index.html"),
             headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
         )
+
+
+# Serve frontend static files (only when built files exist, i.e., in Docker)
+static_dir = os.path.join(os.path.dirname(__file__), "..", "static")
+if os.path.isdir(static_dir):
+    mount_spa(app, static_dir)
