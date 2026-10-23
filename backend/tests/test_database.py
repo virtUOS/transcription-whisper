@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from app.database import init_db, get_db
 
@@ -70,3 +72,24 @@ async def test_source_tracking_columns_exist(tmp_path):
     assert "translation_source_hash" in txn_columns
     assert "source" in ana_columns
     assert "source_hash" in ana_columns
+
+
+@pytest.mark.asyncio
+async def test_secure_delete_overwrites_content(tmp_path):
+    db_path = str(tmp_path / "secure_delete.db")
+    await init_db(db_path)
+    async with get_db(db_path) as db:
+        await db.execute(
+            "INSERT INTO transcriptions (id, result_json) VALUES (?, ?)",
+            ("t1", '{"text": "SECRET-MARKER-7d1f"}'),
+        )
+        await db.commit()
+        await db.execute("DELETE FROM transcriptions WHERE id = ?", ("t1",))
+        await db.commit()
+    # Read the file and any journal/WAL sidecar left after the connection closed
+    leftover = b"".join(
+        open(p, "rb").read()
+        for p in (db_path, db_path + "-wal", db_path + "-journal")
+        if os.path.exists(p)
+    )
+    assert b"SECRET-MARKER-7d1f" not in leftover
