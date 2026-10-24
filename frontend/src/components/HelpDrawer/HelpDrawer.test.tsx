@@ -61,6 +61,16 @@ describe('HelpDrawer', () => {
     expect(document.body.textContent).not.toContain('{{')
   })
 
+  it('opens every email link in a new tab so the page is not left', () => {
+    openHelp(buildConfig({ contact_email: 'help@example.org' }), 'about')
+    const links = Array.from(document.querySelectorAll('a[href="mailto:help@example.org"]'))
+    expect(links.length).toBeGreaterThanOrEqual(2)
+    for (const link of links) {
+      expect(link).toHaveAttribute('target', '_blank')
+      expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+    }
+  })
+
   it('links the university legal pages', () => {
     openHelp(buildConfig())
     const expected = {
