@@ -14,6 +14,7 @@ import { LoadingFallback } from './components/LoadingFallback'
 import { ChunkErrorBoundary } from './components/ChunkErrorBoundary'
 import { InviteLanding } from './components/InviteLanding'
 import { resolveModel } from './utils/models'
+import { leaveMessages } from './utils/leaveMessages'
 
 const RecorderPanel = lazy(() =>
   import('./components/Recorder').then((m) => ({ default: m.RecorderPanel }))
@@ -43,10 +44,10 @@ const HelpDrawer = lazy(() =>
 function BackButton() {
   const { t } = useTranslation()
   const setCurrentView = useStore((s) => s.setCurrentView)
-  const confirmLeaveUpload = useStore((s) => s.confirmLeaveUpload)
+  const confirmLeave = useStore((s) => s.confirmLeave)
 
   const handleClick = () => {
-    if (!confirmLeaveUpload(t('upload.confirmLeave'))) return
+    if (!confirmLeave(leaveMessages(t))) return
     setCurrentView('archive')
   }
 
@@ -245,8 +246,8 @@ function MainApp() {
   useEffect(() => {
     const handlePopState = (e: PopStateEvent) => {
       const state = useStore.getState()
-      if (state.uploading) {
-        if (!state.confirmLeaveUpload(t('upload.confirmLeave'))) {
+      if (state.leaveReason()) {
+        if (!state.confirmLeave(leaveMessages(t))) {
           // User declined — re-pin the current view so the back nav is undone.
           history.pushState({ view: state.currentView }, '', '')
           return

@@ -50,4 +50,4 @@ With **Camera** you also record a picture, which produces a video file. The soun
 
 If you close the tab or reload the page while recording, paused, or right after you have stopped a recording, the browser warns you.
 
-> **Don't lose a recording.** If you switch to another view within transkribierBAR, for example with **← Transcriptions**, the running recording ends and is discarded without asking. Stay in this view until, after the upload, you have clicked **Transcribe**.
+> **Don't lose a recording.** If you switch to another view within transkribierBAR, for example with **← Transcriptions**, while recording or until you click **Transcribe**, you are asked first. If you confirm, the recording is discarded.

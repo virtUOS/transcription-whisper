@@ -390,6 +390,7 @@
     "zh": "Chinesisch"
   },
   "recorder": {
+    "confirmLeave": "Wenn Sie diese Ansicht verlassen, wird die Aufnahme verworfen. Fortfahren?",
     "tabUpload": "Hochladen",
     "tabRecord": "Aufnehmen",
     "startRecording": "Aufnahme starten",

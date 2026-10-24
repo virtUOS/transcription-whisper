@@ -390,6 +390,7 @@
     "zh": "Chinese"
   },
   "recorder": {
+    "confirmLeave": "Leaving this view discards the recording. Continue?",
     "tabUpload": "Upload",
     "tabRecord": "Record",
     "startRecording": "Start Recording",
