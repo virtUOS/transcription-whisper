@@ -8,6 +8,11 @@ export function Header() {
   const [burgerOpen, setBurgerOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
+  // The logo sets "BAR" in the accent colour; keep the heading in step.
+  const title = t('title')
+  const titleAccent = title.endsWith('BAR') ? 'BAR' : ''
+  const titleStem = title.slice(0, title.length - titleAccent.length)
+
   const toggleLanguage = () => {
     i18n.changeLanguage(i18n.language === 'de' ? 'en' : 'de')
   }
@@ -67,8 +72,11 @@ export function Header() {
   return (
     <header className="relative flex items-center justify-between gap-2 px-6 py-3 bg-gray-900 border-b border-gray-700">
       <div className="flex items-center gap-3 min-w-0">
-        <img src={`${import.meta.env.BASE_URL}whisper-logo.svg`} alt={t('title')} className="h-8 w-8 shrink-0" />
-        <h1 className="text-lg font-semibold text-white truncate">{t('title')}</h1>
+        <img src={`${import.meta.env.BASE_URL}logo-mark.svg`} alt={t('title')} className="h-9 w-auto shrink-0" />
+        <h1 className="text-lg font-semibold text-white truncate">
+          {titleStem}
+          {titleAccent && <span className="text-orange-400">{titleAccent}</span>}
+        </h1>
       </div>
 
       {/* Desktop: inline button row */}

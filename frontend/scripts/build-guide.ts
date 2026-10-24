@@ -49,7 +49,7 @@ function shotMetaFor(lang: GuideLang) {
 }
 
 const builtOn = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin' }).format(new Date())
-const logoSvg = readFileSync(join(frontendDir, 'public/whisper-logo.svg'), 'utf8')
+const logoSvg = readFileSync(join(frontendDir, 'public/logo-mark.svg'), 'utf8')
 
 rmSync(outDir, { recursive: true, force: true })
 
@@ -75,7 +75,7 @@ for (const [path, html] of pages) {
 }
 
 copy(join(helpDir, 'render/guide.css'), join(staticDir, 'guide.css'))
-copy(join(frontendDir, 'public/whisper-logo.svg'), join(staticDir, 'logo.svg'))
+copy(join(frontendDir, 'public/favicon.svg'), join(staticDir, 'favicon.svg'))
 for (const lang of LANGS) {
   for (const name of readdirSync(join(helpDir, 'assets', lang)).filter((f) => f.endsWith('.svg'))) {
     copy(join(helpDir, 'assets', lang, name), join(staticDir, 'assets', lang, name))
