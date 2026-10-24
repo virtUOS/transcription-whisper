@@ -28,6 +28,6 @@ If the bundle includes refinement, analysis or translation, the button reads **R
 
 While the file is uploading, transkribierBAR asks before you switch to another view: **An upload is in progress. Leaving this page will cancel it. Continue?** If you confirm, the upload is canceled. If you close the tab or reload the page, the browser warns you.
 
-Once the transcription is running, you can leave the page. It continues on the server and appears in the overview later. This does not apply to the steps of a bundle: they only run while the page stays open.
+Once the transcription is running, you can leave the page. It continues on the server and appears in the overview later. This does not apply to the steps of a bundle: they only run while the page stays open. If you open the transcription again in the same tab, the steps start then.
 
 > **Large files.** An uploaded file alone does not appear in the overview. Click **Transcribe when ready** while the upload is still running and keep the tab open until the upload has finished. Once the transcription is running, you can leave the page.

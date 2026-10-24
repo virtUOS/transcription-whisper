@@ -28,11 +28,9 @@ Klicken Sie in der Kopfzeile auf **Voreinstellungen**. Die Seite **Meine Voreins
 
 ## Transkriptions-Voreinstellungen
 
-Eine Transkriptions-Voreinstellung speichert Sprache, Erkennung der Sprechenden, Anfangs-Prompt, Schlüsselwörter und Modell. Das Formular auf der Seite hat die Felder **Name**, **Sprache für die Transkription**, **Modell**, **Schlüsselwörter** und **Anfangs-Prompt**. Das Modell ist fest auf {{default_model}} eingestellt und lässt sich nicht ändern.
+Eine Transkriptions-Voreinstellung speichert Sprache, Erkennung der Sprechenden, Anfangs-Prompt, Schlüsselwörter und Modell. Das Formular auf der Seite hat die Felder **Name**, **Sprache für die Transkription**, **Modell**, **Sprechende erkennen** (mit der Mindest- und Höchstzahl der Sprechenden), **Schlüsselwörter** und **Anfangs-Prompt**. Das Modell ist fest auf {{default_model}} eingestellt und lässt sich nicht ändern.
 
 Wenn Sie eine solche Voreinstellung bei **Hochladen** oder **Aufnehmen** wählen, übernimmt sie die Sprache, die in ihr gespeicherten Einstellungen zu den Sprechenden, den Anfangs-Prompt und die Schlüsselwörter. Das Modell bleibt {{default_model}}.
-
-> **Sprechende.** Die Seite „Voreinstellungen“ hat kein Feld für die Erkennung der Sprechenden. Voreinstellungen, die Sie dort anlegen oder bearbeiten, erkennen keine Sprechenden. Wählen Sie eine solche bei **Hochladen** oder **Aufnehmen**, ist die Erkennung der Sprechenden in den Einstellungen danach ausgeschaltet. Soll eine Voreinstellung Sprechende erkennen, stellen Sie das bei **Hochladen** oder **Aufnehmen** ein und speichern Sie mit **Als Voreinstellung speichern**.
 
 ## Analyse-Voreinstellungen
 
@@ -40,7 +38,7 @@ Eine Analyse-Voreinstellung speichert die Vorlage und die Ausgabesprache. Bei **
 
 Speichern Sie eine Voreinstellung im Analyse-Formular mit **Als Voreinstellung speichern**, speichert sie auch die Kapitel und die Agenda, die Sie dort eingegeben haben. Wählen Sie die Voreinstellung später, werden sie wieder eingetragen. Der Abschnitt „Analyse“ erklärt das Formular.
 
-> **Kapitel und Agenda.** Die Seite „Voreinstellungen“ hat keine Felder für Kapitel und Agenda. Wenn Sie dort eine Analyse-Voreinstellung bearbeiten, werden sie aus der Voreinstellung entfernt.
+> **Kapitel und Agenda.** Die Seite „Voreinstellungen“ zeigt Kapitel und Agenda nicht an. Wenn Sie dort eine Voreinstellung bearbeiten, bleiben sie erhalten.
 
 ## Verfeinerungs-Voreinstellungen
 

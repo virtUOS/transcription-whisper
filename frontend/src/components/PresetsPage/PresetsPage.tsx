@@ -5,6 +5,7 @@ import { api } from '../../api/client'
 import { isLanguageEnabled } from '../../utils/languages'
 import { resolveModel, singleConfiguredModel } from '../../utils/models'
 import { LanguageOptions } from '../LanguageOptions'
+import { SpeakerFields } from '../FileUpload/SpeakerFields'
 import type {
   TranscriptionPreset,
   TranscriptionPresetCreate,
@@ -26,7 +27,7 @@ function TranscriptionPresetsList() {
   const presets = useStore((s) => s.transcriptionPresets)
   const setPresets = useStore((s) => s.setTranscriptionPresets)
 
-  const emptyForm: TranscriptionPresetCreate = { name: '', language: null, model: '', initial_prompt: null, hotwords: null }
+  const emptyForm: TranscriptionPresetCreate = { name: '', language: null, model: '', min_speakers: 1, max_speakers: 2, initial_prompt: null, hotwords: null }
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<TranscriptionPresetCreate>(emptyForm)
@@ -48,8 +49,32 @@ function TranscriptionPresetsList() {
     setEditingId(p.id)
     const model = resolveModel(models, p.model)
     const language = p.language && !isLanguageEnabled(p.language, enabledLanguages) ? null : p.language
-    setForm({ name: p.name, language, model, initial_prompt: p.initial_prompt, hotwords: p.hotwords })
+    setForm({
+      name: p.name,
+      language,
+      model,
+      min_speakers: p.min_speakers,
+      max_speakers: p.max_speakers,
+      initial_prompt: p.initial_prompt,
+      hotwords: p.hotwords,
+    })
     setShowForm(true)
+  }
+
+  const detectSpeakers = (form.min_speakers ?? 0) > 0 || (form.max_speakers ?? 0) > 0
+
+  const handleSpeakerChange = (patch: { detectSpeakers?: boolean; minSpeakers?: number; maxSpeakers?: number }) => {
+    if (patch.detectSpeakers === false) {
+      setForm({ ...form, min_speakers: 0, max_speakers: 0 })
+    } else if (patch.detectSpeakers === true) {
+      setForm({ ...form, min_speakers: 1, max_speakers: 2 })
+    } else {
+      setForm({
+        ...form,
+        min_speakers: patch.minSpeakers ?? form.min_speakers,
+        max_speakers: patch.maxSpeakers ?? form.max_speakers,
+      })
+    }
   }
 
   const handleCancel = () => {
@@ -158,6 +183,15 @@ function TranscriptionPresetsList() {
               </select>
             )}
           </div>
+          <fieldset className="border border-gray-700 rounded px-3 pb-2 flex flex-wrap items-end gap-x-4">
+            <legend className="text-xs text-gray-400 px-1">{t('settings.groups.speakers')}</legend>
+            <SpeakerFields
+              detectSpeakers={detectSpeakers}
+              minSpeakers={form.min_speakers || 1}
+              maxSpeakers={form.max_speakers || 2}
+              onChange={handleSpeakerChange}
+            />
+          </fieldset>
           <div>
             <label className="block text-xs text-gray-400 mb-1">{t('settings.hotwords')}</label>
             <input
@@ -235,7 +269,14 @@ function AnalysisPresetsList() {
   const openEdit = (p: AnalysisPreset) => {
     setEditingId(p.id)
     const language = p.language && !isLanguageEnabled(p.language, enabledLanguages) ? null : p.language
-    setForm({ name: p.name, template: p.template, custom_prompt: p.custom_prompt, language })
+    setForm({
+      name: p.name,
+      template: p.template,
+      custom_prompt: p.custom_prompt,
+      language,
+      chapter_hints: p.chapter_hints,
+      agenda: p.agenda,
+    })
     setShowForm(true)
   }
 

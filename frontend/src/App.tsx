@@ -15,6 +15,7 @@ import { ChunkErrorBoundary } from './components/ChunkErrorBoundary'
 import { InviteLanding } from './components/InviteLanding'
 import { resolveModel } from './utils/models'
 import { leaveMessages } from './utils/leaveMessages'
+import { pipelineTargetToRun } from './utils/pipelineTarget'
 
 const RecorderPanel = lazy(() =>
   import('./components/Recorder').then((m) => ({ default: m.RecorderPanel }))
@@ -279,11 +280,11 @@ function MainApp() {
   const setTranslatedUtterances = useStore((s) => s.setTranslatedUtterances)
   const setTranslationLanguage = useStore((s) => s.setTranslationLanguage)
   const setTranslationMetadata = useStore((s) => s.setTranslationMetadata)
-  const autoPipelineRanRef = useRef(false)
+  const pipelineTargetRef = useRef(new Map<string, string>())
   const [pipelineStatus, setPipelineStatus] = useState<{ key: string; step: 'refine' | 'analyze' | 'translate'; params?: Record<string, string> } | null>(null)
   const [pipelineErrors, setPipelineErrors] = useState<string[]>([])
 
-  // Reset auto-pipeline flag when a new transcription starts
+  // Clear pipeline progress when a new transcription starts
   const [prevTranscriptionStatus, setPrevTranscriptionStatus] = useState(transcriptionStatus)
   if (transcriptionStatus !== prevTranscriptionStatus) {
     setPrevTranscriptionStatus(transcriptionStatus)
@@ -292,12 +293,6 @@ function MainApp() {
       setPipelineErrors([])
     }
   }
-
-  useEffect(() => {
-    if (transcriptionStatus && transcriptionStatus !== 'completed') {
-      autoPipelineRanRef.current = false
-    }
-  }, [transcriptionStatus])
 
   // Auto-navigate to detail view when transcription completes
   useEffect(() => {
@@ -310,17 +305,13 @@ function MainApp() {
     }
   }, [transcriptionStatus, transcriptionResult, currentView, setCurrentView])
 
-  // Auto-run refinement & analysis when transcription completes with an active bundle
+  // Auto-run refinement & analysis when the transcription submitted with a bundle completes
   useEffect(() => {
-    if (transcriptionStatus !== 'completed' || !transcriptionResult || autoPipelineRanRef.current) return
-    const bundleId = useStore.getState().activeBundleId
-    if (!bundleId) return
-    const bundles = useStore.getState().bundles
-    const bundle = bundles.find((b) => b.id === bundleId)
-    if (!bundle) return
-
     const transcriptionId = useStore.getState().transcriptionId
-    if (!transcriptionId) return
+    const target = pipelineTargetToRun(pipelineTargetRef.current, transcriptionId, transcriptionStatus, !!transcriptionResult)
+    if (!target || !transcriptionId) return
+    const bundle = useStore.getState().bundles.find((b) => b.id === target.bundleId)
+    if (!bundle) return
 
     const refinementPresets = useStore.getState().refinementPresets
     const analysisPresets = useStore.getState().analysisPresets
@@ -329,7 +320,7 @@ function MainApp() {
     const hasTranslation = bundle.translate_language
 
     if (!hasRefinement && !hasAnalysis && !hasTranslation) return
-    autoPipelineRanRef.current = true
+    pipelineTargetRef.current.delete(target.transcriptionId)
 
     const run = async () => {
       const errors: string[] = []
@@ -439,6 +430,7 @@ function MainApp() {
       })
       // Back/forward can reach this view without reset(); start from a clean editor state.
       useStore.getState().clearTranscriptionState()
+      if (bundleId) pipelineTargetRef.current.set(result.id, bundleId)
       useStore.getState().setTranscriptionId(result.id)
       useStore.getState().setTranscriptionStatus(result.status)
       setPendingTranscription(false)

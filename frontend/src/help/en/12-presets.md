@@ -28,11 +28,9 @@ Click **Presets** in the header. The page **My Presets** opens.
 
 ## Transcription presets
 
-A transcription preset stores language, speaker detection, initial prompt, hotwords and model. The form on the Presets page has the fields **Name**, **Transcription language**, **Model**, **Hotwords** and **Initial prompt**. The model is fixed to {{default_model}} and cannot be changed.
+A transcription preset stores language, speaker detection, initial prompt, hotwords and model. The form on the Presets page has the fields **Name**, **Transcription language**, **Model**, **Detect speakers** (with the minimum and maximum number of speakers), **Hotwords** and **Initial prompt**. The model is fixed to {{default_model}} and cannot be changed.
 
 If you choose such a preset in **Upload** or **Record**, it applies the language, the speaker settings stored in it, the initial prompt and the hotwords. The model stays {{default_model}}.
-
-> **Speakers.** The Presets page has no field for speaker detection. Presets you create or edit there have speaker detection switched off, and choosing one in **Upload** or **Record** then switches it off in the settings. If you want speaker detection in a preset, set it in **Upload** or **Record** and save the preset with **Save as preset**.
 
 ## Analysis presets
 
@@ -40,7 +38,7 @@ An analysis preset stores the template and the output language. For **Custom** i
 
 If you save a preset in the analysis form with **Save as preset**, it also stores the chapters and the agenda you entered there. Choosing the preset fills them back in. The section "Analysis" explains the form.
 
-> **Chapters and agenda.** The Presets page has no fields for chapters and agenda. If you edit an analysis preset there, they are removed from the preset.
+> **Chapters and agenda.** The Presets page doesn't show chapters and agenda. If you edit a preset there, they are kept.
 
 ## Refinement presets
 
