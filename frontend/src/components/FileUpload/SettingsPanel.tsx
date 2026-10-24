@@ -4,6 +4,7 @@ import { api } from '../../api/client'
 import { LanguageSelect } from '../LanguageSelect'
 import { PresetSelect } from '../PresetSelect/PresetSelect'
 import { singleConfiguredModel } from '../../utils/models'
+import { SpeakerFields } from './SpeakerFields'
 
 export interface SettingsPanelValues {
   language: string
@@ -167,53 +168,12 @@ export function SettingsPanel({ values, onChange, saveError = null }: SettingsPa
         {/* Speakers group (checkbox + optional min/max — never split across wraps) */}
         <fieldset data-help="upload-speakers-group" className={groupClass}>
           <legend className={legendClass}>{t('settings.groups.speakers')}</legend>
-          <label className="flex items-center gap-2 py-1.5">
-            <input
-              type="checkbox"
-              checked={values.detectSpeakers}
-              onChange={(e) => onChange({ detectSpeakers: e.target.checked })}
-              className="rounded shrink-0"
-            />
-            <span className="text-sm text-gray-300">{t('settings.detectSpeakers')}</span>
-          </label>
-          {values.detectSpeakers && (
-            <>
-              <div className="min-w-0">
-                <label className="block text-xs text-gray-400 mb-1">{t('settings.minSpeakers')}</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={20}
-                  value={values.minSpeakers}
-                  onChange={(e) => {
-                    const val = Math.max(1, Math.min(20, Number(e.target.value)))
-                    onChange({
-                      minSpeakers: val,
-                      maxSpeakers: val > values.maxSpeakers ? val : values.maxSpeakers,
-                    })
-                  }}
-                  className="bg-gray-700 text-white text-sm rounded px-3 py-1.5 w-16"
-                />
-              </div>
-              <div className="min-w-0">
-                <label className="block text-xs text-gray-400 mb-1">{t('settings.maxSpeakers')}</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={20}
-                  value={values.maxSpeakers}
-                  onChange={(e) => {
-                    const val = Math.max(1, Math.min(20, Number(e.target.value)))
-                    onChange({
-                      maxSpeakers: val,
-                      minSpeakers: val < values.minSpeakers ? val : values.minSpeakers,
-                    })
-                  }}
-                  className="bg-gray-700 text-white text-sm rounded px-3 py-1.5 w-16"
-                />
-              </div>
-            </>
-          )}
+          <SpeakerFields
+            detectSpeakers={values.detectSpeakers}
+            minSpeakers={values.minSpeakers}
+            maxSpeakers={values.maxSpeakers}
+            onChange={onChange}
+          />
         </fieldset>
 
         <button
