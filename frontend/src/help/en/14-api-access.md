@@ -12,6 +12,8 @@ Click **Settings** in the header. In the **API tokens** section, click **Create 
 
 The name can be up to 64 characters long. Among your active tokens each name may only be used once. The number of active tokens per person is limited. If you have reached it, creating another one is refused with an error message in the dialog. Revoke a token you no longer need first.
 
+Tokens are created, listed and revoked only in the web interface. A request to `/api/tokens` that carries a token is answered with status 403.
+
 > **Copy the token now.** The token appears once, starting with `tw_`. **Copy** puts it on the clipboard, **Done** closes the dialog. After that, nobody can display the token again, because transkribierBAR only stores a hash of it, not the token itself. If you lose it, create a new one.
 
 ## Managing tokens

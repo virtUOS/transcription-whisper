@@ -142,8 +142,11 @@ displayed `tw_…` string. The raw token is shown only once.
 Pass the token as an HTTP bearer header:
 
 ```bash
-curl -H "Authorization: Bearer tw_..." https://your-host/api/tokens
+curl -H "Authorization: Bearer tw_..." https://your-host/api/transcriptions
 ```
+
+Tokens can't create, list or revoke tokens; manage them under Settings → API
+tokens in the web interface.
 
 For the status WebSocket, pass the token as a query parameter (browsers cannot
 send custom headers on WebSocket requests):

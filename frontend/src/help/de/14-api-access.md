@@ -12,6 +12,8 @@ Klicken Sie in der Kopfzeile auf **Einstellungen**. Klicken Sie im Bereich **API
 
 Der Name darf bis zu 64 Zeichen lang sein. Unter Ihren aktiven Tokens darf jeder Name nur einmal vorkommen. Die Zahl der aktiven Tokens pro Person ist begrenzt. Haben Sie sie erreicht, wird ein weiterer Token mit einer Fehlermeldung im Dialog abgelehnt. Widerrufen Sie dann zuerst einen Token, den Sie nicht mehr brauchen.
 
+Tokens werden nur in der Weboberfläche erstellt, aufgelistet und widerrufen. Eine Anfrage an `/api/tokens`, die einen Token mitsendet, beantwortet der Server mit dem Status 403.
+
 > **Token jetzt kopieren.** Der Token erscheint einmal und beginnt mit `tw_`. **Kopieren** legt ihn in die Zwischenablage, **Fertig** schließt den Dialog. Danach kann ihn niemand mehr anzeigen, denn transkribierBAR speichert nur einen Hash des Tokens, nicht den Token selbst. Haben Sie ihn verloren, erstellen Sie einen neuen.
 
 ## Tokens verwalten

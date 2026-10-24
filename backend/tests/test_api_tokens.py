@@ -275,7 +275,10 @@ async def test_revoke_token_returns_204_and_blocks_reuse(monkeypatch):
         created = (await c.post("/api/tokens", json={"name": "r", "expires_in_days": None})).json()
         r = await c.delete(f"/api/tokens/{created['id']}")
         assert r.status_code == 204
-        r2 = await c.get("/api/tokens", headers={"Authorization": f"Bearer {created['token']}"})
+        r2 = await c.get(
+            "/api/transcriptions",
+            headers={"Authorization": f"Bearer {created['token']}"},
+        )
     assert r2.status_code == 401
 
 
@@ -304,3 +307,62 @@ async def test_list_tokens_user_isolated(monkeypatch):
         items = (await c.get("/api/tokens")).json()
     names = {i["name"] for i in items}
     assert names == {"dev-t"}
+
+
+async def _dev_user_token():
+    async with get_db() as db:
+        await db.execute(
+            "INSERT OR IGNORE INTO users (id, email) VALUES (?, ?)",
+            ("dev-user", "dev@localhost"),
+        )
+        await db.commit()
+        return await create_token(db, user_id="dev-user", name="t", expires_in_days=30)
+
+
+@pytest.mark.asyncio
+async def test_token_cannot_create_token(monkeypatch):
+    monkeypatch.setattr(config_module.settings, "ENABLE_API_TOKENS", True)
+    monkeypatch.setattr(config_module.settings, "DEV_MODE", True)
+    t = await _dev_user_token()
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as c:
+        r = await c.post(
+            "/api/tokens",
+            headers={"Authorization": f"Bearer {t['token']}"},
+            json={"name": "minted", "expires_in_days": 30},
+        )
+    assert r.status_code == 403
+    async with get_db() as db:
+        cursor = await db.execute("SELECT COUNT(*) AS n FROM api_tokens")
+        assert (await cursor.fetchone())["n"] == 1
+
+
+@pytest.mark.asyncio
+async def test_token_cannot_list_or_revoke_tokens(monkeypatch):
+    monkeypatch.setattr(config_module.settings, "ENABLE_API_TOKENS", True)
+    monkeypatch.setattr(config_module.settings, "DEV_MODE", True)
+    t = await _dev_user_token()
+    headers = {"Authorization": f"Bearer {t['token']}"}
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as c:
+        r_list = await c.get("/api/tokens", headers=headers)
+        r_del = await c.delete(f"/api/tokens/{t['id']}", headers=headers)
+    assert r_list.status_code == 403
+    assert r_del.status_code == 403
+    async with get_db() as db:
+        cursor = await db.execute(
+            "SELECT revoked_at FROM api_tokens WHERE id = ?", (t["id"],)
+        )
+        assert (await cursor.fetchone())["revoked_at"] is None
+
+
+@pytest.mark.asyncio
+async def test_revoked_token_cannot_manage_tokens(monkeypatch):
+    monkeypatch.setattr(config_module.settings, "ENABLE_API_TOKENS", True)
+    monkeypatch.setattr(config_module.settings, "DEV_MODE", True)
+    t = await _dev_user_token()
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as c:
+        assert (await c.delete(f"/api/tokens/{t['id']}")).status_code == 204
+        r = await c.get("/api/tokens", headers={"Authorization": f"Bearer {t['token']}"})
+    assert r.status_code == 403

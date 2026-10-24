@@ -142,3 +142,17 @@ async def get_current_user(request: Request) -> UserInfo:
             )
 
     return resolved
+
+
+async def get_session_user(request: Request) -> UserInfo:
+    """Like get_current_user, but refuses API tokens.
+
+    Used by endpoints that manage API tokens, so a token can never mint, list
+    or revoke tokens.
+    """
+    if request.headers.get("Authorization", "").startswith("Bearer tw_"):
+        raise HTTPException(
+            status_code=403,
+            detail="API tokens can't be used to manage API tokens.",
+        )
+    return await get_current_user(request)
