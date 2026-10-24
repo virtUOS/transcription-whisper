@@ -77,7 +77,29 @@ interface AppState {
   setHelpOpen: (open: boolean, initialSection?: string | null) => void
   closeHelp: () => void
   clearRefinement: () => void
+  clearTranscriptionState: () => void
   reset: () => void
+}
+
+// Everything that belongs to one opened transcription; shared by reset() and
+// clearTranscriptionState() so opening another transcription starts clean.
+const clearedTranscriptionState = {
+  transcriptionResult: null,
+  speakerMappings: {},
+  currentTime: 0,
+  seekTo: null,
+  activeTab: 'subtitles' as const,
+  unsavedEdits: false,
+  refinedUtterances: null,
+  refinementMetadata: null,
+  refinementStale: false,
+  activeView: 'original' as const,
+  translatedUtterances: null,
+  translationLanguage: null,
+  translationSource: null,
+  translationStale: false,
+  translationSourceAvailable: true,
+  analyses: [],
 }
 
 let isPopStateNavigation = false
@@ -200,15 +222,12 @@ export const useStore = create<AppState>((set, get) => ({
     set({ helpOpen: open, helpInitialSection: initialSection ?? null }),
   closeHelp: () => set({ helpOpen: false }),
   clearRefinement: () => set({ refinedUtterances: null, refinementMetadata: null, refinementStale: false, activeView: 'original' as const }),
+  clearTranscriptionState: () => set(clearedTranscriptionState),
   reset: () => set({
+    ...clearedTranscriptionState,
     currentView: 'archive' as const,
-    file: null, uploading: false, uploadAbortController: null, recordingActive: false, transcriptionId: null, transcriptionTitle: null, transcriptionStatus: null,
-    transcriptionResult: null, speakerMappings: {},
-    currentTime: 0, seekTo: null, activeTab: 'subtitles', unsavedEdits: false,
-    refinedUtterances: null, refinementMetadata: null, refinementStale: false, activeView: 'original' as const,
-    translatedUtterances: null, translationLanguage: null,
-    translationSource: null, translationStale: false, translationSourceAvailable: true,
-    analyses: [],
+    file: null, uploading: false, uploadAbortController: null, recordingActive: false,
+    transcriptionId: null, transcriptionTitle: null, transcriptionStatus: null,
   }),
 }))
 

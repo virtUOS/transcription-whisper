@@ -437,6 +437,8 @@ function MainApp() {
         initial_prompt: settings.initialPrompt || null,
         hotwords: settings.hotwords || null,
       })
+      // Back/forward can reach this view without reset(); start from a clean editor state.
+      useStore.getState().clearTranscriptionState()
       useStore.getState().setTranscriptionId(result.id)
       useStore.getState().setTranscriptionStatus(result.status)
       setPendingTranscription(false)
