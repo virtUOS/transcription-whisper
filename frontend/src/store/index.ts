@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { FileInfo, TranscriptionResult, TranscriptionListItem, ConfigResponse, Utterance, RefinementMetadata, AnalysisListItem, TranscriptionPreset, AnalysisPreset, RefinementPreset, PresetBundle, UtteranceSource } from '../api/types'
 
-export type LeaveReason = 'upload' | 'recording'
+export type LeaveReason = 'upload' | 'recording' | 'unsavedEdits'
 
 export type AppView = 'archive' | 'upload' | 'record' | 'detail' | 'presets' | 'settings'
 
@@ -111,6 +111,7 @@ export const useStore = create<AppState>((set, get) => ({
     if (state.recordingActive) return 'recording'
     // A recording whose upload is done (or whose submit failed) but that is not yet in the overview.
     if (state.currentView === 'record' && state.file !== null && state.transcriptionId === null) return 'recording'
+    if (state.unsavedEdits && state.currentView === 'detail') return 'unsavedEdits'
     return null
   },
   confirmLeave: (messages) => {
@@ -125,7 +126,7 @@ export const useStore = create<AppState>((set, get) => ({
         state.uploadAbortController.abort()
       }
       set({ uploading: false, uploadAbortController: null })
-    } else {
+    } else if (reason === 'recording') {
       set({ recordingActive: false })
     }
     return true

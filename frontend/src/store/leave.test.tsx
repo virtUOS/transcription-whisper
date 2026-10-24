@@ -1,7 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, cleanup } from '@testing-library/react'
 import { useStore } from './index'
+import { useBeforeUnloadWarning } from '../hooks/useBeforeUnloadWarning'
 
-const messages = { upload: 'upload msg', recording: 'recording msg' }
+const messages = { upload: 'upload msg', recording: 'recording msg', unsavedEdits: 'edits msg' }
+
+function Probe() {
+  useBeforeUnloadWarning()
+  return null
+}
 
 describe('confirmLeave', () => {
   let confirmSpy: ReturnType<typeof vi.spyOn>
@@ -65,6 +72,47 @@ describe('confirmLeave', () => {
     useStore.getState().setRecordingActive(true)
     useStore.getState().reset()
     expect(useStore.getState().leaveReason()).toBeNull()
+  })
+
+  it('asks with the editor message for unsaved edits in the detail view', () => {
+    confirmSpy.mockReturnValue(true)
+    useStore.getState().setCurrentView('detail')
+    useStore.getState().setUnsavedEdits(true)
+    expect(useStore.getState().confirmLeave(messages)).toBe(true)
+    expect(confirmSpy).toHaveBeenCalledWith('edits msg')
+    expect(useStore.getState().unsavedEdits).toBe(true)
+  })
+
+  it('does not ask for unsaved edits outside the detail view', () => {
+    useStore.getState().setCurrentView('archive')
+    useStore.getState().setUnsavedEdits(true)
+    expect(useStore.getState().confirmLeave(messages)).toBe(true)
+    expect(confirmSpy).not.toHaveBeenCalled()
+  })
+
+  it('lets upload and recording win over unsaved edits', () => {
+    useStore.getState().setCurrentView('detail')
+    useStore.getState().setUnsavedEdits(true)
+    useStore.getState().setRecordingActive(true)
+    expect(useStore.getState().leaveReason()).toBe('recording')
+  })
+
+  it('beforeunload is armed while the editor has unsaved edits', () => {
+    useStore.getState().setCurrentView('detail')
+    useStore.getState().setUnsavedEdits(true)
+    render(<Probe />)
+    const event = new Event('beforeunload', { cancelable: true })
+    window.dispatchEvent(event)
+    expect(event.defaultPrevented).toBe(true)
+    cleanup()
+  })
+
+  it('beforeunload is not armed without unsaved edits', () => {
+    render(<Probe />)
+    const event = new Event('beforeunload', { cancelable: true })
+    window.dispatchEvent(event)
+    expect(event.defaultPrevented).toBe(false)
+    cleanup()
   })
 
   it('still reports a recording after upload while no transcription was started', () => {

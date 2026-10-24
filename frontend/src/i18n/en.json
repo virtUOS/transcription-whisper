@@ -102,6 +102,7 @@
     }
   },
   "editor": {
+    "confirmLeave": "Your changes are not saved. Leave anyway?",
     "subtitles": "Subtitles",
     "summary": "Summary",
     "speakerNames": "Speaker Names",

@@ -56,7 +56,7 @@ Sobald Sie etwas geändert haben, erscheinen über der Tabelle die Schaltfläche
 
 Wechseln Sie zu einem Format-Reiter wie **SRT**, bleiben Ihre Änderungen erhalten, und das Format zeigt sie bereits.
 
-> **Ungespeicherte Änderungen gehen verloren.** Wenn Sie die Detailansicht verlassen, fragt transkribierBAR nicht nach. Öffnen Sie danach eine Transkription aus der Übersicht oder laden Sie die Seite neu, sind ungespeicherte Änderungen verloren. Speichern Sie zuerst.
+> **Speichern Sie, bevor Sie gehen.** Verlassen Sie die Detailansicht mit ungespeicherten Änderungen, fragt transkribierBAR zuerst nach. Auch beim Schließen oder Neuladen des Browser-Tabs erscheint eine Warnung des Browsers. Wenn Sie bestätigen, bleiben die ungespeicherten Änderungen nur so lange in diesem Tab, bis Sie eine andere Transkription öffnen, einen neuen Upload oder eine neue Aufnahme beginnen oder den Tab neu laden oder schließen. Bis dahin bringt Sie **Vorwärts** im Browser zu ihnen zurück. Speichern Sie zuerst.
 
 ## Verfeinerte und übersetzte Ansicht
 

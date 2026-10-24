@@ -14,7 +14,7 @@ export function allowNextUnload() {
 }
 
 /**
- * Adds a `beforeunload` listener while an upload or recording is at stake so the browser
+ * Adds a `beforeunload` listener while an upload, recording or unsaved edit is at stake so the browser
  * shows its native "leave site?" warning on tab close / refresh / external nav.
  * Modern browsers ignore custom messages and show a generic dialog.
  */
