@@ -45,17 +45,12 @@ export function RecorderPanel() {
     }
   }, [stream, useCamera])
 
-  // beforeunload warning
+  // Tell the store a recording is at stake so every leave path asks first.
+  const setRecordingActive = useStore((s) => s.setRecordingActive)
   useEffect(() => {
-    const shouldWarn = state === 'recording' || state === 'paused' || (state === 'stopped' && blob)
-    if (!shouldWarn) return
-
-    const handler = (e: BeforeUnloadEvent) => {
-      e.preventDefault()
-    }
-    window.addEventListener('beforeunload', handler)
-    return () => window.removeEventListener('beforeunload', handler)
-  }, [state, blob])
+    setRecordingActive(state === 'recording' || state === 'paused' || (state === 'stopped' && !!blob))
+  }, [state, blob, setRecordingActive])
+  useEffect(() => () => setRecordingActive(false), [setRecordingActive])
 
   const handleUseRecording = useCallback(async () => {
     if (!blob) return
@@ -185,7 +180,7 @@ export function RecorderPanel() {
         onStop={stop}
         onDiscard={discard}
         startDisabled={!sourcesValid}
-        startDisabledReason={!sourcesValid ? t('recorder.sourcesAtLeastOne') : undefined}
+        startDisabledReason={!sourcesValid && !useMicrophone && !captureSystemAudio ? t('recorder.sourcesNeedAudio') : undefined}
       />
 
       {/* Error messages */}

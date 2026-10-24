@@ -50,16 +50,8 @@ export function RecordingSources(props: RecordingSourcesProps) {
 
   const cameraDisabled = captureSystemAudio
   const validMic = useMicrophone && micPermission.state !== 'denied'
-  // Camera only contributes to "something to record" if the toggle is on, it's
-  // not suppressed by system audio, permission isn't denied, AND at least one
-  // physical device was enumerated. Permission in 'prompt' state still counts —
-  // enumeration is allowed to resolve in the background — but a 'granted'
-  // permission with zero devices means the hardware genuinely isn't there.
-  const cameraDevicePresent =
-    videoDevices.length > 0 || cameraPermission.state === 'prompt'
-  const validCamera =
-    useCamera && !cameraDisabled && cameraPermission.state !== 'denied' && cameraDevicePresent
-  const valid = validMic || captureSystemAudio || validCamera
+  // A recording needs an audio source; the camera only adds video.
+  const valid = validMic || captureSystemAudio
 
   useEffect(() => {
     onValidityChange?.(valid)
@@ -255,8 +247,8 @@ export function RecordingSources(props: RecordingSourcesProps) {
         )}
       </SourceCard>
 
-      {!valid && (
-        <p className="text-xs text-amber-400">{t('recorder.sourcesAtLeastOne')}</p>
+      {!useMicrophone && !captureSystemAudio && (
+        <p className="text-xs text-amber-400">{t('recorder.sourcesNeedAudio')}</p>
       )}
     </div>
   )

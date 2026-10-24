@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useStore } from '../store'
+import { allowNextUnload } from '../hooks/useBeforeUnloadWarning'
+import { leaveMessages } from '../utils/leaveMessages'
 
 export function Header() {
   const { t, i18n } = useTranslation()
@@ -24,14 +26,14 @@ export function Header() {
 
   const openPresets = () => {
     const state = useStore.getState()
-    if (!state.confirmLeaveUpload(t('upload.confirmLeave'))) return
+    if (!state.confirmLeave(leaveMessages(t))) return
     state.setCurrentView('presets')
     setBurgerOpen(false)
   }
 
   const openSettings = () => {
     const state = useStore.getState()
-    if (!state.confirmLeaveUpload(t('upload.confirmLeave'))) return
+    if (!state.confirmLeave(leaveMessages(t))) return
     state.setCurrentView('settings')
     setBurgerOpen(false)
   }
@@ -42,8 +44,9 @@ export function Header() {
   }
 
   const handleLogout = () => {
-    if (!useStore.getState().confirmLeaveUpload(t('upload.confirmLeave'))) return
+    if (!useStore.getState().confirmLeave(leaveMessages(t))) return
     if (config?.logout_url) {
+      allowNextUnload()
       window.location.href = config.logout_url
     }
   }

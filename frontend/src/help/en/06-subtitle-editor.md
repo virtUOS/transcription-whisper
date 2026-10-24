@@ -56,7 +56,7 @@ As soon as you change something, the buttons **Save changes** and **Restore orig
 
 If you switch to a format tab such as **SRT**, your changes are kept, and the format already shows them.
 
-> **Unsaved changes are lost.** If you leave the detail view, transkribierBAR does not ask. If you then open a transcription from the overview or reload the page, unsaved changes are lost. Save first.
+> **Save before you leave.** If you leave the detail view with unsaved changes, transkribierBAR asks first. Closing or reloading the browser tab also triggers a browser warning. If you confirm, the unsaved changes stay in this tab only until you open another transcription, start a new upload or recording, or reload or close the tab. Until then, **Forward** in the browser brings you back to them. Save first.
 
 ## Refined and translated view
 

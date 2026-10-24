@@ -141,6 +141,8 @@ export function HelpDrawer() {
               {t('help.contact')}{' '}
               <a
                 href={`mailto:${contactEmail}`}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-blue-400 hover:text-blue-300 underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 rounded"
               >
                 {contactEmail}

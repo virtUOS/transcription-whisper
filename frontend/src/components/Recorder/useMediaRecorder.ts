@@ -197,6 +197,10 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
         }
       } else {
         // Standard path: microphone (with optional system audio mixing and/or camera)
+        if (options.useMicrophone === false) {
+          // Defensive: the UI requires an audio source, so this is unreachable from it.
+          throw new Error('The microphone is switched off.')
+        }
         const audioConstraint: MediaTrackConstraints | boolean = options.audioDeviceId
           ? { deviceId: { exact: options.audioDeviceId } }
           : true

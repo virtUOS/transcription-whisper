@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import type { FileInfo, TranscriptionResult, TranscriptionListItem, ConfigResponse, Utterance, RefinementMetadata, AnalysisListItem, TranscriptionPreset, AnalysisPreset, RefinementPreset, PresetBundle, UtteranceSource } from '../api/types'
 
+export type LeaveReason = 'upload' | 'recording' | 'unsavedEdits'
+
 export type AppView = 'archive' | 'upload' | 'record' | 'detail' | 'presets' | 'settings'
 
 interface AppState {
@@ -14,7 +16,10 @@ interface AppState {
   setUploading: (uploading: boolean) => void
   uploadAbortController: AbortController | null
   setUploadAbortController: (controller: AbortController | null) => void
-  confirmLeaveUpload: (message: string) => boolean
+  recordingActive: boolean
+  setRecordingActive: (active: boolean) => void
+  leaveReason: () => LeaveReason | null
+  confirmLeave: (messages: Record<LeaveReason, string>) => boolean
   transcriptionId: string | null
   transcriptionTitle: string | null
   transcriptionStatus: string | null
@@ -72,7 +77,29 @@ interface AppState {
   setHelpOpen: (open: boolean, initialSection?: string | null) => void
   closeHelp: () => void
   clearRefinement: () => void
+  clearTranscriptionState: () => void
   reset: () => void
+}
+
+// Everything that belongs to one opened transcription; shared by reset() and
+// clearTranscriptionState() so opening another transcription starts clean.
+const clearedTranscriptionState = {
+  transcriptionResult: null,
+  speakerMappings: {},
+  currentTime: 0,
+  seekTo: null,
+  activeTab: 'subtitles' as const,
+  unsavedEdits: false,
+  refinedUtterances: null,
+  refinementMetadata: null,
+  refinementStale: false,
+  activeView: 'original' as const,
+  translatedUtterances: null,
+  translationLanguage: null,
+  translationSource: null,
+  translationStale: false,
+  translationSourceAvailable: true,
+  analyses: [],
 }
 
 let isPopStateNavigation = false
@@ -98,16 +125,32 @@ export const useStore = create<AppState>((set, get) => ({
   setUploading: (uploading) => set({ uploading }),
   uploadAbortController: null,
   setUploadAbortController: (controller) => set({ uploadAbortController: controller }),
-  confirmLeaveUpload: (message) => {
-    if (!get().uploading) return true
-    if (!window.confirm(message)) return false
-    // Re-read state after the (synchronous) confirm dialog — upload may have
-    // completed while the dialog was open.
+  recordingActive: false,
+  setRecordingActive: (active) => set({ recordingActive: active }),
+  leaveReason: () => {
     const state = get()
-    if (state.uploading && state.uploadAbortController) {
-      state.uploadAbortController.abort()
+    if (state.uploading) return 'upload'
+    if (state.recordingActive) return 'recording'
+    // A recording whose upload is done (or whose submit failed) but that is not yet in the overview.
+    if (state.currentView === 'record' && state.file !== null && state.transcriptionId === null) return 'recording'
+    if (state.unsavedEdits && state.currentView === 'detail') return 'unsavedEdits'
+    return null
+  },
+  confirmLeave: (messages) => {
+    const reason = get().leaveReason()
+    if (!reason) return true
+    if (!window.confirm(messages[reason])) return false
+    if (reason === 'upload') {
+      // Re-read state after the (synchronous) confirm dialog — upload may have
+      // completed while the dialog was open.
+      const state = get()
+      if (state.uploading && state.uploadAbortController) {
+        state.uploadAbortController.abort()
+      }
+      set({ uploading: false, uploadAbortController: null })
+    } else if (reason === 'recording') {
+      set({ recordingActive: false })
     }
-    set({ uploading: false, uploadAbortController: null })
     return true
   },
   transcriptionId: null,
@@ -179,15 +222,12 @@ export const useStore = create<AppState>((set, get) => ({
     set({ helpOpen: open, helpInitialSection: initialSection ?? null }),
   closeHelp: () => set({ helpOpen: false }),
   clearRefinement: () => set({ refinedUtterances: null, refinementMetadata: null, refinementStale: false, activeView: 'original' as const }),
+  clearTranscriptionState: () => set(clearedTranscriptionState),
   reset: () => set({
+    ...clearedTranscriptionState,
     currentView: 'archive' as const,
-    file: null, uploading: false, uploadAbortController: null, transcriptionId: null, transcriptionTitle: null, transcriptionStatus: null,
-    transcriptionResult: null, speakerMappings: {},
-    currentTime: 0, seekTo: null, activeTab: 'subtitles', unsavedEdits: false,
-    refinedUtterances: null, refinementMetadata: null, refinementStale: false, activeView: 'original' as const,
-    translatedUtterances: null, translationLanguage: null,
-    translationSource: null, translationStale: false, translationSourceAvailable: true,
-    analyses: [],
+    file: null, uploading: false, uploadAbortController: null, recordingActive: false,
+    transcriptionId: null, transcriptionTitle: null, transcriptionStatus: null,
   }),
 }))
 

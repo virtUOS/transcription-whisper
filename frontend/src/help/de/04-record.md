@@ -12,7 +12,7 @@ Klicken Sie in der Übersicht auf **+ Aufnehmen**. Die Schaltfläche erscheint n
 4. **Kamera** nimmt zusätzlich das Kamerabild auf. Sie ist voreingestellt aus; mehr dazu unter „Kamera“ weiter unten.
 5. **Aufnahme starten** startet die Aufnahme (siehe „Aufnehmen“).
 
-Mit der Kamera wird immer auch das Mikrofon aufgenommen, auch wenn der Schalter **Mikrofon** aus ist. Mindestens eine Quelle muss eingeschaltet sein, sonst steht dort **Mindestens eine Quelle aktivieren** und **Aufnahme starten** ist gesperrt.
+Eine Aufnahme braucht Ton: Schalten Sie das Mikrofon oder Systemaudio ein. Die Kamera fügt nur das Bild hinzu. Ist weder Mikrofon noch Systemaudio an, steht dort **Schalten Sie das Mikrofon oder Systemaudio ein.** und **Aufnahme starten** ist gesperrt.
 
 Ihr Browser fragt gegebenenfalls nach der Erlaubnis. Ist der Zugriff blockiert, erscheint ein Hinweis mit der Schaltfläche **Erneut versuchen**. Erlauben Sie den Zugriff dann in den Website-Einstellungen Ihres Browsers.
 
@@ -44,10 +44,10 @@ Solange **Systemaudio** an ist, ist **Kamera** gesperrt. Beenden Sie die Freigab
 
 ## Kamera
 
-Mit **Kamera** nehmen Sie zusätzlich ein Bild auf, dann entsteht eine Videodatei. Der Ton des Mikrofons wird dabei immer mit aufgenommen. Im Feld **Kamera** wählen Sie das Gerät. Ist keine Kamera da, steht **Keine Kamera erkannt.** Lässt sich die Kamera nicht öffnen, läuft die Aufnahme nur mit Ton weiter, und eine Meldung weist darauf hin.
+Mit **Kamera** nehmen Sie zusätzlich ein Bild auf, dann entsteht eine Videodatei. Der Ton kommt vom Mikrofon, das dafür eingeschaltet sein muss. Im Feld **Kamera** wählen Sie das Gerät. Ist keine Kamera da, steht **Keine Kamera erkannt.** Lässt sich die Kamera nicht öffnen, läuft die Aufnahme nur mit Ton weiter, und eine Meldung weist darauf hin.
 
 ## Seite verlassen
 
 Schließen Sie den Tab oder laden Sie die Seite neu, während Sie aufnehmen, pausieren oder gerade eine Aufnahme beendet haben, warnt Sie der Browser.
 
-> **Aufnahme nicht verlieren.** Wechseln Sie innerhalb von transkribierBAR in eine andere Ansicht, etwa mit **← Transkriptionen**, endet die laufende Aufnahme und wird verworfen, ohne dass nachgefragt wird. Bleiben Sie in dieser Ansicht, bis Sie nach dem Hochladen auf **Transkribieren** geklickt haben.
+> **Aufnahme nicht verlieren.** Wechseln Sie innerhalb von transkribierBAR in eine andere Ansicht, etwa mit **← Transkriptionen**, während der Aufnahme oder bis Sie auf **Transkribieren** klicken, werden Sie zuerst gefragt. Wenn Sie bestätigen, wird die Aufnahme verworfen.
