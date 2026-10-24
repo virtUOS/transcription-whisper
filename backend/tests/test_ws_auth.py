@@ -17,7 +17,7 @@ async def _seed_ws_test_data(user_id: str, transcription_id: str) -> str:
             (user_id, f"{user_id}@x"),
         )
         await db.commit()
-        t = await create_token(db, user_id=user_id, name="ws", expires_in_days=None)
+        t = await create_token(db, user_id=user_id, name="ws", expires_in_days=30)
         await db.execute(
             "INSERT INTO transcriptions (id, user_id, status) VALUES (?, ?, 'pending')",
             (transcription_id, user_id),

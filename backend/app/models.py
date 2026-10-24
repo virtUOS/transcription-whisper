@@ -1,6 +1,8 @@
 from typing import Literal
 
-from pydantic import BaseModel, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
+
+from app.config import settings
 
 
 class ErrorResponse(BaseModel):
@@ -346,7 +348,9 @@ class BundleExpandedResponse(BundleResponse):
 
 class TokenCreateRequest(BaseModel):
     name: str
-    expires_in_days: int | None = None
+    expires_in_days: int = Field(
+        default_factory=lambda: settings.API_TOKEN_DEFAULT_EXPIRY_DAYS, ge=1, le=365
+    )
 
     @field_validator("name")
     @classmethod
@@ -355,13 +359,6 @@ class TokenCreateRequest(BaseModel):
         if not (1 <= len(stripped) <= 64):
             raise ValueError("Name must be 1–64 characters")
         return stripped
-
-    @field_validator("expires_in_days")
-    @classmethod
-    def positive_days(cls, v: int | None) -> int | None:
-        if v is not None and v <= 0:
-            raise ValueError("expires_in_days must be positive or null")
-        return v
 
 
 class TokenCreateResponse(BaseModel):

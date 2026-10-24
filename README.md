@@ -128,8 +128,13 @@ Add to `.env` before `docker run` or the local uvicorn process:
 ```
 ENABLE_API_TOKENS=true
 API_TOKEN_MAX_PER_USER=10        # optional, default 10
-API_TOKEN_DEFAULT_EXPIRY_DAYS=90 # optional, default 90
+API_TOKEN_DEFAULT_EXPIRY_DAYS=90 # optional, default 90, allowed 1-365
 ```
+
+`API_TOKEN_DEFAULT_EXPIRY_DAYS` must be between 1 and 365; the app refuses to start
+otherwise. Every token expires. This value is the validity given to a new token
+when the request names none, and the expiry given once at upgrade to existing
+tokens that had none.
 
 ### Issuing a token
 

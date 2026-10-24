@@ -132,6 +132,15 @@ class Settings:
 
     APP_PUBLIC_URL: str = os.getenv("APP_PUBLIC_URL", "")
 
+    def __init__(self) -> None:
+        # Fail at startup: pydantic does not validate the default_factory value in
+        # CreateApiTokenRequest, so an out-of-range value would reach every token.
+        if not 1 <= self.API_TOKEN_DEFAULT_EXPIRY_DAYS <= 365:
+            raise ValueError(
+                "API_TOKEN_DEFAULT_EXPIRY_DAYS must be between 1 and 365, got "
+                f"{self.API_TOKEN_DEFAULT_EXPIRY_DAYS}"
+            )
+
     @property
     def db_path(self) -> str:
         if self.DATABASE_PATH:

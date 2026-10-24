@@ -8,7 +8,7 @@ A token belongs to your account. A script that uses it sees and changes only you
 
 ## Creating a token
 
-Click **Settings** in the header. In the **API tokens** section, click **Create token**. Enter a **Name** that tells you where you use the token, for example the name of the script. Under **Expires in**, choose **30 days**, **90 days**, **365 days** or **Never**. The default validity is {{api_token_expiry_days}} days. Click **Create**.
+Click **Settings** in the header. In the **API tokens** section, click **Create token**. Enter a **Name** that tells you where you use the token, for example the name of the script. Under **Expires in**, choose **30 days**, **90 days**, or **365 days**. Every token expires; the default validity is {{api_token_expiry_days}} days. Click **Create**.
 
 The name can be up to 64 characters long. Among your active tokens each name may only be used once. The number of active tokens per person is limited. If you have reached it, creating another one is refused with an error message in the dialog. Revoke a token you no longer need first.
 
@@ -23,7 +23,7 @@ The **API tokens** section lists your tokens.
 ![The API tokens section with one active token; numbered markers highlight the controls](shots/tokens.png)
 
 1. **Create token** opens the dialog described above.
-2. A token with its name, its first characters followed by "…", its status (**Active**, **Expired** or **Revoked**), the expiry date if it has one and, once it has been used, when it was last used.
+2. A token with its name, its first characters followed by "…", its status (**Active**, **Expired** or **Revoked**), its expiry date and, once it has been used, when it was last used.
 3. **Revoke**, next to an active token, revokes it. From then on, the server rejects every new request with it.
 
 Expired and revoked tokens stay in the list, shown faded. They are removed from it automatically, revoked ones after 30 days and expired ones after 90 days.

@@ -283,7 +283,7 @@ export interface ApiToken {
 
 export interface ApiTokenCreateRequest {
   name: string
-  expires_in_days: number | null
+  expires_in_days: number
 }
 
 export interface ApiTokenCreated extends ApiToken {

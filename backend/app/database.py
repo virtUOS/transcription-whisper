@@ -228,6 +228,12 @@ async def init_db(db_path: str) -> None:
         await db.execute(
             "UPDATE files SET expires_at = strftime('%Y-%m-%d %H:%M:%S', expires_at) WHERE expires_at LIKE '%T%'"
         )
+        # Give API tokens created without an expiry one (only NULL rows change)
+        await db.execute(
+            "UPDATE api_tokens SET expires_at = strftime('%Y-%m-%d %H:%M:%S', 'now', '+' || ? || ' days') "
+            "WHERE expires_at IS NULL",
+            (str(settings.API_TOKEN_DEFAULT_EXPIRY_DAYS),),
+        )
         # Backfill source='original' on rows that already have derived results
         await db.execute(
             "UPDATE transcriptions SET translation_source = 'original' "

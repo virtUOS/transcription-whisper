@@ -13,7 +13,7 @@ export function CreateTokenModal({ onClose, onCreated }: Props) {
   const { t } = useTranslation()
   const defaultDays = useStore((s) => s.config?.api_token_default_expiry_days) ?? 90
   const [name, setName] = useState('')
-  const [expiryDays, setExpiryDays] = useState<number | null>(defaultDays)
+  const [expiryDays, setExpiryDays] = useState<number>(defaultDays)
   const [created, setCreated] = useState<ApiTokenCreated | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -29,7 +29,6 @@ export function CreateTokenModal({ onClose, onCreated }: Props) {
     { label: t('settings.apiTokens.expiry30'), days: 30 },
     { label: t('settings.apiTokens.expiry90'), days: 90 },
     { label: t('settings.apiTokens.expiry365'), days: 365 },
-    { label: t('settings.apiTokens.expiryNever'), days: null },
   ]
 
   async function handleCreate() {
@@ -112,12 +111,12 @@ export function CreateTokenModal({ onClose, onCreated }: Props) {
               <label htmlFor="token-expiry-select" className="block text-xs text-gray-400 mb-1">{t('settings.apiTokens.expiresLabel')}</label>
               <select
                 id="token-expiry-select"
-                value={expiryDays === null ? '' : String(expiryDays)}
-                onChange={(e) => setExpiryDays(e.target.value === '' ? null : Number(e.target.value))}
+                value={String(expiryDays)}
+                onChange={(e) => setExpiryDays(Number(e.target.value))}
                 className="w-full bg-gray-800 text-white text-sm rounded px-3 py-1.5 outline-none focus:ring-1 focus:ring-blue-500 border border-gray-700"
               >
                 {expiryOptions.map((opt) => (
-                  <option key={opt.label} value={opt.days === null ? '' : String(opt.days)}>
+                  <option key={opt.label} value={String(opt.days)}>
                     {opt.label}
                   </option>
                 ))}

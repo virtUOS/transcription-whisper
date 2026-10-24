@@ -30,7 +30,7 @@ async def create_token(
     *,
     user_id: str,
     name: str,
-    expires_in_days: int | None,
+    expires_in_days: int,
 ) -> dict:
     """Create a new API token for the given user.
 
@@ -41,11 +41,9 @@ async def create_token(
     # Capture current time once for all queries and the INSERT
     now_dt = datetime.now(timezone.utc)
     now = now_dt.strftime("%Y-%m-%d %H:%M:%S")
-    expires_at: str | None = None
-    if expires_in_days is not None:
-        expires_at = (now_dt + timedelta(days=expires_in_days)).strftime(
-            "%Y-%m-%d %H:%M:%S"
-        )
+    expires_at = (now_dt + timedelta(days=expires_in_days)).strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
 
     # Check per-user cap (count truly active tokens: non-revoked and non-expired)
     cursor = await db.execute(

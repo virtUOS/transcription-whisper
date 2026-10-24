@@ -8,7 +8,7 @@ Ein Token gehört zu Ihrem Konto. Ein Skript, das ihn verwendet, sieht und ände
 
 ## Token erstellen
 
-Klicken Sie in der Kopfzeile auf **Einstellungen**. Klicken Sie im Bereich **API-Tokens** auf **Token erstellen**. Geben Sie einen **Namen** ein, der Ihnen sagt, wo Sie den Token verwenden, zum Beispiel den Namen des Skripts. Wählen Sie unter **Läuft ab** zwischen **30 Tage**, **90 Tage**, **365 Tage** und **Nie**. Die Standard-Gültigkeit beträgt {{api_token_expiry_days}} Tage. Klicken Sie auf **Erstellen**.
+Klicken Sie in der Kopfzeile auf **Einstellungen**. Klicken Sie im Bereich **API-Tokens** auf **Token erstellen**. Geben Sie einen **Namen** ein, der Ihnen sagt, wo Sie den Token verwenden, zum Beispiel den Namen des Skripts. Wählen Sie unter **Läuft ab** eine der Optionen **30 Tage**, **90 Tage** oder **365 Tage**. Jeder Token läuft ab; die Standard-Gültigkeit beträgt {{api_token_expiry_days}} Tage. Klicken Sie auf **Erstellen**.
 
 Der Name darf bis zu 64 Zeichen lang sein. Unter Ihren aktiven Tokens darf jeder Name nur einmal vorkommen. Die Zahl der aktiven Tokens pro Person ist begrenzt. Haben Sie sie erreicht, wird ein weiterer Token mit einer Fehlermeldung im Dialog abgelehnt. Widerrufen Sie dann zuerst einen Token, den Sie nicht mehr brauchen.
 
@@ -23,7 +23,7 @@ Der Bereich **API-Tokens** listet Ihre Tokens auf.
 ![Der Bereich „API-Tokens“ mit einem aktiven Token; nummerierte Markierungen heben die Bedienelemente hervor](shots/tokens.png)
 
 1. **Token erstellen** öffnet den oben beschriebenen Dialog.
-2. Ein Token mit seinem Namen, seinen ersten Zeichen mit angehängtem „…“, dem Status (**Aktiv**, **Abgelaufen** oder **Widerrufen**), dem Ablaufdatum, falls er eines hat, und, sobald er verwendet wurde, dem Zeitpunkt der letzten Verwendung.
+2. Ein Token mit seinem Namen, seinen ersten Zeichen mit angehängtem „…“, dem Status (**Aktiv**, **Abgelaufen** oder **Widerrufen**), seinem Ablaufdatum und, sobald er verwendet wurde, dem Zeitpunkt der letzten Verwendung.
 3. **Widerrufen** neben einem aktiven Token widerruft ihn. Ab dann weist der Server jede neue Anfrage mit ihm ab.
 
 Abgelaufene und widerrufene Tokens bleiben abgeblendet in der Liste. Sie werden automatisch daraus entfernt, widerrufene nach 30 Tagen und abgelaufene nach 90 Tagen.
