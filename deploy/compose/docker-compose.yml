@@ -1,6 +1,6 @@
 services:
   transcription:
-    image: ghcr.io/virtuos/transcription-whisper:latest
+    image: ghcr.io/virtuos/transkribierbar:latest
     container_name: transcription
     env_file: .env
     volumes:
