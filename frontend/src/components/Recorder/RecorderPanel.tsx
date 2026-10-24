@@ -33,7 +33,7 @@ export function RecorderPanel() {
     if (capture) setUseCamera(false)
   }, [])
 
-  const { state, blob, stream, duration, error, start, pause, resume, stop, discard } =
+  const { state, blob, stream, duration, error, hasVideo, start, pause, resume, stop, discard } =
     useMediaRecorder({ audioDeviceId, videoDeviceId, useCamera, captureSystemAudio, secondAudioDeviceId, useMicrophone })
 
   const videoPreviewRef = useRef<HTMLVideoElement>(null)
@@ -58,20 +58,23 @@ export function RecorderPanel() {
     setUploadError(null)
 
     try {
-      const mimeType = blob.type || getPreferredMimeType(useCamera)
+      const mimeType = blob.type || getPreferredMimeType(hasVideo)
       const ext = getFileExtension(mimeType)
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
       const filename = `recording-${timestamp}.${ext}`
       const file = new File([blob], filename, { type: mimeType })
 
-      const fileInfo = await api.uploadRecording(file, useCamera)
+      // Upload the video flag the recording actually carries, not the camera
+      // toggle: when the camera was denied the stream fell back to audio only
+      // and the file must be stored has_video=false (see #200).
+      const fileInfo = await api.uploadRecording(file, hasVideo)
       setFile(fileInfo)
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : t('recorder.uploadFailed'))
     } finally {
       setUploading(false)
     }
-  }, [blob, useCamera, setFile, t])
+  }, [blob, hasVideo, setFile, t])
 
   // Auto-upload once the recording is captured — avoids a second "Transcribe"
   // press on an intermediate page. The settings panel + Transcribe / Discard
