@@ -58,7 +58,7 @@ docker build --build-arg VITE_BASE_PATH=/test -t transcription-test .
 - Database: async SQLite with foreign keys enabled
 - All frontend API calls go through centralized client at `frontend/src/api/client.ts`
 - Base path for subpath deployments configured via `VITE_BASE_PATH` env var at build time
-- Two authentication paths share one dependency (`get_current_user`): reverse-proxy headers (`X-Auth-Request-User/Email`) for the browser, and `Authorization: Bearer tw_…` for personal API tokens when `ENABLE_API_TOKENS=true`. Token path wins when present; invalid tokens return 401 without header fallback. Tokens are sha256-hashed in `api_tokens`, surfaced via `/api/tokens` (router mounted only when flag is on; OpenAPI hidden when off) and a Settings view. WS (`/api/ws/status/{id}`) accepts `?token=tw_…` since browsers cannot set custom WS headers
+- Two authentication paths share one dependency (`get_current_user`): reverse-proxy headers (`X-Auth-Request-User/Email`) for the browser, and `Authorization: Bearer tw_…` for personal API tokens when `ENABLE_API_TOKENS=true`. Token path wins when present; invalid tokens return 401 without header fallback. Tokens are sha256-hashed in `api_tokens`, surfaced via `/api/tokens` (router mounted only when flag is on; OpenAPI hidden when off) and a Settings view. The token-management endpoints use `get_session_user` instead, which refuses any `Bearer tw_…` with 403 (a token cannot mint or list tokens); new credential-management endpoints must use it too. WS (`/api/ws/status/{id}`) accepts `?token=tw_…` since browsers cannot set custom WS headers
 
 ## Code Style
 

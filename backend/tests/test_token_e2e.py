@@ -20,7 +20,7 @@ async def test_upload_works_with_bearer_token(monkeypatch):
     async with get_db() as db:
         await db.execute("INSERT OR IGNORE INTO users (id, email) VALUES ('alice', 'a@x')")
         await db.commit()
-        t = await create_token(db, user_id="alice", name="cli", expires_in_days=None)
+        t = await create_token(db, user_id="alice", name="cli", expires_in_days=30)
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as c:

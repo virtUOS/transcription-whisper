@@ -62,6 +62,30 @@ def test_api_token_settings_from_env(monkeypatch):
     assert config_module.settings.API_TOKEN_DEFAULT_EXPIRY_DAYS == 30
 
 
+@pytest.mark.parametrize("value", ["0", "-5", "366"])
+def test_api_token_default_expiry_out_of_range_refuses_start(monkeypatch, value):
+    import dotenv
+    monkeypatch.setattr(dotenv, "load_dotenv", lambda *a, **kw: None)
+    from app import config as config_module
+    monkeypatch.setenv("API_TOKEN_DEFAULT_EXPIRY_DAYS", value)
+    with pytest.raises(ValueError, match="API_TOKEN_DEFAULT_EXPIRY_DAYS must be between 1 and 365"):
+        importlib.reload(config_module)
+    monkeypatch.delenv("API_TOKEN_DEFAULT_EXPIRY_DAYS")
+    importlib.reload(config_module)
+
+
+@pytest.mark.parametrize("value", ["1", "365"])
+def test_api_token_default_expiry_bounds_accepted(monkeypatch, value):
+    import dotenv
+    monkeypatch.setattr(dotenv, "load_dotenv", lambda *a, **kw: None)
+    from app import config as config_module
+    monkeypatch.setenv("API_TOKEN_DEFAULT_EXPIRY_DAYS", value)
+    importlib.reload(config_module)
+    assert config_module.settings.API_TOKEN_DEFAULT_EXPIRY_DAYS == int(value)
+    monkeypatch.delenv("API_TOKEN_DEFAULT_EXPIRY_DAYS")
+    importlib.reload(config_module)
+
+
 def test_invitation_config_defaults(monkeypatch):
     import dotenv
     monkeypatch.setattr(dotenv, "load_dotenv", lambda *a, **kw: None)

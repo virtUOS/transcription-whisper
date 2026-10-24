@@ -43,7 +43,6 @@
       "expiry30": "30 Tage",
       "expiry90": "90 Tage",
       "expiry365": "365 Tage",
-      "expiryNever": "Nie",
       "createCta": "Erstellen",
       "cancel": "Abbrechen",
       "revoke": "Widerrufen",

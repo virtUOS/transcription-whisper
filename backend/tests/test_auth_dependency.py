@@ -26,7 +26,7 @@ async def test_token_wins_over_headers(monkeypatch):
     async with get_db() as db:
         await db.execute("INSERT INTO users (id, email) VALUES ('u1', 'u1@x')")
         await db.commit()
-        t = await create_token(db, user_id="u1", name="k", expires_in_days=None)
+        t = await create_token(db, user_id="u1", name="k", expires_in_days=30)
 
     transport = ASGITransport(app=_mini_app())
     async with AsyncClient(transport=transport, base_url="http://test") as c:

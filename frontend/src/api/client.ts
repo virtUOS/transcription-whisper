@@ -233,7 +233,7 @@ export const api = {
 
   listApiTokens: () => request<ApiToken[]>('/api/tokens'),
 
-  createApiToken: (name: string, expiresInDays: number | null) =>
+  createApiToken: (name: string, expiresInDays: number) =>
     request<ApiTokenCreated>('/api/tokens', {
       method: 'POST',
       body: JSON.stringify({ name, expires_in_days: expiresInDays }),

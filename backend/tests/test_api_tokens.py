@@ -143,7 +143,7 @@ async def test_cleanup_stale_tokens_removes_old_revoked_and_expired():
         await _seed_user(db)
 
         # Token 1: revoked 40 days ago
-        t1 = await create_token(db, user_id="u1", name="old-revoked", expires_in_days=None)
+        t1 = await create_token(db, user_id="u1", name="old-revoked", expires_in_days=30)
         revoked_40_days_ago = (
             datetime.now(timezone.utc) - timedelta(days=40)
         ).strftime("%Y-%m-%d %H:%M:%S")
@@ -153,7 +153,7 @@ async def test_cleanup_stale_tokens_removes_old_revoked_and_expired():
         )
 
         # Token 2: expired 100 days ago
-        t2 = await create_token(db, user_id="u1", name="old-expired", expires_in_days=None)
+        t2 = await create_token(db, user_id="u1", name="old-expired", expires_in_days=30)
         expired_100_days_ago = (
             datetime.now(timezone.utc) - timedelta(days=100)
         ).strftime("%Y-%m-%d %H:%M:%S")
@@ -182,8 +182,8 @@ async def test_create_token_cap_ignores_expired_tokens(monkeypatch):
     async with get_db() as db:
         await _seed_user(db)
         # Two active tokens → at cap
-        await create_token(db, user_id="u1", name="a", expires_in_days=None)
-        b = await create_token(db, user_id="u1", name="b", expires_in_days=None)
+        await create_token(db, user_id="u1", name="a", expires_in_days=30)
+        b = await create_token(db, user_id="u1", name="b", expires_in_days=30)
         # Force one to be expired → no longer "active"
         await db.execute(
             "UPDATE api_tokens SET expires_at = '2000-01-01 00:00:00' WHERE id = ?",
@@ -191,7 +191,7 @@ async def test_create_token_cap_ignores_expired_tokens(monkeypatch):
         )
         await db.commit()
         # Should now be allowed — only one "active" token
-        result = await create_token(db, user_id="u1", name="c", expires_in_days=None)
+        result = await create_token(db, user_id="u1", name="c", expires_in_days=30)
     assert result["id"] is not None
 
 
@@ -200,7 +200,7 @@ async def test_touch_last_used_updates_timestamp():
     from app.database import get_db
     async with get_db() as db:
         await _seed_user(db)
-        t = await create_token(db, user_id="u1", name="touch-test", expires_in_days=None)
+        t = await create_token(db, user_id="u1", name="touch-test", expires_in_days=30)
 
         # Fetch initial last_used_at — should be NULL
         cursor = await db.execute("SELECT last_used_at FROM api_tokens WHERE id = ?", (t["id"],))
@@ -239,7 +239,7 @@ async def test_create_token_rejects_empty_name(monkeypatch):
     monkeypatch.setattr(config_module.settings, "DEV_MODE", True)
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as c:
-        r = await c.post("/api/tokens", json={"name": "   ", "expires_in_days": None})
+        r = await c.post("/api/tokens", json={"name": "   ", "expires_in_days": 30})
     assert r.status_code == 422
 
 
@@ -249,8 +249,8 @@ async def test_create_token_duplicate_name_returns_409(monkeypatch):
     monkeypatch.setattr(config_module.settings, "DEV_MODE", True)
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as c:
-        await c.post("/api/tokens", json={"name": "dup", "expires_in_days": None})
-        r = await c.post("/api/tokens", json={"name": "dup", "expires_in_days": None})
+        await c.post("/api/tokens", json={"name": "dup", "expires_in_days": 30})
+        r = await c.post("/api/tokens", json={"name": "dup", "expires_in_days": 30})
     assert r.status_code == 409
 
 
@@ -261,8 +261,8 @@ async def test_create_token_over_cap_returns_429(monkeypatch):
     monkeypatch.setattr(config_module.settings, "API_TOKEN_MAX_PER_USER", 1)
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as c:
-        await c.post("/api/tokens", json={"name": "a", "expires_in_days": None})
-        r = await c.post("/api/tokens", json={"name": "b", "expires_in_days": None})
+        await c.post("/api/tokens", json={"name": "a", "expires_in_days": 30})
+        r = await c.post("/api/tokens", json={"name": "b", "expires_in_days": 30})
     assert r.status_code == 429
 
 
@@ -272,10 +272,13 @@ async def test_revoke_token_returns_204_and_blocks_reuse(monkeypatch):
     monkeypatch.setattr(config_module.settings, "DEV_MODE", True)
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as c:
-        created = (await c.post("/api/tokens", json={"name": "r", "expires_in_days": None})).json()
+        created = (await c.post("/api/tokens", json={"name": "r", "expires_in_days": 30})).json()
         r = await c.delete(f"/api/tokens/{created['id']}")
         assert r.status_code == 204
-        r2 = await c.get("/api/tokens", headers={"Authorization": f"Bearer {created['token']}"})
+        r2 = await c.get(
+            "/api/transcriptions",
+            headers={"Authorization": f"Bearer {created['token']}"},
+        )
     assert r2.status_code == 401
 
 
@@ -295,12 +298,153 @@ async def test_list_tokens_user_isolated(monkeypatch):
     monkeypatch.setattr(config_module.settings, "DEV_MODE", True)
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as c:
-        await c.post("/api/tokens", json={"name": "dev-t", "expires_in_days": None})
+        await c.post("/api/tokens", json={"name": "dev-t", "expires_in_days": 30})
         await c.post(
             "/api/tokens",
             headers={"X-Auth-Request-User": "alice"},
-            json={"name": "alice-t", "expires_in_days": None},
+            json={"name": "alice-t", "expires_in_days": 30},
         )
         items = (await c.get("/api/tokens")).json()
     names = {i["name"] for i in items}
     assert names == {"dev-t"}
+
+
+async def _dev_user_token():
+    async with get_db() as db:
+        await db.execute(
+            "INSERT OR IGNORE INTO users (id, email) VALUES (?, ?)",
+            ("dev-user", "dev@localhost"),
+        )
+        await db.commit()
+        return await create_token(db, user_id="dev-user", name="t", expires_in_days=30)
+
+
+@pytest.mark.asyncio
+async def test_token_cannot_create_token(monkeypatch):
+    monkeypatch.setattr(config_module.settings, "ENABLE_API_TOKENS", True)
+    monkeypatch.setattr(config_module.settings, "DEV_MODE", True)
+    t = await _dev_user_token()
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as c:
+        r = await c.post(
+            "/api/tokens",
+            headers={"Authorization": f"Bearer {t['token']}"},
+            json={"name": "minted", "expires_in_days": 30},
+        )
+    assert r.status_code == 403
+    async with get_db() as db:
+        cursor = await db.execute("SELECT COUNT(*) AS n FROM api_tokens")
+        assert (await cursor.fetchone())["n"] == 1
+
+
+@pytest.mark.asyncio
+async def test_token_cannot_list_or_revoke_tokens(monkeypatch):
+    monkeypatch.setattr(config_module.settings, "ENABLE_API_TOKENS", True)
+    monkeypatch.setattr(config_module.settings, "DEV_MODE", True)
+    t = await _dev_user_token()
+    headers = {"Authorization": f"Bearer {t['token']}"}
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as c:
+        r_list = await c.get("/api/tokens", headers=headers)
+        r_del = await c.delete(f"/api/tokens/{t['id']}", headers=headers)
+    assert r_list.status_code == 403
+    assert r_del.status_code == 403
+    async with get_db() as db:
+        cursor = await db.execute(
+            "SELECT revoked_at FROM api_tokens WHERE id = ?", (t["id"],)
+        )
+        assert (await cursor.fetchone())["revoked_at"] is None
+
+
+@pytest.mark.asyncio
+async def test_revoked_token_cannot_manage_tokens(monkeypatch):
+    monkeypatch.setattr(config_module.settings, "ENABLE_API_TOKENS", True)
+    monkeypatch.setattr(config_module.settings, "DEV_MODE", True)
+    t = await _dev_user_token()
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as c:
+        assert (await c.delete(f"/api/tokens/{t['id']}")).status_code == 204
+        r = await c.get("/api/tokens", headers={"Authorization": f"Bearer {t['token']}"})
+    assert r.status_code == 403
+
+
+def _minutes_from_now(value: str, days: int) -> float:
+    from datetime import datetime, timedelta, timezone
+    expected = datetime.now(timezone.utc) + timedelta(days=days)
+    parsed = datetime.strptime(value, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+    return abs((parsed - expected).total_seconds()) / 60
+
+
+@pytest.mark.asyncio
+async def test_create_token_without_expiry_uses_default(monkeypatch):
+    monkeypatch.setattr(config_module.settings, "ENABLE_API_TOKENS", True)
+    monkeypatch.setattr(config_module.settings, "DEV_MODE", True)
+    monkeypatch.setattr(config_module.settings, "API_TOKEN_DEFAULT_EXPIRY_DAYS", 90)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as c:
+        r = await c.post("/api/tokens", json={"name": "script"})
+    assert r.status_code == 200, r.text
+    assert _minutes_from_now(r.json()["expires_at"], 90) < 1
+
+
+@pytest.mark.asyncio
+async def test_create_token_rejects_null_expiry(monkeypatch):
+    monkeypatch.setattr(config_module.settings, "ENABLE_API_TOKENS", True)
+    monkeypatch.setattr(config_module.settings, "DEV_MODE", True)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as c:
+        r = await c.post("/api/tokens", json={"name": "x", "expires_in_days": None})
+    assert r.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_create_token_rejects_zero_expiry(monkeypatch):
+    monkeypatch.setattr(config_module.settings, "ENABLE_API_TOKENS", True)
+    monkeypatch.setattr(config_module.settings, "DEV_MODE", True)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as c:
+        r = await c.post("/api/tokens", json={"name": "x", "expires_in_days": 0})
+    assert r.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_create_token_rejects_expiry_over_365(monkeypatch):
+    monkeypatch.setattr(config_module.settings, "ENABLE_API_TOKENS", True)
+    monkeypatch.setattr(config_module.settings, "DEV_MODE", True)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as c:
+        r = await c.post("/api/tokens", json={"name": "x", "expires_in_days": 366})
+        assert r.status_code == 422
+        r = await c.post("/api/tokens", json={"name": "x", "expires_in_days": 365})
+        assert r.status_code == 200, r.text
+
+
+@pytest.mark.asyncio
+async def test_init_db_gives_never_expiring_tokens_an_expiry(monkeypatch):
+    import app.database as database
+    from app.database import init_db
+    monkeypatch.setattr(config_module.settings, "API_TOKEN_DEFAULT_EXPIRY_DAYS", 90)
+    db_path = database._db_path
+    fixed = "2030-01-02 03:04:05"
+    async with get_db() as db:
+        await _seed_user(db)
+        for tid, exp in (("never", None), ("fixed", fixed)):
+            await db.execute(
+                "INSERT INTO api_tokens (id, user_id, name, token_hash, prefix, expires_at) "
+                "VALUES (?, 'u1', ?, ?, ?, ?)",
+                (tid, tid, tid, tid, exp),
+            )
+        await db.commit()
+
+    async def expiries():
+        async with get_db() as db:
+            cur = await db.execute("SELECT id, expires_at FROM api_tokens")
+            return {r["id"]: r["expires_at"] for r in await cur.fetchall()}
+
+    await init_db(db_path)
+    after_first = await expiries()
+    assert after_first["fixed"] == fixed
+    assert _minutes_from_now(after_first["never"], 90) < 1
+
+    await init_db(db_path)
+    assert await expiries() == after_first
