@@ -28,6 +28,6 @@ Enthält das Paket Verfeinerung, Analyse oder Übersetzung, heißt die Schaltfl�
 
 Solange die Datei hochgeladen wird, fragt transkribierBAR beim Wechsel in eine andere Ansicht nach: **Ein Upload läuft gerade. Wenn Sie die Seite verlassen, wird er abgebrochen. Fortfahren?** Bestätigen Sie, bricht der Upload ab. Schließen Sie den Tab oder laden Sie die Seite neu, warnt Sie der Browser.
 
-Sobald die Transkription läuft, können Sie die Seite verlassen. Sie läuft auf dem Server weiter und steht später in der Übersicht. Das gilt nicht für die Schritte eines Pakets: Sie laufen nur, solange die Seite geöffnet bleibt.
+Sobald die Transkription läuft, können Sie die Seite verlassen. Sie läuft auf dem Server weiter und steht später in der Übersicht. Das gilt nicht für die Schritte eines Pakets: Sie laufen nur, solange die Seite geöffnet bleibt. Öffnen Sie die Transkription im selben Tab erneut, starten die Schritte dann.
 
 > **Große Dateien.** Eine hochgeladene Datei allein erscheint nicht in der Übersicht. Klicken Sie schon während des Uploads auf **Transkribieren wenn bereit** und lassen Sie den Tab geöffnet, bis der Upload fertig ist. Sobald die Transkription läuft, können Sie die Seite verlassen.
