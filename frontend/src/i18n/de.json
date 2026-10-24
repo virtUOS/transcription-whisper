@@ -421,7 +421,7 @@
     "selectSecondDevice": "Systemaudioquelle",
     "secondDeviceFailed": "Das ausgewählte Systemaudio-Gerät konnte nicht geöffnet werden. Bitte überprüfen Sie, ob es verfügbar und nicht in Verwendung ist.",
     "consentReminder": "Nehmen Sie niemanden ohne Erlaubnis auf. Fragen Sie vorher!",
-    "sourcesAtLeastOne": "Mindestens eine Quelle aktivieren",
+    "sourcesNeedAudio": "Schalten Sie das Mikrofon oder Systemaudio ein.",
     "sourcesCameraDisabledBySystemAudio": "Nicht verfügbar, solange Systemaudio aktiv ist",
     "sourceMicrophone": "Mikrofon",
     "sourceCamera": "Kamera",

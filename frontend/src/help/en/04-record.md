@@ -12,7 +12,7 @@ In the overview, click **+ Record**. The button only appears if your browser sup
 4. **Camera** also records the camera image. It is off by default; see "Camera" below.
 5. **Start Recording** starts the recording (see "Recording").
 
-With the camera, the microphone is always recorded too, even if the **Microphone** switch is off. At least one source must be on, otherwise the page shows **Enable at least one source** and **Start Recording** is disabled.
+A recording needs sound: switch on the microphone or system audio. The camera only adds the picture. If neither microphone nor system audio is on, the page shows **Turn on the microphone or system audio.** and **Start Recording** is disabled.
 
 Your browser may ask for permission. If access is blocked, a notice with the button **Retry** appears. Allow access in your browser's site settings.
 
@@ -44,7 +44,7 @@ While **System audio** is on, **Camera** is unavailable. If you stop sharing the
 
 ## Camera
 
-With **Camera** you also record a picture, which produces a video file. The microphone sound is always recorded with it. Pick the device in the **Camera** field. If there is no camera, it reads **No camera detected.** If the camera cannot be opened, the recording continues with sound only, and a message points this out.
+With **Camera** you also record a picture, which produces a video file. The sound comes from the microphone, which must be on. Pick the device in the **Camera** field. If there is no camera, it reads **No camera detected.** If the camera cannot be opened, the recording continues with sound only, and a message points this out.
 
 ## Leaving the page
 

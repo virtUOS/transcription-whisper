@@ -185,7 +185,7 @@ export function RecorderPanel() {
         onStop={stop}
         onDiscard={discard}
         startDisabled={!sourcesValid}
-        startDisabledReason={!sourcesValid ? t('recorder.sourcesAtLeastOne') : undefined}
+        startDisabledReason={!sourcesValid && !useMicrophone && !captureSystemAudio ? t('recorder.sourcesNeedAudio') : undefined}
       />
 
       {/* Error messages */}

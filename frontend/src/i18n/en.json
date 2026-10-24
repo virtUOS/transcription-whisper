@@ -421,7 +421,7 @@
     "selectSecondDevice": "System audio source",
     "secondDeviceFailed": "Could not open the selected system audio device. Please check that it is available and not in use.",
     "consentReminder": "Don't record people without their permission. Ask first!",
-    "sourcesAtLeastOne": "Enable at least one source",
+    "sourcesNeedAudio": "Turn on the microphone or system audio.",
     "sourcesCameraDisabledBySystemAudio": "Not available while System audio is on",
     "sourceMicrophone": "Microphone",
     "sourceCamera": "Camera",
