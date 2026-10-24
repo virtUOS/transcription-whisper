@@ -6,8 +6,15 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from starlette.testclient import TestClient
 
-from app.database import get_db
-from app.main import INTERRUPTED_MESSAGE, app, cleanup_remote_jobs, fail_interrupted_transcriptions
+from app.config import settings
+from app.database import get_db, init_db
+from app.main import (
+    INTERRUPTED_MESSAGE,
+    app,
+    cleanup_remote_jobs,
+    clear_interrupted_llm_steps,
+    fail_interrupted_transcriptions,
+)
 
 
 @pytest.mark.asyncio
@@ -37,6 +44,40 @@ async def test_interrupted_rows_marked_failed():
 
 
 @pytest.mark.asyncio
+async def test_interrupted_llm_markers_cleared():
+    async with get_db() as db:
+        await db.execute(
+            "INSERT INTO transcriptions (id, status, refined_utterances_json) VALUES ('t-refining', 'completed', '')"
+        )
+        await db.execute(
+            "INSERT INTO transcriptions (id, status, translated_utterances_json, translation_language, "
+            "translation_source, translation_source_hash) VALUES ('t-translating', 'completed', '', 'en', 'src', 'h')"
+        )
+        await db.execute(
+            "INSERT INTO transcriptions (id, status, refined_utterances_json, translated_utterances_json, "
+            "translation_language) VALUES ('t-done', 'completed', '[1]', '[2]', 'de')"
+        )
+        await db.execute("INSERT INTO analyses (id, transcription_id, analysis_json) VALUES ('a-running', 't-done', NULL)")
+        await db.execute("INSERT INTO analyses (id, transcription_id, analysis_json) VALUES ('a-done', 't-done', '{}')")
+        await db.commit()
+
+    await clear_interrupted_llm_steps()
+
+    async with get_db() as db:
+        cursor = await db.execute(
+            "SELECT id, refined_utterances_json AS r, translated_utterances_json AS t, translation_language AS l, "
+            "translation_source AS s, translation_source_hash AS h FROM transcriptions"
+        )
+        rows = {r["id"]: (r["r"], r["t"], r["l"], r["s"], r["h"]) for r in await cursor.fetchall()}
+        cursor = await db.execute("SELECT id FROM analyses")
+        analyses = [r["id"] for r in await cursor.fetchall()]
+    assert rows["t-refining"] == (None, None, None, None, None)
+    assert rows["t-translating"] == (None, None, None, None, None)
+    assert rows["t-done"] == ("[1]", "[2]", "de", None, None)
+    assert analyses == ["a-done"]
+
+
+@pytest.mark.asyncio
 async def test_cleanup_remote_jobs_deletes_each_transcript():
     backend = AsyncMock()
     with patch("app.main.get_asr_backend", return_value=backend):
@@ -44,7 +85,7 @@ async def test_cleanup_remote_jobs_deletes_each_transcript():
     assert [c.args for c in backend.cleanup.await_args_list] == [("job-1",), ("job-2",)]
 
 
-def test_startup_does_not_wait_for_remote_cleanup():
+def test_startup_does_not_wait_for_remote_cleanup(tmp_path, monkeypatch):
     release = threading.Event()
     started = threading.Event()
 
@@ -55,6 +96,24 @@ def test_startup_does_not_wait_for_remote_cleanup():
 
     backend = MagicMock()
     backend.cleanup = blocked_cleanup
+
+    # lifespan initializes settings.db_path, so seed that database
+    monkeypatch.setattr(settings, "DATABASE_PATH", str(tmp_path / "startup.db"))
+
+    async def seed():
+        await init_db(settings.db_path)
+        async with get_db() as db:
+            await db.execute(
+                "INSERT INTO transcriptions (id, status, refined_utterances_json) VALUES ('t-refining', 'completed', '')"
+            )
+            await db.commit()
+
+    async def refined_marker():
+        async with get_db() as db:
+            cursor = await db.execute("SELECT refined_utterances_json AS r FROM transcriptions WHERE id = 't-refining'")
+            return (await cursor.fetchone())["r"]
+
+    asyncio.run(seed())
     with patch("app.main.fail_interrupted_transcriptions", AsyncMock(return_value=["job-1"])), \
          patch("app.main.get_asr_backend", return_value=backend):
         try:
@@ -62,5 +121,7 @@ def test_startup_does_not_wait_for_remote_cleanup():
                 assert client.get("/api/health").status_code == 200
                 assert started.wait(5)
                 assert not release.is_set()
+                # lifespan clears the markers a restart left behind
+                assert asyncio.run(refined_marker()) is None
         finally:
             release.set()

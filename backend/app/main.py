@@ -95,6 +95,26 @@ async def fail_interrupted_transcriptions() -> list[str]:
     return job_ids
 
 
+async def clear_interrupted_llm_steps() -> None:
+    """Clear the in-progress markers of refinement, translation and analysis.
+
+    Only called at startup. The app runs as a single process (no ``--workers``),
+    so at startup no LLM request can be in flight and a marker still set
+    (empty refined/translated JSON, analysis row without a result) was left
+    by the restart and would otherwise make every later attempt 429.
+    """
+    async with get_db() as db:
+        await db.execute(
+            "UPDATE transcriptions SET refined_utterances_json = NULL WHERE refined_utterances_json = ''"
+        )
+        await db.execute(
+            "UPDATE transcriptions SET translated_utterances_json = NULL, translation_language = NULL, "
+            "translation_source = NULL, translation_source_hash = NULL WHERE translated_utterances_json = ''"
+        )
+        await db.execute("DELETE FROM analyses WHERE analysis_json IS NULL")
+        await db.commit()
+
+
 async def cleanup_remote_jobs(job_ids: list[str]) -> None:
     """Delete the remote ASR transcripts of interrupted jobs (best effort)."""
     backend = get_asr_backend()
@@ -229,6 +249,7 @@ async def lifespan(app: FastAPI):
     public_pages.NOTICES = load_privacy_notices()
     await init_db(settings.db_path)
     interrupted_job_ids = await fail_interrupted_transcriptions()
+    await clear_interrupted_llm_steps()
     # Backfill has_video for existing files
     async with get_db() as db:
         cursor = await db.execute(
