@@ -332,7 +332,7 @@ function head(lang: GuideLang, title: string, description: string, root: string,
 <meta name="color-scheme" content="light dark">
 <title>${esc(title)} · transkribierBAR</title>
 <meta name="description" content="${esc(description)}">
-<link rel="icon" href="${root}static/logo.svg${version}" type="image/svg+xml">
+<link rel="icon" href="${root}static/favicon.svg${version}" type="image/svg+xml">
 <link rel="stylesheet" href="${root}static/guide.css${version}">
 </head>`
 }

@@ -18,19 +18,20 @@
   --sans: "Source Sans 3", "Helvetica Neue", Arial, sans-serif;
   --serif: "Source Serif 4", Georgia, serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --accent: #c2372b; --accent-deep: #9b2a20; --accent-soft: #fde8e2; --on-accent: #fff;
+  --accent: #c2410c; --accent-deep: #9a3412; --accent-soft: #ffedd5; --on-accent: #fff;
   /* --ink-3 is darker than in the mockup (#888184) so small text reaches 4.5:1 on paper and panel. */
   --ink: #2c2a2b; --ink-2: #5a5557; --ink-3: #6f696b;
   --paper: #fbfaf8; --panel: #f3f0ec; --line: #e3ddd8;
-  --grad: linear-gradient(90deg, #fc4b4b 0%, #fd9a6f 45%, #fefd99 100%);
+  --grad: linear-gradient(90deg, #ff5a1c 0%, #ff6f1f 30%, #ffa531 62%, #ffbf45 100%);
   --shadow: 0 1px 2px rgba(60,25,20,.08), 0 8px 24px rgba(60,25,20,.08);
   /* One red for every number: list steps and screenshot markers, in both themes.
-     The logo's red, darkened so white numbers reach 4.5:1; it also holds 3:1 on the dark paper. */
+     Red like the markers in the app's help drawer, dark enough for white numbers to reach 4.5:1;
+     it also holds 3:1 on the dark paper. */
   --mark: #dc2f26; --badge-bg: var(--mark); --badge-ink: #fff;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --accent: #ff7a68; --accent-deep: #ffa293; --accent-soft: #3a1c18; --on-accent: #1b0f0d;
+    --accent: #fb923c; --accent-deep: #fdba74; --accent-soft: #3b2214; --on-accent: #1b0f0d;
     --ink: #ece8e5; --ink-2: #bab3af; --ink-3: #9a938f;
     --paper: #15161b; --panel: #1f2027; --line: #33343c;
     --shadow: 0 1px 2px rgba(0,0,0,.45), 0 8px 24px rgba(0,0,0,.45);
@@ -56,7 +57,10 @@ strong, b { font-weight: 600; }
 .masthead::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: var(--grad); }
 .masthead-inner { max-width: 1080px; margin: 0 auto; padding: 32px 24px 34px;
   display: grid; grid-template-columns: auto 1fr auto; gap: 28px; align-items: center; }
-.logo { width: 104px; height: 104px; display: block; }
+.logo { width: 136px; height: 88px; display: block; }
+/* The mark's glow suits dark backgrounds; on light ones it stays flat, like the sign-in logo. */
+.logo [filter] { display: none; }
+@media (prefers-color-scheme: dark) { .logo [filter] { display: inline; } }
 .eyebrow { font: 600 13px/1 var(--sans); letter-spacing: .09em; text-transform: uppercase; color: var(--accent); margin: 0; }
 h1 { font-size: clamp(34px, 5vw, 50px); font-weight: 700; letter-spacing: -.01em; margin: 8px 0; }
 h1 .bar { color: var(--accent); }
@@ -159,7 +163,7 @@ figure.diagram img { display: block; width: 100%; height: auto; border-radius: 6
 @media (max-width: 860px) {
   .masthead-inner { grid-template-columns: auto 1fr; gap: 20px; padding: 24px 16px 28px; }
   .masthead-inner .cta { grid-column: 1 / -1; justify-self: start; }
-  .logo { width: 72px; height: 72px; align-self: start; }
+  .logo { width: 96px; height: 62px; align-self: start; }
   .wrap { grid-template-columns: minmax(0, 1fr); gap: 20px; padding: 24px 16px 40px; }
   nav.toc { position: static; max-height: none; overflow: visible; }
   nav.toc .grp { display: none; }
