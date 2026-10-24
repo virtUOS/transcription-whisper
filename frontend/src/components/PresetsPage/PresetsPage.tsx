@@ -269,7 +269,14 @@ function AnalysisPresetsList() {
   const openEdit = (p: AnalysisPreset) => {
     setEditingId(p.id)
     const language = p.language && !isLanguageEnabled(p.language, enabledLanguages) ? null : p.language
-    setForm({ name: p.name, template: p.template, custom_prompt: p.custom_prompt, language })
+    setForm({
+      name: p.name,
+      template: p.template,
+      custom_prompt: p.custom_prompt,
+      language,
+      chapter_hints: p.chapter_hints,
+      agenda: p.agenda,
+    })
     setShowForm(true)
   }
 

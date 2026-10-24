@@ -38,7 +38,7 @@ Eine Analyse-Voreinstellung speichert die Vorlage und die Ausgabesprache. Bei **
 
 Speichern Sie eine Voreinstellung im Analyse-Formular mit **Als Voreinstellung speichern**, speichert sie auch die Kapitel und die Agenda, die Sie dort eingegeben haben. Wählen Sie die Voreinstellung später, werden sie wieder eingetragen. Der Abschnitt „Analyse“ erklärt das Formular.
 
-> **Kapitel und Agenda.** Die Seite „Voreinstellungen“ hat keine Felder für Kapitel und Agenda. Wenn Sie dort eine Analyse-Voreinstellung bearbeiten, werden sie aus der Voreinstellung entfernt.
+> **Kapitel und Agenda.** Die Seite „Voreinstellungen“ zeigt Kapitel und Agenda nicht an. Wenn Sie dort eine Voreinstellung bearbeiten, bleiben sie erhalten.
 
 ## Verfeinerungs-Voreinstellungen
 

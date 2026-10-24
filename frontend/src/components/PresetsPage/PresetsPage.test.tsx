@@ -4,12 +4,13 @@ import { useStore } from '../../store'
 import i18n from '../../i18n'
 import { api } from '../../api/client'
 import { PresetsPage } from './PresetsPage'
-import type { ConfigResponse, TranscriptionPreset } from '../../api/types'
+import type { AnalysisPreset, ConfigResponse, TranscriptionPreset } from '../../api/types'
 
 vi.mock('../../api/client', () => ({
   api: {
     createTranscriptionPreset: vi.fn(),
     updateTranscriptionPreset: vi.fn(),
+    updateAnalysisPreset: vi.fn(),
   },
 }))
 
@@ -94,6 +95,40 @@ describe('PresetsPage — transcription preset speakers', () => {
     expect(api.updateTranscriptionPreset).toHaveBeenCalledWith(
       'p1',
       expect.objectContaining({ min_speakers: 0, max_speakers: 0 }),
+    )
+  })
+})
+
+describe('PresetsPage — analysis preset chapters and agenda', () => {
+  it('editing an analysis preset keeps its chapters and agenda', async () => {
+    const chapterHints = [
+      { title: 'Intro', description: 'Welcome' },
+      { title: 'Q&A', description: 'Questions' },
+    ]
+    const preset: AnalysisPreset = {
+      id: 'a1',
+      name: 'Lecture',
+      template: 'summary',
+      custom_prompt: null,
+      language: null,
+      chapter_hints: chapterHints,
+      agenda: '1. Intro\n2. Q&A',
+      created_at: null,
+      updated_at: null,
+    }
+    vi.mocked(api.updateAnalysisPreset).mockResolvedValue({ ...preset, name: 'Renamed' })
+    useStore.setState({ config, analysisPresets: [preset] })
+    render(<PresetsPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Analysis' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    fireEvent.change(screen.getByDisplayValue('Lecture'), { target: { value: 'Renamed' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(api.updateAnalysisPreset).toHaveBeenCalled())
+    expect(api.updateAnalysisPreset).toHaveBeenCalledWith(
+      'a1',
+      expect.objectContaining({ name: 'Renamed', chapter_hints: chapterHints, agenda: '1. Intro\n2. Q&A' }),
     )
   })
 })

@@ -38,7 +38,7 @@ An analysis preset stores the template and the output language. For **Custom** i
 
 If you save a preset in the analysis form with **Save as preset**, it also stores the chapters and the agenda you entered there. Choosing the preset fills them back in. The section "Analysis" explains the form.
 
-> **Chapters and agenda.** The Presets page has no fields for chapters and agenda. If you edit an analysis preset there, they are removed from the preset.
+> **Chapters and agenda.** The Presets page doesn't show chapters and agenda. If you edit a preset there, they are kept.
 
 ## Refinement presets
 
